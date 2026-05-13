@@ -65,6 +65,16 @@ Then open:
 - **Rider app:** http://localhost:8000/rider/
 - **Driver app:** http://localhost:8000/driver/
 
+## Cloudflare Pages
+
+This repository is deployable on Cloudflare Pages as a static site.
+
+- The repository root is the Pages output directory.
+- `wrangler.toml` sets `pages_build_output_dir = "."` so Pages deploys the full site, not only `rider/` or `driver/`.
+- The root URL redirects to `/rider/` via `index.html`.
+
+If your deployment renders HTML with no styles, the usual cause is publishing only one app folder instead of the full repository root. Redeploy from the repository root so `shared/`, `rider/`, and `driver/` are all present.
+
 **Rider clickable flow** (5 screens):
 `rider/index.html` (Splash + Login) → `rider/verify-identity.html` (ID + Selfie, first login only) → `rider/home.html` (Book a Ride) → `rider/matching.html` (Finding a Driver) → `rider/active-trip.html` (Live Trip + SOS)
 

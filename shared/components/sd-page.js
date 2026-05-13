@@ -9,16 +9,25 @@ import { applyTranslations, isI18nReady } from '../scripts/i18n.js';
 
 const FONT_STYLESHEET = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap';
 const MAPBOX_STYLESHEET = 'https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css';
+const MODULE_URL = import.meta.url;
 const SHARED_STYLES = [
-  ['shedrive-tokens', '/shared/styles/tokens.css'],
-  ['shedrive-reset', '/shared/styles/reset.css'],
-  ['shedrive-base', '/shared/styles/base.css'],
-  ['shedrive-components', '/shared/styles/components.css'],
-  ['shedrive-utilities', '/shared/styles/utilities.css'],
-  ['shedrive-f7-overrides', '/shared/styles/f7-overrides.css'],
-  ['shedrive-web-components', '/shared/styles/web-components.css'],
-  ['shedrive-rtl', '/shared/styles/rtl.css'],
+  ['shedrive-tokens', '../styles/tokens.css'],
+  ['shedrive-reset', '../styles/reset.css'],
+  ['shedrive-base', '../styles/base.css'],
+  ['shedrive-components', '../styles/components.css'],
+  ['shedrive-utilities', '../styles/utilities.css'],
+  ['shedrive-f7-overrides', '../styles/f7-overrides.css'],
+  ['shedrive-web-components', '../styles/web-components.css'],
+  ['shedrive-rtl', '../styles/rtl.css'],
 ];
+
+function resolveModuleAsset(path) {
+  return new URL(path, MODULE_URL).toString();
+}
+
+function resolvePageAsset(path) {
+  return new URL(path, window.location.href).toString();
+}
 
 function hasHeadEntry(tagName, key) {
   return Array.from(document.head.querySelectorAll(`${tagName}[data-sd-entry]`)).some(
@@ -100,11 +109,11 @@ class SdPage extends HTMLElement {
 
     SHARED_STYLES.forEach(([key, href]) => {
       const id = key === 'shedrive-rtl' ? 'rtl-stylesheet' : '';
-      ensureStylesheet(href, key, id);
+      ensureStylesheet(resolveModuleAsset(href), key, id);
     });
 
     if (this.hasAttribute('drawer')) {
-      ensureStylesheet('/shared/styles/drawer.css', 'shedrive-drawer');
+      ensureStylesheet(resolveModuleAsset('../styles/drawer.css'), 'shedrive-drawer');
     }
 
     if (this.hasAttribute('mapbox')) {
@@ -112,7 +121,8 @@ class SdPage extends HTMLElement {
     }
 
     parseCommaList(this.getAttribute('screen-styles')).forEach((href) => {
-      ensureStylesheet(href, `screen:${href}`);
+      const resolvedHref = resolvePageAsset(href);
+      ensureStylesheet(resolvedHref, `screen:${resolvedHref}`);
     });
   }
 
