@@ -1,0 +1,188 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — رحلتك الآن" />
+    <title>SheDrive — رحلتك الآن</title>
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <sd-page
+      body-class="app-shell trip-page"
+      screen-styles="/rider/styles/rider.css, /rider/styles/trip.css"
+      drawer
+      mapbox
+    >
+      <sd-app-header
+        menu
+        bar-class="trip-topbar"
+        inner-class="trip-topbar__inner"
+        actions-class="trip-topbar__actions"
+        title-class="trip-topbar__title"
+      >
+        <a href="home.html" class="trip-topbar__logo" aria-label="SheDrive">
+          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
+        </a>
+      </sd-app-header>
+
+      <div class="trip-map" role="img" aria-label="خريطة الرحلة" data-i18n-aria-label="aria.map.trip">
+        <div id="map"></div>
+      </div>
+
+      <section class="trip-panel" aria-label="تفاصيل السائقة والرحلة" data-i18n-aria-label="trip.title">
+        <sd-driver-card
+          variant="detailed"
+          name-id="driver-name"
+          name-fallback="نورا أحمد"
+          rating-id="driver-rating"
+          rating-fallback="★★★★★ 4.9"
+          vehicle-id="driver-vehicle"
+          vehicle-fallback="تويوتا كورولا 2023 — أبيض | ق أ ب 123"
+          eta-id="driver-eta"
+          eta-fallback="الوصول خلال 4 دقيقة"
+          avatar="ن"
+        ></sd-driver-card>
+
+        <div class="safety-badges" role="list" aria-label="شارات السلامة">
+          <span class="safety-badge" role="listitem">
+            <span aria-hidden="true">🎥</span>
+            <span data-i18n="trip.badge.camera">كاميرا مباشرة</span>
+          </span>
+          <span class="safety-badge" role="listitem">
+            <span aria-hidden="true">✓</span>
+            <span data-i18n="trip.badge.verified">سائقة موثقة</span>
+          </span>
+          <span class="safety-badge" role="listitem">
+            <span aria-hidden="true">✚</span>
+            <span data-i18n="trip.badge.firstAid">إسعافات أولية</span>
+          </span>
+        </div>
+
+        <div class="trip-actions" role="group" aria-label="إجراءات الرحلة">
+
+          <button
+            type="button"
+            id="call-btn"
+            class="btn btn--secondary btn--icon"
+            data-i18n-aria-label="aria.call"
+            aria-label="اتصال بالسائقة"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.41 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.34 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            id="message-btn"
+            class="btn btn--secondary btn--icon"
+            data-i18n-aria-label="aria.message"
+            aria-label="رسالة للسائقة"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            id="sos-btn"
+            class="btn btn--sos"
+            data-i18n-aria-label="aria.sos"
+            aria-label="زر الطوارئ"
+          >
+            <span data-i18n="trip.sos">🆘 طوارئ</span>
+          </button>
+
+        </div>
+
+        <div class="trip-details">
+          <button
+            type="button"
+            id="trip-details-toggle"
+            class="trip-details-toggle"
+            aria-expanded="false"
+            aria-controls="trip-details-body"
+          >
+            <span data-i18n="trip.details">تفاصيل الرحلة</span>
+            <svg class="icon-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div id="trip-details-body" class="trip-details-body" role="region" aria-label="تفاصيل الرحلة">
+            <div class="trip-detail-row">
+              <span class="trip-detail-row__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
+              <span class="trip-detail-row__value" id="detail-pickup">موقعي الحالي</span>
+            </div>
+
+            <div class="trip-detail-row">
+              <span class="trip-detail-row__label" data-i18n="home.destination.label">الوجهة</span>
+              <span class="trip-detail-row__value" id="detail-destination">مدينة نصر</span>
+            </div>
+
+            <div class="trip-detail-row">
+              <span class="trip-detail-row__label" data-i18n="trip.fare">التكلفة التقديرية</span>
+              <span class="trip-detail-row__value">٤٥–٦٠ جنيه</span>
+            </div>
+
+            <div class="trip-detail-row">
+              <span class="trip-detail-row__label" data-i18n="trip.distance">المسافة</span>
+              <span class="trip-detail-row__value">~8 كم</span>
+            </div>
+
+            <button
+              type="button"
+              id="demo-end-btn"
+              class="btn btn--secondary btn--full btn--sm"
+              data-i18n="trip.demoEnd"
+              style="margin-top: 0.5rem; opacity: 0.7;"
+            >
+              محاكاة انتهاء الرحلة (تجريبي)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="sos-modal-backdrop"
+        id="sos-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sos-modal-title"
+        aria-describedby="sos-modal-body"
+      >
+        <div class="sos-modal">
+          <h2 class="sos-modal__title" id="sos-modal-title" data-i18n="trip.sosConfirmTitle">تأكيد طوارئ</h2>
+          <p class="sos-modal__body" id="sos-modal-body" data-i18n="trip.sosConfirmBody">
+            هل تريدين إبلاغ مركز السلامة الآن؟ سيتم إخطار الجهات المختصة فوراً.
+          </p>
+          <div class="sos-modal__actions">
+            <button
+              type="button"
+              id="sos-confirm"
+              class="btn btn--danger"
+              data-i18n="trip.sosConfirm"
+            >
+              نعم، أرسلي الإبلاغ
+            </button>
+            <button
+              type="button"
+              id="sos-cancel"
+              class="btn btn--ghost btn--full"
+              data-i18n="trip.sosCancel"
+            >
+              إلغاء
+            </button>
+          </div>
+        </div>
+      </div>
+    </sd-page>
+
+    <script type="module" src="scripts/active-trip.js"></script>
+  </body>
+</html>

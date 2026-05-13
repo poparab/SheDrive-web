@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6B2BD9"/>
+      <stop offset="100%" stop-color="#D63AE2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#brand-grad)"/>
+
+  <!-- Stylised SD monogram: two interlocked teardrop/lozenge shapes -->
+  <!-- S shape: left lozenge/teardrop -->
+  <path
+    d="M 82 88
+       C 82 72, 100 64, 116 70
+       C 132 76, 138 90, 128 100
+       C 118 110, 98 112, 94 124
+       C 90 136, 98 152, 116 156
+       C 134 160, 150 150, 150 136"
+    fill="none"
+    stroke="white"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- D shape: vertical stroke + arc -->
+  <line x1="158" y1="72" x2="158" y2="184" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <path
+    d="M 158 72
+       C 178 72, 196 88, 196 128
+       C 196 168, 178 184, 158 184"
+    fill="none"
+    stroke="white"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

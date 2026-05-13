@@ -1,0 +1,81 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — طلب رحلة" />
+    <title>SheDrive — الرئيسية</title>
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <sd-page
+      body-class="app-shell home-page"
+      screen-styles="/rider/styles/rider.css, /rider/styles/home-enhanced.css"
+      drawer
+      mapbox
+    >
+      <sd-app-header menu profile profile-avatar="S">
+        <a href="." class="home-topbar__logo" aria-label="SheDrive home">
+          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="32" />
+        </a>
+      </sd-app-header>
+
+      <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
+
+      <sd-bottom-sheet id="ride-sheet" aria-label="Request a ride">
+        <div class="pickup-destination">
+          <div class="pickup-destination__connector" aria-hidden="true"></div>
+
+          <div class="pickup-row pickup-row--pickup">
+            <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
+            <input
+              type="text"
+              id="pickup-input"
+              class="input pickup-row__input"
+              value="موقعي الحالي"
+              data-i18n-value="home.pickup.current"
+              readonly
+              aria-label="Pickup location"
+              data-i18n-aria-label="home.pickup.label"
+            />
+          </div>
+
+          <div class="pickup-row pickup-row--destination">
+            <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
+            <input
+              type="search"
+              id="destination-input"
+              name="destination"
+              class="input pickup-row__input"
+              data-i18n-placeholder="home.destination.placeholder"
+              placeholder="إلى أين؟"
+              autocomplete="off"
+              aria-label="Destination"
+              data-i18n-aria-label="home.destination.label"
+            />
+          </div>
+        </div>
+
+        <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
+          طلب رحلة
+        </sd-button>
+      </sd-bottom-sheet>
+
+      <div
+        class="location-status"
+        id="location-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div class="spinner" aria-hidden="true"></div>
+        <span data-i18n="home.gettingLocation">جارٍ تحديد موقعك…</span>
+      </div>
+    </sd-page>
+
+    <script type="module" src="scripts/home.js"></script>
+  </body>
+</html>

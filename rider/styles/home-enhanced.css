@@ -1,0 +1,91 @@
+/* home-enhanced.css — pickup/destination ride request input group */
+
+.ride-sheet {
+  --f7-sheet-height: auto;
+}
+
+.ride-sheet__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  min-block-size: var(--space-5);
+}
+
+.ride-sheet .sheet-modal-inner {
+  height: auto;
+  overflow: visible;
+}
+
+.pickup-destination {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.pickup-destination__connector {
+  position: absolute;
+  inset-inline-start: calc(var(--space-4) + 9px); /* center of dot */
+  top: 50%;
+  width: 2px;
+  height: calc(100% - var(--space-10));
+  background: var(--color-border);
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.pickup-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+  z-index: 1;
+}
+
+.pickup-row--pickup {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pickup-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: block;
+}
+
+.pickup-dot--green {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.pickup-dot--magenta {
+  background: var(--color-accent-500);
+  border-radius: 2px; /* square pin */
+  box-shadow: 0 0 0 3px rgba(214, 58, 226, 0.15);
+}
+
+.pickup-row__input {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding-inline: 0 !important;
+  font-size: var(--fs-base);
+}
+
+.pickup-row__input:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+
+.pickup-row__input[readonly] {
+  color: var(--color-text-muted);
+  cursor: default;
+}

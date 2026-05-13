@@ -1,0 +1,121 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — تقييم الرحلة</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell complete-page" screen-styles="/rider/styles/rider.css, /rider/styles/trip-complete.css">
+      <sd-app-header bar-class="complete-topbar" inner-class="complete-topbar__inner" title-class="complete-topbar__title">
+        <span data-slot="start" class="complete-topbar__spacer" aria-hidden="true"></span>
+        <a href="./home.html" class="complete-topbar__logo" aria-label="SheDrive">
+          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
+        </a>
+      </sd-app-header>
+
+      <main class="complete-content" id="main-content">
+        <sd-driver-card
+          variant="compact"
+          name-id="driver-name"
+          name-fallback="نورا أحمد"
+          prompt-key="complete.title"
+          prompt-fallback="كيف كانت رحلتك؟"
+          avatar="ن"
+        ></sd-driver-card>
+
+        <section class="complete-summary" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="sr-only" data-i18n="complete.tripSummary">ملخص الرحلة</h2>
+
+        <!-- Route row -->
+        <div class="complete-summary__route">
+          <span class="route-label" data-i18n="complete.from">من</span>
+          <span class="route-value" id="trip-pickup">موقعي الحالي</span>
+          <span class="sep" aria-hidden="true">←</span>
+          <span class="route-label" data-i18n="complete.to">إلى</span>
+          <span class="route-value" id="trip-destination">مدينة نصر</span>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="complete-summary__stats" role="list">
+          <div class="stat-chip" role="listitem">
+            <span class="stat-chip__value">8.2 <span data-i18n="complete.km">كم</span></span>
+            <span class="stat-chip__label" data-i18n="complete.distance">المسافة</span>
+          </div>
+          <div class="stat-chip" role="listitem">
+            <span class="stat-chip__value">18 <span data-i18n="complete.minutes">دقيقة</span></span>
+            <span class="stat-chip__label" data-i18n="complete.duration">المدة</span>
+          </div>
+          <div class="stat-chip" role="listitem">
+            <span class="stat-chip__value">47 <span data-i18n="complete.currency">جنيه</span></span>
+            <span class="stat-chip__label" data-i18n="complete.fare">التكلفة</span>
+          </div>
+        </div>
+
+        <!-- Payment row -->
+        <div class="complete-payment">
+          <!-- Banknote icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M6 12h.01M18 12h.01"/>
+          </svg>
+          <span data-i18n="complete.paymentMethod">وسيلة الدفع</span>
+          <span class="complete-payment__method" data-i18n="complete.paymentCash">نقداً</span>
+        </div>
+        </section>
+
+        <section class="star-rating" aria-labelledby="rating-heading">
+          <h2 id="rating-heading" class="sr-only" data-i18n="complete.rateTitle">قيّمي سائقتك</h2>
+          <p class="star-rating__hint" data-i18n="complete.rateHint">اضغطي على النجوم لاختيار التقييم</p>
+          <sd-rating-stars id="rating-stars"></sd-rating-stars>
+        </section>
+
+        <section class="complete-tags" id="complete-tags" aria-hidden="true">
+        <p class="complete-tags__title" data-i18n="complete.tagsTitle">ما الذي أعجبكِ؟</p>
+        <div class="tag-chips" role="group" aria-label="علامات التقييم">
+          <button type="button" class="tag-chip" data-i18n="complete.tagSafe">قيادة آمنة</button>
+          <button type="button" class="tag-chip" data-i18n="complete.tagClean">سيارة نظيفة</button>
+          <button type="button" class="tag-chip" data-i18n="complete.tagFriendly">ودودة</button>
+          <button type="button" class="tag-chip" data-i18n="complete.tagOnTime">في الموعد</button>
+          <button type="button" class="tag-chip" data-i18n="complete.tagCalm">هادئة</button>
+          <button type="button" class="tag-chip" data-i18n="complete.tagProfessional">احترافية</button>
+        </div>
+        </section>
+
+        <section class="tip-selector" aria-labelledby="tip-heading">
+        <p class="tip-selector__title" id="tip-heading" data-i18n="complete.tipTitle">إكرامية إضافية (اختياري)</p>
+        <div class="tip-chips" role="radiogroup" aria-label="مبلغ الإكرامية">
+          <button type="button" class="tip-chip" data-tip="0" aria-pressed="true" data-i18n="complete.tipNone">بدون</button>
+          <button type="button" class="tip-chip" data-tip="5" aria-pressed="false">5 جنيه</button>
+          <button type="button" class="tip-chip" data-tip="10" aria-pressed="false">10 جنيه</button>
+          <button type="button" class="tip-chip" data-tip="15" aria-pressed="false">15 جنيه</button>
+        </div>
+        </section>
+
+        <div class="complete-comment">
+        <label for="comment-input" data-i18n="complete.commentLabel">ملاحظات إضافية (اختياري)</label>
+        <textarea
+          id="comment-input"
+          rows="3"
+          data-i18n-placeholder="complete.commentPlaceholder"
+          placeholder="شاركينا تجربتك…"
+          aria-label="ملاحظات إضافية"
+        ></textarea>
+        </div>
+      </main>
+
+      <footer class="complete-footer">
+        <button type="button" class="btn btn--primary btn--full" id="submit-btn" data-i18n="complete.submit">
+          إرسال التقييم
+        </button>
+        <button type="button" class="btn btn--ghost btn--full btn--sm" id="skip-btn" data-i18n="complete.skip">
+          تخطّي
+        </button>
+      </footer>
+    </sd-page>
+
+    <script type="module" src="scripts/trip-complete.js"></script>
+  </body>
+</html>

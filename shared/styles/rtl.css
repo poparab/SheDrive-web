@@ -1,0 +1,40 @@
+/*
+ * rtl.css — SheDrive RTL-specific overrides
+ * Loaded dynamically by i18n.js when [dir="rtl"] is set.
+ * Handles cases where CSS logical properties alone aren't enough,
+ * or where third-party components (Mapbox) need explicit mirroring.
+ */
+
+/* Mapbox logo/attribution position in RTL */
+[dir='rtl'] .mapboxgl-ctrl-bottom-right {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+[dir='rtl'] .mapboxgl-ctrl-bottom-left {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+/* Flip chevrons / directional icons */
+[dir='rtl'] .icon--chevron-right,
+[dir='rtl'] .icon--arrow-right {
+  transform: scaleX(-1);
+}
+
+/* OTP boxes keep LTR order even in RTL (numeric sequence) */
+[dir='rtl'] .otp-group {
+  direction: ltr;
+}
+
+/* Input group border side in RTL */
+[dir='rtl'] .input-group__prefix {
+  border-inline-end: none;
+  border-inline-start: 1.5px solid var(--color-border);
+}
+
+/* Phone number inputs are LTR (numeric) */
+[dir='rtl'] input[type='tel'],
+[dir='rtl'] input[inputmode='numeric'] {
+  direction: ltr;
+  text-align: start;
+}

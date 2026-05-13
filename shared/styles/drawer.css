@@ -1,0 +1,83 @@
+/* ════════════════════════════════════════════════════════════
+   drawer.css — reusable side-drawer component
+   All values via var() design tokens defined in tokens.css
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Backdrop ── */
+.drawer-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--color-overlay);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+.drawer-backdrop.is-open { opacity: 1; pointer-events: all; }
+
+/* ── Drawer panel ── */
+.app-drawer {
+  position: fixed; top: 0; left: 0; right: auto; bottom: 0;
+  width: min(320px, 85vw);
+  background: var(--color-surface);
+  z-index: 201;
+  display: flex; flex-direction: column;
+  transform: translateX(-110%);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+}
+/* Use explicit sides here because fixed-position logical insets were
+   leaving the drawer partially visible in RTL on mobile browsers. */
+[dir="rtl"] .app-drawer {
+  left: auto; right: 0;
+  transform: translateX(110%);
+}
+.app-drawer.is-open { transform: translateX(0); }
+
+/* ── Drawer header ── */
+.drawer-header {
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.drawer-close {
+  align-self: flex-end;
+}
+.drawer-user {
+  display: flex; align-items: center; gap: var(--space-3);
+}
+.drawer-user__avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--gradient-brand); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--fs-lg); font-weight: var(--fw-bold); flex-shrink: 0;
+}
+.drawer-user__info { display: flex; flex-direction: column; gap: 4px; }
+.drawer-user__phone { font-size: var(--fs-base); font-weight: var(--fw-semibold); color: var(--color-text); }
+.drawer-user__badge {
+  display: inline-flex; align-items: center;
+  padding: 2px var(--space-2);
+  background: rgba(107,43,217,0.1);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+/* ── Nav list ── */
+.drawer-nav { list-style: none; padding: var(--space-3) 0; }
+.drawer-nav__item { display: block; }
+.drawer-nav__btn {
+  width: 100%; display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: none; border: none; cursor: pointer;
+  font-size: var(--fs-base); color: var(--color-text);
+  text-align: start; transition: background var(--transition-base);
+}
+.drawer-nav__btn:hover { background: var(--color-surface-alt); }
+.drawer-nav__btn--danger { color: var(--color-danger); }
+.drawer-nav__icon { color: var(--color-text-muted); flex-shrink: 0; }
+.drawer-nav__btn--danger .drawer-nav__icon { color: var(--color-danger); }
+.drawer-nav__label { flex: 1; }
+.drawer-nav__chevron { color: var(--color-text-muted); opacity: 0.5; }
+[dir="rtl"] .drawer-nav__chevron { transform: scaleX(-1); }
+
+/* ── Divider ── */
+.drawer-divider { height: 1px; background: var(--color-border); margin: var(--space-2) 0; }

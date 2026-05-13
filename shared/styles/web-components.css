@@ -1,0 +1,64 @@
+sd-page {
+  display: block;
+}
+
+sd-app-header {
+  display: block;
+}
+
+sd-app-header .sd-app-header__inner,
+sd-app-header .navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+sd-app-header .home-topbar__title,
+sd-app-header .sd-app-header__title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
+}
+
+sd-app-header .sd-app-header__title > * {
+  min-inline-size: 0;
+}
+
+sd-app-header .home-topbar__actions,
+sd-app-header .sd-app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+sd-button {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+sd-bottom-sheet {
+  display: block;
+}
+
+sd-driver-card,
+sd-rating-stars {
+  display: block;
+}
+
+sd-button[full] {
+  display: block;
+  inline-size: 100%;
+}
+
+.sd-button__control {
+  inline-size: 100%;
+}
+
+sd-toast-host {
+  display: contents;
+}

@@ -1,0 +1,304 @@
+/*
+ * driver.css — Driver app layout styles
+ * Driver-specific positioning only. All visual values reference shared tokens.
+ * No hardcoded colors, sizes, or radii anywhere in this file.
+ */
+
+/* ── Login page — inherits rider layout, adds driver accent ─ */
+
+.login-page--driver .login-brand {
+  /* Slightly deeper gradient angle for driver brand distinction */
+  background: linear-gradient(150deg, var(--color-primary-700) 0%, var(--color-accent-500) 100%);
+}
+
+.badge--driver-panel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-surface);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  backdrop-filter: blur(4px);
+}
+
+/* Reuse all rider login layout rules via shared class names */
+.login-page { background: var(--color-surface-alt); }
+
+.login-layout {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+}
+
+.login-brand {
+  background: var(--gradient-brand);
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-block-size: 240px;
+}
+
+.login-brand__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  position: relative;
+  z-index: var(--z-above);
+  text-align: center;
+}
+
+.login-brand__logo {
+  filter: brightness(0) invert(1);
+  inline-size: 180px;
+  block-size: auto;
+}
+
+.login-brand__tagline {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  max-inline-size: 320px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  line-height: var(--leading-relaxed);
+}
+
+.login-brand__deco {
+  position: absolute;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+.login-brand__deco--1 {
+  inline-size: 280px;
+  block-size: 280px;
+  inset-block-start: -80px;
+  inset-inline-end: -60px;
+}
+.login-brand__deco--2 {
+  inline-size: 180px;
+  block-size: 180px;
+  inset-block-end: -60px;
+  inset-inline-start: -40px;
+}
+
+.login-form-panel {
+  flex: 1;
+  background: var(--color-surface);
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.login-form-panel__lang {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-form-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  flex: 1;
+}
+
+.login-form__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.login-form__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.login-form__subtitle {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.login-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-step--hidden { display: none; }
+
+.login-terms {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-block-start: auto;
+  line-height: var(--leading-relaxed);
+  padding-block-end: var(--space-4);
+}
+.login-terms a { color: var(--color-primary-600); text-decoration: underline; }
+
+@media (min-width: 768px) {
+  .login-layout { flex-direction: row; }
+
+  .login-brand {
+    flex: 1;
+    min-block-size: 100dvh;
+    padding: var(--space-12);
+  }
+
+  .login-brand__inner { max-inline-size: 380px; }
+  .login-brand__logo { inline-size: 220px; }
+  .login-brand__tagline { font-size: var(--fs-xl); }
+
+  .login-form-panel {
+    inline-size: 480px;
+    flex-shrink: 0;
+    padding: var(--space-10);
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .login-brand { flex: 1.2; }
+  .login-form-panel { inline-size: 520px; }
+}
+
+/* ── Driver home page ───────────────────────────────── */
+
+.driver-home-page { overflow: hidden; }
+
+/* Full-screen map */
+.home-map-container {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-base);
+}
+
+/* Custom user dot */
+.map-user-dot {
+  inline-size: 20px;
+  block-size: 20px;
+  background: var(--color-primary-600);
+  border: 3px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+}
+
+/* Top control bar */
+.driver-topbar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  padding: var(--space-3) var(--space-4);
+}
+
+.driver-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Earnings chip */
+.driver-earnings {
+  background: var(--color-surface);
+  font-size: var(--fs-sm);
+  gap: var(--space-2);
+}
+
+/* Working Zones floating button */
+.driver-zones-btn-wrap {
+  position: fixed;
+  inset-block-start: 80px;
+  inset-inline-start: var(--space-4);
+  z-index: var(--z-nav);
+}
+
+.driver-zones-btn {
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+/* Bottom status bar */
+.driver-statusbar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  background: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  padding-block-end: max(var(--space-3), env(safe-area-inset-bottom));
+}
+
+.driver-statusbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.driver-statusbar__logo {
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+}
+
+.driver-statusbar__status {
+  flex: 1;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+}
+
+.driver-statusbar__status--online {
+  color: var(--color-success);
+}
+
+/* Location loading overlay */
+.location-status {
+  position: fixed;
+  inset-block-start: 80px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  transition: opacity var(--transition-base);
+  white-space: nowrap;
+}
+
+.location-status.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .driver-topbar { padding: var(--space-4) var(--space-6); }
+  .driver-topbar__inner { flex-wrap: nowrap; }
+  .driver-zones-btn-wrap { inset-block-start: 90px; inset-inline-start: var(--space-6); }
+}

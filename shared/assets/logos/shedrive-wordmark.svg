@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140">
+  <defs>
+    <linearGradient id="wordmark-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6B2BD9"/>
+      <stop offset="100%" stop-color="#D63AE2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- "SheDrive" text filled with brand gradient -->
+  <text
+    x="12"
+    y="105"
+    font-family="Inter, 'Segoe UI', sans-serif"
+    font-weight="800"
+    font-size="96"
+    fill="url(#wordmark-grad)"
+    letter-spacing="-2"
+  >SheDrive</text>
+
+  <!-- Override the dot of the "i" with a filled circle for brand personality -->
+  <!-- The "i" in "SheDrive" is the 7th character. At font-size 96 with the given metrics,
+       the dot sits approximately at x=418, y=22 with r=7. Adjust if font metrics differ. -->
+  <circle cx="422" cy="20" r="8" fill="#D63AE2"/>
+</svg>

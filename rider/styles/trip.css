@@ -1,0 +1,367 @@
+/* ─────────────────────────────────────────────
+   trip.css — Active trip screen styles only
+   All values use design-system tokens
+───────────────────────────────────────────── */
+
+/* ── Page ── */
+.trip-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+/* ── Top bar ── */
+.trip-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.trip-topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.trip-topbar__logo {
+  display: flex;
+  align-items: center;
+}
+
+.trip-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ── Map ── */
+.trip-map {
+  flex: 0 0 55%;
+  position: relative;
+  min-block-size: 240px;
+}
+
+.trip-map > #map {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Panel ── */
+.trip-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  margin-top: calc(var(--radius-2xl) * -1);
+  box-shadow: 0 -4px 32px rgba(26, 21, 48, 0.1);
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4) var(--space-8);
+  gap: var(--space-5);
+}
+
+/* ── Driver card ── */
+.driver-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.driver-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+}
+
+.driver-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.driver-name {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.driver-rating {
+  font-size: var(--fs-sm);
+  color: var(--color-warning);
+}
+
+.driver-vehicle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driver-eta {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+  margin-top: var(--space-1);
+}
+
+/* ── Safety badges ── */
+.safety-badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.safety-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(107, 43, 217, 0.08);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+  white-space: nowrap;
+}
+
+/* ── Action row ── */
+.trip-actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.trip-actions .btn--icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.btn--sos {
+  flex: 1;
+  background: var(--color-danger) !important;
+  color: white !important;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius-full);
+  min-height: 52px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  letter-spacing: 0.5px;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.btn--sos:hover {
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn--sos:active {
+  transform: scale(0.97);
+}
+
+/* ── Trip details ── */
+.trip-details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-3);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: inherit;
+}
+
+.trip-details-toggle .icon-chevron {
+  transition: transform var(--transition-base);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.trip-details-toggle[aria-expanded="true"] .icon-chevron {
+  transform: rotate(180deg);
+}
+
+.trip-details-body {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.trip-details-body.is-open {
+  display: flex;
+}
+
+.trip-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: var(--fs-sm);
+  gap: var(--space-3);
+}
+
+.trip-detail-row__label {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.trip-detail-row__value {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-align: end;
+}
+
+/* ── SOS Modal ── */
+.sos-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--space-4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.sos-modal-backdrop.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.sos-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transform: translateY(20px);
+  transition: transform var(--transition-base);
+}
+
+.sos-modal-backdrop.is-open .sos-modal {
+  transform: translateY(0);
+}
+
+.sos-modal__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-danger);
+  text-align: center;
+}
+
+.sos-modal__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: var(--leading-relaxed);
+}
+
+.sos-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding-block: var(--space-3);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  width: 100%;
+  transition: opacity var(--transition-base);
+}
+
+.btn--danger:hover {
+  opacity: 0.9;
+}
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary-600);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Toast ── */
+.toast-container {
+  position: fixed;
+  top: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  background: var(--color-text);
+  color: white;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.25s ease;
+}
+
+.toast--success {
+  background: var(--color-success);
+}
+
+.toast--danger {
+  background: var(--color-danger);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

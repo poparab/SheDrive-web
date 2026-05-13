@@ -1,0 +1,180 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — طوارئ</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell emergency-page" screen-styles="/rider/styles/rider.css, /rider/styles/emergency.css">
+      <sd-app-header bar-class="emergency-topbar" inner-class="emergency-topbar__inner" title-class="emergency-topbar__title">
+        <sd-button
+          data-slot="start"
+          type="button"
+          variant="ghost"
+          icon
+          id="back-btn"
+          data-i18n-aria-label="aria.back"
+          aria-label="رجوع"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </sd-button>
+      </sd-app-header>
+
+      <section class="emergency-hero" role="alert">
+      <div class="emergency-hero__pulse" aria-hidden="true">
+        <span class="emergency-hero__dot"></span>
+      </div>
+      <h1 class="emergency-hero__title" data-i18n="emergency.title">تم إبلاغ مركز السلامة</h1>
+      <p class="emergency-hero__subtitle" data-i18n="emergency.subtitle">
+        فرق الأمان في طريقها إليكِ. ابقي هادئة.
+      </p>
+      </section>
+
+      <main class="emergency-content">
+      <div class="emergency-call-list">
+        <button
+          type="button"
+          class="emergency-call"
+          data-call-label="emergency.callPolice"
+          data-i18n-aria-label="emergency.callPolice"
+          aria-label="اتصال بالشرطة"
+        >
+          <span class="emergency-call__icon emergency-call__icon--police" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </span>
+          <span class="emergency-call__body">
+            <span class="emergency-call__label" data-i18n="emergency.callPolice">الشرطة</span>
+            <span class="emergency-call__number" data-i18n="emergency.policeNumber">122</span>
+          </span>
+          <svg class="emergency-call__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="emergency-call"
+          data-call-label="emergency.callAmbulance"
+          data-i18n-aria-label="emergency.callAmbulance"
+          aria-label="اتصال بالإسعاف"
+        >
+          <span class="emergency-call__icon emergency-call__icon--ambulance" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </span>
+          <span class="emergency-call__body">
+            <span class="emergency-call__label" data-i18n="emergency.callAmbulance">الإسعاف</span>
+            <span class="emergency-call__number" data-i18n="emergency.ambulanceNumber">123</span>
+          </span>
+          <svg class="emergency-call__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="emergency-call"
+          data-call-label="emergency.callSafety"
+          data-i18n-aria-label="emergency.callSafety"
+          aria-label="اتصال بمركز سلامة SheDrive"
+        >
+          <span class="emergency-call__icon emergency-call__icon--safety" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </span>
+          <span class="emergency-call__body">
+            <span class="emergency-call__label" data-i18n="emergency.callSafety">مركز سلامة SheDrive</span>
+            <span class="emergency-call__number" data-i18n="emergency.safetyNumber">19911</span>
+          </span>
+          <svg class="emergency-call__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <section class="emergency-timeline" aria-live="polite">
+        <h2 class="emergency-timeline__title" data-i18n="emergency.timelineTitle">حالة الاستجابة</h2>
+
+        <div class="emergency-step emergency-step--active" data-step="1">
+          <span class="emergency-step__indicator" aria-hidden="true">
+            <svg class="emergency-step__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="emergency-step__spinner"></span>
+          </span>
+          <span class="emergency-step__text" data-i18n="emergency.step1">تم إرسال تنبيه الطوارئ إلى مركز السلامة.</span>
+        </div>
+
+        <div class="emergency-step emergency-step--pending" data-step="2">
+          <span class="emergency-step__indicator" aria-hidden="true">
+            <svg class="emergency-step__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="emergency-step__spinner"></span>
+          </span>
+          <span class="emergency-step__text" data-i18n="emergency.step2">مشاركة موقعكِ المباشر مع فريق الأمان.</span>
+        </div>
+
+        <div class="emergency-step emergency-step--pending" data-step="3">
+          <span class="emergency-step__indicator" aria-hidden="true">
+            <svg class="emergency-step__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="emergency-step__spinner"></span>
+          </span>
+          <span class="emergency-step__text" data-i18n="emergency.step3">جاري تواصل أحد مستشاري السلامة معكِ.</span>
+        </div>
+      </section>
+
+      <section class="emergency-recap">
+        <h2 class="emergency-recap__title" data-i18n="emergency.recapTitle">تفاصيل رحلتك الحالية</h2>
+        <div class="emergency-recap__row">
+          <span class="emergency-recap__label" data-i18n="emergency.recapDriver">السائقة</span>
+          <span class="emergency-recap__value" id="recap-driver">—</span>
+        </div>
+        <div class="emergency-recap__row">
+          <span class="emergency-recap__label" data-i18n="emergency.recapPlate">رقم اللوحة</span>
+          <span class="emergency-recap__value" id="recap-plate">—</span>
+        </div>
+        <div class="emergency-recap__row">
+          <span class="emergency-recap__label" data-i18n="emergency.recapVehicle">السيارة</span>
+          <span class="emergency-recap__value" id="recap-vehicle">—</span>
+        </div>
+        <div class="emergency-recap__row">
+          <span class="emergency-recap__label" data-i18n="emergency.recapLocation">الموقع الحالي</span>
+          <span class="emergency-recap__value" id="recap-location">30.0444°N, 31.2357°E</span>
+        </div>
+      </section>
+      </main>
+
+      <div class="emergency-actions">
+      <button
+        type="button"
+        class="btn btn--primary btn--full"
+        id="return-btn"
+        data-i18n="emergency.returnToTrip"
+      >
+        العودة إلى الرحلة
+      </button>
+      <button
+        type="button"
+        class="btn btn--ghost btn--full btn--sm"
+        id="cancel-btn"
+        data-i18n="emergency.cancelAlert"
+      >
+        إلغاء التنبيه (إنذار كاذب)
+      </button>
+      </div>
+    </sd-page>
+
+    <script type="module" src="scripts/emergency.js"></script>
+  </body>
+</html>

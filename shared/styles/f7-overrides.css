@@ -1,0 +1,113 @@
+@import url('../vendor/framework7-bundle.min.css');
+
+:root {
+  --f7-font-family: var(--font-latin);
+  --f7-theme-color: var(--color-primary-600);
+  --f7-theme-color-rgb: var(--color-primary-600-rgb);
+  --f7-theme-color-shade: var(--color-primary-700);
+  --f7-theme-color-tint: var(--color-primary-500);
+  --f7-text-color: var(--color-text);
+  --f7-link-color: var(--color-primary-600);
+  --f7-link-highlight-color: rgba(var(--color-primary-600-rgb), 0.14);
+  --f7-bars-link-color: var(--color-primary-600);
+  --f7-bars-bg-color: rgba(var(--color-surface-rgb), 0.92);
+  --f7-bars-bg-color-rgb: var(--color-surface-rgb);
+  --f7-bars-border-color: rgba(var(--color-border-rgb), 0.88);
+  --f7-page-bg-color: var(--color-surface-alt);
+  --f7-page-master-border-color: rgba(var(--color-border-rgb), 0.88);
+  --f7-navbar-bg-color: rgba(var(--color-surface-rgb), 0.92);
+  --f7-navbar-bg-color-rgb: var(--color-surface-rgb);
+  --f7-navbar-border-color: rgba(var(--color-border-rgb), 0.88);
+  --f7-navbar-link-color: var(--color-primary-600);
+  --f7-navbar-text-color: var(--color-text);
+  --f7-navbar-title-text-color: var(--color-text);
+  --f7-list-bg-color: var(--color-surface);
+  --f7-list-border-color: var(--color-border);
+  --f7-list-item-border-color: var(--color-border);
+  --f7-list-item-text-color: var(--color-text);
+  --f7-list-item-title-text-color: var(--color-text);
+  --f7-list-item-after-text-color: var(--color-text-muted);
+  --f7-list-item-footer-text-color: var(--color-text-muted);
+  --f7-sheet-bg-color: var(--color-surface);
+  --f7-sheet-border-color: var(--color-border);
+  --f7-sheet-shadow: var(--shadow-lg);
+}
+
+html[lang='ar'] {
+  --f7-font-family: var(--font-arabic);
+}
+
+html.ios {
+  --f7-page-transition-duration: var(--transition-slow);
+  --f7-navbar-height: calc(var(--space-12) + var(--space-2));
+  --f7-navbar-font-size: var(--fs-base);
+  --f7-navbar-title-font-size: var(--fs-lg);
+  --f7-navbar-title-font-weight: var(--fw-semibold);
+  --f7-navbar-inner-padding-left: var(--space-3);
+  --f7-navbar-inner-padding-right: var(--space-3);
+}
+
+body.framework7-root {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+a:not(.link):not(.item-link):not(.tab-link) {
+  color: inherit;
+}
+
+.navbar {
+  background: transparent;
+}
+
+.navbar::after {
+  display: none;
+}
+
+.navbar .navbar-inner {
+  background: transparent;
+  backdrop-filter: blur(var(--space-5));
+  -webkit-backdrop-filter: blur(var(--space-5));
+}
+
+.toolbar,
+.toolbar::before {
+  background: rgba(var(--color-surface-rgb), 0.94);
+  border-color: rgba(var(--color-border-rgb), 0.88);
+}
+
+.list {
+  margin: 0;
+  background: transparent;
+}
+
+.list .item-content {
+  gap: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.list .item-inner {
+  min-height: auto;
+  padding-block: 0;
+}
+
+.sheet-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+}
+
+.page-transition {
+  transition: transform var(--transition-slow), opacity var(--transition-slow);
+}
+
+.fab,
+.login-screen,
+.messagebar,
+.photo-browser,
+.popover,
+.popup,
+.searchbar-backdrop,
+.speed-dial {
+  display: none !important;
+}

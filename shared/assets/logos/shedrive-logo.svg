@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 180">
+  <defs>
+    <linearGradient id="icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6B2BD9"/>
+      <stop offset="100%" stop-color="#D63AE2"/>
+    </linearGradient>
+    <linearGradient id="text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6B2BD9"/>
+      <stop offset="100%" stop-color="#D63AE2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: rounded square -->
+  <rect x="0" y="10" width="160" height="160" rx="35" ry="35" fill="url(#icon-grad)"/>
+
+  <!-- SD monogram (scaled to fit 160×160 box, offset by x=0 y=10) -->
+  <path
+    d="M 34 63
+       C 34 51, 47 45, 58 49
+       C 69 53, 73 63, 66 70
+       C 59 77, 45 79, 42 88
+       C 39 97, 45 108, 57 111
+       C 69 114, 80 107, 80 98"
+    fill="none"
+    stroke="white"
+    stroke-width="9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <line x1="88" y1="48" x2="88" y2="132" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <path
+    d="M 88 48
+       C 102 48, 116 59, 116 90
+       C 116 121, 102 132, 88 132"
+    fill="none"
+    stroke="white"
+    stroke-width="9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Wordmark: "SheDrive" to the right of the icon -->
+  <text
+    x="184"
+    y="122"
+    font-family="Inter, 'Segoe UI', sans-serif"
+    font-weight="800"
+    font-size="72"
+    fill="url(#text-grad)"
+    letter-spacing="-1.5"
+  >SheDrive</text>
+
+  <!-- Brand dot on the "i" -->
+  <circle cx="496" cy="51" r="6" fill="#D63AE2"/>
+</svg>

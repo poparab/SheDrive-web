@@ -1,0 +1,395 @@
+/* ============================================================
+   SheDrive — Emergency Safety Dashboard
+   Screen-scoped styles. All values via tokens except the red
+   gradient and rgba pulse shadows.
+   ============================================================ */
+
+.emergency-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-alt);
+}
+
+/* ── Topbar ── */
+.emergency-topbar {
+  position: sticky;
+  top: 0;
+  height: 56px;
+  padding: 0 var(--space-4);
+  z-index: 10;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.emergency-topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Hero ── */
+.emergency-hero {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.emergency-hero__pulse {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emergency-hero__pulse::before,
+.emergency-hero__pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  animation: radar-pulse 1.8s ease-out infinite;
+}
+
+.emergency-hero__pulse::after {
+  animation-delay: 0.9s;
+}
+
+.emergency-hero__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.emergency-hero__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  margin: 0 0 var(--space-2);
+  color: white;
+}
+
+.emergency-hero__subtitle {
+  font-size: var(--fs-base);
+  opacity: 0.9;
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Content ── */
+.emergency-content {
+  flex: 1;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ── Call list ── */
+.emergency-call-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.emergency-call {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: start;
+  transition: all var(--transition-base);
+  font-family: inherit;
+}
+
+.emergency-call:hover,
+.emergency-call:active,
+.emergency-call:focus-visible {
+  border-color: var(--color-primary-600);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+
+.emergency-call__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+}
+
+.emergency-call__icon--police {
+  background: var(--color-danger);
+}
+
+.emergency-call__icon--ambulance {
+  background: var(--color-success);
+}
+
+.emergency-call__icon--safety {
+  background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary-600), var(--color-accent-500)));
+}
+
+.emergency-call__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emergency-call__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.emergency-call__number {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.emergency-call__chevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+[dir='rtl'] .emergency-call__chevron {
+  transform: scaleX(-1);
+}
+
+/* ── Timeline ── */
+.emergency-timeline {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+}
+
+.emergency-timeline__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+}
+
+.emergency-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  position: relative;
+}
+
+.emergency-step__indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.emergency-step--active .emergency-step__indicator {
+  background: var(--color-success);
+}
+
+.emergency-step__check,
+.emergency-step__spinner {
+  display: none;
+}
+
+.emergency-step--active .emergency-step__check {
+  display: block;
+}
+
+.emergency-step--pending .emergency-step__spinner {
+  display: block;
+}
+
+.emergency-step__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.emergency-step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 11px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% - 16px);
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.emergency-step--active:not(:last-child)::before {
+  background: var(--color-success);
+}
+
+.emergency-step__text {
+  flex: 1;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+}
+
+.emergency-step--pending .emergency-step__text {
+  color: var(--color-text-muted);
+}
+
+/* ── Recap ── */
+.emergency-recap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.emergency-recap__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+.emergency-recap__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+}
+
+.emergency-recap__row:last-child {
+  border-bottom: none;
+}
+
+.emergency-recap__label {
+  color: var(--color-text-muted);
+}
+
+.emergency-recap__value {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  text-align: end;
+}
+
+/* ── Bottom actions ── */
+.emergency-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 5;
+}
+
+/* ── Spinner util ── */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary-600);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Toast (mirrors rider/styles/trip.css) ── */
+.toast-container {
+  position: fixed;
+  top: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  background: var(--color-text);
+  color: white;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.25s ease;
+}
+
+.toast--success {
+  background: var(--color-success);
+}
+
+.toast--danger {
+  background: var(--color-danger);
+}
+
+.toast--info {
+  background: var(--color-text);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
