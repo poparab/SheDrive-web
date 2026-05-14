@@ -1,0 +1,298 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — تسجيل السائقة" />
+    <title>SheDrive Driver — التسجيل</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Design system -->
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/onboarding.css" />
+
+    <!-- RTL override -->
+    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+  </head>
+
+  <body class="app-shell onboarding-page">
+
+    <!-- ── Toast container ── -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="onboarding-layout">
+
+      <!-- ── Header ── -->
+      <header class="onboarding-header">
+        <img
+          src="../shared/assets/logos/shedrive-logo.svg"
+          alt="SheDrive"
+          class="onboarding-header__logo"
+          width="120"
+        />
+        <nav class="lang-switcher" aria-label="Language / اللغة">
+          <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
+          <span class="lang-switcher__sep" aria-hidden="true">|</span>
+          <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
+        </nav>
+      </header>
+
+      <!-- ── Progress bar ── -->
+      <div class="onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-label="خطوات التسجيل" data-i18n-aria-label="onboarding.progressAria">
+        <div class="onboarding-progress__track">
+          <div class="onboarding-progress__fill" id="progress-fill"></div>
+        </div>
+        <div class="onboarding-progress__dots" aria-hidden="true">
+          <span class="onboarding-progress__dot is-active" data-step="1">1</span>
+          <span class="onboarding-progress__dot" data-step="2">2</span>
+          <span class="onboarding-progress__dot" data-step="3">3</span>
+          <span class="onboarding-progress__dot" data-step="4">4</span>
+          <span class="onboarding-progress__dot" data-step="5">5</span>
+        </div>
+      </div>
+
+      <!-- ── Steps container ── -->
+      <main class="onboarding-main" id="onboarding-main">
+
+        <!-- Step 1: Personal info -->
+        <section class="onboarding-step" id="step-1" data-step="1" aria-label="المعلومات الشخصية">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <h1 class="onboarding-step__title" data-i18n="onboarding.step1.title">المعلومات الشخصية</h1>
+            <p class="onboarding-step__subtitle" data-i18n="onboarding.step1.subtitle">أدخلي بياناتك الأساسية</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <div class="field">
+              <label class="field__label" for="full-name" data-i18n="onboarding.fullName.label">الاسم بالكامل</label>
+              <input
+                type="text"
+                id="full-name"
+                class="input"
+                data-i18n-placeholder="onboarding.fullName.placeholder"
+                placeholder="الاسم كما في البطاقة"
+                autocomplete="name"
+                aria-required="true"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="date-of-birth" data-i18n="onboarding.dob.label">تاريخ الميلاد</label>
+              <input
+                type="date"
+                id="date-of-birth"
+                class="input"
+                aria-required="true"
+                max="2006-01-01"
+              />
+            </div>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--primary btn--full" id="step1-next" data-i18n="onboarding.next">
+              متابعة
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 2: National ID -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-2" data-step="2" aria-label="بطاقة الهوية الوطنية">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+            <h2 class="onboarding-step__title" data-i18n="onboarding.step2.title">بطاقة الهوية الوطنية</h2>
+            <p class="onboarding-step__subtitle" data-i18n="onboarding.step2.subtitle">ارفعي صورة واضحة للوجهتين</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <!-- Front -->
+            <div class="upload-zone" id="id-front-zone">
+              <input type="file" id="id-front-input" accept="image/*" class="upload-zone__input" aria-label="رفع الوجه الأمامي للبطاقة" data-i18n-aria-label="onboarding.idFront.aria" />
+              <div class="upload-zone__preview" id="id-front-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="id-front-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span data-i18n="onboarding.idFront.label">الوجه الأمامي</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+            </div>
+
+            <!-- Back -->
+            <div class="upload-zone" id="id-back-zone">
+              <input type="file" id="id-back-input" accept="image/*" class="upload-zone__input" aria-label="رفع الوجه الخلفي للبطاقة" data-i18n-aria-label="onboarding.idBack.aria" />
+              <div class="upload-zone__preview" id="id-back-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="id-back-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span data-i18n="onboarding.idBack.label">الوجه الخلفي</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--ghost btn--full" id="step2-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step2-next" data-i18n="onboarding.next">متابعة</button>
+          </div>
+        </section>
+
+        <!-- Step 3: Selfie -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-3" data-step="3" aria-label="صورة سيلفي">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
+            <h2 class="onboarding-step__title" data-i18n="onboarding.step3.title">صورة سيلفي</h2>
+            <p class="onboarding-step__subtitle" data-i18n="onboarding.step3.subtitle">التقطي صورة واضحة لوجهك في إضاءة جيدة</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <div class="selfie-zone" id="selfie-zone">
+              <input type="file" id="selfie-input" accept="image/*" capture="user" class="upload-zone__input" aria-label="التقاط صورة سيلفي" data-i18n-aria-label="onboarding.selfie.aria" />
+              <div class="selfie-zone__preview" id="selfie-preview" aria-hidden="true"></div>
+              <div class="selfie-zone__placeholder" id="selfie-placeholder">
+                <div class="selfie-zone__frame" aria-hidden="true"></div>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <span data-i18n="onboarding.selfie.cta">التقاط / رفع صورة</span>
+              </div>
+            </div>
+
+            <ul class="onboarding-tips" aria-label="نصائح الصورة">
+              <li data-i18n="onboarding.selfie.tip1">وجهك مرئي بالكامل</li>
+              <li data-i18n="onboarding.selfie.tip2">إضاءة كافية</li>
+              <li data-i18n="onboarding.selfie.tip3">لا نظارات شمسية</li>
+            </ul>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--ghost btn--full" id="step3-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step3-next" data-i18n="onboarding.next">متابعة</button>
+          </div>
+        </section>
+
+        <!-- Step 4: Vehicle documents -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-4" data-step="4" aria-label="مستندات السيارة">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="2"/>
+                <path d="M16 8h4l3 3v5h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+            </div>
+            <h2 class="onboarding-step__title" data-i18n="onboarding.step4.title">مستندات السيارة</h2>
+            <p class="onboarding-step__subtitle" data-i18n="onboarding.step4.subtitle">ارفعي رخصة السيارة ووثيقة التأمين</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <!-- Vehicle registration -->
+            <div class="upload-zone" id="vehicle-reg-zone">
+              <input type="file" id="vehicle-reg-input" accept="image/*,application/pdf" class="upload-zone__input" aria-label="رفع رخصة السيارة" data-i18n-aria-label="onboarding.vehicleReg.aria" />
+              <div class="upload-zone__preview" id="vehicle-reg-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="vehicle-reg-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span data-i18n="onboarding.vehicleReg.label">رخصة السيارة</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+            </div>
+
+            <!-- Insurance -->
+            <div class="upload-zone" id="insurance-zone">
+              <input type="file" id="insurance-input" accept="image/*,application/pdf" class="upload-zone__input" aria-label="رفع وثيقة التأمين" data-i18n-aria-label="onboarding.insurance.aria" />
+              <div class="upload-zone__preview" id="insurance-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="insurance-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span data-i18n="onboarding.insurance.label">وثيقة التأمين</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--ghost btn--full" id="step4-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step4-next" data-i18n="onboarding.submit">إرسال الطلب</button>
+          </div>
+        </section>
+
+        <!-- Step 5: Pending review -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-5" data-step="5" aria-label="قيد المراجعة">
+          <div class="onboarding-pending">
+            <div class="onboarding-pending__brand" aria-hidden="true">
+              <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" width="140" />
+            </div>
+
+            <div class="onboarding-pending__icon" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+
+            <h2 class="onboarding-pending__title" data-i18n="onboarding.pending.title">طلبك قيد المراجعة</h2>
+            <p class="onboarding-pending__body" data-i18n="onboarding.pending.body">
+              يراجع فريقنا مستنداتك. عادةً ما تستغرق المراجعة من 24 إلى 48 ساعة.
+            </p>
+
+            <div class="onboarding-pending__eta">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span data-i18n="onboarding.pending.eta">24 – 48 ساعة</span>
+            </div>
+
+            <p class="onboarding-pending__notify" data-i18n="onboarding.pending.notify">
+              سنرسل لك إشعاراً فور اكتمال المراجعة.
+            </p>
+
+            <button type="button" class="btn btn--primary btn--full" id="step5-done" data-i18n="onboarding.pending.cta">
+              حسناً، سأنتظر
+            </button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <script type="module" src="scripts/onboarding.js"></script>
+  </body>
+</html>

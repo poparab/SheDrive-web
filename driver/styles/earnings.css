@@ -1,0 +1,305 @@
+/*
+ * earnings.css — Driver earnings & trip history screen
+ * All values use tokens. No hardcoded colors or sizes.
+ */
+
+/* ── Page layout ─────────────────────────────────── */
+
+.earnings-page {
+  background: var(--color-surface-alt);
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.earnings-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-nav);
+}
+
+.earnings-header__back {
+  flex-shrink: 0;
+}
+
+.earnings-header__title {
+  flex: 1;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* ── Main scroll area ────────────────────────────── */
+
+.earnings-main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) max(var(--space-8), env(safe-area-inset-bottom));
+  max-inline-size: 600px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+/* ── Summary card ────────────────────────────────── */
+
+.earnings-summary {
+  background: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-500) 100%);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  color: var(--color-surface);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-lg);
+}
+
+.earnings-summary__label {
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+  font-weight: var(--fw-medium);
+}
+
+.earnings-summary__amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.earnings-summary__amount span:first-child {
+  font-size: var(--fs-5xl, 3rem);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+.earnings-summary__currency {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-medium);
+  opacity: 0.85;
+}
+
+.earnings-summary__stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-6);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.earnings-summary__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.earnings-summary__stat-value {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+}
+
+.earnings-summary__stat-label {
+  font-size: var(--fs-xs);
+  opacity: 0.8;
+}
+
+.earnings-summary__divider {
+  inline-size: 1px;
+  block-size: 40px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Filter tabs ─────────────────────────────────── */
+
+.earnings-tabs {
+  display: flex;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.earnings-tab {
+  flex: 1;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-base), color var(--transition-base);
+  font-family: inherit;
+}
+
+.earnings-tab.is-active {
+  background: var(--color-primary-600);
+  color: var(--color-surface);
+  font-weight: var(--fw-semibold);
+}
+
+.earnings-tab:not(.is-active):hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+/* ── Trip list ───────────────────────────────────── */
+
+.earnings-trips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Individual trip item */
+.trip-item {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.trip-item__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  cursor: pointer;
+  user-select: none;
+}
+
+.trip-item__summary:hover {
+  background: var(--color-surface-alt);
+}
+
+.trip-item__icon {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trip-item__info {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.trip-item__route {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trip-item__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.trip-item__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.trip-item__fare {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-success);
+}
+
+.trip-item__chevron {
+  color: var(--color-text-muted);
+  transition: transform var(--transition-base);
+}
+
+.trip-item.is-expanded .trip-item__chevron {
+  transform: rotate(90deg);
+}
+
+/* Expanded breakdown */
+.trip-item__detail {
+  display: none;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.trip-item.is-expanded .trip-item__detail {
+  display: block;
+}
+
+.trip-item__breakdown {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.trip-item__breakdown li {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.trip-item__breakdown li strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+/* ── Empty state ─────────────────────────────────── */
+
+.earnings-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-12);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.earnings-empty__illustration {
+  opacity: 0.35;
+}
+
+.earnings-empty__msg {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+}
+
+@media (min-width: 768px) {
+  .earnings-main { padding: var(--space-6) var(--space-8); }
+  .earnings-summary__amount span:first-child { font-size: 3.5rem; }
+}

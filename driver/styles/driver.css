@@ -302,3 +302,187 @@
   .driver-topbar__inner { flex-wrap: nowrap; }
   .driver-zones-btn-wrap { inset-block-start: 90px; inset-inline-start: var(--space-6); }
 }
+
+/* ── Simulate request button ────────────────────── */
+
+.simulate-request-btn {
+  position: fixed;
+  inset-block-end: 90px;
+  inset-inline-start: var(--space-4);
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  border: 1px dashed var(--color-primary-400);
+  color: var(--color-primary-600);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+}
+
+/* ── Modal backdrop (shared for home modals) ────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  padding: var(--space-6) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+  inline-size: 100%;
+  max-inline-size: 520px;
+  box-shadow: var(--shadow-xl);
+  animation: sheetUp var(--transition-base) ease-out;
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-4);
+}
+
+.modal__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+/* ── Profile bottom sheet ───────────────────────── */
+
+.profile-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-5);
+}
+
+.profile-sheet__close {
+  margin-inline-start: auto;
+}
+
+.profile-sheet__info {
+  flex: 1;
+}
+
+.profile-sheet__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.profile-sheet__phone {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin-block-start: var(--space-1);
+  direction: ltr;
+  text-align: start;
+}
+
+.profile-sheet__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-warning, var(--color-primary-600));
+  margin-block-start: var(--space-1);
+}
+
+.profile-sheet__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.profile-sheet__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  inline-size: 100%;
+  text-align: start;
+  transition: background var(--transition-base);
+}
+
+.profile-sheet__link:hover {
+  background: var(--color-surface-alt);
+}
+
+/* ── Working zones modal ────────────────────────── */
+
+.zones-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.zones-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+}
+
+.zones-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.zones-list__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.zones-list__desc {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Avatar sizes ───────────────────────────────── */
+
+.avatar--lg {
+  inline-size: 48px;
+  block-size: 48px;
+  font-size: var(--fs-lg);
+}
+
+.avatar--xl {
+  inline-size: 64px;
+  block-size: 64px;
+  font-size: var(--fs-2xl);
+}
+
+@media (min-width: 768px) {
+  .simulate-request-btn { inset-inline-start: var(--space-6); }
+  .modal { border-radius: var(--radius-2xl); }
+}

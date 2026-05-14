@@ -1,0 +1,294 @@
+/*
+ * trip.css — Driver active trip screen
+ * All values use tokens. No hardcoded colors or sizes.
+ */
+
+/* ── Page ────────────────────────────────────────── */
+
+.driver-trip-page { overflow: hidden; }
+
+/* ── Top status bar ──────────────────────────────── */
+
+.trip-topbar {
+  position: fixed;
+  inset-block-start: var(--space-4);
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.trip-topbar__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+.trip-topbar__timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Rider info bottom card ──────────────────────── */
+
+.trip-card {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  padding: var(--space-5) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.trip-card__rider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.trip-card__rider-info {
+  flex: 1;
+}
+
+.trip-card__rider-name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  display: block;
+}
+
+.trip-card__rider-meta {
+  margin-block-start: var(--space-1);
+}
+
+.trip-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-warning, var(--color-primary-600));
+  font-weight: var(--fw-medium);
+}
+
+/* ── Route display ───────────────────────────────── */
+
+.trip-card__route {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  flex-wrap: wrap;
+}
+
+.trip-card__route-point {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.trip-card__route-dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.trip-card__route-dot--from { background: var(--color-primary-600); }
+.trip-card__route-dot--to   { background: var(--color-danger); }
+
+.trip-card__route-text {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trip-card__route-arrow {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Stats ───────────────────────────────────────── */
+
+.trip-card__stats {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.trip-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.trip-card__stat-label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.trip-card__stat-value {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+/* ── Action buttons ──────────────────────────────── */
+
+.trip-card__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.trip-card__actions .btn--icon {
+  flex: 1;
+  flex-direction: column;
+  block-size: auto;
+  padding-block: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  gap: var(--space-1);
+}
+
+.trip-card__action-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+/* ── SOS modal ───────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  max-inline-size: 380px;
+  inline-size: 100%;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-block-end: var(--space-3);
+}
+
+.modal__body {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin-block-end: var(--space-5);
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+/* ── Emergency overlay ───────────────────────────── */
+
+.emergency-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.emergency-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+  max-inline-size: 360px;
+}
+
+.emergency-overlay__icon {
+  inline-size: 96px;
+  block-size: 96px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+}
+
+.emergency-overlay__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-surface);
+}
+
+.emergency-overlay__body {
+  font-size: var(--fs-base);
+  color: rgba(255, 255, 255, 0.9);
+  line-height: var(--leading-relaxed);
+}
+
+.emergency-overlay__phone {
+  font-size: var(--fs-base);
+  color: var(--color-surface);
+}
+
+.emergency-overlay__tel {
+  color: var(--color-surface);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+.emergency-overlay .btn--ghost {
+  color: var(--color-surface);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@media (min-width: 768px) {
+  .trip-card {
+    max-inline-size: 420px;
+    inset-inline: auto;
+    inset-inline-end: var(--space-6);
+    border-radius: var(--radius-2xl);
+  }
+}

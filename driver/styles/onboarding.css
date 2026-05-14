@@ -1,0 +1,382 @@
+/*
+ * onboarding.css — Driver onboarding multi-step flow
+ * All values use tokens from tokens.css. No hardcoded colors or sizes.
+ */
+
+/* ── Page layout ─────────────────────────────────── */
+
+.onboarding-page {
+  background: var(--color-surface-alt);
+  min-block-size: 100dvh;
+}
+
+.onboarding-layout {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  max-inline-size: 540px;
+  margin-inline: auto;
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.onboarding-header__logo {
+  block-size: auto;
+}
+
+/* ── Progress indicator ──────────────────────────── */
+
+.onboarding-progress {
+  padding: var(--space-4) var(--space-5) var(--space-2);
+  background: var(--color-surface);
+}
+
+.onboarding-progress__track {
+  block-size: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-block-end: var(--space-3);
+}
+
+.onboarding-progress__fill {
+  block-size: 100%;
+  background: var(--color-primary-600);
+  border-radius: var(--radius-full);
+  transition: inline-size var(--transition-base);
+  inline-size: 20%;
+}
+
+.onboarding-progress__dots {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.onboarding-progress__dot {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-base), color var(--transition-base);
+  flex: 1;
+}
+
+.onboarding-progress__dot.is-active {
+  background: var(--color-primary-600);
+  color: var(--color-surface);
+}
+
+.onboarding-progress__dot.is-done {
+  background: var(--color-success);
+  color: var(--color-surface);
+}
+
+/* ── Main content ────────────────────────────────── */
+
+.onboarding-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-5);
+  padding-block-end: max(var(--space-8), env(safe-area-inset-bottom));
+}
+
+/* ── Step container ──────────────────────────────── */
+
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  animation: stepIn var(--transition-base) ease-out;
+}
+
+.onboarding-step--hidden {
+  display: none;
+}
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-step__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-block: var(--space-2);
+}
+
+.onboarding-step__icon {
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-step__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.onboarding-step__subtitle {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.onboarding-step__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.onboarding-step__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+/* ── Upload zone ─────────────────────────────────── */
+
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  min-block-size: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  overflow: hidden;
+}
+
+.upload-zone:hover,
+.upload-zone:focus-within {
+  border-color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.upload-zone.has-file {
+  border-style: solid;
+  border-color: var(--color-success);
+}
+
+.upload-zone__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.upload-zone__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  padding: var(--space-4);
+  pointer-events: none;
+}
+
+.upload-zone__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.upload-zone__preview {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--radius-lg);
+  display: none;
+}
+
+.upload-zone.has-file .upload-zone__preview {
+  display: block;
+}
+
+.upload-zone.has-file .upload-zone__placeholder {
+  display: none;
+}
+
+/* ── Selfie zone ─────────────────────────────────── */
+
+.selfie-zone {
+  position: relative;
+  inline-size: 220px;
+  block-size: 220px;
+  margin-inline: auto;
+  cursor: pointer;
+}
+
+.selfie-zone__placeholder {
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: var(--radius-full);
+  border: 2px dashed var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  transition: border-color var(--transition-base), background var(--transition-base);
+  pointer-events: none;
+}
+
+.selfie-zone:hover .selfie-zone__placeholder,
+.selfie-zone:focus-within .selfie-zone__placeholder {
+  border-color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.selfie-zone.has-file .selfie-zone__placeholder {
+  display: none;
+}
+
+.selfie-zone__frame {
+  position: absolute;
+  inset: 12px;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--color-primary-200);
+}
+
+.selfie-zone__preview {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background-size: cover;
+  background-position: center;
+  display: none;
+  border: 3px solid var(--color-success);
+}
+
+.selfie-zone.has-file .selfie-zone__preview {
+  display: block;
+}
+
+/* ── Tips list ───────────────────────────────────── */
+
+.onboarding-tips {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.onboarding-tips li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  padding-inline-start: var(--space-1);
+}
+
+.onboarding-tips li::before {
+  content: "✓";
+  color: var(--color-success);
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+}
+
+/* ── Pending screen ──────────────────────────────── */
+
+.onboarding-pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+  padding-block: var(--space-8);
+}
+
+.onboarding-pending__brand img {
+  filter: none;
+}
+
+.onboarding-pending__icon {
+  inline-size: 88px;
+  block-size: 88px;
+  border-radius: var(--radius-full);
+  background: var(--color-warning-light, var(--color-primary-50));
+  color: var(--color-warning, var(--color-primary-600));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-pending__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.onboarding-pending__body {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  max-inline-size: 320px;
+}
+
+.onboarding-pending__eta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+.onboarding-pending__notify {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  max-inline-size: 280px;
+  line-height: var(--leading-relaxed);
+}
+
+@media (min-width: 768px) {
+  .onboarding-main { padding: var(--space-8) var(--space-10); }
+  .onboarding-step__actions { flex-direction: row-reverse; }
+  .onboarding-step__actions .btn--ghost { order: 2; }
+  .onboarding-step__actions .btn--primary { order: 1; flex: 1; }
+}

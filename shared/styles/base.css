@@ -93,7 +93,6 @@ a:hover {
   flex-direction: column;
   min-block-size: 100dvh;
   position: relative;
-  overflow: hidden;
 }
 
 /* Page-level main */

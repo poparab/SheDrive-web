@@ -72,14 +72,66 @@ function renderOnlineState() {
   );
 }
 
-// ── Working Zones button ──────────────────────────────
+// ── Working Zones modal ───────────────────────────
+const zonesBackdrop = qs('#zones-backdrop');
+
 qs('#working-zones-btn').addEventListener('click', () => {
-  showToast(translate('driver.workingZones') + ' — coming soon!', 'info');
+  zonesBackdrop.hidden = false;
+  zonesBackdrop.setAttribute('aria-hidden', 'false');
+  qs('#zones-close').focus();
 });
 
-// ── Profile button ────────────────────────────────────
+qs('#zones-close').addEventListener('click', () => {
+  zonesBackdrop.hidden = true;
+  zonesBackdrop.setAttribute('aria-hidden', 'true');
+});
+
+zonesBackdrop.addEventListener('click', (e) => {
+  if (e.target === zonesBackdrop) {
+    zonesBackdrop.hidden = true;
+    zonesBackdrop.setAttribute('aria-hidden', 'true');
+  }
+});
+
+// ── Profile sheet ────────────────────────────────
+const profileBackdrop = qs('#profile-backdrop');
+
+// Populate profile from session
+const session = auth.getSession();
+if (session) {
+  const initials = (session.phone || 'D').slice(-1).toUpperCase();
+  const avatarEl = qs('#profile-avatar');
+  if (avatarEl) avatarEl.textContent = initials;
+  const phoneEl = qs('#profile-phone');
+  if (phoneEl) phoneEl.textContent = '+20 ' + (session.phone || '');
+}
+
 qs('#profile-btn').addEventListener('click', () => {
-  showToast(translate('nav.profile') + ' — coming soon!', 'info');
+  profileBackdrop.hidden = false;
+  profileBackdrop.setAttribute('aria-hidden', 'false');
+  qs('#profile-close').focus();
+});
+
+qs('#profile-close').addEventListener('click', () => {
+  profileBackdrop.hidden = true;
+  profileBackdrop.setAttribute('aria-hidden', 'true');
+});
+
+profileBackdrop.addEventListener('click', (e) => {
+  if (e.target === profileBackdrop) {
+    profileBackdrop.hidden = true;
+    profileBackdrop.setAttribute('aria-hidden', 'true');
+  }
+});
+
+qs('#profile-logout').addEventListener('click', () => {
+  auth.logout();
+  window.location.assign('./index.html');
+});
+
+// ── Simulate request (demo) ───────────────────────
+qs('#simulate-request-btn').addEventListener('click', () => {
+  window.location.assign('./request.html');
 });
 
 // ── Toast helper ─────────────────────────────────────

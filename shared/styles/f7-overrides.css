@@ -52,6 +52,17 @@ body.framework7-root {
   color: var(--color-text);
 }
 
+/*
+ * F7 locks overflow on every page via `.framework7-root { overflow: hidden }`.
+ * Map-based screens (home, matching, trip) are fine with that lock.
+ * Form/flow screens need native document scroll — re-enable it here.
+ */
+body.verify-page,
+body.complete-page,
+body.emergency-page {
+  overflow-y: auto !important;
+}
+
 a:not(.link):not(.item-link):not(.tab-link) {
   color: inherit;
 }

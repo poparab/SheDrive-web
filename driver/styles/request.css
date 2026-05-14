@@ -1,0 +1,234 @@
+/*
+ * request.css — Incoming ride request screen
+ * All values use tokens. No hardcoded colors or sizes.
+ */
+
+/* ── Page ────────────────────────────────────────── */
+
+.request-page { overflow: hidden; }
+
+/* ── Bottom sheet ────────────────────────────────── */
+
+.request-sheet {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-modal);
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  padding: var(--space-5) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-xl);
+  animation: sheetUp var(--transition-base) ease-out;
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ── Sheet header (countdown + title) ────────────── */
+
+.request-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Countdown ring */
+.request-sheet__countdown-wrap {
+  position: relative;
+  flex-shrink: 0;
+  inline-size: 60px;
+  block-size: 60px;
+}
+
+.countdown-ring {
+  inline-size: 60px;
+  block-size: 60px;
+  transform: rotate(-90deg);
+}
+
+.countdown-ring__bg {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 5;
+}
+
+.countdown-ring__progress {
+  fill: none;
+  stroke: var(--color-primary-600);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 163.4; /* 2π × 26 */
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke var(--transition-base);
+}
+
+.countdown-ring__progress.is-urgent {
+  stroke: var(--color-danger);
+}
+
+.countdown-ring__number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.request-sheet__heading {
+  flex: 1;
+}
+
+.request-sheet__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.request-sheet__subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin-block-start: var(--space-1);
+}
+
+/* ── Rider info ──────────────────────────────────── */
+
+.request-rider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+}
+
+.request-rider__info {
+  flex: 1;
+}
+
+.request-rider__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  display: block;
+}
+
+.request-rider__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-1);
+}
+
+.request-rider__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-warning, var(--color-primary-600));
+  font-weight: var(--fw-medium);
+}
+
+.request-rider__distance {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Trip card ───────────────────────────────────── */
+
+.request-trip {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.request-trip__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.request-trip__dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.request-trip__dot--pickup { background: var(--color-primary-600); }
+.request-trip__dot--dest   { background: var(--color-danger); }
+
+.request-trip__line {
+  inline-size: 2px;
+  block-size: 20px;
+  background: var(--color-border);
+  margin-inline-start: 4px;
+}
+
+.request-trip__location {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.request-trip__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.request-trip__place {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.request-trip__stats {
+  display: flex;
+  gap: var(--space-6);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.request-trip__stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.request-trip__stat strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+/* ── Actions ─────────────────────────────────────── */
+
+.request-sheet__actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .request-sheet {
+    max-inline-size: 480px;
+    inset-inline: auto;
+    inset-inline-end: var(--space-6);
+    border-radius: var(--radius-2xl);
+  }
+  .request-sheet__actions { grid-template-columns: 1fr 1fr; }
+}

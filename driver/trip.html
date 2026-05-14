@@ -1,0 +1,184 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — رحلة نشطة" />
+    <title>SheDrive Driver — الرحلة الحالية</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Mapbox -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+
+    <!-- Design system -->
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/trip.css" />
+
+    <!-- RTL override -->
+    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+  </head>
+
+  <body class="app-shell driver-trip-page">
+
+    <!-- ── Toast container ── -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ── Full-screen map ── -->
+    <main class="home-map-container" id="map" aria-label="خريطة الرحلة" data-i18n-aria-label="aria.map.trip" role="main"></main>
+
+    <!-- ── Top floating status bar ── -->
+    <header class="trip-topbar" role="banner">
+      <div class="trip-topbar__inner">
+        <span class="badge badge--info" id="trip-status-badge" data-i18n="trip.driver.status">الرحلة جارية</span>
+        <div class="trip-topbar__timer" aria-live="polite" aria-atomic="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span id="trip-timer">00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Rider info bottom card ── -->
+    <aside class="trip-card" role="complementary" aria-label="معلومات الراكبة" data-i18n-aria-label="trip.driver.riderCardAria">
+
+      <!-- Rider summary -->
+      <div class="trip-card__rider">
+        <div class="avatar avatar--lg" aria-hidden="true">ن</div>
+        <div class="trip-card__rider-info">
+          <span class="trip-card__rider-name" id="trip-rider-name">نور</span>
+          <div class="trip-card__rider-meta">
+            <span class="trip-card__rating">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span id="trip-rider-rating">4.8</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route summary -->
+      <div class="trip-card__route">
+        <div class="trip-card__route-point">
+          <span class="trip-card__route-dot trip-card__route-dot--from" aria-hidden="true"></span>
+          <span class="trip-card__route-text" id="trip-from">المعادي، القاهرة</span>
+        </div>
+        <svg class="trip-card__route-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <div class="trip-card__route-point">
+          <span class="trip-card__route-dot trip-card__route-dot--to" aria-hidden="true"></span>
+          <span class="trip-card__route-text" id="trip-to">مدينة نصر، القاهرة</span>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="trip-card__stats">
+        <div class="trip-card__stat">
+          <span class="trip-card__stat-label" data-i18n="trip.fare">التكلفة</span>
+          <span class="trip-card__stat-value" id="trip-fare">65 جنيه</span>
+        </div>
+        <div class="trip-card__stat">
+          <span class="trip-card__stat-label" data-i18n="trip.distance">المسافة</span>
+          <span class="trip-card__stat-value" id="trip-distance">8.4 كم</span>
+        </div>
+      </div>
+
+      <!-- Action buttons row -->
+      <div class="trip-card__actions">
+        <button
+          type="button"
+          class="btn btn--icon btn--ghost"
+          id="call-rider-btn"
+          aria-label="اتصال بالراكبة"
+          data-i18n-aria-label="trip.driver.callAria"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <span class="trip-card__action-label" data-i18n="trip.call">اتصال</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn--icon btn--ghost"
+          id="msg-rider-btn"
+          aria-label="رسالة للراكبة"
+          data-i18n-aria-label="trip.driver.msgAria"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="trip-card__action-label" data-i18n="trip.message">رسالة</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn--icon btn--danger"
+          id="sos-btn"
+          aria-label="طوارئ"
+          data-i18n-aria-label="aria.sos"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span class="trip-card__action-label" data-i18n="trip.sos">طوارئ</span>
+        </button>
+      </div>
+
+      <!-- Complete button -->
+      <button
+        type="button"
+        class="btn btn--primary btn--full"
+        id="complete-btn"
+        data-i18n="trip.driver.complete"
+      >
+        إنهاء الرحلة
+      </button>
+    </aside>
+
+    <!-- ── SOS confirmation modal ── -->
+    <div class="modal-backdrop" id="sos-backdrop" hidden aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title">
+        <h3 class="modal__title" id="sos-modal-title" data-i18n="trip.sosConfirmTitle">تأكيد الطوارئ</h3>
+        <p class="modal__body" data-i18n="trip.driver.sosBody">هل تريدين الإبلاغ عن حالة طارئة؟ سيتم إخطار الجهات المختصة فوراً.</p>
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" id="sos-cancel" data-i18n="trip.sosCancel">إلغاء</button>
+          <button type="button" class="btn btn--danger" id="sos-confirm" data-i18n="trip.sosConfirm">نعم، طوارئ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Emergency overlay ── -->
+    <div class="emergency-overlay" id="emergency-overlay" hidden aria-hidden="true" role="alertdialog" aria-labelledby="emergency-overlay-title">
+      <div class="emergency-overlay__content">
+        <div class="emergency-overlay__icon" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 id="emergency-overlay-title" class="emergency-overlay__title" data-i18n="trip.driver.emergencyTitle">تم الإبلاغ عن الطوارئ</h2>
+        <p class="emergency-overlay__body" data-i18n="trip.driver.emergencyBody">المساعدة في طريقها إليكِ. ابقي هادئة.</p>
+        <p class="emergency-overlay__phone">
+          <strong data-i18n="trip.driver.emergencyLine">خط الطوارئ:</strong>
+          <a href="tel:122" class="emergency-overlay__tel">122</a>
+        </p>
+        <button type="button" class="btn btn--ghost" id="emergency-return" data-i18n="emergency.returnToTrip">العودة إلى الرحلة</button>
+      </div>
+    </div>
+
+    <script type="module" src="scripts/trip.js"></script>
+  </body>
+</html>
