@@ -41,6 +41,9 @@ const activeTrip = activeTripRaw
     };
 
 const { driver, trip } = activeTrip;
+const rootStyles = getComputedStyle(document.documentElement);
+const routeColor = rootStyles.getPropertyValue('--color-primary-600').trim() || '#6b2bd9';
+const driverMarkerColor = rootStyles.getPropertyValue('--color-accent-500').trim() || '#d63ae2';
 
 // ── Populate driver card ──────────────────────────────
 const driverNameEl = qs('#driver-name');
@@ -115,7 +118,7 @@ if (map) {
       source: 'route',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
-        'line-color': '#6b2bd9',
+        'line-color': routeColor,
         'line-width': 4,
         'line-opacity': 0.8,
       },
@@ -124,19 +127,16 @@ if (map) {
     // Rider marker (purple)
     const riderEl = document.createElement('div');
     riderEl.className = 'map-user-dot';
-    riderEl.setAttribute('aria-label', 'موقعك');
+    riderEl.setAttribute('aria-label', translate('aria.yourLocation'));
     new mapboxgl.Marker({ element: riderEl })
       .setLngLat(RIDER_COORD)
       .addTo(map);
 
     // Driver marker (magenta)
-    const driverEl = document.createElement('div');
-    driverEl.className = 'map-driver-dot';
-    driverEl.setAttribute('aria-label', driver.name ?? 'السائقة');
-    new mapboxgl.Marker({ color: '#d63ae2', element: undefined })
+    new mapboxgl.Marker({ color: driverMarkerColor })
       .setLngLat(DRIVER_COORD)
       .setPopup(
-        new mapboxgl.Popup({ offset: 25, closeButton: false }).setText(driver.name ?? 'السائقة')
+        new mapboxgl.Popup({ offset: 25, closeButton: false }).setText(driver.name ?? translate('trip.driver'))
       )
       .addTo(map);
   });

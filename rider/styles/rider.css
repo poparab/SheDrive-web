@@ -283,18 +283,51 @@
 
 /* Compact height: tighten gaps so OTP step fits without internal scroll */
 @media (max-height: 750px) {
+  .login-brand {
+    block-size: clamp(100px, 18dvh, 160px);
+    padding-block: var(--space-5);
+  }
+
+  .login-brand__tagline {
+    font-size: var(--fs-sm);
+  }
+
+  .login-brand__logo {
+    inline-size: 140px;
+  }
+
   .login-form-panel {
-    padding-block: var(--space-4);
-    gap: var(--space-4);
+    padding-block: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .login-form-panel__body {
+    gap: var(--space-3);
+  }
+
+  .login-form__title {
+    font-size: var(--fs-xl);
+  }
+
+  .login-form__subtitle {
+    font-size: var(--fs-sm);
+  }
+
+  .login-page #step-otp {
+    gap: var(--space-3);
   }
 
   .login-page .otp-panel {
-    padding-block: var(--space-5) var(--space-4);
-    gap: var(--space-3);
+    padding-block: var(--space-4) var(--space-3);
+    gap: var(--space-2);
   }
 
   .login-page .otp-box {
     block-size: var(--space-12);
+  }
+
+  .login-terms {
+    padding-block-end: 0;
   }
 }
 

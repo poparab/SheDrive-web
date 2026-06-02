@@ -84,7 +84,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-surface);
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   flex-shrink: 0;
@@ -160,7 +160,7 @@
 .btn--sos {
   flex: 1;
   background: var(--color-danger) !important;
-  color: white !important;
+  color: var(--color-surface) !important;
   font-size: var(--fs-base);
   font-weight: var(--fw-bold);
   border-radius: var(--radius-full);
@@ -295,7 +295,7 @@
 
 .btn--danger {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-surface);
   border: none;
   border-radius: var(--radius-full);
   padding-block: var(--space-3);
@@ -342,9 +342,14 @@
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   background: var(--color-text);
-  color: white;
+  color: var(--color-surface);
   box-shadow: var(--shadow-md);
   animation: toast-in 0.25s ease;
+}
+
+.trip-details-demo {
+  margin-top: var(--space-2);
+  opacity: 0.7;
 }
 
 .toast--success {

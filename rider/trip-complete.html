@@ -10,7 +10,7 @@
     <sd-page body-class="app-shell complete-page" screen-styles="styles/rider.css, styles/trip-complete.css">
       <sd-app-header bar-class="complete-topbar" inner-class="complete-topbar__inner" title-class="complete-topbar__title">
         <span data-slot="start" class="complete-topbar__spacer" aria-hidden="true"></span>
-        <a href="./home.html" class="complete-topbar__logo" aria-label="SheDrive">
+        <a href="./home.html" class="complete-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
           <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
         </a>
       </sd-app-header>
@@ -74,7 +74,7 @@
 
         <section class="complete-tags" id="complete-tags" aria-hidden="true">
         <p class="complete-tags__title" data-i18n="complete.tagsTitle">ما الذي أعجبكِ؟</p>
-        <div class="tag-chips" role="group" aria-label="علامات التقييم">
+        <div class="tag-chips" role="group" data-i18n-aria-label="aria.complete.tags">
           <button type="button" class="tag-chip" data-i18n="complete.tagSafe">قيادة آمنة</button>
           <button type="button" class="tag-chip" data-i18n="complete.tagClean">سيارة نظيفة</button>
           <button type="button" class="tag-chip" data-i18n="complete.tagFriendly">ودودة</button>
@@ -86,7 +86,7 @@
 
         <section class="tip-selector" aria-labelledby="tip-heading">
         <p class="tip-selector__title" id="tip-heading" data-i18n="complete.tipTitle">إكرامية إضافية (اختياري)</p>
-        <div class="tip-chips" role="radiogroup" aria-label="مبلغ الإكرامية">
+        <div class="tip-chips" role="radiogroup" data-i18n-aria-label="aria.complete.tipAmount">
           <button type="button" class="tip-chip" data-tip="0" aria-pressed="true" data-i18n="complete.tipNone">بدون</button>
           <button type="button" class="tip-chip" data-tip="5" aria-pressed="false">5 جنيه</button>
           <button type="button" class="tip-chip" data-tip="10" aria-pressed="false">10 جنيه</button>
@@ -101,7 +101,7 @@
           rows="3"
           data-i18n-placeholder="complete.commentPlaceholder"
           placeholder="شاركينا تجربتك…"
-          aria-label="ملاحظات إضافية"
+          data-i18n-aria-label="aria.complete.comment"
         ></textarea>
         </div>
       </main>

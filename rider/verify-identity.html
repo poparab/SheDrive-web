@@ -22,7 +22,7 @@
           </svg>
         </a>
 
-        <a href="./index.html" class="verify-topbar__logo" aria-label="SheDrive">
+        <a href="./index.html" class="verify-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
           <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
         </a>
       </sd-app-header>
@@ -38,26 +38,26 @@
       </div>
 
       <!-- ── Step indicator ── -->
-      <nav class="verify-stepper" aria-label="خطوات التحقق" role="tablist">
+      <nav class="verify-stepper" data-i18n-aria-label="aria.verify.steps" role="tablist">
         <span
           class="verify-step-dot verify-step-dot--active"
           role="tab"
           aria-selected="true"
-          aria-label="الخطوة 1"
+          data-i18n-aria-label="aria.verify.step1"
           data-step-dot="1"
         ></span>
         <span
           class="verify-step-dot"
           role="tab"
           aria-selected="false"
-          aria-label="الخطوة 2"
+          data-i18n-aria-label="aria.verify.step2"
           data-step-dot="2"
         ></span>
         <span
           class="verify-step-dot"
           role="tab"
           aria-selected="false"
-          aria-label="الخطوة 3"
+          data-i18n-aria-label="aria.verify.step3"
           data-step-dot="3"
         ></span>
       </nav>
@@ -66,13 +66,13 @@
       <section
         class="verify-step verify-step--active"
         data-step="1"
-        aria-label="الوجه الأمامي للبطاقة"
+        data-i18n-aria-label="aria.verify.panel.front"
         role="tabpanel"
       >
         <h1 class="verify-step__title" data-i18n="verify.step1.title">الوجه الأمامي للبطاقة</h1>
         <p class="verify-step__hint" data-i18n="verify.step1.hint">التقطي صورة واضحة للوجه الأمامي لبطاقة هويتك الوطنية</p>
 
-        <div class="upload-card" id="upload-card-front" role="button" tabindex="0" aria-label="رفع صورة الوجه الأمامي للبطاقة">
+        <div class="upload-card" id="upload-card-front" role="button" tabindex="0" data-i18n-aria-label="aria.upload.front">
           <!-- Camera icon -->
           <svg class="upload-card__icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -87,7 +87,7 @@
           accept="image/*"
           capture="environment"
           id="id-front-input"
-          aria-label="رفع صورة الوجه الأمامي"
+          data-i18n-aria-label="aria.upload.front"
           hidden
         />
 
@@ -115,14 +115,14 @@
       <section
         class="verify-step"
         data-step="2"
-        aria-label="الوجه الخلفي للبطاقة"
+        data-i18n-aria-label="aria.verify.panel.back"
         role="tabpanel"
         hidden
       >
         <h1 class="verify-step__title" data-i18n="verify.step2.title">الوجه الخلفي للبطاقة</h1>
         <p class="verify-step__hint" data-i18n="verify.step2.hint">التقطي صورة واضحة للوجه الخلفي لبطاقة هويتك الوطنية</p>
 
-        <div class="upload-card" id="upload-card-back" role="button" tabindex="0" aria-label="رفع صورة الوجه الخلفي للبطاقة">
+        <div class="upload-card" id="upload-card-back" role="button" tabindex="0" data-i18n-aria-label="aria.upload.back">
           <svg class="upload-card__icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
@@ -135,7 +135,7 @@
           accept="image/*"
           capture="environment"
           id="id-back-input"
-          aria-label="رفع صورة الوجه الخلفي"
+          data-i18n-aria-label="aria.upload.back"
           hidden
         />
 
@@ -163,7 +163,7 @@
       <section
         class="verify-step"
         data-step="3"
-        aria-label="صورة سيلفي"
+        data-i18n-aria-label="aria.verify.panel.selfie"
         role="tabpanel"
         hidden
       >
@@ -171,7 +171,7 @@
         <p class="verify-step__hint" data-i18n="verify.step3.hint">التقطي صورة واضحة لوجهك في إضاءة جيدة</p>
 
         <!-- Circular upload card with face silhouette -->
-        <div class="upload-card upload-card--circle" id="upload-card-selfie" role="button" tabindex="0" aria-label="رفع صورة سيلفي">
+        <div class="upload-card upload-card--circle" id="upload-card-selfie" role="button" tabindex="0" data-i18n-aria-label="aria.upload.selfie">
           <!-- Face silhouette SVG -->
           <svg class="upload-card__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
@@ -184,7 +184,7 @@
           accept="image/*"
           capture="user"
           id="selfie-input"
-          aria-label="رفع صورة سيلفي"
+          data-i18n-aria-label="aria.upload.selfie"
           hidden
         />
 

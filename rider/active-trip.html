@@ -24,7 +24,7 @@
         actions-class="trip-topbar__actions"
         title-class="trip-topbar__title"
       >
-        <a href="home.html" class="trip-topbar__logo" aria-label="SheDrive">
+        <a href="home.html" class="trip-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
           <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
         </a>
       </sd-app-header>
@@ -47,7 +47,7 @@
           avatar="ن"
         ></sd-driver-card>
 
-        <div class="safety-badges" role="list" aria-label="شارات السلامة">
+        <div class="safety-badges" role="list" data-i18n-aria-label="aria.trip.safetyBadges">
           <span class="safety-badge" role="listitem">
             <span aria-hidden="true">🎥</span>
             <span data-i18n="trip.badge.camera">كاميرا مباشرة</span>
@@ -62,7 +62,7 @@
           </span>
         </div>
 
-        <div class="trip-actions" role="group" aria-label="إجراءات الرحلة">
+        <div class="trip-actions" role="group" data-i18n-aria-label="aria.trip.actions">
 
           <button
             type="button"
@@ -114,7 +114,7 @@
             </svg>
           </button>
 
-          <div id="trip-details-body" class="trip-details-body" role="region" aria-label="تفاصيل الرحلة">
+          <div id="trip-details-body" class="trip-details-body" role="region" data-i18n-aria-label="aria.trip.details">
             <div class="trip-detail-row">
               <span class="trip-detail-row__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
               <span class="trip-detail-row__value" id="detail-pickup">موقعي الحالي</span>
@@ -138,9 +138,8 @@
             <button
               type="button"
               id="demo-end-btn"
-              class="btn btn--secondary btn--full btn--sm"
+              class="btn btn--secondary btn--full btn--sm trip-details-demo"
               data-i18n="trip.demoEnd"
-              style="margin-top: 0.5rem; opacity: 0.7;"
             >
               محاكاة انتهاء الرحلة (تجريبي)
             </button>

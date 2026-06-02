@@ -11,6 +11,7 @@ import {
   DEFAULT_ZOOM,
   DEFAULT_MAP_STYLE,
 } from './config.js';
+import { translate } from './i18n.js';
 
 export const MapService = {
   /** @type {mapboxgl.Map | null} */
@@ -18,6 +19,8 @@ export const MapService = {
 
   /** @type {mapboxgl.Marker | null} */
   _userMarker: null,
+
+  _markerColorToken: '--color-primary-600',
 
   /**
    * Initialize a Mapbox map inside the given container element.
@@ -72,7 +75,7 @@ export const MapService = {
     if (!this._map) return null;
 
     const marker = new mapboxgl.Marker({
-      color: options.color ?? '#6b2bd9',
+      color: options.color ?? this.resolveColorToken(this._markerColorToken, '#6b2bd9'),
       element: options.element,
     }).setLngLat(lngLat);
 
@@ -145,10 +148,15 @@ export const MapService = {
     } else {
       const el = document.createElement('div');
       el.className = 'map-user-dot';
-      el.setAttribute('aria-label', 'Your location');
+      el.setAttribute('aria-label', translate('aria.yourLocation'));
       this._userMarker = new mapboxgl.Marker({ element: el })
         .setLngLat(lngLat)
         .addTo(this._map);
     }
+  },
+
+  resolveColorToken(tokenName, fallback) {
+    const token = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+    return token || fallback;
   },
 };
