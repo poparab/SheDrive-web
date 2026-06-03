@@ -1,6 +1,7 @@
 /**
  * matching.js — "Finding your driver" screen controller
- * Reads pending trip from sessionStorage, animates search, then redirects to active-trip.html.
+ * Flow: searching → confirmed (2 s) → active-trip.html
+ * Also handles: no-driver retry and return-home actions.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -14,23 +15,18 @@ auth.requireAuth();
 await initI18n();
 
 // ── Language switcher ────────────────────────────────
-document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const lang = btn.getAttribute('data-lang-btn');
-    setLanguage(lang);
-  });
-});
+document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
+  btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
+);
 
 // ── Read pending trip from sessionStorage ─────────────
-const raw = sessionStorage.getItem('shedrive.pendingTrip');
 let pendingTrip = null;
-
 try {
+  const raw = sessionStorage.getItem('shedrive.pendingTrip');
   pendingTrip = raw ? JSON.parse(raw) : null;
-} catch {
-  pendingTrip = null;
-}
+} catch { pendingTrip = null; }
 
+// Populate trip chip labels
 const chipPickup = document.getElementById('chip-pickup');
 const chipDestination = document.getElementById('chip-destination');
 
@@ -53,7 +49,7 @@ if (map) {
   });
 }
 
-// ── Mock driver redirect after 3500ms ────────────────
+// ── Mock driver data ──────────────────────────────────
 const mockDriver = {
   name: 'نورا أحمد',
   nameEn: 'Nora Ahmed',
@@ -65,39 +61,74 @@ const mockDriver = {
   photo: null,
 };
 
-const driverNameEl = document.getElementById('matching-driver-name');
+// ── Populate searching-state preview card ─────────────
+const driverNameEl  = document.getElementById('matching-driver-name');
 const driverRatingEl = document.getElementById('matching-driver-rating');
 const driverVehicleEl = document.getElementById('matching-driver-vehicle');
-const driverEtaEl = document.getElementById('matching-driver-eta');
+const driverEtaEl   = document.getElementById('matching-driver-eta');
 
-if (driverNameEl) driverNameEl.textContent = mockDriver.name ?? mockDriver.nameEn ?? '—';
-if (driverRatingEl) {
-  const stars = '★'.repeat(Math.round(mockDriver.rating ?? 5));
-  driverRatingEl.textContent = `${stars} ${mockDriver.rating ?? '5.0'}`;
+function populateDriverCard(nameId, ratingId, vehicleId, etaId) {
+  const n  = document.getElementById(nameId);
+  const r  = document.getElementById(ratingId);
+  const v  = document.getElementById(vehicleId);
+  const e  = document.getElementById(etaId);
+  if (n) n.textContent  = mockDriver.name;
+  if (r) r.textContent  = `${'★'.repeat(Math.round(mockDriver.rating))} ${mockDriver.rating}`;
+  if (v) v.textContent  = mockDriver.vehicle;
+  if (e) e.textContent  = `${translate('trip.eta')} ${mockDriver.eta} ${translate('trip.minutes')}`;
 }
-if (driverVehicleEl) driverVehicleEl.textContent = mockDriver.vehicle ?? '';
-if (driverEtaEl) {
-  driverEtaEl.textContent = `${translate('trip.eta')} ${mockDriver.eta ?? 4} ${translate('trip.minutes')}`;
-}
 
-const redirectTimer = setTimeout(() => {
-  sessionStorage.setItem('shedrive.activeTrip', JSON.stringify({
-    driver: mockDriver,
-    trip: JSON.parse(sessionStorage.getItem('shedrive.pendingTrip') || '{}'),
-  }));
-  window.location.assign('./active-trip.html');
-}, 3500);
+populateDriverCard('matching-driver-name', 'matching-driver-rating', 'matching-driver-vehicle', 'matching-driver-eta');
+populateDriverCard('confirmed-driver-name', 'confirmed-driver-rating', 'confirmed-driver-vehicle', 'confirmed-driver-eta');
 
-// ── Cancel handlers ──────────────────────────────────
+// ── Cancel handlers ───────────────────────────────────
 function cancelRequest() {
-  clearTimeout(redirectTimer);
+  clearTimers();
   sessionStorage.removeItem('shedrive.pendingTrip');
   sessionStorage.removeItem('shedrive.activeTrip');
   window.location.assign('./home.html');
 }
 
-const cancelBtn = document.getElementById('cancel-btn');
-const cancelTopBtn = document.getElementById('cancel-top-btn');
+document.getElementById('cancel-btn')?.addEventListener('click', cancelRequest);
+document.getElementById('cancel-top-btn')?.addEventListener('click', cancelRequest);
 
-if (cancelBtn) cancelBtn.addEventListener('click', cancelRequest);
-if (cancelTopBtn) cancelTopBtn.addEventListener('click', cancelRequest);
+// ── No-driver actions ─────────────────────────────────
+document.getElementById('retry-btn')?.addEventListener('click', () => {
+  delete document.body.dataset.state;
+  startSearch();
+});
+
+document.getElementById('home-btn')?.addEventListener('click', () => {
+  clearTimers();
+  window.location.assign('./home.html');
+});
+
+// ── Timer management ──────────────────────────────────
+let searchTimer = null;
+let confirmTimer = null;
+
+function clearTimers() {
+  clearTimeout(searchTimer);
+  clearTimeout(confirmTimer);
+}
+
+function startSearch() {
+  clearTimers();
+
+  // After 3.5 s: show confirmed state and store activeTrip
+  searchTimer = setTimeout(() => {
+    sessionStorage.setItem('shedrive.activeTrip', JSON.stringify({
+      driver: mockDriver,
+      trip: pendingTrip || {},
+    }));
+    document.body.dataset.state = 'confirmed';
+
+    // After 2 more s: navigate to active trip
+    confirmTimer = setTimeout(() => {
+      window.location.assign('./active-trip.html');
+    }, 2000);
+  }, 3500);
+}
+
+// ── Start the search ──────────────────────────────────
+startSearch();

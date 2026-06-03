@@ -1,6 +1,7 @@
 /**
  * history.js — Rider trip history screen controller
- * Auth guard + i18n only for now. API wiring deferred to a future sprint.
+ * Auth guard + i18n + card navigation.
+ * API wiring deferred to a future sprint.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -13,4 +14,17 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
-// TODO: fetch trip history from API and render dynamically
+// ── Trip card navigation ──────────────────────────────
+document.querySelectorAll('.history-card').forEach((card) => {
+  card.addEventListener('click', () => {
+    window.location.assign('./trip-detail.html');
+  });
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      window.location.assign('./trip-detail.html');
+    }
+  });
+});
+
+// TODO: fetch real trip history from API and render dynamically

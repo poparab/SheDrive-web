@@ -73,16 +73,24 @@ export const Drawer = {
       </ul>
     `;
 
-    document.body.appendChild(backdrop);
-    document.body.appendChild(drawer);
+    // Mount inside .app-shell so position:fixed children are contained within
+    // the 430 px phone frame on desktop (the shell has transform: translateZ(0)).
+    const container = document.querySelector('.app-shell') || document.body;
+    container.appendChild(backdrop);
+    container.appendChild(drawer);
     this._el = drawer;
     this._backdrop = backdrop;
 
-    // Stub menu items
+    // Menu item navigation — "My Rides" navigates to history, others stub
     drawer.querySelectorAll('[data-menu-key]').forEach(btn => {
       btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-menu-key');
         Drawer.close();
-        setTimeout(() => showToast(translate('menu.comingSoon'), 'info'), 200);
+        if (key === 'menu.rides') {
+          setTimeout(() => window.location.assign('./history.html'), 200);
+        } else {
+          setTimeout(() => showToast(translate('menu.comingSoon'), 'info'), 200);
+        }
       });
     });
 
@@ -110,14 +118,19 @@ export const Drawer = {
   open() {
     Drawer._el?.classList.add('is-open');
     Drawer._backdrop?.classList.add('is-open');
-    document.body.style.overflow = 'hidden';
+    // Lock scroll on the shell (drawer is mounted inside it)
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.style.overflow = 'hidden';
+    else document.body.style.overflow = 'hidden';
     Drawer._el?.querySelector('#drawer-close')?.focus();
   },
 
   close() {
     Drawer._el?.classList.remove('is-open');
     Drawer._backdrop?.classList.remove('is-open');
-    document.body.style.overflow = '';
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.style.overflow = '';
+    else document.body.style.overflow = '';
     document.getElementById('menu-btn')?.focus();
   },
 };
