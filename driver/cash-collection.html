@@ -1,0 +1,81 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive Driver — تحصيل التكلفة النقدية" />
+    <title>SheDrive Driver — تحصيل نقدي</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/cash-collection.css" />
+    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+  </head>
+
+  <body class="app-shell driver-cash-page">
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <main
+      class="cash-layout"
+      aria-label="تحصيل التكلفة النقدية"
+      data-i18n-aria-label="aria.driver.cashCollection"
+    >
+
+      <!-- Cash icon -->
+      <div class="cash-icon" aria-hidden="true">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M17 12h.01M7 12h.01"/>
+        </svg>
+      </div>
+
+      <!-- Heading -->
+      <div class="cash-header">
+        <h1 class="cash-title" data-i18n="driver.cash.title">اجمعي التكلفة النقدية</h1>
+        <p class="cash-subtitle" data-i18n="driver.cash.subtitle">أبلغي الراكبة بالمبلغ المطلوب</p>
+      </div>
+
+      <!-- Fare badge -->
+      <div class="cash-fare-badge" role="status" aria-live="polite">
+        <span class="cash-fare-badge__amount" id="cash-fare-amount">٦٥</span>
+        <span class="cash-fare-badge__currency" data-i18n="driver.currency">جنيه</span>
+      </div>
+
+      <!-- Trip summary chip -->
+      <div class="cash-trip-chip" role="note" id="cash-trip-chip" aria-label="ملخص الرحلة">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span id="cash-from">المعادي</span>
+        <span class="cash-trip-chip__sep" aria-hidden="true">←</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span id="cash-to">مدينة نصر</span>
+      </div>
+
+      <!-- Confirm button -->
+      <button
+        type="button"
+        class="btn btn--primary btn--full btn--lg"
+        id="collected-btn"
+        data-i18n="driver.cash.collected"
+      >
+        تم الاستلام — ابدئي رحلة جديدة
+      </button>
+
+    </main>
+
+    <script type="module" src="scripts/cash-collection.js"></script>
+  </body>
+</html>

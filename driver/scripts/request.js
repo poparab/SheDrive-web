@@ -98,7 +98,7 @@ qs('#accept-btn').addEventListener('click', () => {
     duration: mockRequest.duration,
     startedAt: Date.now(),
   }));
-  window.location.assign('./trip.html');
+  window.location.assign('./trip.html?state=en-route');
 });
 
 // ── Toast helper ─────────────────────────────────────

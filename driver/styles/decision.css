@@ -1,0 +1,108 @@
+/* decision.css — Application decision screen (approved / rejected) */
+
+.driver-decision-page {
+  background: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 100dvh;
+}
+
+.decision-layout {
+  inline-size: 100%;
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 100dvh;
+}
+
+/* ── Shared card ── */
+.decision-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  padding: var(--space-8) var(--space-6);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  text-align: center;
+  inline-size: 100%;
+  max-inline-size: 400px;
+  margin-inline: auto;
+}
+
+/* ── State visibility ── */
+.state--rejected { display: none; }
+
+[data-state="approved"] .state--approved { display: flex; }
+[data-state="approved"] .state--rejected { display: none; }
+
+[data-state="rejected"] .state--approved { display: none; }
+[data-state="rejected"] .state--rejected { display: flex; }
+
+/* ── Icon circle ── */
+.decision-icon {
+  inline-size: 96px;
+  block-size: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.decision-icon--success {
+  background: rgba(var(--color-success-rgb), 0.12);
+  color: var(--color-success);
+}
+
+.decision-icon--danger {
+  background: rgba(var(--color-danger-rgb), 0.10);
+  color: var(--color-danger);
+}
+
+/* ── Text block ── */
+.decision-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.decision-title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  line-height: var(--leading-tight);
+}
+
+.decision-body {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  max-inline-size: 30ch;
+  margin-inline: auto;
+}
+
+/* ── Safety badges row ── */
+.decision-badges {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.decision-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(var(--color-primary-600-rgb), 0.07);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}

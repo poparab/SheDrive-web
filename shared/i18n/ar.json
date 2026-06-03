@@ -364,5 +364,38 @@
   "aria.tripDetail": "تفاصيل الرحلة",
   "aria.history.tripCard": "بطاقة الرحلة",
   "aria.search.back": "رجوع إلى الخريطة",
-  "aria.search.clear": "مسح البحث"
+  "aria.search.clear": "مسح البحث",
+
+  "driver.decision.approved.title": "تمت الموافقة على طلبكِ!",
+  "driver.decision.approved.body": "مرحباً بكِ في SheDrive. أنتِ الآن جاهزة للعمل.",
+  "driver.decision.rejected.title": "لم نتمكن من قبول طلبكِ",
+  "driver.decision.rejected.body": "يُرجى التواصل مع فريق الدعم لمزيد من التفاصيل.",
+  "driver.decision.start": "ابدئي العمل",
+  "driver.decision.contact": "تواصل مع الدعم",
+  "driver.decision.pending.title": "طلبكِ قيد المراجعة",
+
+  "driver.trip.enRoute.status": "في الطريق إلى الراكبة",
+  "driver.trip.enRoute.eta": "الوصول خلال",
+  "driver.trip.enRoute.arrived": "وصلت!",
+  "driver.trip.arrived.status": "انتظار الراكبة",
+  "driver.trip.arrived.prompt": "أكّدي هوية الراكبة وابدئي الرحلة",
+  "driver.trip.arrived.start": "ابدئي الرحلة",
+
+  "driver.cash.title": "اجمعي التكلفة النقدية",
+  "driver.cash.subtitle": "أبلغي الراكبة بالمبلغ المطلوب",
+  "driver.cash.collected": "تم الاستلام — ابدئي رحلة جديدة",
+
+  "driver.history.title": "سجل الرحلات",
+  "driver.history.empty": "لا توجد رحلات بعد",
+  "driver.history.emptyBody": "ابدئي رحلتك الأولى",
+  "driver.history.completed": "مكتملة",
+  "driver.history.loading": "جارٍ التحميل...",
+
+  "driver.tripDetail.title": "تفاصيل الرحلة",
+  "driver.tripDetail.riderRating": "تقييم الراكبة لكِ",
+
+  "aria.driver.decision": "نتيجة طلب الانضمام",
+  "aria.driver.cashCollection": "تحصيل التكلفة النقدية",
+  "aria.driver.history": "سجل رحلات السائقة",
+  "aria.driver.tripDetail": "تفاصيل رحلة سابقة"
 }

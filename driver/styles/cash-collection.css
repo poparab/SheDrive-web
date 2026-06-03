@@ -1,0 +1,97 @@
+/* cash-collection.css — Post-trip cash fare collection screen */
+
+.driver-cash-page {
+  background: var(--color-surface-alt);
+}
+
+.cash-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  min-block-size: 100dvh;
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+}
+
+/* ── Icon ── */
+.cash-icon {
+  inline-size: 104px;
+  block-size: 104px;
+  border-radius: 50%;
+  background: rgba(var(--color-success-rgb), 0.10);
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Heading ── */
+.cash-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cash-title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  line-height: var(--leading-tight);
+}
+
+.cash-subtitle {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+}
+
+/* ── Fare amount badge ── */
+.cash-fare-badge {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-8);
+  background: var(--color-surface);
+  border: 2px solid rgba(var(--color-success-rgb), 0.3);
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 0 0 4px rgba(var(--color-success-rgb), 0.06);
+}
+
+.cash-fare-badge__amount {
+  font-size: 64px;
+  font-weight: var(--fw-bold);
+  color: var(--color-success);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-fare-badge__currency {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  align-self: flex-end;
+  padding-block-end: var(--space-1);
+}
+
+/* ── Trip summary chip ── */
+.cash-trip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  max-inline-size: 100%;
+  overflow: hidden;
+}
+
+.cash-trip-chip__sep {
+  color: var(--color-accent-500);
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+}

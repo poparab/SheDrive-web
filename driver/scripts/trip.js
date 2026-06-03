@@ -18,6 +18,27 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')));
 });
 
+// ── State machine ─────────────────────────────────────
+// Initialise from URL param (e.g. ?state=en-route from request.html accept)
+const urlState = new URLSearchParams(location.search).get('state');
+if (urlState) document.body.dataset.state = urlState;
+
+function setState(s) {
+  if (s) document.body.dataset.state = s;
+  else delete document.body.dataset.state;
+  updateStatusBadge();
+}
+
+function updateStatusBadge() {
+  const badge = qs('#trip-status-badge');
+  if (!badge) return;
+  const state = document.body.dataset.state;
+  if (state === 'en-route') badge.textContent = translate('driver.trip.enRoute.status');
+  else if (state === 'arrived') badge.textContent = translate('driver.trip.arrived.status');
+  else badge.textContent = translate('trip.driver.status');
+}
+updateStatusBadge();
+
 // ── Map ───────────────────────────────────────────────
 MapService.init('map');
 MapService.getUserLocation()
@@ -37,13 +58,27 @@ const trip = raw ? JSON.parse(raw) : {
   startedAt: Date.now(),
 };
 
-// Populate
+// Populate in-ride card
 qs('#trip-rider-name').textContent   = trip.rider.name;
 qs('#trip-rider-rating').textContent = trip.rider.rating;
 qs('#trip-from').textContent = trip.pickup?.ar ?? 'المعادي، القاهرة';
 qs('#trip-to').textContent   = trip.dest?.ar   ?? 'مدينة نصر، القاهرة';
 qs('#trip-fare').textContent = trip.fare?.ar    ?? '65 جنيه';
 qs('#trip-distance').textContent = '8.4 كم';
+
+// Populate en-route card
+const enrouteRiderNameEl = qs('#enroute-rider-name');
+const enroutePickupEl    = qs('#enroute-pickup');
+const enrouteAvatarEl    = qs('#enroute-avatar');
+if (enrouteRiderNameEl) enrouteRiderNameEl.textContent = trip.rider.name;
+if (enroutePickupEl)    enroutePickupEl.textContent    = trip.pickup?.ar ?? 'المعادي، القاهرة';
+if (enrouteAvatarEl)    enrouteAvatarEl.textContent    = (trip.rider.name || 'ن').charAt(0);
+
+// Populate arrived card
+const arrivedRiderNameEl = qs('#arrived-rider-name');
+const arrivedAvatarEl    = qs('#arrived-avatar');
+if (arrivedRiderNameEl) arrivedRiderNameEl.textContent = trip.rider.name;
+if (arrivedAvatarEl)    arrivedAvatarEl.textContent    = (trip.rider.name || 'ن').charAt(0);
 
 // ── Trip timer ────────────────────────────────────────
 const timerEl = qs('#trip-timer');
@@ -105,11 +140,13 @@ qs('#msg-rider-btn').addEventListener('click', () => {
   showToast(translate('trip.message') + ' — ' + trip.rider.name, 'info');
 });
 
-// ── Complete trip ─────────────────────────────────────
+// ── State transition buttons ──────────────────────────
+qs('#arrived-btn')?.addEventListener('click', () => setState('arrived'));
+qs('#start-trip-btn')?.addEventListener('click', () => setState(''));
+
+// ── Complete trip → cash collection ──────────────────
 qs('#complete-btn').addEventListener('click', () => {
-  sessionStorage.removeItem('shedrive.activeDriverTrip');
-  showToast(translate('trip.driver.completedToast'), 'success');
-  setTimeout(() => window.location.assign('./home.html'), 2000);
+  window.location.assign('./cash-collection.html');
 });
 
 // ── Toast helper ─────────────────────────────────────

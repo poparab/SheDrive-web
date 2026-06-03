@@ -52,8 +52,64 @@
       </div>
     </header>
 
-    <!-- ── Rider info bottom card ── -->
-    <aside class="trip-card" role="complementary" aria-label="معلومات الراكبة" data-i18n-aria-label="trip.driver.riderCardAria">
+    <!-- ── State: En Route (navigating to pickup) ── -->
+    <aside class="trip-card state--en-route" role="complementary" aria-label="في الطريق إلى الراكبة" data-i18n-aria-label="driver.trip.enRoute.status">
+      <div class="trip-card__rider">
+        <div class="avatar avatar--lg" aria-hidden="true" id="enroute-avatar">ن</div>
+        <div class="trip-card__rider-info">
+          <span class="trip-card__rider-name" id="enroute-rider-name">نور</span>
+          <div class="trip-card__rider-meta">
+            <span class="badge badge--info" data-i18n="driver.trip.enRoute.status">في الطريق إلى الراكبة</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="trip-card__route">
+        <div class="trip-card__route-point">
+          <span class="trip-card__route-dot trip-card__route-dot--from" aria-hidden="true"></span>
+          <span class="trip-card__route-text" id="enroute-pickup">المعادي، القاهرة</span>
+        </div>
+      </div>
+
+      <div class="trip-enroute-eta" aria-live="polite">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span><span data-i18n="driver.trip.enRoute.eta">الوصول خلال</span> <strong>4 دقيقة</strong></span>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn--primary btn--full"
+        id="arrived-btn"
+        data-i18n="driver.trip.enRoute.arrived"
+      >وصلت!</button>
+    </aside>
+
+    <!-- ── State: Arrived at pickup (waiting for rider) ── -->
+    <aside class="trip-card state--arrived" role="complementary" aria-label="انتظار الراكبة" data-i18n-aria-label="driver.trip.arrived.status">
+      <div class="trip-card__rider">
+        <div class="avatar avatar--lg" aria-hidden="true" id="arrived-avatar">ن</div>
+        <div class="trip-card__rider-info">
+          <span class="trip-card__rider-name" id="arrived-rider-name">نور</span>
+          <div class="trip-card__rider-meta">
+            <span class="badge badge--success" data-i18n="driver.trip.arrived.status">انتظار الراكبة</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="trip-arrived-prompt" data-i18n="driver.trip.arrived.prompt">
+        أكّدي هوية الراكبة وابدئي الرحلة
+      </p>
+
+      <button
+        type="button"
+        class="btn btn--primary btn--full"
+        id="start-trip-btn"
+        data-i18n="driver.trip.arrived.start"
+      >ابدئي الرحلة</button>
+    </aside>
+
+    <!-- ── State: In Ride (default) ── -->
+    <aside class="trip-card state--in-ride" role="complementary" aria-label="معلومات الراكبة" data-i18n-aria-label="trip.driver.riderCardAria">
 
       <!-- Rider summary -->
       <div class="trip-card__rider">
@@ -180,5 +236,11 @@
     </div>
 
     <script type="module" src="scripts/trip.js"></script>
+
+    <!-- Demo only: ?state=en-route | arrived -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
   </body>
 </html>

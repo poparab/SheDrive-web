@@ -364,5 +364,38 @@
   "aria.tripDetail": "Trip details",
   "aria.history.tripCard": "Trip card",
   "aria.search.back": "Back to map",
-  "aria.search.clear": "Clear search"
+  "aria.search.clear": "Clear search",
+
+  "driver.decision.approved.title": "Your application is approved!",
+  "driver.decision.approved.body": "Welcome to SheDrive. You're ready to start driving.",
+  "driver.decision.rejected.title": "We couldn't approve your application",
+  "driver.decision.rejected.body": "Please contact our support team for more details.",
+  "driver.decision.start": "Start Working",
+  "driver.decision.contact": "Contact Support",
+  "driver.decision.pending.title": "Your application is under review",
+
+  "driver.trip.enRoute.status": "En route to rider",
+  "driver.trip.enRoute.eta": "Arriving in",
+  "driver.trip.enRoute.arrived": "I've Arrived!",
+  "driver.trip.arrived.status": "Waiting for rider",
+  "driver.trip.arrived.prompt": "Confirm rider identity and start the trip",
+  "driver.trip.arrived.start": "Start Trip",
+
+  "driver.cash.title": "Collect cash fare",
+  "driver.cash.subtitle": "Inform the rider of the amount due",
+  "driver.cash.collected": "Collected — Go Online",
+
+  "driver.history.title": "Trip History",
+  "driver.history.empty": "No trips yet",
+  "driver.history.emptyBody": "Complete your first trip",
+  "driver.history.completed": "Completed",
+  "driver.history.loading": "Loading...",
+
+  "driver.tripDetail.title": "Trip Details",
+  "driver.tripDetail.riderRating": "Rider's rating for you",
+
+  "aria.driver.decision": "Application result",
+  "aria.driver.cashCollection": "Cash fare collection",
+  "aria.driver.history": "Driver trip history",
+  "aria.driver.tripDetail": "Past trip details"
 }

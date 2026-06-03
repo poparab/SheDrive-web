@@ -117,7 +117,7 @@ qs('#step4-next').addEventListener('click', () => {
 // ── Step 5 ────────────────────────────────────────────
 qs('#step5-done').addEventListener('click', () => {
   localStorage.setItem('shedrive.driver.onboarded', 'true');
-  window.location.assign('./home.html');
+  window.location.assign('./decision.html?state=approved');
 });
 
 // ── Upload zone helper ────────────────────────────────

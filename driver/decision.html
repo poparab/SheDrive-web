@@ -1,0 +1,108 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive Driver — نتيجة طلب الانضمام" />
+    <title>SheDrive Driver — نتيجة الطلب</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/decision.css" />
+    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+  </head>
+
+  <body class="app-shell driver-decision-page">
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <main class="decision-layout" aria-label="نتيجة طلب الانضمام" data-i18n-aria-label="aria.driver.decision">
+
+      <!-- ── Approved state (default) ── -->
+      <div class="decision-card state--approved">
+        <div class="decision-icon decision-icon--success" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+
+        <div class="decision-text">
+          <h1 class="decision-title" data-i18n="driver.decision.approved.title">تمت الموافقة على طلبكِ!</h1>
+          <p class="decision-body" data-i18n="driver.decision.approved.body">
+            مرحباً بكِ في SheDrive. أنتِ الآن جاهزة للعمل.
+          </p>
+        </div>
+
+        <div class="decision-badges" aria-label="مزايا SheDrive">
+          <div class="decision-badge">
+            <span aria-hidden="true">🎥</span>
+            <span data-i18n="trip.badge.camera">كاميرا مباشرة</span>
+          </div>
+          <div class="decision-badge">
+            <span aria-hidden="true">✓</span>
+            <span data-i18n="trip.badge.verified">سائقة موثقة</span>
+          </div>
+          <div class="decision-badge">
+            <span aria-hidden="true">✚</span>
+            <span data-i18n="trip.badge.firstAid">إسعافات أولية</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--primary btn--full btn--lg"
+          id="start-btn"
+          data-i18n="driver.decision.start"
+        >
+          ابدئي العمل
+        </button>
+      </div>
+
+      <!-- ── Rejected state ── -->
+      <div class="decision-card state--rejected">
+        <div class="decision-icon decision-icon--danger" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+
+        <div class="decision-text">
+          <h1 class="decision-title" data-i18n="driver.decision.rejected.title">لم نتمكن من قبول طلبكِ</h1>
+          <p class="decision-body" data-i18n="driver.decision.rejected.body">
+            يُرجى التواصل مع فريق الدعم لمزيد من التفاصيل.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--ghost btn--full"
+          id="contact-btn"
+          data-i18n="driver.decision.contact"
+        >
+          تواصل مع الدعم
+        </button>
+      </div>
+
+    </main>
+
+    <script type="module" src="scripts/decision.js"></script>
+
+    <!-- Demo only: ?state=approved | rejected -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+      else document.body.dataset.state = 'approved';
+    </script>
+  </body>
+</html>

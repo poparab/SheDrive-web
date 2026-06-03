@@ -1,0 +1,252 @@
+/* trip-detail.css — Driver past trip detail screen */
+
+.driver-trip-detail-page {
+  background: var(--color-surface-alt);
+}
+
+/* ── Top bar ── */
+.dtd-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(var(--color-surface-rgb), 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dtd-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.dtd-topbar__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+/* ── Scrollable content ── */
+.dtd-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+  overflow-y: auto;
+}
+
+/* ── Route map thumbnail ── */
+.dtd-map {
+  width: 100%;
+  height: 200px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+  position: relative;
+}
+
+.dtd-map .mapboxgl-map {
+  height: 100%;
+  width: 100%;
+}
+
+/* ── Shared card ── */
+.dtd-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  margin: 0 var(--space-4);
+}
+
+/* ── Date & time ── */
+.dtd-datetime {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dtd-card__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.dtd-card__value {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+.dtd-datetime__value { text-align: end; }
+
+/* ── Route ── */
+.dtd-route {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.dtd-route__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  position: relative;
+  z-index: 1;
+}
+
+.dtd-route__row--pickup { padding-bottom: var(--space-3); }
+
+.dtd-route__connector {
+  position: absolute;
+  inset-inline-start: calc(var(--space-5) + 3px);
+  top: calc(var(--space-5) + 4px);
+  width: 2px;
+  height: calc(50% - var(--space-3));
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.dtd-route__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.dtd-route__dot--green {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.2);
+}
+
+.dtd-route__dot--magenta {
+  background: var(--color-accent-500);
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-500-rgb), 0.15);
+}
+
+.dtd-route__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dtd-route__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dtd-route__address {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Rider card ── */
+.dtd-rider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dtd-rider__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dtd-rider__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.dtd-rider__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-warning);
+  font-weight: var(--fw-medium);
+}
+
+/* ── Fare breakdown ── */
+.dtd-fare__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+}
+
+.dtd-fare__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) 0;
+}
+
+.dtd-fare__divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-2) 0;
+}
+
+.dtd-fare__row--total {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  padding-top: var(--space-3);
+}
+
+.dtd-fare__total-amount {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+}
+
+/* ── Rating received ── */
+.dtd-rating__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+.dtd-rating__stars {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.dtd-star {
+  font-size: var(--fs-2xl);
+  color: var(--color-border);
+}
+
+.dtd-star--filled { color: var(--color-warning); }
+
+/* ── Trip reference ── */
+.dtd-ref {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) var(--space-4) 0;
+}
+
+.dtd-ref__id {
+  font-family: monospace;
+  color: var(--color-text-muted);
+}
