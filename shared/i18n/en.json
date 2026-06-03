@@ -317,5 +317,52 @@
   "earnings.empty": "No trips in this period",
   "earnings.baseFare": "Base fare",
   "earnings.distanceFare": "Distance",
-  "earnings.timeFare": "Time component"
+  "earnings.timeFare": "Time component",
+
+  "home.search.placeholder": "Search for a destination…",
+  "home.search.recent": "Recent",
+  "home.search.currentLoc": "Current location",
+  "home.search.noResults": "No results",
+  "home.search.back": "Back",
+
+  "home.fare.estimated": "Fare estimate",
+  "home.fare.egp": "EGP",
+  "home.fare.distance": "Distance",
+  "home.fare.duration": "Duration",
+  "home.fare.change": "Change destination",
+
+  "matching.confirmed.title": "Driver found!",
+  "matching.confirmed.sub": "Your driver is on the way",
+  "matching.confirmed.badge": "Verified",
+  "matching.confirmed.auto": "Connecting…",
+  "matching.noDriver.title": "No drivers available right now",
+  "matching.noDriver.body": "All nearby drivers are busy. Try again in a few minutes.",
+  "matching.noDriver.retry": "Try Again",
+  "matching.noDriver.home": "Return Home",
+
+  "trip.arrived.title": "Your driver has arrived!",
+  "trip.arrived.body": "Head to the pickup point",
+
+  "history.title": "My Trips",
+  "history.empty": "No trips yet",
+  "history.emptyBody": "Book your first ride",
+  "history.bookRide": "Book a ride",
+  "history.completed": "Completed",
+  "history.loading": "Loading…",
+
+  "tripDetail.title": "Trip Details",
+  "tripDetail.date": "Date & Time",
+  "tripDetail.fareBreakdown": "Fare Breakdown",
+  "tripDetail.base": "Base fare",
+  "tripDetail.distanceFare": "Distance",
+  "tripDetail.durationFare": "Duration",
+  "tripDetail.total": "Total",
+  "tripDetail.yourRating": "Your rating",
+  "tripDetail.ref": "Trip reference",
+
+  "aria.history": "Trip list",
+  "aria.tripDetail": "Trip details",
+  "aria.history.tripCard": "Trip card",
+  "aria.search.back": "Back to map",
+  "aria.search.clear": "Clear search"
 }

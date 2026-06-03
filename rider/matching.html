@@ -38,48 +38,126 @@
       </sd-app-header>
 
       <section class="matching-sheet" role="region" aria-label="جارٍ البحث عن سائقة" aria-live="polite">
-        <div class="matching-search">
-          <div class="spinner" aria-hidden="true"></div>
-          <p class="matching-search__title" data-i18n="matching.title">جارٍ البحث…</p>
-          <p class="matching-search__sub" data-i18n="matching.subtitle">نبحث عن سائقة موثوقة قريبة منكِ</p>
+
+        <!-- ── State: searching (default) ──────────────── -->
+        <div class="state--searching">
+          <div class="matching-search">
+            <div class="spinner" aria-hidden="true"></div>
+            <p class="matching-search__title" data-i18n="matching.title">جارٍ البحث…</p>
+            <p class="matching-search__sub" data-i18n="matching.subtitle">نبحث عن سائقة موثوقة قريبة منكِ</p>
+          </div>
+
+          <div class="matching-safety" role="note" aria-label="ملاحظة الأمان">
+            <svg class="matching-safety__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span data-i18n="matching.safety">نوافق فقط على السائقات الحاصلات على شارة السلامة الكاملة</span>
+          </div>
+
+          <sd-driver-card
+            class="matching-driver-card"
+            variant="preview"
+            name-id="matching-driver-name"
+            name-fallback="نورا أحمد"
+            rating-id="matching-driver-rating"
+            rating-fallback="★★★★★ 4.9"
+            vehicle-id="matching-driver-vehicle"
+            vehicle-fallback="تويوتا كورولا 2023 — أبيض"
+            eta-id="matching-driver-eta"
+            eta-fallback="الوصول خلال 4 دقيقة"
+            avatar="ن"
+          ></sd-driver-card>
+
+          <div class="matching-trip-chip" role="status" aria-label="ملخص الرحلة" id="trip-chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span class="matching-trip-chip__text" id="chip-pickup">موقعي الحالي</span>
+            <span class="matching-trip-chip__sep" aria-hidden="true">←</span>
+            <span class="matching-trip-chip__text" id="chip-destination">مدينة نصر</span>
+          </div>
+
+          <sd-button type="button" variant="ghost" full id="cancel-btn" data-i18n="matching.cancel">
+            إلغاء الطلب
+          </sd-button>
         </div>
 
-        <div class="matching-safety" role="note" aria-label="ملاحظة الأمان">
-          <svg class="matching-safety__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-          </svg>
-          <span data-i18n="matching.safety">نوافق فقط على السائقات الحاصلات على شارة السلامة الكاملة</span>
+        <!-- ── State: confirmed (state=confirmed) ──────── -->
+        <div class="state--confirmed" aria-live="assertive">
+          <div class="matching-confirmed-banner">
+            <span class="matching-confirmed-banner__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+            <div class="matching-confirmed-banner__text">
+              <p class="matching-confirmed-banner__title" data-i18n="matching.confirmed.title">تم العثور على سائقة!</p>
+              <p class="matching-confirmed-banner__sub" data-i18n="matching.confirmed.sub">سائقتك في الطريق إليكِ</p>
+            </div>
+          </div>
+
+          <sd-driver-card
+            class="matching-driver-card matching-driver-card--confirmed"
+            variant="detailed"
+            name-id="confirmed-driver-name"
+            name-fallback="نورا أحمد"
+            rating-id="confirmed-driver-rating"
+            rating-fallback="★★★★★ 4.9"
+            vehicle-id="confirmed-driver-vehicle"
+            vehicle-fallback="تويوتا كورولا 2023 — أبيض | ق أ ب 123"
+            eta-id="confirmed-driver-eta"
+            eta-fallback="الوصول خلال 4 دقيقة"
+            avatar="ن"
+          ></sd-driver-card>
+
+          <div class="matching-confirmed-meta">
+            <span class="matching-verified-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span data-i18n="matching.confirmed.badge">موثقة</span>
+            </span>
+
+            <div class="matching-trip-chip" role="status" aria-label="ملخص الرحلة">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle></svg>
+              <span class="matching-trip-chip__text">موقعي الحالي</span>
+              <span class="matching-trip-chip__sep" aria-hidden="true">←</span>
+              <span class="matching-trip-chip__text">مدينة نصر</span>
+            </div>
+          </div>
+
+          <div class="matching-advance-bar" role="progressbar" aria-label="جارٍ الانتقال" aria-valuemin="0" aria-valuemax="100">
+            <div class="matching-advance-bar__fill"></div>
+          </div>
+          <p class="matching-advance-label" data-i18n="matching.confirmed.auto">جارٍ الانتقال…</p>
         </div>
 
-        <sd-driver-card
-          class="matching-driver-card"
-          variant="preview"
-          name-id="matching-driver-name"
-          name-fallback="نورا أحمد"
-          rating-id="matching-driver-rating"
-          rating-fallback="★★★★★ 4.9"
-          vehicle-id="matching-driver-vehicle"
-          vehicle-fallback="تويوتا كورولا 2023 — أبيض"
-          eta-id="matching-driver-eta"
-          eta-fallback="الوصول خلال 4 دقيقة"
-          avatar="ن"
-        ></sd-driver-card>
+        <!-- ── State: no driver found (state=no-driver) ── -->
+        <div class="state--no-driver">
+          <div class="matching-no-driver">
+            <div class="matching-no-driver__icon" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 12h8M12 8v.01"></path>
+              </svg>
+            </div>
+            <h2 class="matching-no-driver__title" data-i18n="matching.noDriver.title">لا يوجد سائقات متاحات الآن</h2>
+            <p class="matching-no-driver__body" data-i18n="matching.noDriver.body">جميع السائقات القريبات مشغولات. حاولي مجدداً بعد دقائق.</p>
 
-        <div class="matching-trip-chip" role="status" aria-label="ملخص الرحلة" id="trip-chip">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <span class="matching-trip-chip__text" id="chip-pickup">—</span>
-          <span class="matching-trip-chip__sep" aria-hidden="true">←</span>
-          <span class="matching-trip-chip__text" id="chip-destination">—</span>
+            <sd-button type="button" variant="primary" full id="retry-btn" data-i18n="matching.noDriver.retry">
+              حاولي مجدداً
+            </sd-button>
+            <sd-button type="button" variant="ghost" full id="home-btn" data-i18n="matching.noDriver.home">
+              العودة للرئيسية
+            </sd-button>
+          </div>
         </div>
 
-        <sd-button type="button" variant="ghost" full id="cancel-btn" data-i18n="matching.cancel">
-          إلغاء الطلب
-        </sd-button>
       </section>
     </sd-page>
 
     <script type="module" src="scripts/matching.js"></script>
+
+    <!-- Demo only: ?state=confirmed | no-driver -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
   </body>
 </html>

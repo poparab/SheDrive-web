@@ -1,0 +1,164 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — رحلاتي" />
+    <title>SheDrive — رحلاتي</title>
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+
+  <body>
+    <sd-page
+      body-class="app-shell history-page"
+      screen-styles="styles/rider.css, styles/history.css"
+    >
+      <sd-app-header
+        bar-class="history-topbar"
+        inner-class="history-topbar__inner"
+        title-class="history-topbar__title"
+      >
+        <sd-button
+          data-slot="start"
+          type="button"
+          variant="ghost"
+          icon
+          id="back-btn"
+          data-i18n-aria-label="aria.back"
+          aria-label="رجوع"
+          onclick="history.back()"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </sd-button>
+
+        <span class="history-topbar__title-text" data-i18n="history.title">رحلاتي</span>
+      </sd-app-header>
+
+      <main class="history-content" aria-label="قائمة الرحلات" data-i18n-aria-label="aria.history">
+
+        <!-- ── Trip list (default state) ─────────────── -->
+        <section class="history-list state--has-trips" aria-label="الرحلات السابقة">
+
+          <!-- Trip card 1 -->
+          <article class="history-card" role="option" tabindex="0" aria-label="رحلة — الإثنين ٢ يونيو" data-i18n-aria-label="aria.history.tripCard">
+            <div class="history-card__meta">
+              <span class="history-card__date">الإثنين، ٢ يونيو</span>
+              <span class="badge badge--success history-card__status" data-i18n="history.completed">مكتملة</span>
+            </div>
+            <div class="history-card__body">
+              <div class="history-card__route">
+                <span class="history-card__dot history-card__dot--green" aria-hidden="true"></span>
+                <span class="history-card__destination">مدينة نصر — سيتي ستارز</span>
+              </div>
+              <div class="history-card__footer">
+                <div class="history-card__driver">
+                  <span class="history-card__avatar" aria-hidden="true">ن</span>
+                  <span class="history-card__driver-name">نورا أحمد</span>
+                </div>
+                <span class="history-card__fare">٥٥ ج.م.</span>
+              </div>
+            </div>
+            <svg class="history-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </article>
+
+          <!-- Trip card 2 -->
+          <article class="history-card" role="option" tabindex="0" aria-label="رحلة — الأحد ١ يونيو" data-i18n-aria-label="aria.history.tripCard">
+            <div class="history-card__meta">
+              <span class="history-card__date">الأحد، ١ يونيو</span>
+              <span class="badge badge--success history-card__status" data-i18n="history.completed">مكتملة</span>
+            </div>
+            <div class="history-card__body">
+              <div class="history-card__route">
+                <span class="history-card__dot history-card__dot--green" aria-hidden="true"></span>
+                <span class="history-card__destination">المعادي — مستشفى السلام</span>
+              </div>
+              <div class="history-card__footer">
+                <div class="history-card__driver">
+                  <span class="history-card__avatar" aria-hidden="true">س</span>
+                  <span class="history-card__driver-name">سارة مصطفى</span>
+                </div>
+                <span class="history-card__fare">٣٨ ج.م.</span>
+              </div>
+            </div>
+            <svg class="history-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </article>
+
+          <!-- Trip card 3 -->
+          <article class="history-card" role="option" tabindex="0" aria-label="رحلة — الجمعة ٣٠ مايو" data-i18n-aria-label="aria.history.tripCard">
+            <div class="history-card__meta">
+              <span class="history-card__date">الجمعة، ٣٠ مايو</span>
+              <span class="badge badge--success history-card__status" data-i18n="history.completed">مكتملة</span>
+            </div>
+            <div class="history-card__body">
+              <div class="history-card__route">
+                <span class="history-card__dot history-card__dot--green" aria-hidden="true"></span>
+                <span class="history-card__destination">الزمالك — الجامعة الأمريكية</span>
+              </div>
+              <div class="history-card__footer">
+                <div class="history-card__driver">
+                  <span class="history-card__avatar" aria-hidden="true">م</span>
+                  <span class="history-card__driver-name">منى حسن</span>
+                </div>
+                <span class="history-card__fare">٦٢ ج.م.</span>
+              </div>
+            </div>
+            <svg class="history-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </article>
+
+          <!-- Skeleton cards (loading state — hidden by default) -->
+          <div class="history-skeleton state--loading" aria-busy="true" aria-label="جارٍ التحميل" data-i18n-aria-label="history.loading">
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Empty state (state=empty) ─────────────── -->
+        <section class="history-empty state--empty" aria-label="لا توجد رحلات">
+          <div class="history-empty__icon" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 12h8M12 8v8"></path>
+            </svg>
+          </div>
+          <h2 class="history-empty__title" data-i18n="history.empty">لا توجد رحلات بعد</h2>
+          <p class="history-empty__body" data-i18n="history.emptyBody">ابحثي عن وجهتك الأولى</p>
+          <a href="home.html" class="btn btn--primary history-empty__cta" data-i18n="history.bookRide">
+            احجزي رحلة
+          </a>
+        </section>
+
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/history.js"></script>
+
+    <!-- Demo only: ?state=empty | loading -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
+  </body>
+</html>

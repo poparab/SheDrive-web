@@ -25,43 +25,214 @@
 
       <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
 
-      <sd-bottom-sheet id="ride-sheet" data-i18n-aria-label="aria.requestRideSheet">
-        <div class="pickup-destination">
-          <div class="pickup-destination__connector" aria-hidden="true"></div>
-
-          <div class="pickup-row pickup-row--pickup">
-            <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
-            <input
-              type="text"
-              id="pickup-input"
-              class="input pickup-row__input"
-              value="موقعي الحالي"
-              data-i18n-value="home.pickup.current"
-              readonly
-              aria-label="Pickup location"
-              data-i18n-aria-label="home.pickup.label"
-            />
-          </div>
-
-          <div class="pickup-row pickup-row--destination">
-            <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
-            <input
-              type="search"
-              id="destination-input"
-              name="destination"
-              class="input pickup-row__input"
-              data-i18n-placeholder="home.destination.placeholder"
-              placeholder="إلى أين؟"
-              autocomplete="off"
-              aria-label="Destination"
-              data-i18n-aria-label="home.destination.label"
-            />
-          </div>
+      <!-- ── Address Search Overlay (state=search) ───────── -->
+      <div
+        class="search-overlay"
+        id="search-overlay"
+        role="search"
+        aria-label="بحث عن وجهة"
+        data-i18n-aria-label="home.search.placeholder"
+      >
+        <!-- Search bar -->
+        <div class="search-bar">
+          <button
+            type="button"
+            class="btn btn--icon btn--ghost search-bar__back"
+            id="search-back-btn"
+            aria-label="رجوع إلى الخريطة"
+            data-i18n-aria-label="aria.search.back"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <input
+            type="search"
+            id="search-input"
+            class="input search-bar__input"
+            placeholder="ابحثي عن وجهة…"
+            data-i18n-placeholder="home.search.placeholder"
+            autocomplete="off"
+            aria-autocomplete="list"
+            aria-controls="search-suggestions"
+          />
+          <button
+            type="button"
+            class="btn btn--icon btn--ghost search-bar__clear"
+            id="search-clear-btn"
+            aria-label="مسح البحث"
+            data-i18n-aria-label="aria.search.clear"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
-        <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
-          طلب رحلة
-        </sd-button>
+        <!-- Current location quick-select -->
+        <button type="button" class="search-current-loc" id="use-current-loc-btn">
+          <span class="search-current-loc__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+            </svg>
+          </span>
+          <span data-i18n="home.search.currentLoc">موقعي الحالي</span>
+        </button>
+
+        <div role="listbox" id="search-suggestions" aria-label="اقتراحات البحث">
+          <!-- Recent searches -->
+          <p class="search-section-label" data-i18n="home.search.recent">البحث السابق</p>
+          <ul class="search-list" aria-label="البحث السابق">
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">سيتي ستارز — النزهة</span>
+                <span class="search-row__sub">مدينة نصر، القاهرة</span>
+              </span>
+            </li>
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">المستشفى التخصصي</span>
+                <span class="search-row__sub">المعادي، القاهرة</span>
+              </span>
+            </li>
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">الجامعة الأمريكية — التحرير</span>
+                <span class="search-row__sub">وسط القاهرة</span>
+              </span>
+            </li>
+          </ul>
+
+          <!-- Autocomplete suggestions (shown while typing) -->
+          <ul class="search-list search-list--suggestions" aria-label="اقتراحات">
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">مول العرب</span>
+                <span class="search-row__sub">طريق مصر - الإسكندرية الصحراوي، الجيزة · 14 كم</span>
+              </span>
+            </li>
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">مطار القاهرة الدولي</span>
+                <span class="search-row__sub">المطار، القاهرة · 22 كم</span>
+              </span>
+            </li>
+            <li class="search-row" role="option" aria-selected="false" tabindex="0">
+              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <span class="search-row__text">
+                <span class="search-row__name">برج القاهرة</span>
+                <span class="search-row__sub">الزمالك، القاهرة · 5 كم</span>
+              </span>
+            </li>
+          </ul>
+
+          <!-- No results state (hidden by default) -->
+          <p class="search-no-results" aria-live="polite" data-i18n="home.search.noResults">لا توجد نتائج</p>
+        </div>
+      </div>
+
+      <!-- ── Booking Bottom Sheet (default state) ──────── -->
+      <sd-bottom-sheet id="ride-sheet" data-i18n-aria-label="aria.requestRideSheet">
+        <!-- Default booking panel -->
+        <div class="fare-default-panel">
+          <div class="pickup-destination">
+            <div class="pickup-destination__connector" aria-hidden="true"></div>
+
+            <div class="pickup-row pickup-row--pickup">
+              <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
+              <input
+                type="text"
+                id="pickup-input"
+                class="input pickup-row__input"
+                value="موقعي الحالي"
+                data-i18n-value="home.pickup.current"
+                readonly
+                aria-label="Pickup location"
+                data-i18n-aria-label="home.pickup.label"
+              />
+            </div>
+
+            <div class="pickup-row pickup-row--destination">
+              <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
+              <input
+                type="search"
+                id="destination-input"
+                name="destination"
+                class="input pickup-row__input"
+                data-i18n-placeholder="home.destination.placeholder"
+                placeholder="إلى أين؟"
+                autocomplete="off"
+                aria-label="Destination"
+                data-i18n-aria-label="home.destination.label"
+              />
+            </div>
+          </div>
+
+          <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
+            طلب رحلة
+          </sd-button>
+        </div>
+
+        <!-- Fare estimate panel (state=fare) -->
+        <div class="fare-panel" aria-label="تقدير السعر" data-i18n-aria-label="home.fare.estimated">
+          <div class="fare-route">
+            <div class="pickup-destination">
+              <div class="pickup-destination__connector" aria-hidden="true"></div>
+              <div class="pickup-row pickup-row--pickup">
+                <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
+                <span class="fare-route__label">موقعي الحالي</span>
+              </div>
+              <div class="pickup-row">
+                <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
+                <span class="fare-route__label fare-route__label--dest">مدينة نصر</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="fare-estimate-badge" role="status" aria-live="polite">
+            <span class="fare-estimate-badge__amount">٤٥–٦٥</span>
+            <span class="fare-estimate-badge__currency" data-i18n="home.fare.egp">ج.م.</span>
+            <span class="fare-estimate-badge__label" data-i18n="home.fare.estimated">تقدير السعر</span>
+          </div>
+
+          <div class="fare-meta-row">
+            <span class="fare-meta-chip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>~٢٠ دقيقة</span>
+            </span>
+            <span class="fare-meta-chip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <span>~٨.٢ كم</span>
+            </span>
+          </div>
+
+          <sd-button id="confirm-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
+            طلب رحلة
+          </sd-button>
+          <button type="button" class="fare-change-link" data-i18n="home.fare.change">
+            تغيير الوجهة
+          </button>
+        </div>
       </sd-bottom-sheet>
 
       <div
@@ -77,5 +248,11 @@
     </sd-page>
 
     <script type="module" src="scripts/home.js"></script>
+
+    <!-- Demo only: ?state=search | fare -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
   </body>
 </html>

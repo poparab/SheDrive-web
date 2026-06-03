@@ -370,3 +370,54 @@
     transform: translateY(0);
   }
 }
+
+/* ── Driver Arrived state ───────────────────────────── */
+
+.state--arrived {
+  display: none;
+}
+
+[data-state="arrived"] .state--arrived {
+  display: flex;
+}
+
+.trip-arrived-banner {
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(var(--color-success-rgb), 0.08);
+  border: 1px solid rgba(var(--color-success-rgb), 0.25);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-1);
+}
+
+.trip-arrived-banner__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: arrived-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arrived-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-success-rgb), 0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(var(--color-success-rgb), 0); }
+}
+
+.trip-arrived-banner__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.trip-arrived-banner__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+}

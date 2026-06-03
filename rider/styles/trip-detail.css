@@ -1,0 +1,258 @@
+/* trip-detail.css — Past trip detail screen */
+
+/* ── Page layout ────────────────────────────────────── */
+
+.trip-detail-page {
+  background: var(--color-surface-alt);
+}
+
+/* ── Top bar ────────────────────────────────────────── */
+
+.trip-detail-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(var(--color-surface-rgb), 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.trip-detail-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.trip-detail-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+/* ── Scrollable content area ────────────────────────── */
+
+.trip-detail-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+  overflow-y: auto;
+}
+
+/* ── Static route map ───────────────────────────────── */
+
+.trip-detail-map {
+  width: 100%;
+  height: 200px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+  position: relative;
+}
+
+.trip-detail-map .mapboxgl-map {
+  height: 100%;
+  width: 100%;
+}
+
+/* ── Shared card ────────────────────────────────────── */
+
+.trip-detail-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  margin: 0 var(--space-4);
+}
+
+/* ── Date & time ────────────────────────────────────── */
+
+.trip-detail-datetime {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.trip-detail-card__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.trip-detail-card__value {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+.trip-detail-datetime__value {
+  text-align: end;
+}
+
+/* ── Route detail ───────────────────────────────────── */
+
+.trip-detail-route {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.trip-detail-route__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  position: relative;
+  z-index: 1;
+}
+
+.trip-detail-route__row--pickup {
+  padding-bottom: var(--space-3);
+}
+
+.trip-detail-route__connector {
+  position: absolute;
+  inset-inline-start: calc(var(--space-5) + 3px); /* center of dot */
+  top: calc(var(--space-5) + 4px);
+  width: 2px;
+  height: calc(50% - var(--space-3));
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.trip-detail-route__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.trip-detail-route__dot--green {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.2);
+}
+
+.trip-detail-route__dot--magenta {
+  background: var(--color-accent-500);
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-500-rgb), 0.15);
+}
+
+.trip-detail-route__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.trip-detail-route__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trip-detail-route__address {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Driver card (compact) ──────────────────────────── */
+
+.trip-detail-driver {
+  margin: 0 var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Fare breakdown ─────────────────────────────────── */
+
+.trip-detail-fare__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+}
+
+.trip-detail-fare__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) 0;
+}
+
+.trip-detail-fare__divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-2) 0;
+}
+
+.trip-detail-fare__row--total {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  padding-top: var(--space-3);
+}
+
+.trip-detail-fare__total-amount {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+}
+
+/* ── Rating ─────────────────────────────────────────── */
+
+.trip-detail-rating__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+.trip-detail-rating__stars {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.trip-detail-star {
+  font-size: var(--fs-2xl);
+  color: var(--color-border);
+}
+
+.trip-detail-star--filled {
+  color: var(--color-warning);
+}
+
+.trip-detail-rating__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ── Trip reference ─────────────────────────────────── */
+
+.trip-detail-ref {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) var(--space-4) 0;
+}
+
+.trip-detail-ref__id {
+  font-family: monospace;
+  color: var(--color-text-muted);
+}

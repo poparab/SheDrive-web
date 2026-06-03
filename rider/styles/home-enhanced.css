@@ -89,3 +89,276 @@
   color: var(--color-text-muted);
   cursor: default;
 }
+
+/* ── Address Search Overlay ────────────────────────── */
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-surface);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+[data-state="search"] .search-overlay {
+  display: flex;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.search-bar__input {
+  flex: 1;
+  font-size: var(--fs-base);
+  background: var(--color-surface-alt);
+  border-color: transparent;
+  border-radius: var(--radius-full);
+  padding-inline: var(--space-4);
+}
+
+.search-bar__input:focus {
+  border-color: var(--color-primary-500);
+  background: var(--color-surface);
+}
+
+.search-bar__back,
+.search-bar__clear {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.search-current-loc {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-primary-600);
+  border-bottom: 1px solid var(--color-border);
+  text-align: start;
+  transition: background var(--transition-fast);
+}
+
+.search-current-loc:hover,
+.search-current-loc:focus-visible {
+  background: rgba(var(--color-primary-600-rgb), 0.05);
+}
+
+.search-current-loc__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(var(--color-primary-600-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+}
+
+.search-section-label {
+  padding: var(--space-3) var(--space-5) var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.search-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.search-row:hover,
+.search-row:focus-visible {
+  background: var(--color-surface-alt);
+  outline: none;
+}
+
+.search-row__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.search-row__icon--clock {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+.search-row__icon--pin {
+  background: rgba(var(--color-primary-600-rgb), 0.08);
+  color: var(--color-primary-600);
+}
+
+.search-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.search-row__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-row__sub {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-no-results {
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  display: none;
+  margin: 0;
+}
+
+/* Hide suggestions list by default; shown while typing (designer static demo shows both) */
+.search-list--suggestions {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-2);
+}
+
+/* ── Fare Estimate Panel ───────────────────────────── */
+
+.fare-default-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fare-panel {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+[data-state="fare"] .fare-default-panel {
+  display: none;
+}
+
+[data-state="fare"] .fare-panel {
+  display: flex;
+}
+
+.fare-route .pickup-destination {
+  border-radius: var(--radius-lg);
+}
+
+.fare-route__label {
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  font-weight: var(--fw-medium);
+}
+
+.fare-route__label--dest {
+  color: var(--color-text);
+}
+
+.fare-estimate-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-5);
+  background: rgba(var(--color-primary-600-rgb), 0.06);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(var(--color-primary-600-rgb), 0.12);
+}
+
+.fare-estimate-badge__amount {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+  line-height: var(--leading-tight);
+}
+
+.fare-estimate-badge__currency {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+.fare-estimate-badge__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.fare-meta-row {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.fare-meta-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.fare-change-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: var(--space-1) 0;
+  text-align: center;
+  width: 100%;
+  transition: color var(--transition-fast);
+}
+
+.fare-change-link:hover,
+.fare-change-link:focus-visible {
+  color: var(--color-primary-600);
+}

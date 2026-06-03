@@ -216,3 +216,158 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── State visibility rules ────────────────────────── */
+
+.state--confirmed,
+.state--no-driver {
+  display: none;
+}
+
+[data-state="confirmed"] .state--searching {
+  display: none;
+}
+[data-state="confirmed"] .state--confirmed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+[data-state="no-driver"] .state--searching {
+  display: none;
+}
+[data-state="no-driver"] .state--no-driver {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Driver Confirmed state ─────────────────────────── */
+
+.matching-confirmed-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(var(--color-success-rgb), 0.08);
+  border: 1px solid rgba(var(--color-success-rgb), 0.2);
+  border-radius: var(--radius-xl);
+}
+
+.matching-confirmed-banner__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matching-confirmed-banner__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.matching-confirmed-banner__sub {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.matching-driver-card--confirmed {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.matching-confirmed-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.matching-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(var(--color-primary-600-rgb), 0.08);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.matching-advance-bar {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.matching-advance-bar__fill {
+  height: 100%;
+  width: 60%;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-full);
+  animation: advance-fill 2s ease-in-out infinite;
+}
+
+@keyframes advance-fill {
+  0%   { width: 10%; }
+  50%  { width: 80%; }
+  100% { width: 10%; }
+}
+
+.matching-advance-label {
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── No Driver Found state ──────────────────────────── */
+
+.matching-no-driver {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  text-align: center;
+}
+
+.matching-no-driver__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.matching-no-driver__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.matching-no-driver__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+  max-width: 28ch;
+}

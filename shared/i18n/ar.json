@@ -317,5 +317,52 @@
   "earnings.empty": "لا توجد رحلات في هذه الفترة",
   "earnings.baseFare": "التكلفة الأساسية",
   "earnings.distanceFare": "المسافة",
-  "earnings.timeFare": "عنصر الوقت"
+  "earnings.timeFare": "عنصر الوقت",
+
+  "home.search.placeholder": "ابحثي عن وجهة…",
+  "home.search.recent": "البحث السابق",
+  "home.search.currentLoc": "موقعي الحالي",
+  "home.search.noResults": "لا توجد نتائج",
+  "home.search.back": "رجوع",
+
+  "home.fare.estimated": "تقدير السعر",
+  "home.fare.egp": "ج.م.",
+  "home.fare.distance": "المسافة",
+  "home.fare.duration": "المدة",
+  "home.fare.change": "تغيير الوجهة",
+
+  "matching.confirmed.title": "تم العثور على سائقة!",
+  "matching.confirmed.sub": "سائقتك في الطريق إليكِ",
+  "matching.confirmed.badge": "موثقة",
+  "matching.confirmed.auto": "جارٍ الانتقال…",
+  "matching.noDriver.title": "لا يوجد سائقات متاحات الآن",
+  "matching.noDriver.body": "جميع السائقات القريبات مشغولات. حاولي مجدداً بعد دقائق.",
+  "matching.noDriver.retry": "حاولي مجدداً",
+  "matching.noDriver.home": "العودة للرئيسية",
+
+  "trip.arrived.title": "وصلت سائقتك!",
+  "trip.arrived.body": "توجهي إلى نقطة الالتقاء",
+
+  "history.title": "رحلاتي",
+  "history.empty": "لا توجد رحلات بعد",
+  "history.emptyBody": "ابحثي عن وجهتك الأولى",
+  "history.bookRide": "احجزي رحلة",
+  "history.completed": "مكتملة",
+  "history.loading": "جارٍ التحميل…",
+
+  "tripDetail.title": "تفاصيل الرحلة",
+  "tripDetail.date": "التاريخ والوقت",
+  "tripDetail.fareBreakdown": "تفاصيل السعر",
+  "tripDetail.base": "السعر الأساسي",
+  "tripDetail.distanceFare": "رسوم المسافة",
+  "tripDetail.durationFare": "رسوم الوقت",
+  "tripDetail.total": "الإجمالي",
+  "tripDetail.yourRating": "تقييمك",
+  "tripDetail.ref": "رقم الرحلة",
+
+  "aria.history": "قائمة الرحلات",
+  "aria.tripDetail": "تفاصيل الرحلة",
+  "aria.history.tripCard": "بطاقة الرحلة",
+  "aria.search.back": "رجوع إلى الخريطة",
+  "aria.search.clear": "مسح البحث"
 }

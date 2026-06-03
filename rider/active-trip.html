@@ -34,6 +34,18 @@
       </div>
 
       <section class="trip-panel" aria-label="تفاصيل السائقة والرحلة" data-i18n-aria-label="trip.title">
+
+        <!-- ── Driver Arrived banner (state=arrived) ──── -->
+        <div class="state--arrived trip-arrived-banner" role="status" aria-live="assertive">
+          <span class="trip-arrived-banner__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </span>
+          <div class="trip-arrived-banner__text">
+            <p class="trip-arrived-banner__title" data-i18n="trip.arrived.title">وصلت سائقتك!</p>
+            <p class="trip-arrived-banner__body" data-i18n="trip.arrived.body">توجهي إلى نقطة الالتقاء</p>
+          </div>
+        </div>
+
         <sd-driver-card
           variant="detailed"
           name-id="driver-name"
@@ -183,5 +195,11 @@
     </sd-page>
 
     <script type="module" src="scripts/active-trip.js"></script>
+
+    <!-- Demo only: ?state=arrived -->
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
   </body>
 </html>
