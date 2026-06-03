@@ -24,7 +24,7 @@ Open `http://localhost:8000/rider/` for the rider app and `http://localhost:8000
 Rider flow:
 
 ```text
-rider/index.html -> rider/verify-identity.html -> rider/home.html -> rider/matching.html -> rider/active-trip.html -> rider/trip-complete.html
+rider/index.html -> rider/home.html -> rider/matching.html -> rider/active-trip.html -> rider/trip-complete.html
                                                active-trip SOS -> rider/emergency.html -> active-trip
 ```
 
@@ -92,7 +92,6 @@ Use the existing keys and shapes:
 
 - `shedrive.session` in `localStorage`: `{ role, phone, loginAt }`
 - `shedrive.lang` in `localStorage`: `'ar'` or `'en'`
-- `shedrive.identityVerified` in `localStorage`: `'1'`
 - `shedrive.pendingTrip` in `sessionStorage`: `{ pickup, destination }`
 - `shedrive.activeTrip` in `sessionStorage`: `{ driver, trip }`
 - `shedrive.completedRating` in `sessionStorage`: `'1'`

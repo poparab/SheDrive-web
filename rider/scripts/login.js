@@ -145,11 +145,7 @@ form.addEventListener('submit', async (e) => {
   await new Promise((r) => setTimeout(r, 1000));
 
   auth.login('rider', phoneInput.value);
-  if (localStorage.getItem('shedrive.identityVerified') !== '1') {
-    window.location.replace('./verify-identity.html');
-  } else {
-    window.location.replace('./home.html');
-  }
+  window.location.replace('./home.html');
 });
 
 // ── Toast helper ─────────────────────────────────────

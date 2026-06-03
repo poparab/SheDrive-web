@@ -76,7 +76,7 @@ This repository is deployable on Cloudflare Pages as a static site.
 If your deployment renders HTML with no styles, the usual cause is publishing only one app folder instead of the full repository root. Redeploy from the repository root so `shared/`, `rider/`, and `driver/` are all present.
 
 **Rider clickable flow** (5 screens):
-`rider/index.html` (Splash + Login) → `rider/verify-identity.html` (ID + Selfie, first login only) → `rider/home.html` (Book a Ride) → `rider/matching.html` (Finding a Driver) → `rider/active-trip.html` (Live Trip + SOS)
+`rider/index.html` (Splash + Login) → `rider/home.html` (Book a Ride) → `rider/matching.html` (Finding a Driver) → `rider/active-trip.html` (Live Trip + SOS)
 
 > On Windows you can also use `npx serve .` or the VS Code Live Server extension.
 
