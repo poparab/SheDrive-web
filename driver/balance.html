@@ -1,0 +1,84 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — الرصيد المستحق للمنصة" />
+    <title>SheDrive Driver — الرصيد المستحق</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/balance.css" />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+
+  <body class="app-shell balance-page">
+    <sd-page body-class="app-shell balance-page" screen-styles="styles/driver.css, styles/balance.css">
+
+      <sd-app-header>
+        <a href="./earnings.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </a>
+        <span data-i18n="driver.balance.title">الرصيد المستحق للمنصة</span>
+      </sd-app-header>
+
+      <main class="balance-main">
+
+        <!-- ── Outstanding balance card (#1788) ── -->
+        <div class="balance-card" id="balance-card" role="region" aria-label="الرصيد المستحق" data-i18n-aria-label="driver.balance.title">
+          <p class="balance-card__label" data-i18n="driver.balance.owedLabel">المبلغ المستحق عليكِ للمنصة</p>
+          <p class="balance-card__amount">
+            <span id="balance-amount">120</span>
+            <span class="balance-card__currency" data-i18n="driver.currency">جنيه</span>
+          </p>
+          <p class="balance-card__explain" data-i18n="driver.balance.explain">
+            في الرحلات النقدية تحتفظين بالأجرة كاملة وتدينين للمنصة بعمولتها فقط. تُسوّى هذه المبالغ دورياً مع فريق المالية.
+          </p>
+        </div>
+
+        <!-- ── Zero-balance state ── -->
+        <div class="balance-zero" id="balance-zero" hidden aria-hidden="true">
+          <div class="balance-zero__icon" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <p class="balance-zero__msg" data-i18n="driver.balance.zero">لا يوجد رصيد مستحق عليكِ حالياً.</p>
+        </div>
+
+        <!-- ── Last settlement ── -->
+        <div class="balance-settlement" id="balance-settlement">
+          <span class="balance-settlement__label" data-i18n="driver.balance.lastSettlement">آخر تسوية</span>
+          <span class="balance-settlement__value">
+            <span id="settlement-amount">300</span>
+            <span data-i18n="driver.currency">جنيه</span>
+            <span aria-hidden="true">·</span>
+            <span id="settlement-date">2026/06/15</span>
+          </span>
+        </div>
+
+        <!-- ── Contributing trips ── -->
+        <section class="balance-trips" aria-label="الرحلات المساهمة" data-i18n-aria-label="driver.balance.tripsAria">
+          <h2 class="balance-trips__title" data-i18n="driver.balance.contributingTrips">الرحلات المساهمة</h2>
+          <div id="balance-trips-list"><!-- rendered by JS --></div>
+        </section>
+
+      </main>
+
+      <script type="module" src="scripts/balance.js"></script>
+    </sd-page>
+  </body>
+</html>

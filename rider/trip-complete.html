@@ -81,10 +81,20 @@
         </div>
         </section>
 
+        <!-- Fare breakdown -->
+        <section class="fare-breakdown" aria-label="تفاصيل التكلفة">
+          <h3 class="fare-breakdown__title" data-i18n="complete.fareBreakdown">تفاصيل التكلفة</h3>
+          <div class="fare-row"><span data-i18n="complete.baseFare">التكلفة الأساسية</span><span>15 ج.م.</span></div>
+          <div class="fare-row"><span data-i18n="complete.distanceFare">رسوم المسافة</span><span>12 ج.م.</span></div>
+          <div class="fare-row"><span data-i18n="complete.timeFare">رسوم الوقت</span><span>8 ج.م.</span></div>
+          <div class="fare-row fare-row--total"><span data-i18n="complete.totalFare">الإجمالي</span><span>35 ج.م.</span></div>
+        </section>
+
         <section class="star-rating" aria-labelledby="rating-heading">
           <h2 id="rating-heading" class="sr-only" data-i18n="complete.rateTitle">قيّمي سائقتك</h2>
           <p class="star-rating__hint" data-i18n="complete.rateHint">اضغطي على النجوم لاختيار التقييم</p>
           <sd-rating-stars id="rating-stars"></sd-rating-stars>
+          <p class="field__error" id="stars-error" hidden role="alert" data-i18n="complete.starsError">يرجى اختيار عدد النجوم قبل الإرسال</p>
         </section>
 
         <section class="complete-tags" id="complete-tags" aria-hidden="true">
@@ -122,6 +132,10 @@
       </main>
 
       <footer class="complete-footer">
+        <!-- Payment branch (cash or card) -->
+        <p class="complete-cash-note" id="cash-note" data-i18n="complete.cashNote">ادفعي نقداً للسائقة</p>
+        <button type="button" class="btn btn--primary btn--full" id="pay-now-btn" hidden data-i18n="complete.payNow">ادفعي الآن</button>
+
         <button type="button" class="btn btn--primary btn--full" id="submit-btn" data-i18n="complete.submit">
           إرسال التقييم
         </button>

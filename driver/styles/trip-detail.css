@@ -236,6 +236,39 @@
 
 .dtd-star--filled { color: var(--color-warning); }
 
+/* ── Net earnings row (#1766) ── */
+.dtd-fare__row--net {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-700);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.dtd-fare__net-amount {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+}
+
+/* ── Rating placeholder for unrated trips (#1594) ── */
+.dtd-rating-placeholder {
+  display: none;
+}
+
+.dtd-rating-placeholder__msg {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* State-driven visibility for rated/unrated */
+[data-state="unrated"] .state--rated   { display: none; }
+[data-state="unrated"] .state--unrated { display: block; }
+.state--unrated { display: none; }
+
 /* ── Trip reference ── */
 .dtd-ref {
   display: flex;

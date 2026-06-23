@@ -1,0 +1,84 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — الدفع</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell payment-page" screen-styles="/rider/styles/rider.css, /rider/styles/payment.css">
+      <sd-app-header bar-class="pay-topbar" inner-class="pay-topbar__inner" title-class="pay-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="pay-topbar__title-text" data-i18n="payment.payTitle">إتمام الدفع</span>
+      </sd-app-header>
+
+      <main class="payment-content">
+
+        <!-- ── State: default (card form) ── -->
+        <div class="state--default payment-card-form" id="state-form">
+          <div class="pay-total-card">
+            <span class="pay-total-card__label" data-i18n="payment.totalFare">إجمالي الرحلة</span>
+            <span class="pay-total-card__amount" id="pay-total">35 ج.م.</span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="card-number" data-i18n="payment.cardNumber">رقم البطاقة</label>
+            <input type="text" id="card-number" class="input" inputmode="numeric" maxlength="19" placeholder="•••• •••• •••• ••••" data-i18n-placeholder="payment.cardNumber" />
+          </div>
+          <div class="pay-row">
+            <div class="field">
+              <label class="field__label" for="card-expiry" data-i18n="payment.expiry">تاريخ الانتهاء</label>
+              <input type="text" id="card-expiry" class="input" inputmode="numeric" maxlength="5" placeholder="MM/YY" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="card-cvv" data-i18n="payment.cvv">CVV</label>
+              <input type="text" id="card-cvv" class="input" inputmode="numeric" maxlength="3" placeholder="•••" />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--primary btn--full" id="pay-submit-btn" data-i18n="payment.payBtn">ادفعي الآن</button>
+        </div>
+
+        <!-- ── State: success ── -->
+        <div class="state--success payment-result" id="state-success" hidden>
+          <div class="payment-result__icon payment-result__icon--success" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 class="payment-result__title" data-i18n="payment.success.title">تم الدفع بنجاح</h2>
+          <p class="payment-result__body" data-i18n="payment.success.body">تم سداد قيمة رحلتك</p>
+          <a href="./home.html" class="btn btn--primary btn--full" data-i18n="payment.success.home">العودة للرئيسية</a>
+        </div>
+
+        <!-- ── State: declined ── -->
+        <div class="state--declined payment-result" id="state-declined" hidden>
+          <div class="payment-result__icon payment-result__icon--error" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <h2 class="payment-result__title" data-i18n="payment.declined.title">رُفض الدفع</h2>
+          <p class="payment-result__body" data-i18n="payment.declined.body">فشلت عملية الدفع. أعيدي المحاولة</p>
+          <button type="button" class="btn btn--primary btn--full" id="retry-declined-btn" data-i18n="payment.retry">إعادة المحاولة</button>
+        </div>
+
+        <!-- ── State: network-error ── -->
+        <div class="state--network-error payment-result" id="state-network-error" hidden>
+          <div class="payment-result__icon payment-result__icon--warn" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h2 class="payment-result__title" data-i18n="payment.networkError.title">خطأ في الاتصال</h2>
+          <p class="payment-result__body" data-i18n="payment.networkError.body">تحققي من اتصالك وأعيدي المحاولة</p>
+          <button type="button" class="btn btn--primary btn--full" id="retry-network-btn" data-i18n="payment.retry">إعادة المحاولة</button>
+        </div>
+
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/payment.js"></script>
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
+  </body>
+</html>

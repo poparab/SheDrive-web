@@ -81,7 +81,13 @@ function populateDriverCard(nameId, ratingId, vehicleId, etaId) {
 populateDriverCard('matching-driver-name', 'matching-driver-rating', 'matching-driver-vehicle', 'matching-driver-eta');
 populateDriverCard('confirmed-driver-name', 'confirmed-driver-rating', 'confirmed-driver-vehicle', 'confirmed-driver-eta');
 
-// ── Cancel handlers ───────────────────────────────────
+// ── Cancel dialog ────────────────────────────────────
+const cancelDialog = document.getElementById('cancel-dialog');
+
+function openCancelDialog() {
+  cancelDialog?.open?.();
+}
+
 function cancelRequest() {
   clearTimers();
   sessionStorage.removeItem('shedrive.pendingTrip');
@@ -89,8 +95,11 @@ function cancelRequest() {
   window.location.assign('./home.html');
 }
 
-document.getElementById('cancel-btn')?.addEventListener('click', cancelRequest);
-document.getElementById('cancel-top-btn')?.addEventListener('click', cancelRequest);
+cancelDialog?.addEventListener('sd-confirm', cancelRequest);
+cancelDialog?.addEventListener('sd-cancel', () => {});
+
+document.getElementById('cancel-btn')?.addEventListener('click', openCancelDialog);
+document.getElementById('cancel-top-btn')?.addEventListener('click', openCancelDialog);
 
 // ── No-driver actions ─────────────────────────────────
 document.getElementById('retry-btn')?.addEventListener('click', () => {
@@ -112,8 +121,19 @@ function clearTimers() {
   clearTimeout(confirmTimer);
 }
 
+// ── Push banner helper ────────────────────────────────
+function showPushBanner() {
+  const banner = document.getElementById('push-banner');
+  if (!banner) return;
+  banner.hidden = false;
+  setTimeout(() => { banner.hidden = true; }, 4000);
+}
+
 function startSearch() {
   clearTimers();
+
+  // Skip auto-advance when a ?state= param is present (designer preview)
+  if (new URLSearchParams(location.search).get('state')) return;
 
   // After 3.5 s: show confirmed state and store activeTrip
   searchTimer = setTimeout(() => {
@@ -122,6 +142,7 @@ function startSearch() {
       trip: pendingTrip || {},
     }));
     document.body.dataset.state = 'confirmed';
+    showPushBanner();
 
     // After 2 more s: navigate to active trip
     confirmTimer = setTimeout(() => {
@@ -131,4 +152,8 @@ function startSearch() {
 }
 
 // ── Start the search ──────────────────────────────────
+// Show push banner immediately if already in confirmed state (URL param)
+if (new URLSearchParams(location.search).get('state') === 'confirmed') {
+  showPushBanner();
+}
 startSearch();

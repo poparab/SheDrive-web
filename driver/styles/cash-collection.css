@@ -95,3 +95,41 @@
   font-weight: var(--fw-bold);
   flex-shrink: 0;
 }
+
+/* ── Net earnings card (#1766) ── */
+.cash-net-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-6);
+  inline-size: 100%;
+  max-inline-size: 320px;
+}
+
+.cash-net-card__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.cash-net-card__amount {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.cash-net-card__note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}

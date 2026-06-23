@@ -68,6 +68,10 @@ button {
   border: none;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 fieldset {
   border: none;
 }

@@ -166,6 +166,20 @@
   color: var(--color-primary-700);
 }
 
+/* ── Net fare label wrapper (#1593 / #1766) ── */
+.dhistory-card__fare-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.dhistory-card__fare-net-label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
 /* ── State visibility ── */
 .state--empty,
 .state--loading {

@@ -7,7 +7,7 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
-import { qs } from '../../shared/scripts/utils.js';
+import { qs, startWaitingCounter } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
 
 // ── Auth guard ────────────────────────────────────────
@@ -141,6 +141,31 @@ if (map) {
       .addTo(map);
   });
 }
+
+// ── Arrived state: waiting counter + push banner ──────
+const urlState = new URLSearchParams(location.search).get('state');
+if (urlState === 'arrived' || document.body.dataset.state === 'arrived') {
+  document.body.dataset.state = 'arrived';
+  const waitCounter = qs('#wait-counter');
+  if (waitCounter) startWaitingCounter(waitCounter, Date.now());
+
+  const pushBanner = qs('#arrived-push-banner');
+  if (pushBanner) {
+    pushBanner.hidden = false;
+    setTimeout(() => { pushBanner.hidden = true; }, 4000);
+  }
+}
+
+// ── Cancel trip ───────────────────────────────────────
+const cancelDialog = qs('#trip-cancel-dialog');
+const cancelBtn    = qs('#trip-cancel-btn');
+
+cancelBtn?.addEventListener('click', () => cancelDialog?.open?.());
+cancelDialog?.addEventListener('sd-confirm', () => {
+  clearInterval(etaInterval);
+  sessionStorage.removeItem('shedrive.activeTrip');
+  window.location.assign('./home.html');
+});
 
 // ── Side drawer ───────────────────────────────────────
 qs('#menu-btn')?.addEventListener('click', () => Drawer.open());

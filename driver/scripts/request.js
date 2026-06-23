@@ -46,39 +46,50 @@ qs('#trip-dest').textContent      = mockRequest.dest.ar;
 qs('#trip-fare').textContent      = mockRequest.fare.ar;
 qs('#trip-duration').textContent  = mockRequest.duration.ar;
 
-// ── Countdown ─────────────────────────────────────────
-const TOTAL = 15;
+// ── Countdown — 10s with 3s urgency (#1582) ──────────
+const TOTAL = 10;
 const CIRCUMFERENCE = 2 * Math.PI * 26; // ≈ 163.4
 
 const countdownNumber   = qs('#countdown-number');
 const countdownProgress = qs('#countdown-progress');
+const urgencyLabel      = qs('#urgency-label');
+const requestSheet      = qs('#request-sheet');
 
 let remaining = TOTAL;
 countdownProgress.style.strokeDasharray = CIRCUMFERENCE;
+
+// Skip auto-advance when designer previews a ?state=
+const isPreview = new URLSearchParams(location.search).has('state');
 
 function updateRing() {
   const frac = remaining / TOTAL;
   countdownProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - frac);
   countdownNumber.textContent = remaining;
-  if (remaining <= 5) {
+  if (remaining <= 3) {
     countdownProgress.classList.add('is-urgent');
+    requestSheet?.classList.add('is-urgent');
+    if (urgencyLabel) urgencyLabel.hidden = false;
   }
 }
 
 updateRing();
 
-const timer = setInterval(() => {
+const timer = isPreview ? null : setInterval(() => {
   remaining -= 1;
   updateRing();
   if (remaining <= 0) {
     clearInterval(timer);
-    autoDecline();
+    autoExpire();
   }
 }, 1000);
 
-function autoDecline() {
-  showToast(translate('request.autoDeclined'), 'info');
-  setTimeout(() => window.location.assign('./home.html'), 1500);
+function autoExpire() {
+  const expiredEl = qs('#request-expired');
+  const sheetEl   = qs('#request-sheet');
+  if (sheetEl)   sheetEl.hidden   = true;
+  if (expiredEl) expiredEl.hidden = false;
+  // Auto-dismiss after 2.5s (#1585)
+  setTimeout(() => window.location.assign('./home.html'), 2500);
 }
 
 // ── Buttons ───────────────────────────────────────────
@@ -88,7 +99,10 @@ qs('#decline-btn').addEventListener('click', () => {
 });
 
 qs('#accept-btn').addEventListener('click', () => {
-  clearInterval(timer);
+  if (timer) clearInterval(timer);
+  requestSheet?.classList.add('is-accepting');
+  qs('#accept-btn').disabled  = true;
+  qs('#decline-btn').disabled = true;
   // Store mock trip data for the trip screen
   sessionStorage.setItem('shedrive.activeDriverTrip', JSON.stringify({
     rider:    mockRequest.rider,
@@ -98,17 +112,24 @@ qs('#accept-btn').addEventListener('click', () => {
     duration: mockRequest.duration,
     startedAt: Date.now(),
   }));
-  window.location.assign('./trip.html?state=en-route');
+  setTimeout(() => window.location.assign('./trip.html?state=en-route'), 800);
+});
+
+// Conflict ok button (#1583)
+qs('#conflict-ok-btn')?.addEventListener('click', () => {
+  window.location.assign('./home.html');
 });
 
 // ── Toast helper ─────────────────────────────────────
-const toastContainer = qs('#toast-container');
-
 function showToast(message, type = 'info') {
+  const host = document.querySelector('sd-toast-host') || document.querySelector('#toast-container');
+  if (host?.showToast) { host.showToast(message, type); return; }
+  const container = document.getElementById('toast-container');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast toast--${type}`;
   toast.setAttribute('role', 'status');
   toast.textContent = message;
-  toastContainer.appendChild(toast);
+  container.appendChild(toast);
   setTimeout(() => toast.remove(), 3500);
 }

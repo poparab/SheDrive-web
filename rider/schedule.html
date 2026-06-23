@@ -1,0 +1,31 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — جدولة رحلة</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell schedule-page" screen-styles="/rider/styles/rider.css, /rider/styles/schedule.css" drawer>
+      <sd-app-header bar-class="schedule-topbar" inner-class="schedule-topbar__inner" title-class="schedule-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="schedule-topbar__title-text" data-i18n="schedule.title">جدولة رحلة</span>
+      </sd-app-header>
+
+      <main class="schedule-content">
+        <div class="coming-soon-card">
+          <div class="coming-soon-card__icon" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h2 class="coming-soon-card__title" data-i18n="schedule.comingSoon">هذه الميزة قريباً</h2>
+          <p class="coming-soon-card__body" data-i18n="schedule.body">ستتمكنين قريباً من حجز رحلاتك مسبقاً</p>
+          <a href="./home.html" class="btn btn--primary btn--full coming-soon-card__back" data-i18n="schedule.back">رجوع</a>
+        </div>
+      </main>
+    </sd-page>
+    <script type="module" src="scripts/schedule.js"></script>
+  </body>
+</html>

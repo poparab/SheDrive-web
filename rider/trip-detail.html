@@ -133,7 +133,7 @@
         </section>
 
         <!-- ── Your rating ────────────────────────────── -->
-        <section class="trip-detail-card trip-detail-rating" aria-label="تقييمك">
+        <section class="trip-detail-card trip-detail-rating state--rated" aria-label="تقييمك">
           <h3 class="trip-detail-rating__title" data-i18n="tripDetail.yourRating">تقييمك</h3>
 
           <div class="trip-detail-rating__stars" aria-label="٥ نجوم من ٥" role="img">
@@ -151,6 +151,15 @@
           </div>
         </section>
 
+        <!-- ── Rate this trip (state=unrated) ───────────── -->
+        <section class="trip-detail-card trip-detail-rate-section state--unrated" id="rate-section" aria-label="قيّمي هذه الرحلة">
+          <h3 class="trip-detail-card__heading" data-i18n="tripDetail.rateTripTitle">قيّمي هذه الرحلة</h3>
+          <sd-rating-stars id="detail-stars" value="0"></sd-rating-stars>
+          <p class="field__error" id="detail-stars-error" hidden role="alert" data-i18n="complete.starsError">يرجى اختيار تقييم أولاً</p>
+          <button type="button" class="btn btn--primary btn--full" id="detail-rate-btn" data-i18n="tripDetail.rateTripSubmit">إرسال التقييم</button>
+        </section>
+        <p class="trip-detail-rated-msg state--rated" id="rating-submitted-msg" hidden data-i18n="tripDetail.ratingSubmitted">تم إرسال تقييمك</p>
+
         <!-- ── Trip reference ─────────────────────────── -->
         <p class="trip-detail-ref">
           <span data-i18n="tripDetail.ref">رقم الرحلة</span>
@@ -161,5 +170,9 @@
     </sd-page>
 
     <script type="module" src="scripts/trip-detail.js"></script>
+    <script type="module">
+      const s = new URLSearchParams(location.search).get('state');
+      if (s) document.body.dataset.state = s;
+    </script>
   </body>
 </html>

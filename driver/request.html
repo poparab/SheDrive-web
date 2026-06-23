@@ -6,138 +6,189 @@
     <meta name="description" content="SheDrive — طلب رحلة جديدة" />
     <title>SheDrive Driver — طلب رحلة</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
 
-    <!-- Mapbox -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
 
-    <!-- Design system -->
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
     <link rel="stylesheet" href="../shared/styles/components.css" />
     <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
     <link rel="stylesheet" href="styles/driver.css" />
     <link rel="stylesheet" href="styles/request.css" />
 
-    <!-- RTL override -->
-    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+    <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell request-page">
+    <sd-page body-class="app-shell request-page" screen-styles="styles/driver.css, styles/request.css" mapbox>
 
-    <!-- ── Toast container ── -->
-    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+      <!-- Push banner — UI-only incoming request push (#1581) -->
+      <div class="push-banner" id="push-banner" hidden role="alert" aria-live="assertive">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span data-i18n="driver.request.pushBanner">طلب رحلة جديد!</span>
+      </div>
 
-    <!-- ── Full-screen map ── -->
-    <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
+      <!-- ── Full-screen map ── -->
+      <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
 
-    <!-- ── Incoming request bottom sheet ── -->
-    <aside
-      class="request-sheet"
-      id="request-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-label="طلب رحلة واردة"
-      data-i18n-aria-label="request.sheetAria"
-    >
-      <!-- Countdown ring + header -->
-      <div class="request-sheet__header">
-        <div class="request-sheet__countdown-wrap">
-          <svg class="countdown-ring" viewBox="0 0 60 60" aria-hidden="true">
-            <circle class="countdown-ring__bg" cx="30" cy="30" r="26"/>
-            <circle class="countdown-ring__progress" id="countdown-progress" cx="30" cy="30" r="26"/>
-          </svg>
-          <span class="countdown-ring__number" id="countdown-number" aria-live="polite" aria-atomic="true">15</span>
+      <!-- ── Incoming request bottom sheet ── -->
+      <aside
+        class="request-sheet state--incoming"
+        id="request-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label="طلب رحلة واردة"
+        data-i18n-aria-label="request.sheetAria"
+      >
+        <!-- Countdown ring + header -->
+        <div class="request-sheet__header">
+          <div class="request-sheet__countdown-wrap">
+            <svg class="countdown-ring" viewBox="0 0 60 60" aria-hidden="true">
+              <circle class="countdown-ring__bg" cx="30" cy="30" r="26"/>
+              <circle class="countdown-ring__progress" id="countdown-progress" cx="30" cy="30" r="26"/>
+            </svg>
+            <!-- Counts down from 10 (#1582) -->
+            <span class="countdown-ring__number" id="countdown-number" aria-live="polite" aria-atomic="true">10</span>
+          </div>
+          <div class="request-sheet__heading">
+            <h2 class="request-sheet__title" data-i18n="request.title">طلب رحلة جديد</h2>
+            <p class="request-sheet__subtitle" data-i18n="request.subtitle">اقبلي أو ارفضي قبل انتهاء الوقت</p>
+          </div>
         </div>
-        <div class="request-sheet__heading">
-          <h2 class="request-sheet__title" data-i18n="request.title">طلب رحلة جديد</h2>
-          <p class="request-sheet__subtitle" data-i18n="request.subtitle">اقبلي أو ارفضي قبل انتهاء الوقت</p>
+
+        <!-- Urgency label — shown at ≤3s (#1582) -->
+        <p class="request-urgency-label" id="urgency-label" hidden role="alert" aria-live="assertive" data-i18n="driver.request.urgency">
+          الوقت ينفد!
+        </p>
+
+        <!-- Rider info -->
+        <div class="request-rider" role="group" aria-label="بيانات الراكبة" data-i18n-aria-label="request.riderAria">
+          <div class="avatar avatar--lg" aria-hidden="true">ن</div>
+          <div class="request-rider__info">
+            <span class="request-rider__name" id="rider-name">نور</span>
+            <div class="request-rider__meta">
+              <span class="request-rider__rating" aria-label="التقييم: 4.8 نجوم">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span id="rider-rating">4.8</span>
+              </span>
+              <span class="request-rider__distance" id="rider-distance">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                1.2 km
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip summary -->
+        <div class="request-trip card">
+          <div class="request-trip__row">
+            <span class="request-trip__dot request-trip__dot--pickup" aria-hidden="true"></span>
+            <div class="request-trip__location">
+              <span class="request-trip__label" data-i18n="request.pickup">الانطلاق</span>
+              <span class="request-trip__place" id="trip-pickup">المعادي، القاهرة</span>
+            </div>
+          </div>
+          <div class="request-trip__line" aria-hidden="true"></div>
+          <div class="request-trip__row">
+            <span class="request-trip__dot request-trip__dot--dest" aria-hidden="true"></span>
+            <div class="request-trip__location">
+              <span class="request-trip__label" data-i18n="request.destination">الوجهة</span>
+              <span class="request-trip__place" id="trip-dest">مدينة نصر، القاهرة</span>
+            </div>
+          </div>
+
+          <div class="request-trip__stats">
+            <div class="request-trip__stat">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span data-i18n="request.fare">التكلفة</span>
+              <strong id="trip-fare">65 جنيه</strong>
+            </div>
+            <div class="request-trip__stat">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-i18n="request.duration">المدة</span>
+              <strong id="trip-duration">18 دقيقة</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions (disabled during accepting state) -->
+        <div class="request-sheet__actions">
+          <button
+            type="button"
+            class="btn btn--danger btn--full"
+            id="decline-btn"
+            data-i18n="request.decline"
+            data-i18n-aria-label="request.declineAria"
+            aria-label="رفض الرحلة"
+          >
+            رفض
+          </button>
+          <button
+            type="button"
+            class="btn btn--primary btn--full"
+            id="accept-btn"
+            data-i18n="request.accept"
+            data-i18n-aria-label="request.acceptAria"
+            aria-label="قبول الرحلة"
+          >
+            قبول
+          </button>
+        </div>
+      </aside>
+
+      <!-- ── Expired state overlay (#1585) ── -->
+      <div class="request-expired" id="request-expired" hidden role="alertdialog" aria-labelledby="expired-title">
+        <div class="request-expired__card">
+          <div class="request-expired__icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h2 id="expired-title" class="request-expired__title" data-i18n="driver.request.expired">انتهى الوقت</h2>
+          <p class="request-expired__body" data-i18n="driver.request.expiredBody">انتهى وقت القبول. تم تحويل الرحلة</p>
         </div>
       </div>
 
-      <!-- Rider info -->
-      <div class="request-rider" role="group" aria-label="بيانات الراكبة" data-i18n-aria-label="request.riderAria">
-        <div class="avatar avatar--lg" aria-hidden="true">ن</div>
-        <div class="request-rider__info">
-          <span class="request-rider__name" id="rider-name">نور</span>
-          <div class="request-rider__meta">
-            <span class="request-rider__rating" aria-label="التقييم: 4.8 نجوم">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              <span id="rider-rating">4.8</span>
-            </span>
-            <span class="request-rider__distance" id="rider-distance">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-              1.2 km
-            </span>
-          </div>
+      <!-- ── Conflict / already-taken state (#1583) ── -->
+      <div class="request-conflict" id="request-conflict" hidden role="alertdialog" aria-labelledby="conflict-title">
+        <div class="request-conflict__card">
+          <h2 id="conflict-title" class="request-conflict__title" data-i18n="driver.request.conflict">انتهى الطلب</h2>
+          <p class="request-conflict__body" data-i18n="driver.request.conflictBody">لم يتم تسجيل استجابتك. انتهى وقت الطلب</p>
+          <button type="button" class="btn btn--primary btn--full" id="conflict-ok-btn" data-i18n="common.ok">حسناً</button>
         </div>
       </div>
 
-      <!-- Trip summary -->
-      <div class="request-trip card">
-        <div class="request-trip__row">
-          <span class="request-trip__dot request-trip__dot--pickup" aria-hidden="true"></span>
-          <div class="request-trip__location">
-            <span class="request-trip__label" data-i18n="request.pickup">الانطلاق</span>
-            <span class="request-trip__place" id="trip-pickup">المعادي، القاهرة</span>
-          </div>
-        </div>
-        <div class="request-trip__line" aria-hidden="true"></div>
-        <div class="request-trip__row">
-          <span class="request-trip__dot request-trip__dot--dest" aria-hidden="true"></span>
-          <div class="request-trip__location">
-            <span class="request-trip__label" data-i18n="request.destination">الوجهة</span>
-            <span class="request-trip__place" id="trip-dest">مدينة نصر، القاهرة</span>
-          </div>
-        </div>
+      <script type="module" src="scripts/request.js"></script>
 
-        <div class="request-trip__stats">
-          <div class="request-trip__stat">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <span data-i18n="request.fare">التكلفة</span>
-            <strong id="trip-fare">65 جنيه</strong>
-          </div>
-          <div class="request-trip__stat">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span data-i18n="request.duration">المدة</span>
-            <strong id="trip-duration">18 دقيقة</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="request-sheet__actions">
-        <button
-          type="button"
-          class="btn btn--danger btn--full"
-          id="decline-btn"
-          data-i18n="request.decline"
-          aria-label="رفض الرحلة"
-          data-i18n-aria-label="request.declineAria"
-        >
-          رفض
-        </button>
-        <button
-          type="button"
-          class="btn btn--primary btn--full"
-          id="accept-btn"
-          data-i18n="request.accept"
-          aria-label="قبول الرحلة"
-          data-i18n-aria-label="request.acceptAria"
-        >
-          قبول
-        </button>
-      </div>
-    </aside>
-
-    <script type="module" src="scripts/request.js"></script>
+      <!-- Demo only: ?state=expired | conflict | urgency -->
+      <script type="module">
+        const s = new URLSearchParams(location.search).get('state');
+        if (s === 'expired') {
+          document.getElementById('request-expired').hidden = false;
+          document.getElementById('request-sheet').hidden = true;
+        }
+        if (s === 'conflict') {
+          document.getElementById('request-conflict').hidden = false;
+        }
+        if (s === 'urgency') {
+          document.getElementById('countdown-number').textContent = '3';
+          document.getElementById('urgency-label').hidden = false;
+          document.getElementById('request-sheet').classList.add('is-urgent');
+        }
+        if (s === 'push') {
+          const b = document.getElementById('push-banner');
+          b.hidden = false;
+          setTimeout(() => { b.hidden = true; }, 3500);
+        }
+      </script>
+    </sd-page>
   </body>
 </html>

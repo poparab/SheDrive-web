@@ -374,9 +374,74 @@
   line-height: var(--leading-relaxed);
 }
 
+/* ── Rejected state ──────────────────────────────── */
+
+.onboarding-pending__icon--rejected {
+  background: rgba(220, 53, 69, 0.1);
+  color: var(--color-danger);
+}
+
+.onboarding-pending__title--rejected {
+  color: var(--color-danger);
+}
+
+/* ── Rejection reason card ───────────────────────── */
+
+.onboarding-rejection-reason {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 360px;
+}
+
+.onboarding-rejection-reason__text {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Progress bar hidden attribute ──────────────── */
+
+.onboarding-progress[hidden] { display: none; }
+
+/* ── Vehicle photo zone (taller) ─────────────────── */
+
+.upload-zone--photo {
+  min-block-size: 200px;
+}
+
 @media (min-width: 768px) {
   .onboarding-main { padding: var(--space-8) var(--space-10); }
   .onboarding-step__actions { flex-direction: row-reverse; }
   .onboarding-step__actions .btn--ghost { order: 2; }
   .onboarding-step__actions .btn--primary { order: 1; flex: 1; }
+}
+
+/* ── Background-check consent (#1572) ───────────────── */
+
+.consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.consent-check__box {
+  inline-size: 22px;
+  block-size: 22px;
+  flex-shrink: 0;
+  margin-block-start: 2px;
+  accent-color: var(--color-primary-600);
+  cursor: pointer;
+}
+
+.consent-check__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
 }

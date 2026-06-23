@@ -1,0 +1,120 @@
+/*
+ * payment-method.css — Rider payment method selector screen
+ * All values use design-system tokens.
+ */
+
+.payment-method-page {
+  background: var(--color-surface-alt);
+}
+
+.pm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pm-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.pm-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Content ─────────────────────────────────────────── */
+
+.pm-content {
+  padding: var(--space-5) var(--space-4) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-inline-size: 480px;
+  margin-inline: auto;
+}
+
+.pm-subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ── Options ─────────────────────────────────────────── */
+
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  cursor: pointer;
+  position: relative;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.payment-option:has(input:checked) {
+  border-color: var(--color-primary-600);
+  background: rgba(107, 43, 217, 0.04);
+}
+
+.payment-option__radio {
+  position: absolute;
+  inset-inline-end: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary-600);
+}
+
+.payment-option__icon {
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.payment-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.payment-option__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.payment-option__desc {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.payment-option__default-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-success);
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+}

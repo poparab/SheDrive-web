@@ -62,46 +62,58 @@
 
           <div class="login-form-panel__body">
           <header class="login-form__header">
-            <h1 class="login-form__title" data-i18n="login.title.rider">أهلاً بعودتك</h1>
-            <p class="login-form__subtitle" data-i18n="login.subtitle.rider">
+            <h1 class="login-form__title" id="form-title" data-i18n="login.title.rider">أهلاً بعودتك</h1>
+            <p class="login-form__subtitle" id="form-subtitle" data-i18n="login.subtitle.rider">
               سجّلي دخولك لطلب رحلتك
             </p>
           </header>
+
+          <!-- Mode toggle -->
+          <p class="auth-mode-toggle" id="mode-toggle">
+            <span class="auth-mode-toggle__text auth-mode--login" data-i18n="register.switchToRegister">حساب جديد؟ أنشئي حساباً</span>
+            <span class="auth-mode-toggle__text auth-mode--register" hidden data-i18n="register.switchToLogin">لديكِ حساب؟ سجّلي دخولكِ</span>
+          </p>
 
           <form class="login-form" id="login-form" novalidate>
 
             <!-- Step 1: Phone number -->
             <section class="login-step" id="step-phone" aria-label="Phone number step">
+
+              <!-- Register-only: full name -->
+              <div class="field auth-mode--register" id="name-field" hidden>
+                <label class="field__label" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
+                <input
+                  type="text"
+                  id="name-input"
+                  name="fullname"
+                  class="input"
+                  autocomplete="name"
+                  data-i18n-placeholder="register.name.placeholder"
+                  placeholder="الاسم كما هو رسمياً"
+                  aria-describedby="name-error"
+                />
+                <span id="name-error" class="field__error" role="alert" hidden></span>
+              </div>
+
               <div class="field">
                 <label class="field__label" for="phone-input" data-i18n="login.phone.label">
                   رقم الهاتف
                 </label>
 
-                <div class="input-group" role="group" aria-label="Phone number with country code">
-                  <!-- Country code selector -->
+                <div class="input-group" role="group" data-i18n-aria-label="aria.phoneGroup">
                   <button
                     type="button"
                     class="input-group__prefix"
                     id="country-code-btn"
                     style="display: inline-flex; flex: 0 0 auto; inline-size: max-content;"
-                    aria-label="Country code: Egypt +20"
+                    data-i18n-aria-label="aria.countryCode"
+                    aria-label="كود مصر +20"
                     aria-haspopup="listbox"
                     aria-expanded="false"
                   >
                     <span class="country-flag" aria-hidden="true">🇪🇬</span>
                     <span>+20</span>
-                    <svg
-                      class="icon icon--chevron-down"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
+                    <svg class="icon icon--chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <polyline points="6 9 12 15 18 9"/>
                     </svg>
                   </button>
@@ -123,25 +135,12 @@
                   />
                 </div>
 
-                <span
-                  id="phone-error"
-                  class="field__error"
-                  role="alert"
-                  aria-live="polite"
-                  aria-atomic="true"
-                  hidden
-                  data-i18n="login.error.phone"
-                >
+                <span id="phone-error" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden data-i18n="login.error.phone">
                   يرجى إدخال رقم هاتف مصري مكوّن من 10 أرقام
                 </span>
               </div>
 
-              <button
-                type="button"
-                class="btn btn--primary btn--full"
-                id="send-otp-btn"
-                data-i18n="login.button.sendOtp"
-              >
+              <button type="button" class="btn btn--primary btn--full" id="send-otp-btn" data-i18n="login.button.sendOtp">
                 إرسال الرمز
               </button>
             </section>
@@ -154,51 +153,21 @@
                   أدخلي الرمز المكوّن من 6 أرقام المُرسَل إلى هاتفك
                 </p>
 
-                <div
-                  class="otp-group otp-panel__group"
-                  role="group"
-                  aria-label="6-digit verification code"
-                  aria-describedby="otp-error"
-                >
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 1" autocomplete="one-time-code" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" />
-                  <span class="otp-group__split" aria-hidden="true"></span>
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 5" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 6" />
-                </div>
+                <sd-otp-input id="otp-input" length="6"></sd-otp-input>
 
-                <span
-                  id="otp-error"
-                  class="field__error"
-                  role="alert"
-                  aria-live="polite"
-                  aria-atomic="true"
-                  hidden
-                  data-i18n="login.error.otp"
-                >
-                  يرجى إدخال جميع أرقام رمز التحقق الستة
-                </span>
+                <span id="otp-error-msg" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden></span>
               </div>
 
-              <button
-                type="submit"
-                class="btn btn--primary btn--full"
-                id="verify-btn"
-                data-i18n="login.button.verify"
-              >
+              <button type="submit" class="btn btn--primary btn--full" id="verify-btn" data-i18n="login.button.verify">
                 تحقق ومتابعة
               </button>
 
-              <button
-                type="button"
-                class="btn btn--ghost btn--full btn--sm"
-                id="resend-btn"
-                data-i18n="login.button.resend"
-              >
-                إعادة إرسال الرمز
-              </button>
+              <div class="resend-row">
+                <button type="button" class="btn btn--ghost btn--sm" id="resend-btn" data-i18n="login.button.resend">
+                  إعادة إرسال الرمز
+                </button>
+                <span class="resend-countdown" id="resend-countdown" aria-live="polite" aria-atomic="true" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
+              </div>
             </section>
 
           </form>
@@ -215,7 +184,7 @@
       </div>
     </sd-page>
 
-    <script type="module" src="scripts/login.js"></script>
+    <script type="module" src="scripts/index.js"></script>
     <script type="module" src="scripts/splash.js"></script>
   </body>
 </html>

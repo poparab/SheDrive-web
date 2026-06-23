@@ -1,0 +1,133 @@
+/*
+ * payment.css — Rider card payment screen
+ * All values use design-system tokens.
+ */
+
+.payment-page {
+  background: var(--color-surface-alt);
+}
+
+.pay-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pay-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.pay-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Content ─────────────────────────────────────────── */
+
+.payment-content {
+  padding: var(--space-5) var(--space-4) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-inline-size: 480px;
+  margin-inline: auto;
+}
+
+/* ── Total card ──────────────────────────────────────── */
+
+.pay-total-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+}
+
+.pay-total-card__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.pay-total-card__amount {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-600);
+}
+
+/* ── Card form ───────────────────────────────────────── */
+
+.payment-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pay-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pay-row .field {
+  flex: 1;
+}
+
+/* ── Result states ───────────────────────────────────── */
+
+.payment-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+  padding-block-start: var(--space-10);
+}
+
+.payment-result__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-result__icon--success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.payment-result__icon--error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+
+.payment-result__icon--warn {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.payment-result__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.payment-result__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  max-inline-size: 280px;
+}

@@ -6,6 +6,7 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
+import { qs } from '../../shared/scripts/utils.js';
 
 auth.requireAuth();
 await initI18n();
@@ -66,4 +67,24 @@ if (map) {
   });
 }
 
-// TODO: read trip ID from URL/sessionStorage and load real trip data from API
+// ── Rate unrated trip ─────────────────────────────────
+let detailRating = 0;
+const detailStars    = qs('#detail-stars');
+const detailRateBtn  = qs('#detail-rate-btn');
+const detailError    = qs('#detail-stars-error');
+const rateSection    = qs('#rate-section');
+const ratedMsg       = qs('#rating-submitted-msg');
+
+detailStars?.addEventListener('change', (e) => {
+  detailRating = e.detail?.value ?? 0;
+  if (detailError) detailError.hidden = true;
+});
+
+detailRateBtn?.addEventListener('click', () => {
+  if (detailRating === 0) {
+    if (detailError) detailError.hidden = false;
+    return;
+  }
+  if (rateSection) rateSection.hidden = true;
+  if (ratedMsg) ratedMsg.hidden = false;
+});

@@ -1,0 +1,51 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — مركز الأمان</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell rider-sos-page" screen-styles="styles/rider.css, styles/sos.css">
+
+      <sd-app-header hide-lang-toggle>
+        <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start"
+          aria-label="رجوع" data-i18n-aria-label="aria.back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </a>
+        <span data-i18n="riderSos.title">مركز الأمان</span>
+      </sd-app-header>
+
+      <main class="rider-sos-main" role="main">
+        <div class="rider-sos-content">
+
+          <div class="rider-sos-icon" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+
+          <h1 class="rider-sos-title" data-i18n="riderSos.title">مركز الأمان</h1>
+          <p class="rider-sos-coming" data-i18n="riderSos.comingSoon">هذه الميزة قيد التطوير</p>
+          <p class="rider-sos-body" data-i18n="riderSos.body">
+            نعمل على نظام طوارئ متكامل يتضمن خطاً مباشراً لوزارة الداخلية
+          </p>
+
+          <div class="rider-sos-fallback" role="note">
+            <p class="rider-sos-fallback__label" data-i18n="riderSos.emergencyLabel">طوارئ الشرطة:</p>
+            <a href="tel:122" class="rider-sos-phone">122</a>
+          </div>
+
+          <a href="./home.html" class="btn btn--ghost btn--full" data-i18n="riderSos.back">
+            رجوع إلى الشاشة الرئيسية
+          </a>
+        </div>
+      </main>
+
+    </sd-page>
+    <script type="module" src="scripts/sos.js"></script>
+  </body>
+</html>

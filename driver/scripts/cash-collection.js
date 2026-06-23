@@ -31,15 +31,17 @@ if (!trip) {
 }
 
 // ── Populate UI ───────────────────────────────────────
-const fareEl = qs('#cash-fare-amount');
-const fromEl = qs('#cash-from');
-const toEl   = qs('#cash-to');
+const fareEl   = qs('#cash-fare-amount');
+const netEl    = qs('#cash-net-amount');
+const fromEl   = qs('#cash-from');
+const toEl     = qs('#cash-to');
 
-if (fareEl) {
-  // Show just the numeric part (strip "جنيه"/"EGP" if present)
-  const raw = trip.fare?.ar ?? '٦٥';
-  fareEl.textContent = raw.replace(/[^\d٠-٩]/g, '') || raw;
-}
+const grossRaw = trip.fare?.ar ?? '٦٥';
+const grossNum = parseInt(grossRaw.replace(/[^\d]/g, ''), 10) || 65;
+
+if (fareEl) fareEl.textContent = grossRaw.replace(/[^\d٠-٩]/g, '') || grossRaw;
+// Net = gross × 0.8 (20% platform commission; commission % never shown)
+if (netEl)  netEl.textContent  = String(Math.round(grossNum * 0.8));
 if (fromEl) fromEl.textContent = trip.pickup?.ar ?? 'المعادي';
 if (toEl)   toEl.textContent   = trip.dest?.ar   ?? 'مدينة نصر';
 

@@ -6,124 +6,131 @@
     <meta name="description" content="SheDrive — أرباحي" />
     <title>SheDrive Driver — الأرباح</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Design system -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
     <link rel="stylesheet" href="../shared/styles/components.css" />
     <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
     <link rel="stylesheet" href="styles/driver.css" />
     <link rel="stylesheet" href="styles/earnings.css" />
 
-    <!-- RTL override -->
-    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+    <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell earnings-page">
+    <sd-page body-class="app-shell earnings-page" screen-styles="styles/driver.css, styles/earnings.css">
 
-    <!-- ── Toast container ── -->
-    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- ── Header bar ── -->
-    <header class="earnings-header" role="banner">
-      <button
-        type="button"
-        class="btn btn--icon btn--ghost earnings-header__back"
-        id="back-btn"
-        aria-label="رجوع"
-        data-i18n-aria-label="aria.back"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
-      <h1 class="earnings-header__title" data-i18n="earnings.title">أرباحي</h1>
-      <nav class="lang-switcher" aria-label="Language / اللغة">
-        <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
-        <span class="lang-switcher__sep" aria-hidden="true">|</span>
-        <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
-      </nav>
-    </header>
-
-    <main class="earnings-main">
-
-      <!-- ── Summary card ── -->
-      <div class="earnings-summary" role="region" aria-label="ملخص الأرباح" data-i18n-aria-label="earnings.summaryAria">
-        <p class="earnings-summary__label" data-i18n="earnings.totalLabel">إجمالي اليوم</p>
-        <p class="earnings-summary__amount">
-          <span id="summary-amount">245</span>
-          <span class="earnings-summary__currency" data-i18n="driver.currency">جنيه</span>
-        </p>
-        <div class="earnings-summary__stats">
-          <div class="earnings-summary__stat">
-            <span class="earnings-summary__stat-value" id="summary-trips">6</span>
-            <span class="earnings-summary__stat-label" data-i18n="earnings.trips">رحلة</span>
-          </div>
-          <div class="earnings-summary__divider" aria-hidden="true"></div>
-          <div class="earnings-summary__stat">
-            <span class="earnings-summary__stat-value" id="summary-hours">4.5</span>
-            <span class="earnings-summary__stat-label" data-i18n="earnings.hours">ساعة</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Filter tabs ── -->
-      <div class="earnings-tabs" role="tablist" aria-label="فترة الأرباح" data-i18n-aria-label="earnings.tabsAria">
-        <button
-          type="button"
-          class="earnings-tab is-active"
-          id="tab-today"
-          role="tab"
-          aria-selected="true"
-          data-period="today"
-          data-i18n="earnings.today"
-        >اليوم</button>
-        <button
-          type="button"
-          class="earnings-tab"
-          id="tab-week"
-          role="tab"
-          aria-selected="false"
-          data-period="week"
-          data-i18n="earnings.thisWeek"
-        >هذا الأسبوع</button>
-        <button
-          type="button"
-          class="earnings-tab"
-          id="tab-month"
-          role="tab"
-          aria-selected="false"
-          data-period="month"
-          data-i18n="earnings.thisMonth"
-        >هذا الشهر</button>
-      </div>
-
-      <!-- ── Trip list ── -->
-      <section class="earnings-trips" id="trips-list" aria-label="قائمة الرحلات" data-i18n-aria-label="earnings.tripsAria">
-        <!-- Rendered by JS -->
-      </section>
-
-      <!-- ── Empty state ── -->
-      <div class="earnings-empty" id="earnings-empty" hidden aria-hidden="true">
-        <div class="earnings-empty__illustration" aria-hidden="true">
-          <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-            <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+      <sd-app-header>
+        <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"/>
           </svg>
+        </a>
+        <span data-i18n="earnings.title">أرباحي</span>
+      </sd-app-header>
+
+      <main class="earnings-main">
+
+        <!-- ── Summary card ── -->
+        <div class="earnings-summary" role="region" aria-label="ملخص الأرباح" data-i18n-aria-label="earnings.summaryAria">
+          <p class="earnings-summary__label" data-i18n="earnings.totalLabel">إجمالي اليوم</p>
+          <p class="earnings-summary__amount">
+            <span id="summary-amount">500</span>
+            <span class="earnings-summary__currency" data-i18n="driver.currency">جنيه</span>
+          </p>
+
+          <!-- Primary stats: trips + hours -->
+          <div class="earnings-summary__stats">
+            <div class="earnings-summary__stat">
+              <span class="earnings-summary__stat-value" id="summary-trips">6</span>
+              <span class="earnings-summary__stat-label" data-i18n="earnings.trips">رحلة</span>
+            </div>
+            <div class="earnings-summary__divider" aria-hidden="true"></div>
+            <div class="earnings-summary__stat">
+              <span class="earnings-summary__stat-value" id="summary-hours">4.5</span>
+              <span class="earnings-summary__stat-label" data-i18n="earnings.hours">ساعة</span>
+            </div>
+          </div>
+
+          <!-- Driver performance metrics (#1736 / #1766) -->
+          <div class="earnings-metrics" role="list" aria-label="مؤشرات الأداء">
+            <div class="earnings-metric" role="listitem">
+              <span class="earnings-metric__value" id="metric-total-trips">147</span>
+              <span class="earnings-metric__label" data-i18n="earnings.totalTrips">إجمالي الرحلات</span>
+            </div>
+            <div class="earnings-metric" role="listitem">
+              <span class="earnings-metric__value" id="metric-avg-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.9
+              </span>
+              <span class="earnings-metric__label" data-i18n="earnings.avgRating">متوسط التقييم</span>
+            </div>
+            <div class="earnings-metric" role="listitem">
+              <span class="earnings-metric__value" id="metric-acceptance">94%</span>
+              <span class="earnings-metric__label" data-i18n="earnings.acceptanceRate">معدل القبول</span>
+            </div>
+          </div>
         </div>
-        <p class="earnings-empty__msg" data-i18n="earnings.empty">لا توجد رحلات في هذه الفترة</p>
-      </div>
 
-    </main>
+        <!-- ── Balance owed link (#1788) ── -->
+        <a href="./balance.html" class="btn btn--ghost btn--full earnings-balance-link" data-i18n="driver.balance.title">الرصيد المستحق للمنصة</a>
 
-    <script type="module" src="scripts/earnings.js"></script>
+        <!-- ── Filter tabs ── -->
+        <div class="earnings-tabs" role="tablist" aria-label="فترة الأرباح" data-i18n-aria-label="earnings.tabsAria">
+          <button
+            type="button"
+            class="earnings-tab is-active"
+            id="tab-today"
+            role="tab"
+            aria-selected="true"
+            data-period="today"
+            data-i18n="earnings.today"
+          >اليوم</button>
+          <button
+            type="button"
+            class="earnings-tab"
+            id="tab-week"
+            role="tab"
+            aria-selected="false"
+            data-period="week"
+            data-i18n="earnings.thisWeek"
+          >هذا الأسبوع</button>
+          <button
+            type="button"
+            class="earnings-tab"
+            id="tab-month"
+            role="tab"
+            aria-selected="false"
+            data-period="month"
+            data-i18n="earnings.thisMonth"
+          >هذا الشهر</button>
+        </div>
+
+        <!-- ── Trip list ── -->
+        <section class="earnings-trips" id="trips-list" aria-label="قائمة الرحلات" data-i18n-aria-label="earnings.tripsAria">
+          <!-- Rendered by JS -->
+        </section>
+
+        <!-- ── Empty state ── -->
+        <div class="earnings-empty" id="earnings-empty" hidden aria-hidden="true">
+          <div class="earnings-empty__illustration" aria-hidden="true">
+            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+          </div>
+          <p class="earnings-empty__msg" data-i18n="earnings.empty">لا توجد رحلات في هذه الفترة</p>
+        </div>
+
+      </main>
+
+      <script type="module" src="scripts/earnings.js"></script>
+    </sd-page>
   </body>
 </html>

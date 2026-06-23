@@ -34,6 +34,23 @@
       drawer
       mapbox
     >
+      <!-- Push banner: driver arrived notification -->
+      <div class="push-banner" id="arrived-push-banner" role="status" aria-live="assertive" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+        <span data-i18n="trip.arrivedBanner">وصلت سائقتك! توجهي إلى نقطة الانطلاق</span>
+      </div>
+
+      <!-- Cancel trip dialog -->
+      <sd-confirm-dialog
+        id="trip-cancel-dialog"
+        title-key="cancel.tripTitle"
+        title-fallback="إلغاء الرحلة؟"
+        body-key="cancel.tripBody"
+        body-fallback="سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة"
+        confirm-key="cancel.confirmBtn"
+        cancel-key="cancel.cancelBtn"
+        danger
+      ></sd-confirm-dialog>
       <sd-app-header
         menu
         bar-class="trip-topbar"
@@ -63,6 +80,15 @@
           </div>
         </div>
 
+        <!-- ── Waiting counter (state=arrived) ─────────── -->
+        <div class="state--arrived trip-waiting-section" id="waiting-section">
+          <p class="trip-waiting__title" data-i18n="trip.waitingTitle">وصلت سائقتك — في انتظارك</p>
+          <div class="trip-waiting__counter-row">
+            <span class="trip-waiting__label" data-i18n="trip.waitingCounter">وقت الانتظار</span>
+            <span class="trip-waiting__counter" id="wait-counter" aria-live="off">00:00</span>
+          </div>
+        </div>
+
         <sd-driver-card
           variant="detailed"
           name-id="driver-name"
@@ -78,20 +104,24 @@
 
         <div class="safety-badges" role="list" data-i18n-aria-label="aria.trip.safetyBadges">
           <span class="safety-badge" role="listitem">
-            <span aria-hidden="true">🎥</span>
-            <span data-i18n="trip.badge.camera">كاميرا مباشرة</span>
-          </span>
-          <span class="safety-badge" role="listitem">
             <span aria-hidden="true">✓</span>
             <span data-i18n="trip.badge.verified">سائقة موثقة</span>
-          </span>
-          <span class="safety-badge" role="listitem">
-            <span aria-hidden="true">✚</span>
-            <span data-i18n="trip.badge.firstAid">إسعافات أولية</span>
           </span>
         </div>
 
         <div class="trip-actions" role="group" data-i18n-aria-label="aria.trip.actions">
+
+          <!-- Cancel trip (hidden once trip is in-progress) -->
+          <button
+            type="button"
+            id="trip-cancel-btn"
+            class="btn btn--ghost btn--sm trip-cancel-btn state--cancelable"
+            data-i18n="trip.cancelBtn"
+            data-i18n-aria-label="aria.cancel"
+            aria-label="إلغاء الرحلة"
+          >
+            إلغاء الرحلة
+          </button>
 
           <button
             type="button"

@@ -6,183 +6,179 @@
     <meta name="description" content="SheDrive — تطبيق السائقة" />
     <title>SheDrive Driver — تسجيل الدخول</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
 
-    <!-- Design system -->
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
     <link rel="stylesheet" href="../shared/styles/components.css" />
     <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
     <link rel="stylesheet" href="styles/driver.css" />
 
-    <!-- RTL override -->
-    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+    <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell login-page login-page--driver">
+    <sd-page body-class="app-shell login-page login-page--driver" screen-styles="styles/driver.css">
+      <div class="login-layout">
 
-    <div class="login-layout">
-      <!-- ── Brand panel ── -->
-      <aside class="login-brand login-brand--driver" aria-hidden="true">
-        <div class="login-brand__inner">
-          <img
-            src="../shared/assets/logos/shedrive-logo.svg"
-            alt="SheDrive"
-            class="login-brand__logo"
-            width="200"
-          />
-          <p class="login-brand__tagline" data-i18n="login.tagline.driver">
-            قودي بشروطك، في صحبة آمنة
-          </p>
-
-          <!-- Driver badge -->
-          <span class="badge badge--driver-panel" aria-label="Driver app">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <span>Driver App</span>
-          </span>
-
-          <div class="login-brand__deco login-brand__deco--1" aria-hidden="true"></div>
-          <div class="login-brand__deco login-brand__deco--2" aria-hidden="true"></div>
-        </div>
-      </aside>
-
-      <!-- ── Form panel ── -->
-      <main class="login-form-panel">
-        <div class="login-form-panel__lang">
-          <nav class="lang-switcher" aria-label="Language / اللغة">
-            <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
-            <span class="lang-switcher__sep" aria-hidden="true">|</span>
-            <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
-          </nav>
-        </div>
-
-        <div class="login-form-panel__body">
-          <header class="login-form__header">
-            <h1 class="login-form__title" data-i18n="login.title.driver">أهلاً بعودتك</h1>
-            <p class="login-form__subtitle" data-i18n="login.subtitle.driver">
-              سجّلي دخولك لبدء القيادة
+        <!-- ── Brand panel ── -->
+        <aside class="login-brand login-brand--driver" aria-hidden="true">
+          <div class="login-brand__inner">
+            <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" class="login-brand__logo" width="200" />
+            <p class="login-brand__tagline" data-i18n="login.tagline.driver">
+              قودي بشروطك، في صحبة آمنة
             </p>
-          </header>
 
-          <form class="login-form" id="login-form" novalidate>
+            <span class="badge badge--driver-panel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>Driver App</span>
+            </span>
 
-            <!-- Step 1: Phone -->
-            <section class="login-step" id="step-phone" aria-label="Phone number step">
-              <div class="field">
-                <label class="field__label" for="phone-input" data-i18n="login.phone.label">
-                  رقم الهاتف
-                </label>
+            <div class="login-brand__deco login-brand__deco--1" aria-hidden="true"></div>
+            <div class="login-brand__deco login-brand__deco--2" aria-hidden="true"></div>
+          </div>
+        </aside>
 
-                <div class="input-group" role="group" aria-label="Phone number with country code">
-                  <button
-                    type="button"
-                    class="input-group__prefix"
-                    id="country-code-btn"
-                    aria-label="Country code: Egypt +20"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                  >
-                    <span class="country-flag" aria-hidden="true">🇪🇬</span>
-                    <span>+20</span>
-                    <svg class="icon icon--chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                  </button>
+        <!-- ── Form panel ── -->
+        <main class="login-form-panel">
+          <div class="login-form-panel__lang">
+            <nav class="lang-switcher" aria-label="Language / اللغة" data-i18n-aria-label="aria.langSwitcher">
+              <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
+              <span class="lang-switcher__sep" aria-hidden="true">|</span>
+              <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
+            </nav>
+          </div>
 
+          <div class="login-form-panel__body">
+            <header class="login-form__header">
+              <h1 class="login-form__title" id="form-title" data-i18n="login.title.driver">أهلاً بعودتك</h1>
+              <p class="login-form__subtitle" id="form-subtitle" data-i18n="login.subtitle.driver">
+                سجّلي دخولك لبدء القيادة
+              </p>
+            </header>
+
+            <!-- Mode toggle (#1569/#1570) -->
+            <p class="auth-mode-toggle" id="mode-toggle">
+              <span class="auth-mode-toggle__text auth-mode--login" data-i18n="register.driver.switchToRegister">سائقة جديدة؟ أنشئي حساباً</span>
+              <span class="auth-mode-toggle__text auth-mode--register" hidden data-i18n="register.switchToLogin">لديكِ حساب؟ سجّلي دخولكِ</span>
+            </p>
+
+            <form class="login-form" id="login-form" novalidate>
+
+              <!-- Step 1: Phone + optional name (register mode) -->
+              <section class="login-step" id="step-phone" aria-label="Phone number step">
+
+                <!-- Register-only: full name -->
+                <div class="field auth-mode--register" id="name-field" hidden>
+                  <label class="field__label" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
                   <input
-                    type="tel"
-                    id="phone-input"
-                    name="phone"
+                    type="text"
+                    id="name-input"
+                    name="fullname"
                     class="input"
-                    inputmode="numeric"
-                    pattern="[0-9]{10}"
-                    maxlength="10"
-                    autocomplete="tel-national"
-                    data-i18n-placeholder="login.phone.placeholder"
-                    placeholder="01X XXXX XXXX"
-                    aria-describedby="phone-error"
-                    aria-required="true"
+                    autocomplete="name"
+                    data-i18n-placeholder="register.name.placeholder"
+                    placeholder="الاسم كما هو رسمياً"
+                    aria-describedby="name-error"
                   />
+                  <span id="name-error" class="field__error" role="alert" hidden></span>
                 </div>
 
-                <span
-                  id="phone-error"
-                  class="field__error"
-                  role="alert"
-                  aria-live="polite"
-                  aria-atomic="true"
-                  hidden
-                  data-i18n="login.error.phone"
-                >
-                  يرجى إدخال رقم هاتف مصري مكوّن من 10 أرقام
-                </span>
-              </div>
+                <div class="field">
+                  <label class="field__label" for="phone-input" data-i18n="login.phone.label">رقم الهاتف</label>
+                  <div class="input-group" role="group" data-i18n-aria-label="aria.phoneGroup">
+                    <button
+                      type="button"
+                      class="input-group__prefix"
+                      id="country-code-btn"
+                      style="display: inline-flex; flex: 0 0 auto; inline-size: max-content;"
+                      data-i18n-aria-label="aria.countryCode"
+                      aria-label="كود مصر +20"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                    >
+                      <span class="country-flag" aria-hidden="true">🇪🇬</span>
+                      <span>+20</span>
+                      <svg class="icon icon--chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
 
-              <button
-                type="button"
-                class="btn btn--primary btn--full"
-                id="send-otp-btn"
-                data-i18n="login.button.sendOtp"
-              >
-                إرسال الرمز
-              </button>
-            </section>
+                    <input
+                      type="tel"
+                      id="phone-input"
+                      name="phone"
+                      class="input"
+                      inputmode="numeric"
+                      pattern="[0-9]{10}"
+                      maxlength="10"
+                      autocomplete="tel-national"
+                      data-i18n-placeholder="login.phone.placeholder"
+                      style="flex: 1 1 auto; min-inline-size: 0;"
+                      placeholder="01X XXXX XXXX"
+                      aria-describedby="phone-error"
+                      aria-required="true"
+                    />
+                  </div>
 
-            <!-- Step 2: OTP -->
-            <section class="login-step login-step--hidden" id="step-otp" aria-label="Verification code step">
-              <div class="field">
-                <label class="field__label" data-i18n="login.otp.label">رمز التحقق</label>
-                <p class="field__hint" id="otp-hint" data-i18n="login.otp.hint">
-                  أدخلي الرمز المكوّن من 6 أرقام المُرسَل إلى هاتفك
-                </p>
-
-                <div class="otp-group" role="group" aria-label="6-digit verification code" aria-describedby="otp-error">
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 1" autocomplete="one-time-code" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 5" />
-                  <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 6" />
+                  <span id="phone-error" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden data-i18n="login.error.phone">
+                    يرجى إدخال رقم هاتف مصري مكوّن من 10 أرقام
+                  </span>
                 </div>
 
-                <span id="otp-error" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden data-i18n="login.error.otp">
-                  يرجى إدخال جميع أرقام رمز التحقق الستة
-                </span>
-              </div>
+                <button type="button" class="btn btn--primary btn--full" id="send-otp-btn" data-i18n="login.button.sendOtp">
+                  إرسال الرمز
+                </button>
+              </section>
 
-              <button type="submit" class="btn btn--primary btn--full" id="verify-btn" data-i18n="login.button.verify">
-                تحقق ومتابعة
-              </button>
+              <!-- Step 2: OTP -->
+              <section class="login-step login-step--hidden" id="step-otp" aria-label="Verification code step">
+                <div class="field otp-panel">
+                  <label class="field__label otp-panel__title" data-i18n="login.otp.label">رمز التحقق</label>
+                  <p class="field__hint otp-panel__hint" id="otp-hint" data-i18n="login.otp.hint">
+                    أدخلي الرمز المكوّن من 6 أرقام المُرسَل إلى هاتفك
+                  </p>
 
-              <button type="button" class="btn btn--ghost btn--full btn--sm" id="resend-btn" data-i18n="login.button.resend">
-                إعادة إرسال الرمز
-              </button>
-            </section>
+                  <sd-otp-input id="otp-input" length="6"></sd-otp-input>
 
-          </form>
+                  <span id="otp-error-msg" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden></span>
+                </div>
 
-          <p class="login-terms">
-            <span data-i18n="login.terms">بالمتابعة فأنتِ توافقين على</span>
-            <a href="#" data-i18n="login.terms.link">الشروط والأحكام</a>
-            <span data-i18n="login.terms.and">و</span>
-            <a href="#" data-i18n="login.privacy.link">سياسة الخصوصية</a>
-          </p>
-        </div>
-      </main>
-    </div>
+                <button type="submit" class="btn btn--primary btn--full" id="verify-btn" data-i18n="login.button.verify">
+                  تحقق ومتابعة
+                </button>
+
+                <div class="resend-row">
+                  <button type="button" class="btn btn--ghost btn--sm" id="resend-btn" data-i18n="login.button.resend">
+                    إعادة إرسال الرمز
+                  </button>
+                  <span class="resend-countdown" id="resend-countdown" aria-live="polite" aria-atomic="true" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
+                </div>
+              </section>
+
+            </form>
+
+            <p class="login-terms">
+              <span data-i18n="login.terms">بالمتابعة فأنتِ توافقين على</span>
+              <a href="#" data-i18n="login.terms.link">الشروط والأحكام</a>
+              <span data-i18n="login.terms.and">و</span>
+              <a href="#" data-i18n="login.privacy.link">سياسة الخصوصية</a>
+            </p>
+          </div>
+        </main>
+      </div>
+    </sd-page>
 
     <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
-    <script type="module" src="scripts/login.js" defer></script>
+    <script type="module" src="scripts/login.js"></script>
   </body>
 </html>

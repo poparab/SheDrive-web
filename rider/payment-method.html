@@ -1,0 +1,55 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — وسيلة الدفع</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell payment-method-page" screen-styles="/rider/styles/rider.css, /rider/styles/payment-method.css" drawer>
+      <sd-app-header bar-class="pm-topbar" inner-class="pm-topbar__inner" title-class="pm-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="pm-topbar__title-text" data-i18n="payment.title">وسيلة الدفع</span>
+      </sd-app-header>
+
+      <main class="pm-content">
+        <p class="pm-subtitle" data-i18n="payment.subtitle">اختاري وسيلة الدفع المفضّلة</p>
+
+        <div class="payment-options" role="radiogroup" data-i18n-aria-label="aria.paymentOptions">
+
+          <label class="payment-option" id="opt-cash">
+            <input type="radio" name="payment-method" value="cash" class="payment-option__radio" />
+            <span class="payment-option__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </span>
+            <span class="payment-option__text">
+              <span class="payment-option__label" data-i18n="payment.cash.label">نقداً</span>
+              <span class="payment-option__desc" data-i18n="payment.cash.desc">ادفعي نقداً للسائقة مباشرة</span>
+            </span>
+            <span class="payment-option__default-badge" id="cash-default-badge" hidden data-i18n="payment.default">الافتراضي</span>
+          </label>
+
+          <label class="payment-option" id="opt-card">
+            <input type="radio" name="payment-method" value="card" class="payment-option__radio" />
+            <span class="payment-option__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <span class="payment-option__text">
+              <span class="payment-option__label" data-i18n="payment.card.label">بطاقة بنكية</span>
+              <span class="payment-option__desc" data-i18n="payment.card.desc">ادفعي إلكترونياً بأمان</span>
+            </span>
+            <span class="payment-option__default-badge" id="card-default-badge" hidden data-i18n="payment.default">الافتراضي</span>
+          </label>
+
+        </div>
+
+        <button type="button" class="btn btn--primary btn--full" id="save-pm-btn" data-i18n="payment.save">حفظ الاختيار</button>
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/payment-method.js"></script>
+  </body>
+</html>

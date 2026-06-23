@@ -241,6 +241,39 @@
   gap: var(--space-2);
 }
 
+/* ── Rate trip / rated state ────────────────────────── */
+
+/* Default (already-rated trip): hide interactive rate section */
+.state--unrated {
+  display: none;
+}
+
+/* When trip is unrated: show rate section, hide static rating display */
+[data-state="unrated"] .state--unrated {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+[data-state="unrated"] .state--rated {
+  display: none;
+}
+
+.trip-detail-rate-section {
+  gap: var(--space-4);
+}
+
+.trip-detail-rated-msg {
+  text-align: center;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-success);
+  padding: var(--space-4) var(--space-5);
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  margin: 0 var(--space-4);
+}
+
 /* ── Trip reference ─────────────────────────────────── */
 
 .trip-detail-ref {

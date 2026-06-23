@@ -1,0 +1,75 @@
+/*
+ * schedule.css — Rider scheduled rides stub screen
+ * All values use design-system tokens.
+ */
+
+.schedule-page {
+  background: var(--color-surface-alt);
+}
+
+.schedule-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.schedule-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Content ─────────────────────────────────────────── */
+
+.schedule-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: calc(100dvh - 60px);
+  padding: var(--space-6) var(--space-5);
+}
+
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+  max-inline-size: 360px;
+}
+
+.coming-soon-card__icon {
+  color: var(--color-primary-600);
+  opacity: 0.7;
+}
+
+.coming-soon-card__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.coming-soon-card__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.coming-soon-card__back {
+  margin-block-start: var(--space-2);
+  min-inline-size: 200px;
+}

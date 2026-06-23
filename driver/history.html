@@ -9,162 +9,167 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
     <link rel="stylesheet" href="../shared/styles/components.css" />
     <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
     <link rel="stylesheet" href="styles/driver.css" />
     <link rel="stylesheet" href="styles/history.css" />
-    <link id="rtl-stylesheet" rel="stylesheet" href="../shared/styles/rtl.css" />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell driver-history-page">
+    <sd-page body-class="app-shell driver-history-page" screen-styles="styles/driver.css, styles/history.css">
 
-    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- ── Top bar ── -->
-    <header class="dhistory-topbar">
-      <div class="dhistory-topbar__inner">
-        <a
-          href="./home.html"
-          class="btn btn--icon btn--ghost"
-          aria-label="رجوع"
-          data-i18n-aria-label="aria.back"
-        >
+      <sd-app-header hide-lang-toggle>
+        <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="12 19 5 12 12 5"/>
           </svg>
         </a>
-        <h1 class="dhistory-topbar__title" data-i18n="driver.history.title">سجل الرحلات</h1>
-      </div>
-    </header>
+        <span data-i18n="driver.history.title">سجل الرحلات</span>
+      </sd-app-header>
 
-    <!-- ── Content ── -->
-    <main class="dhistory-content" aria-label="سجل رحلات السائقة" data-i18n-aria-label="aria.driver.history">
+      <!-- ── Content ── -->
+      <main class="dhistory-content" aria-label="سجل رحلات السائقة" data-i18n-aria-label="aria.driver.history">
 
-      <!-- ── Trip list (default) ── -->
-      <section class="dhistory-list state--has-trips" aria-label="الرحلات المكتملة">
+        <!-- ── Trip list (default) ── -->
+        <section class="dhistory-list state--has-trips" aria-label="الرحلات المكتملة">
 
-        <!-- Trip card 1 -->
-        <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الإثنين ٢ يونيو">
-          <div class="dhistory-card__meta">
-            <span class="dhistory-card__date">الإثنين، ٢ يونيو</span>
-            <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
-          </div>
-          <div class="dhistory-card__body">
-            <div class="dhistory-card__route">
-              <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
-              <span class="dhistory-card__destination">مدينة نصر — سيتي ستارز</span>
+          <!-- Trip card 1 -->
+          <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الإثنين ٢ يونيو">
+            <div class="dhistory-card__meta">
+              <span class="dhistory-card__date">الإثنين، ٢ يونيو</span>
+              <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
             </div>
-            <div class="dhistory-card__footer">
-              <div class="dhistory-card__rider">
-                <span class="dhistory-card__avatar" aria-hidden="true">ن</span>
-                <span class="dhistory-card__rider-name">نور أحمد</span>
+            <div class="dhistory-card__body">
+              <div class="dhistory-card__route">
+                <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
+                <span class="dhistory-card__destination">مدينة نصر — سيتي ستارز</span>
               </div>
-              <span class="dhistory-card__fare">٦٥ ج.م.</span>
-            </div>
-          </div>
-          <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </article>
-
-        <!-- Trip card 2 -->
-        <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الأحد ١ يونيو">
-          <div class="dhistory-card__meta">
-            <span class="dhistory-card__date">الأحد، ١ يونيو</span>
-            <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
-          </div>
-          <div class="dhistory-card__body">
-            <div class="dhistory-card__route">
-              <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
-              <span class="dhistory-card__destination">المعادي — مستشفى السلام</span>
-            </div>
-            <div class="dhistory-card__footer">
-              <div class="dhistory-card__rider">
-                <span class="dhistory-card__avatar" aria-hidden="true">س</span>
-                <span class="dhistory-card__rider-name">سارة مصطفى</span>
+              <div class="dhistory-card__footer">
+                <div class="dhistory-card__rider">
+                  <span class="dhistory-card__avatar" aria-hidden="true">ن</span>
+                  <span class="dhistory-card__rider-name">نور أحمد</span>
+                </div>
+                <!-- Net fare (after 20% commission) -->
+                <div class="dhistory-card__fare-wrap">
+                  <span class="dhistory-card__fare">٥٢ ج.م.</span>
+                  <span class="dhistory-card__fare-net-label" data-i18n="earnings.net">صافي</span>
+                </div>
               </div>
-              <span class="dhistory-card__fare">٣٨ ج.م.</span>
             </div>
-          </div>
-          <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </article>
+            <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </article>
 
-        <!-- Trip card 3 -->
-        <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الجمعة ٣٠ مايو">
-          <div class="dhistory-card__meta">
-            <span class="dhistory-card__date">الجمعة، ٣٠ مايو</span>
-            <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
-          </div>
-          <div class="dhistory-card__body">
-            <div class="dhistory-card__route">
-              <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
-              <span class="dhistory-card__destination">الزمالك — القاهرة الجديدة</span>
+          <!-- Trip card 2 -->
+          <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الأحد ١ يونيو">
+            <div class="dhistory-card__meta">
+              <span class="dhistory-card__date">الأحد، ١ يونيو</span>
+              <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
             </div>
-            <div class="dhistory-card__footer">
-              <div class="dhistory-card__rider">
-                <span class="dhistory-card__avatar" aria-hidden="true">م</span>
-                <span class="dhistory-card__rider-name">منى حسن</span>
+            <div class="dhistory-card__body">
+              <div class="dhistory-card__route">
+                <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
+                <span class="dhistory-card__destination">المعادي — مستشفى السلام</span>
               </div>
-              <span class="dhistory-card__fare">٨٥ ج.م.</span>
+              <div class="dhistory-card__footer">
+                <div class="dhistory-card__rider">
+                  <span class="dhistory-card__avatar" aria-hidden="true">س</span>
+                  <span class="dhistory-card__rider-name">سارة مصطفى</span>
+                </div>
+                <div class="dhistory-card__fare-wrap">
+                  <span class="dhistory-card__fare">٣٠ ج.م.</span>
+                  <span class="dhistory-card__fare-net-label" data-i18n="earnings.net">صافي</span>
+                </div>
+              </div>
+            </div>
+            <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </article>
+
+          <!-- Trip card 3 -->
+          <article class="dhistory-card" role="button" tabindex="0" aria-label="رحلة الجمعة ٣٠ مايو">
+            <div class="dhistory-card__meta">
+              <span class="dhistory-card__date">الجمعة، ٣٠ مايو</span>
+              <span class="badge badge--success dhistory-card__status" data-i18n="driver.history.completed">مكتملة</span>
+            </div>
+            <div class="dhistory-card__body">
+              <div class="dhistory-card__route">
+                <span class="dhistory-card__dot dhistory-card__dot--green" aria-hidden="true"></span>
+                <span class="dhistory-card__destination">الزمالك — القاهرة الجديدة</span>
+              </div>
+              <div class="dhistory-card__footer">
+                <div class="dhistory-card__rider">
+                  <span class="dhistory-card__avatar" aria-hidden="true">م</span>
+                  <span class="dhistory-card__rider-name">منى حسن</span>
+                </div>
+                <div class="dhistory-card__fare-wrap">
+                  <span class="dhistory-card__fare">٦٨ ج.م.</span>
+                  <span class="dhistory-card__fare-net-label" data-i18n="earnings.net">صافي</span>
+                </div>
+              </div>
+            </div>
+            <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </article>
+
+          <!-- Skeleton cards (loading state) -->
+          <div class="dhistory-skeleton state--loading" aria-busy="true" aria-label="جارٍ التحميل" data-i18n-aria-label="driver.history.loading">
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton skeleton--sm"></div>
+              <div class="skeleton skeleton--lg"></div>
+              <div class="skeleton skeleton--md"></div>
             </div>
           </div>
-          <svg class="dhistory-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </article>
+        </section>
 
-        <!-- Skeleton cards (loading state) -->
-        <div class="dhistory-skeleton state--loading" aria-busy="true" aria-label="جارٍ التحميل" data-i18n-aria-label="driver.history.loading">
-          <div class="skeleton-card">
-            <div class="skeleton skeleton--sm"></div>
-            <div class="skeleton skeleton--lg"></div>
-            <div class="skeleton skeleton--md"></div>
+        <!-- ── Empty state ── -->
+        <section class="dhistory-empty state--empty" aria-label="لا توجد رحلات">
+          <div class="dhistory-empty__icon" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <path d="M14 17h7M17 14v7"/>
+            </svg>
           </div>
-          <div class="skeleton-card">
-            <div class="skeleton skeleton--sm"></div>
-            <div class="skeleton skeleton--lg"></div>
-            <div class="skeleton skeleton--md"></div>
-          </div>
-          <div class="skeleton-card">
-            <div class="skeleton skeleton--sm"></div>
-            <div class="skeleton skeleton--lg"></div>
-            <div class="skeleton skeleton--md"></div>
-          </div>
-        </div>
-      </section>
+          <h2 class="dhistory-empty__title" data-i18n="driver.history.empty">لا توجد رحلات بعد</h2>
+          <p class="dhistory-empty__body" data-i18n="driver.history.emptyBody">ابدئي رحلتك الأولى</p>
+          <a href="./home.html" class="btn btn--primary dhistory-empty__cta" data-i18n="driver.online">
+            اذهبي للرئيسية
+          </a>
+        </section>
 
-      <!-- ── Empty state ── -->
-      <section class="dhistory-empty state--empty" aria-label="لا توجد رحلات">
-        <div class="dhistory-empty__icon" aria-hidden="true">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <path d="M14 17h7M17 14v7"/>
-          </svg>
-        </div>
-        <h2 class="dhistory-empty__title" data-i18n="driver.history.empty">لا توجد رحلات بعد</h2>
-        <p class="dhistory-empty__body" data-i18n="driver.history.emptyBody">ابدئي رحلتك الأولى</p>
-        <a href="./home.html" class="btn btn--primary dhistory-empty__cta" data-i18n="driver.online">
-          اذهبي للرئيسية
-        </a>
-      </section>
+      </main>
 
-    </main>
+      <script type="module" src="scripts/history.js"></script>
 
-    <script type="module" src="scripts/history.js"></script>
-
-    <!-- Demo only: ?state=empty | loading -->
-    <script type="module">
-      const s = new URLSearchParams(location.search).get('state');
-      if (s) document.body.dataset.state = s;
-    </script>
+      <!-- Demo only: ?state=empty | loading -->
+      <script type="module">
+        const s = new URLSearchParams(location.search).get('state');
+        if (s) document.body.dataset.state = s;
+      </script>
+    </sd-page>
   </body>
 </html>

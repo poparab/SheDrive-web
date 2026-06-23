@@ -1,0 +1,83 @@
+/*
+ * profile.css — Rider profile screen
+ * All values use design-system tokens.
+ */
+
+.profile-page {
+  background: var(--color-surface-alt);
+}
+
+.profile-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 56px;
+}
+
+.profile-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Content ─────────────────────────────────────────── */
+
+.profile-content {
+  padding: var(--space-5) var(--space-4) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-inline-size: 540px;
+  margin-inline: auto;
+}
+
+/* ── Form ────────────────────────────────────────────── */
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Language selector ───────────────────────────────── */
+
+.lang-selector {
+  display: flex;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+.lang-option {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
+  text-align: center;
+}
+
+.lang-option[aria-pressed="true"],
+.lang-option.is-active {
+  border-color: var(--color-primary-600);
+  background: rgba(107, 43, 217, 0.06);
+  color: var(--color-primary-600);
+  font-weight: var(--fw-bold);
+}

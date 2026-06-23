@@ -70,8 +70,30 @@ tipChips.forEach(chip => {
   });
 });
 
-// ── Submit: send rating + navigate home ──
+// ── Payment branch ────────────────────────────────────
+const paymentMethod = localStorage.getItem('shedrive.paymentMethod');
+const urlState = new URLSearchParams(location.search).get('state');
+const isCard = paymentMethod === 'card' || urlState === 'card';
+const cashNote = qs('#cash-note');
+const payNowBtn = qs('#pay-now-btn');
+
+if (cashNote) cashNote.hidden = isCard;
+if (payNowBtn) payNowBtn.hidden = !isCard;
+
+payNowBtn?.addEventListener('click', () => {
+  window.location.assign('./payment.html');
+});
+
+// ── Submit: validate stars, send rating + navigate home ──
+const starsError = qs('#stars-error');
+
 qs('#submit-btn').addEventListener('click', () => {
+  if (currentRating === 0) {
+    if (starsError) starsError.hidden = false;
+    qs('#rating-stars')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (starsError) starsError.hidden = true;
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.setItem('shedrive.completedRating', '1');
   showToast(translate('complete.thanks'), 'success');

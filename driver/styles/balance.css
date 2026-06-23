@@ -1,0 +1,124 @@
+/*
+ * balance.css — Driver cash balance owed to the platform (#1788)
+ * All values use tokens from tokens.css.
+ */
+
+.balance-page { background: var(--color-surface-alt); min-block-size: 100dvh; }
+
+.balance-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  max-inline-size: 560px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+/* ── Outstanding card ─────────────────────────────── */
+
+.balance-card {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700, var(--color-primary-600)));
+  color: var(--color-on-primary, #fff);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.12));
+}
+
+.balance-card__label {
+  font-size: var(--fs-sm);
+  opacity: 0.9;
+}
+
+.balance-card__amount {
+  font-size: var(--fs-4xl, 2.5rem);
+  font-weight: var(--fw-bold);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+
+.balance-card__currency { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+
+.balance-card__explain {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  opacity: 0.92;
+  margin-block-start: var(--space-2);
+}
+
+/* ── Zero-balance state ───────────────────────────── */
+
+.balance-zero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-block: var(--space-8);
+  color: var(--color-text-muted);
+}
+
+.balance-zero__icon { color: var(--color-success); }
+
+.balance-zero__msg { font-size: var(--fs-base); color: var(--color-text); }
+
+/* ── Last settlement ──────────────────────────────── */
+
+.balance-settlement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.balance-settlement__label { font-size: var(--fs-sm); color: var(--color-text-muted); }
+.balance-settlement__value { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--color-text); }
+
+/* ── Contributing trips ───────────────────────────── */
+
+.balance-trips__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-block-end: var(--space-2);
+}
+
+.balance-trip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin-block-end: var(--space-2);
+}
+
+.balance-trip__info { display: flex; flex-direction: column; gap: 2px; }
+.balance-trip__route { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--color-text); }
+.balance-trip__date { font-size: var(--fs-xs); color: var(--color-text-muted); }
+
+.balance-trip__commission {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-600);
+  white-space: nowrap;
+}
+
+.balance-trip__commission-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular, 400);
+  color: var(--color-text-muted);
+}

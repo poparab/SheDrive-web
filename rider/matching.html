@@ -53,6 +53,24 @@
         </a>
       </sd-app-header>
 
+      <!-- Push notification banner (confirmed state) -->
+      <div class="push-banner" id="push-banner" role="status" aria-live="assertive" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+        <span data-i18n="trip.pushBanner">سائقتك في الطريق!</span>
+      </div>
+
+      <!-- Cancel trip confirm dialog -->
+      <sd-confirm-dialog
+        id="cancel-dialog"
+        title-key="cancel.tripTitle"
+        title-fallback="إلغاء الطلب؟"
+        body-key="cancel.tripBody"
+        body-fallback="سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة"
+        confirm-key="cancel.confirmBtn"
+        cancel-key="cancel.cancelBtn"
+        danger
+      ></sd-confirm-dialog>
+
       <section class="matching-sheet" role="region" aria-label="جارٍ البحث عن سائقة" aria-live="polite">
 
         <!-- ── State: searching (default) ──────────────── -->
@@ -169,8 +187,6 @@
     </sd-page>
 
     <script type="module" src="scripts/matching.js"></script>
-
-    <!-- Demo only: ?state=confirmed | no-driver -->
     <script type="module">
       const s = new URLSearchParams(location.search).get('state');
       if (s) document.body.dataset.state = s;

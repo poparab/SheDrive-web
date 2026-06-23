@@ -486,3 +486,56 @@
   .simulate-request-btn { inset-inline-start: var(--space-6); }
   .modal { border-radius: var(--radius-2xl); }
 }
+
+/* ── GPS denied banner (#1578 / #1580) ──────────── */
+
+.driver-gps-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-bg, rgba(255, 193, 7, 0.15));
+  border-bottom: 1px solid var(--color-warning, #ffc107);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.driver-gps-banner[hidden] { display: none; }
+
+.driver-gps-banner span { flex: 1; }
+
+.driver-gps-banner .btn {
+  flex-shrink: 0;
+  color: var(--color-warning, #ffc107);
+  border-color: var(--color-warning, #ffc107);
+  white-space: nowrap;
+}
+
+/* ── GPS-lost floating chip (#1580) ─────────────── */
+
+.driver-gps-lost {
+  position: absolute;
+  top: var(--space-16, 64px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-danger, #dc3545);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  color: var(--color-danger, #dc3545);
+  font-weight: var(--fw-medium);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+
+.driver-gps-lost[hidden] { display: none; }

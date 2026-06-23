@@ -64,3 +64,22 @@ export function sleep(ms) {
 export function emit(target, eventName, detail = {}) {
   target.dispatchEvent(new CustomEvent(eventName, { bubbles: true, detail }));
 }
+
+/**
+ * Start an incrementing MM:SS waiting counter from a given timestamp.
+ * Updates `el.textContent` every second. Returns a cleanup function.
+ * @param {HTMLElement} el - element to update
+ * @param {number} fromTs - Date.now() value when waiting began
+ * @returns {() => void} stop function
+ */
+export function startWaitingCounter(el, fromTs) {
+  function tick() {
+    const elapsed = Math.floor((Date.now() - fromTs) / 1000);
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+    el.textContent = `${mm}:${ss}`;
+  }
+  tick();
+  const id = setInterval(tick, 1000);
+  return () => clearInterval(id);
+}

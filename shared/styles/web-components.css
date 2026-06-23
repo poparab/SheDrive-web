@@ -62,3 +62,106 @@ sd-button[full] {
 sd-toast-host {
   display: contents;
 }
+
+/* ── sd-otp-input ── */
+sd-otp-input {
+  display: block;
+}
+
+sd-otp-input .otp-boxes {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+sd-otp-input .otp-box {
+  width: 44px;
+  height: 52px;
+  text-align: center;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  caret-color: var(--color-primary-600);
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+
+sd-otp-input .otp-box::-webkit-outer-spin-button,
+sd-otp-input .otp-box::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+sd-otp-input .otp-box:focus {
+  outline: none;
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb, 107, 43, 217), 0.15);
+}
+
+sd-otp-input .otp-box--error {
+  border-color: var(--color-danger);
+  background: rgba(var(--color-danger-rgb, 220, 53, 69), 0.05);
+}
+
+sd-otp-input .otp-box--error:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb, 220, 53, 69), 0.15);
+}
+
+/* ── sd-confirm-dialog ── */
+sd-confirm-dialog {
+  display: block;
+}
+
+sd-confirm-dialog[hidden] {
+  display: none;
+}
+
+sd-confirm-dialog .confirm-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: var(--z-modal-backdrop, 400);
+  cursor: pointer;
+}
+
+sd-confirm-dialog .confirm-dialog__panel {
+  position: fixed;
+  inset-inline: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-modal, 401);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-inline-size: 360px;
+  margin-inline: auto;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+sd-confirm-dialog .confirm-dialog__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin: 0;
+  text-align: center;
+}
+
+sd-confirm-dialog .confirm-dialog__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+sd-confirm-dialog .confirm-dialog__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}

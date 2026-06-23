@@ -123,6 +123,41 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* ── Driver performance metrics (#1736 / #1766) ─── */
+
+.earnings-metrics {
+  display: flex;
+  justify-content: space-around;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.2);
+  gap: var(--space-2);
+}
+
+.earnings-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.earnings-metric__value {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-surface);
+}
+
+.earnings-metric__value svg { flex-shrink: 0; color: var(--color-warning); }
+
+.earnings-metric__label {
+  font-size: var(--fs-xs);
+  opacity: 0.8;
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
 /* ── Filter tabs ─────────────────────────────────── */
 
 .earnings-tabs {
@@ -302,4 +337,10 @@
 @media (min-width: 768px) {
   .earnings-main { padding: var(--space-6) var(--space-8); }
   .earnings-summary__amount span:first-child { font-size: 3.5rem; }
+}
+
+/* ── Balance-owed entry link (#1788) ─────────────── */
+
+.earnings-balance-link {
+  margin-block-start: var(--space-3);
 }

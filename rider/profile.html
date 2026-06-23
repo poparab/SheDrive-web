@@ -1,0 +1,52 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — ملفي الشخصي</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell profile-page" screen-styles="/rider/styles/rider.css, /rider/styles/profile.css" drawer>
+      <sd-app-header bar-class="profile-topbar" inner-class="profile-topbar__inner" title-class="profile-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="profile-topbar__title-text" data-i18n="profile.title">ملفي الشخصي</span>
+      </sd-app-header>
+
+      <main class="profile-content">
+        <form id="profile-form" class="profile-form" novalidate>
+
+          <div class="field">
+            <label class="field__label" for="profile-phone" data-i18n="profile.phone.label">رقم الهاتف</label>
+            <input type="tel" id="profile-phone" class="input" readonly aria-readonly="true" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="profile-name" data-i18n="profile.name.label">الاسم الكامل</label>
+            <input type="text" id="profile-name" class="input" data-i18n-placeholder="register.name.placeholder" placeholder="الاسم كما هو رسمياً" autocomplete="name" />
+            <span id="profile-name-error" class="field__error" role="alert" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="profile-email" data-i18n="profile.email.label">البريد الإلكتروني (اختياري)</label>
+            <input type="email" id="profile-email" class="input" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <p class="field__label" data-i18n="profile.language.label">اللغة المفضّلة</p>
+            <div class="lang-selector" role="group" data-i18n-aria-label="aria.languageSelector">
+              <button type="button" class="lang-option" id="lang-ar" data-lang="ar" data-i18n="profile.language.ar" aria-pressed="true">العربية</button>
+              <button type="button" class="lang-option" id="lang-en" data-lang="en" data-i18n="profile.language.en" aria-pressed="false">الإنجليزية</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full" id="save-btn" data-i18n="profile.save">حفظ التغييرات</button>
+        </form>
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/profile.js"></script>
+  </body>
+</html>

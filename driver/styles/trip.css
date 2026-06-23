@@ -11,51 +11,74 @@
 
 .trip-topbar {
   position: fixed;
-  inset-block-start: var(--space-4);
+  inset-block-start: 0;
   inset-inline: 0;
   z-index: var(--z-nav);
-  display: flex;
-  justify-content: center;
+  padding: var(--space-3) var(--space-4);
   pointer-events: none;
 }
 
 .trip-topbar__inner {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  background: var(--color-surface);
-  border-radius: var(--radius-full);
-  padding-block: var(--space-2);
-  padding-inline: var(--space-4);
-  box-shadow: var(--shadow-md);
   pointer-events: auto;
 }
 
 .trip-topbar__timer {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  background: var(--color-surface);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ── Rider info bottom card ──────────────────────── */
+/* ── Trip card (all states) ──────────────────────── */
 
 .trip-card {
   position: fixed;
   inset-block-end: 0;
   inset-inline: 0;
-  z-index: var(--z-nav);
+  z-index: var(--z-modal);
   background: var(--color-surface);
   border-start-start-radius: var(--radius-2xl);
   border-start-end-radius: var(--radius-2xl);
   padding: var(--space-5) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
-  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  box-shadow: var(--shadow-xl);
+  animation: sheetUp var(--transition-base) ease-out;
 }
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* State visibility via data-state on body */
+
+body[data-state="en-route"]     .state--en-route  { display: flex; }
+body[data-state="arrived"]      .state--arrived   { display: flex; }
+body[data-state="in-ride"]      .state--in-ride   { display: flex; }
+body[data-state="verify-rider"] .state--arrived   { display: flex; }
+
+/* Hide non-active states by default */
+.state--en-route,
+.state--arrived,
+.state--in-ride {
+  display: none;
+}
+
+/* Default state (no data-state attribute) shows in-ride */
+body:not([data-state]) .state--in-ride { display: flex; }
+
+/* ── Rider summary row ───────────────────────────── */
 
 .trip-card__rider {
   display: flex;
@@ -75,6 +98,9 @@
 }
 
 .trip-card__rider-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-block-start: var(--space-1);
 }
 
@@ -87,16 +113,15 @@
   font-weight: var(--fw-medium);
 }
 
-/* ── Route display ───────────────────────────────── */
+/* ── Route ───────────────────────────────────────── */
 
 .trip-card__route {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface-alt);
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  flex-wrap: wrap;
 }
 
 .trip-card__route-point {
@@ -104,7 +129,6 @@
   align-items: center;
   gap: var(--space-2);
   flex: 1;
-  min-inline-size: 0;
 }
 
 .trip-card__route-dot {
@@ -117,21 +141,18 @@
 .trip-card__route-dot--from { background: var(--color-primary-600); }
 .trip-card__route-dot--to   { background: var(--color-danger); }
 
+.trip-card__route-arrow {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
 .trip-card__route-text {
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.trip-card__route-arrow {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-/* ── Stats ───────────────────────────────────────── */
+/* ── Stats row (in-ride) ─────────────────────────── */
 
 .trip-card__stats {
   display: flex;
@@ -147,34 +168,116 @@
 .trip-card__stat-label {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
 }
 
 .trip-card__stat-value {
   font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
 }
 
-/* ── Action buttons ──────────────────────────────── */
+/* ── Navigation deep-link row (#1586 / #1590) ────── */
 
-.trip-card__actions {
+.trip-nav-row {
   display: flex;
   gap: var(--space-3);
 }
 
-.trip-card__actions .btn--icon {
+.trip-nav-btn {
   flex: 1;
-  flex-direction: column;
-  block-size: auto;
-  padding-block: var(--space-3);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  gap: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+}
+
+/* ── Action icon row (in-ride) ───────────────────── */
+
+.trip-card__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
 }
 
 .trip-card__action-label {
   font-size: var(--fs-xs);
   font-weight: var(--fw-medium);
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+/* ── En-route ETA chip ───────────────────────────── */
+
+.trip-enroute-eta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+/* ── Waiting counter (arrived) #1767 ─────────────── */
+
+.trip-wait-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+.trip-wait-row strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 42px;
+  display: inline-block;
+}
+
+/* ── Verify-rider section (#1587 / #1588) ────────── */
+
+.trip-verify-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.trip-verify-prompt {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.trip-verify-name {
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.trip-verify-name__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  display: block;
+  margin-block-end: var(--space-1);
+}
+
+.trip-verify-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 /* ── SOS modal ───────────────────────────────────── */
@@ -182,22 +285,25 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal);
-  background: rgba(0, 0, 0, 0.6);
+  z-index: calc(var(--z-modal) + 1);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: var(--space-5);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
 }
+
+.modal-backdrop[hidden] { display: none; }
 
 .modal {
   background: var(--color-surface);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-6);
-  max-inline-size: 380px;
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  padding: var(--space-6) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
   inline-size: 100%;
+  max-inline-size: 520px;
   box-shadow: var(--shadow-xl);
+  animation: sheetUp var(--transition-base) ease-out;
 }
 
 .modal__title {
@@ -210,14 +316,13 @@
 .modal__body {
   font-size: var(--fs-base);
   color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
   margin-block-end: var(--space-5);
+  line-height: var(--leading-relaxed);
 }
 
 .modal__actions {
   display: flex;
   gap: var(--space-3);
-  justify-content: flex-end;
 }
 
 /* ── Emergency overlay ───────────────────────────── */
@@ -225,13 +330,15 @@
 .emergency-overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal);
+  z-index: calc(var(--z-modal) + 10);
   background: var(--color-danger);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
 }
+
+.emergency-overlay[hidden] { display: none; }
 
 .emergency-overlay__content {
   display: flex;
@@ -239,35 +346,28 @@
   align-items: center;
   gap: var(--space-5);
   text-align: center;
-  max-inline-size: 360px;
-}
-
-.emergency-overlay__icon {
-  inline-size: 96px;
-  block-size: 96px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  max-inline-size: 380px;
   color: var(--color-surface);
 }
+
+.emergency-overlay__icon { opacity: 0.9; }
 
 .emergency-overlay__title {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
-  color: var(--color-surface);
 }
 
 .emergency-overlay__body {
   font-size: var(--fs-base);
-  color: rgba(255, 255, 255, 0.9);
+  opacity: 0.9;
   line-height: var(--leading-relaxed);
+  margin: 0;
 }
 
 .emergency-overlay__phone {
   font-size: var(--fs-base);
-  color: var(--color-surface);
+  opacity: 0.9;
+  margin: 0;
 }
 
 .emergency-overlay__tel {
@@ -279,60 +379,57 @@
   margin-block-start: var(--space-1);
 }
 
-.emergency-overlay .btn--ghost {
-  color: var(--color-surface);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* ── State machine ───────────────────────────────── */
-
-/* En-route and arrived cards hidden by default (in-ride is default) */
-.state--en-route,
-.state--arrived {
-  display: none;
-}
-
-/* En-route state: show en-route card, hide in-ride */
-[data-state="en-route"] .state--in-ride  { display: none; }
-[data-state="en-route"] .state--en-route { display: flex; flex-direction: column; gap: var(--space-4); }
-
-/* Arrived state: show arrived card, hide in-ride */
-[data-state="arrived"] .state--in-ride  { display: none; }
-[data-state="arrived"] .state--arrived  { display: flex; flex-direction: column; gap: var(--space-4); }
-
-/* ── En-route ETA chip ───────────────────────────── */
-
-.trip-enroute-eta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.trip-enroute-eta strong {
-  color: var(--color-primary-600);
-  font-weight: var(--fw-semibold);
-}
-
-/* ── Arrived prompt text ─────────────────────────── */
-
-.trip-arrived-prompt {
-  font-size: var(--fs-base);
-  color: var(--color-text-muted);
-  text-align: center;
-  line-height: var(--leading-relaxed);
-  padding: var(--space-2) 0;
-}
-
 @media (min-width: 768px) {
   .trip-card {
-    max-inline-size: 420px;
+    max-inline-size: 480px;
     inset-inline: auto;
     inset-inline-end: var(--space-6);
     border-radius: var(--radius-2xl);
   }
+}
+
+/* ── Cancel trip modal: reasons + fee (#1722) ─────── */
+
+.cancel-modal { max-inline-size: 420px; }
+
+.cancel-reasons {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cancel-reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.cancel-reason:hover { background: var(--color-surface-alt); }
+
+.cancel-reason input {
+  inline-size: 20px;
+  block-size: 20px;
+  accent-color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.cancel-reason input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.cancel-fee-note {
+  margin-block: var(--space-3) 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-alt);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
 }

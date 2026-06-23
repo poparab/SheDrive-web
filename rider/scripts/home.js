@@ -4,7 +4,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
@@ -30,7 +30,11 @@ MapService.getUserLocation()
     MapService.setUserLocation(lngLat);
     MapService.flyTo(lngLat, 15);
   })
-  .catch(() => { /* silent fallback — map already centred on Cairo */ })
+  .catch((err) => {
+    if (err?.code === 1 /* PERMISSION_DENIED */ || err?.denied) {
+      qs('#gps-banner')?.removeAttribute('hidden');
+    }
+  })
   .finally(() => locationStatus?.classList.add('is-hidden'));
 
 // ── State helper ─────────────────────────────────────
@@ -43,15 +47,22 @@ function setState(state) {
 }
 
 // ── DOM refs ─────────────────────────────────────────
-const destinationInput = qs('#destination-input');
-const pickupInput      = qs('#pickup-input');
-const searchInput      = qs('#search-input');
-const searchBackBtn    = qs('#search-back-btn');
-const searchClearBtn   = qs('#search-clear-btn');
-const useCurrentLocBtn = qs('#use-current-loc-btn');
-const confirmRideBtn   = qs('#confirm-ride-btn');
-const fareChangeLink   = qs('.fare-change-link');
-const fareDestLabel    = qs('.fare-route__label--dest');
+const destinationInput  = qs('#destination-input');
+const pickupInput       = qs('#pickup-input');
+const searchInput       = qs('#search-input');
+const searchBackBtn     = qs('#search-back-btn');
+const searchClearBtn    = qs('#search-clear-btn');
+const useCurrentLocBtn  = qs('#use-current-loc-btn');
+const confirmRideBtn    = qs('#confirm-ride-btn');
+const fareChangeLink    = qs('.fare-change-link');
+const fareDestLabel     = qs('.fare-route__label--dest');
+const sameLocError      = qs('#same-location-error');
+const fareErrorRow      = qs('#fare-error-row');
+const fareRetryBtn      = qs('#fare-retry-btn');
+const gpsBanner         = qs('#gps-banner');
+const pinOverlay        = qs('#map-pin-overlay');
+const pinConfirmBtn     = qs('#pin-confirm-btn');
+const pinCancelBtn      = qs('#pin-cancel-btn');
 
 // ── Open search overlay when destination is focused ──
 destinationInput?.addEventListener('focus', () => {
@@ -104,6 +115,7 @@ qsa('#search-overlay .search-row').forEach((row) => {
 confirmRideBtn?.addEventListener('click', () => {
   const destination = destinationInput?.value?.trim();
   if (!destination) { setState('search'); searchInput?.focus(); return; }
+  if (checkSameLocation()) return;
   storePendingTrip(destination);
   window.location.assign('./matching.html');
 });
@@ -120,8 +132,64 @@ const requestRideBtn = qs('#request-ride-btn');
 requestRideBtn?.addEventListener('click', () => {
   const destination = destinationInput?.value?.trim();
   if (!destination) { destinationInput?.focus(); return; }
+  if (checkSameLocation()) return;
   storePendingTrip(destination);
   window.location.assign('./matching.html');
+});
+
+// ── GPS banner dismiss / open settings ───────────────
+qs('#gps-settings-btn')?.addEventListener('click', () => {
+  gpsBanner?.setAttribute('hidden', '');
+});
+
+// ── Map-pin overlay ──────────────────────────────────
+let _pinMode = null; // 'pickup' | 'dest'
+
+function openPinOverlay(mode) {
+  _pinMode = mode;
+  pinOverlay?.removeAttribute('hidden');
+}
+
+pinConfirmBtn?.addEventListener('click', () => {
+  const label = translate('home.pin.confirmed') || 'الموقع المحدد على الخريطة';
+  if (_pinMode === 'pickup') {
+    if (pickupInput) pickupInput.value = label;
+  } else {
+    if (destinationInput) destinationInput.value = label;
+    if (fareDestLabel) fareDestLabel.textContent = label;
+    storePendingTrip(label);
+    setState('fare');
+  }
+  pinOverlay?.setAttribute('hidden', '');
+  _pinMode = null;
+});
+
+pinCancelBtn?.addEventListener('click', () => {
+  pinOverlay?.setAttribute('hidden', '');
+  _pinMode = null;
+});
+
+// ── Same-location inline error helper ───────────────
+function checkSameLocation() {
+  const pickup = pickupInput?.value?.trim() || '';
+  const dest   = destinationInput?.value?.trim() || '';
+  if (pickup && dest && pickup === dest) {
+    sameLocError?.removeAttribute('hidden');
+    return true;
+  }
+  sameLocError?.setAttribute('hidden', '');
+  return false;
+}
+
+// ── Fare retry ───────────────────────────────────────
+fareRetryBtn?.addEventListener('click', () => {
+  fareErrorRow?.setAttribute('hidden', '');
+  // Demo: briefly show spinner class then re-show fare
+  const badge = qs('.fare-estimate-badge');
+  if (badge) {
+    badge.style.opacity = '0.4';
+    setTimeout(() => { badge.style.opacity = ''; }, 800);
+  }
 });
 
 // ── Side drawer ──────────────────────────────────────

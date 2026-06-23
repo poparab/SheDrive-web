@@ -40,6 +40,27 @@
         </a>
       </sd-app-header>
 
+      <!-- GPS denied banner -->
+      <div class="gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span data-i18n="home.gps.denied">فشل الحصول على موقعك. يرجى تفعيل خدمة الموقع</span>
+        <button type="button" class="btn btn--ghost btn--sm gps-banner__settings" id="gps-settings-btn" data-i18n="home.gps.settings">فتح الإعدادات</button>
+      </div>
+
+      <!-- Map-pin drop overlay (state=pin-pickup | pin-dest) -->
+      <div class="map-pin-overlay" id="map-pin-overlay" hidden aria-modal="true" role="dialog" data-i18n-aria-label="aria.pinOverlay">
+        <div class="map-pin-overlay__pin" aria-hidden="true">
+          <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.333 16 24 16 24s16-12.667 16-24C32 7.163 24.837 0 16 0z" fill="var(--color-primary)"/>
+            <circle cx="16" cy="16" r="6" fill="white"/>
+          </svg>
+        </div>
+        <div class="map-pin-overlay__bar">
+          <button type="button" class="btn btn--primary btn--full" id="pin-confirm-btn" data-i18n="home.pin.confirm">تأكيد الموقع</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="pin-cancel-btn" data-i18n="common.cancel">إلغاء</button>
+        </div>
+      </div>
+
       <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
 
       <!-- ── Address Search Overlay (state=search) ───────── -->
@@ -204,6 +225,7 @@
               />
             </div>
           </div>
+          <p class="field__error" id="same-location-error" hidden role="alert" data-i18n="home.dest.sameAsPickup">يرجى اختيار وجهة مختلفة عن موقع الانطلاق</p>
 
           <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
             طلب رحلة
@@ -243,6 +265,12 @@
             </span>
           </div>
 
+          <!-- Fare error state -->
+          <div class="fare-error-row" id="fare-error-row" hidden>
+            <p class="fare-error-msg" data-i18n="home.fare.error">تعذّر حساب السعر</p>
+            <button type="button" class="btn btn--ghost btn--sm" id="fare-retry-btn" data-i18n="home.fare.retry">إعادة حساب السعر</button>
+          </div>
+
           <sd-button id="confirm-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
             طلب رحلة
           </sd-button>
@@ -266,10 +294,22 @@
 
     <script type="module" src="scripts/home.js"></script>
 
-    <!-- Demo only: ?state=search | fare -->
+    <!-- Demo only: ?state=search | fare | fare-error | gps-denied | pin-pickup | pin-dest -->
     <script type="module">
       const s = new URLSearchParams(location.search).get('state');
       if (s) document.body.dataset.state = s;
+      if (s === 'gps-denied') {
+        document.getElementById('gps-banner').hidden = false;
+      }
+      if (s === 'pin-pickup' || s === 'pin-dest') {
+        document.getElementById('map-pin-overlay').hidden = false;
+      }
+      if (s === 'fare-error') {
+        document.body.dataset.state = 'fare';
+        document.getElementById('fare-error-row').hidden = false;
+        const confirmBtn = document.getElementById('confirm-ride-btn');
+        if (confirmBtn) confirmBtn.setAttribute('disabled', '');
+      }
     </script>
   </body>
 </html>

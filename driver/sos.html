@@ -1,0 +1,74 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Driver — الطوارئ</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/sos.css" />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+
+  <body class="app-shell driver-sos-page">
+    <sd-page body-class="app-shell driver-sos-page" screen-styles="styles/driver.css, styles/sos.css">
+
+      <sd-app-header hide-lang-toggle>
+        <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start"
+          aria-label="رجوع" data-i18n-aria-label="aria.back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </a>
+        <span data-i18n="driver.sos.title">مركز الطوارئ</span>
+      </sd-app-header>
+
+      <main class="sos-coming-soon" role="main">
+        <div class="sos-coming-soon__content">
+          <div class="sos-coming-soon__icon" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+
+          <h1 class="sos-coming-soon__title" data-i18n="driver.sos.title">مركز الطوارئ</h1>
+          <p class="sos-coming-soon__body" data-i18n="driver.sos.comingSoon">
+            هذه الميزة قيد التطوير
+          </p>
+          <p class="sos-coming-soon__sub" data-i18n="driver.sos.body">
+            نعمل على نظام طوارئ متكامل للسائقات يتضمن خطاً مباشراً لوزارة الداخلية
+          </p>
+
+          <!-- Emergency phone fallback always visible -->
+          <div class="sos-coming-soon__fallback" role="note">
+            <p class="sos-coming-soon__fallback-label" data-i18n="driver.sos.emergencyLabel">
+              طوارئ الشرطة:
+            </p>
+            <a href="tel:122" class="sos-coming-soon__phone">122</a>
+          </div>
+
+          <a href="./home.html" class="btn btn--ghost btn--full" data-i18n="driver.sos.back">
+            رجوع إلى الشاشة الرئيسية
+          </a>
+        </div>
+      </main>
+
+    </sd-page>
+    <script type="module" src="scripts/sos.js"></script>
+  </body>
+</html>
