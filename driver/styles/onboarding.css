@@ -445,3 +445,13 @@
   color: var(--color-text);
   line-height: var(--leading-relaxed);
 }
+
+/* ── Make/Model "Other" free-text input (#1573) ──── */
+
+.onboarding-other-input {
+  margin-block-start: var(--space-2);
+}
+
+.onboarding-other-input[hidden] {
+  display: none;
+}

@@ -40,7 +40,7 @@
       </header>
 
       <!-- ── Progress bar (hidden in pending/rejected states) ── -->
-      <div class="onboarding-progress" id="onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-label="خطوات التسجيل" data-i18n-aria-label="onboarding.progressAria">
+      <div class="onboarding-progress" id="onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="خطوات التسجيل" data-i18n-aria-label="onboarding.progressAria">
         <div class="onboarding-progress__track">
           <div class="onboarding-progress__fill" id="progress-fill"></div>
         </div>
@@ -50,6 +50,7 @@
           <span class="onboarding-progress__dot" data-step="3">3</span>
           <span class="onboarding-progress__dot" data-step="4">4</span>
           <span class="onboarding-progress__dot" data-step="5">5</span>
+          <span class="onboarding-progress__dot" data-step="6">6</span>
         </div>
       </div>
 
@@ -111,8 +112,60 @@
           </div>
         </section>
 
-        <!-- ── Step 2: Vehicle details (#1573) ── -->
-        <section class="onboarding-step onboarding-step--hidden" id="step-2" data-step="2" aria-label="بيانات السيارة">
+        <!-- ── Step 2: National ID photos (#1854) ── -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-2" data-step="2" aria-label="بطاقة الهوية الوطنية">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><line x1="13" y1="10" x2="17" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/>
+              </svg>
+            </div>
+            <h2 class="onboarding-step__title" data-i18n="onboarding.idCapture.title">بطاقة الهوية الوطنية</h2>
+            <p class="onboarding-step__subtitle" data-i18n="onboarding.idCapture.subtitle">ارفعي صورة واضحة لوجهي البطاقة</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <!-- National ID front -->
+            <div class="upload-zone" id="nid-front-zone">
+              <input type="file" id="nid-front-input" accept="image/*" capture="environment" class="upload-zone__input" aria-label="الوجه الأمامي لبطاقة الهوية" data-i18n-aria-label="onboarding.idFront.aria" />
+              <div class="upload-zone__preview upload-zone__preview--img" id="nid-front-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="nid-front-placeholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><line x1="13" y1="10" x2="17" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/>
+                </svg>
+                <span data-i18n="onboarding.idFront.label">بطاقة الهوية — الوجه الأمامي</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+              <span id="nid-front-error" class="field__error" role="alert" hidden></span>
+            </div>
+
+            <!-- National ID back -->
+            <div class="upload-zone" id="nid-back-zone">
+              <input type="file" id="nid-back-input" accept="image/*" capture="environment" class="upload-zone__input" aria-label="الوجه الخلفي لبطاقة الهوية" data-i18n-aria-label="onboarding.idBack.aria" />
+              <div class="upload-zone__preview upload-zone__preview--img" id="nid-back-preview" aria-hidden="true"></div>
+              <div class="upload-zone__placeholder" id="nid-back-placeholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><line x1="13" y1="10" x2="17" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/>
+                </svg>
+                <span data-i18n="onboarding.idBack.label">بطاقة الهوية — الوجه الخلفي</span>
+                <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
+              </div>
+              <span id="nid-back-error" class="field__error" role="alert" hidden></span>
+            </div>
+
+            <span id="nid-docs-error" class="field__error" role="alert" hidden data-i18n="onboarding.error.idAll">
+              يرجى رفع وجهي البطاقة
+            </span>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--ghost btn--full" id="step2-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step2-next" data-i18n="onboarding.next">متابعة</button>
+          </div>
+        </section>
+
+        <!-- ── Step 3: Vehicle details (#1573) ── -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-3" data-step="3" aria-label="بيانات السيارة">
           <div class="onboarding-step__header">
             <div class="onboarding-step__icon" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -125,17 +178,40 @@
           </div>
 
           <div class="onboarding-step__body">
-            <!-- Make -->
+            <!-- Make (dropdown + Other) -->
             <div class="field">
               <label class="field__label" for="vehicle-make" data-i18n="onboarding.vehicle.make.label">الماركة</label>
-              <input type="text" id="vehicle-make" class="input" data-i18n-placeholder="onboarding.vehicle.make.placeholder" placeholder="مثال: تويوتا" aria-required="true" aria-describedby="make-error" />
+              <select id="vehicle-make" class="input" aria-required="true" aria-describedby="make-error">
+                <option value="" disabled selected data-i18n="onboarding.vehicle.make.select">اختاري الماركة</option>
+                <option value="Toyota">Toyota</option>
+                <option value="Hyundai">Hyundai</option>
+                <option value="Kia">Kia</option>
+                <option value="Nissan">Nissan</option>
+                <option value="Chevrolet">Chevrolet</option>
+                <option value="Mitsubishi">Mitsubishi</option>
+                <option value="Renault">Renault</option>
+                <option value="Peugeot">Peugeot</option>
+                <option value="Fiat">Fiat</option>
+                <option value="Skoda">Škoda</option>
+                <option value="Volkswagen">Volkswagen</option>
+                <option value="Suzuki">Suzuki</option>
+                <option value="MG">MG</option>
+                <option value="BYD">BYD</option>
+                <option value="Mercedes-Benz">Mercedes-Benz</option>
+                <option value="BMW">BMW</option>
+                <option value="other" data-i18n="onboarding.vehicle.make.other">أخرى</option>
+              </select>
+              <input type="text" id="vehicle-make-other" class="input onboarding-other-input" data-i18n-placeholder="onboarding.vehicle.make.otherPlaceholder" placeholder="اكتبي اسم الماركة" data-i18n-aria-label="onboarding.vehicle.make.otherAria" aria-label="اسم الماركة" hidden />
               <span id="make-error" class="field__error" role="alert" hidden></span>
             </div>
 
-            <!-- Model -->
+            <!-- Model (dependent dropdown + Other) -->
             <div class="field">
               <label class="field__label" for="vehicle-model" data-i18n="onboarding.vehicle.model.label">الموديل</label>
-              <input type="text" id="vehicle-model" class="input" data-i18n-placeholder="onboarding.vehicle.model.placeholder" placeholder="مثال: كورولا" aria-required="true" aria-describedby="model-error" />
+              <select id="vehicle-model" class="input" aria-required="true" aria-describedby="model-error" disabled>
+                <option value="" disabled selected data-i18n="onboarding.vehicle.model.select">اختاري الموديل</option>
+              </select>
+              <input type="text" id="vehicle-model-other" class="input onboarding-other-input" data-i18n-placeholder="onboarding.vehicle.model.otherPlaceholder" placeholder="اكتبي اسم الموديل" data-i18n-aria-label="onboarding.vehicle.model.otherAria" aria-label="اسم الموديل" hidden />
               <span id="model-error" class="field__error" role="alert" hidden></span>
             </div>
 
@@ -183,13 +259,13 @@
           </div>
 
           <div class="onboarding-step__actions">
-            <button type="button" class="btn btn--ghost btn--full" id="step2-back" data-i18n="onboarding.back">رجوع</button>
-            <button type="button" class="btn btn--primary btn--full" id="step2-next" data-i18n="onboarding.next">متابعة</button>
+            <button type="button" class="btn btn--ghost btn--full" id="step3-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step3-next" data-i18n="onboarding.next">متابعة</button>
           </div>
         </section>
 
-        <!-- ── Step 3: Vehicle exterior photo (#1574) ── -->
-        <section class="onboarding-step onboarding-step--hidden" id="step-3" data-step="3" aria-label="صورة السيارة">
+        <!-- ── Step 5: Vehicle exterior photo (#1574) ── -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-5" data-step="5" aria-label="صورة السيارة">
           <div class="onboarding-step__header">
             <div class="onboarding-step__icon" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -220,8 +296,8 @@
           </div>
 
           <div class="onboarding-step__actions">
-            <button type="button" class="btn btn--ghost btn--full" id="step3-back" data-i18n="onboarding.back">رجوع</button>
-            <button type="button" class="btn btn--primary btn--full" id="step3-next" data-i18n="onboarding.next">متابعة</button>
+            <button type="button" class="btn btn--ghost btn--full" id="step5-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step5-next" data-i18n="onboarding.next">متابعة</button>
           </div>
         </section>
 
@@ -309,8 +385,8 @@
           </div>
         </section>
 
-        <!-- ── Step 5 / 4b: Profile selfie + Submit (#1686) ── -->
-        <section class="onboarding-step onboarding-step--hidden" id="step-5" data-step="5" aria-label="صورة شخصية للملف">
+        <!-- ── Step 6: Profile selfie + Submit (#1686) ── -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-6" data-step="6" aria-label="صورة شخصية للملف">
           <div class="onboarding-step__header">
             <div class="onboarding-step__icon" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -347,8 +423,8 @@
           </div>
 
           <div class="onboarding-step__actions">
-            <button type="button" class="btn btn--ghost btn--full" id="step5-back" data-i18n="onboarding.back">رجوع</button>
-            <button type="button" class="btn btn--primary btn--full" id="step5-submit" data-i18n="onboarding.submit">إرسال الطلب</button>
+            <button type="button" class="btn btn--ghost btn--full" id="step6-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step6-submit" data-i18n="onboarding.submit">إرسال الطلب</button>
           </div>
         </section>
 
@@ -435,11 +511,11 @@
         document.getElementById('step-rejected').classList.remove('onboarding-step--hidden');
       } else if (step) {
         const n = parseInt(step, 10);
-        if (n >= 2 && n <= 5) {
+        if (n >= 2 && n <= 6) {
           document.querySelectorAll('.onboarding-step').forEach(s => s.classList.add('onboarding-step--hidden'));
           document.getElementById(`step-${n}`).classList.remove('onboarding-step--hidden');
           const fill = document.getElementById('progress-fill');
-          if (fill) fill.style.inlineSize = `${(n / 5) * 100}%`;
+          if (fill) fill.style.inlineSize = `${(n / 6) * 100}%`;
           document.querySelectorAll('.onboarding-progress__dot').forEach((d, i) => {
             d.classList.remove('is-active', 'is-done');
             if (i < n - 1) d.classList.add('is-done');
