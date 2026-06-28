@@ -79,10 +79,21 @@
 
           <div class="decision-text">
             <h1 class="decision-title" data-i18n="driver.decision.rejected.title">لم نتمكن من قبول طلبكِ</h1>
-            <p class="decision-body" data-i18n="driver.decision.rejected.body">
-              يُرجى التواصل مع فريق الدعم لمزيد من التفاصيل.
+            <p class="decision-body" data-i18n="driver.decision.rejected.reasonIntro">
+              للأسف لم نتمكن من قبول طلبكِ في الوقت الحالي. السبب:
             </p>
           </div>
+
+          <!-- Admin rejection reason displayed here -->
+          <div class="decision-rejection-reason card" id="decision-rejection-card">
+            <p class="decision-rejection-reason__text" id="decision-rejection-text" data-i18n="driver.decision.rejected.reasonPlaceholder">
+              المستند المرفوع غير واضح — يرجى إعادة رفع رخصة القيادة
+            </p>
+          </div>
+
+          <p class="decision-rejection-note" data-i18n="driver.decision.rejected.body">
+            يُرجى التواصل مع فريق الدعم لمزيد من التفاصيل.
+          </p>
 
           <button
             type="button"

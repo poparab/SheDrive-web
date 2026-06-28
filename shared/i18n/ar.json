@@ -369,6 +369,8 @@
   "driver.decision.approved.body": "مرحباً بكِ في SheDrive. أنتِ الآن جاهزة للعمل.",
   "driver.decision.rejected.title": "لم نتمكن من قبول طلبكِ",
   "driver.decision.rejected.body": "يُرجى التواصل مع فريق الدعم لمزيد من التفاصيل.",
+  "driver.decision.rejected.reasonIntro": "للأسف لم نتمكن من قبول طلبكِ في الوقت الحالي. السبب:",
+  "driver.decision.rejected.reasonPlaceholder": "المستند المرفوع غير واضح — يرجى إعادة رفع رخصة القيادة",
   "driver.decision.start": "ابدئي العمل",
   "driver.decision.contact": "تواصل مع الدعم",
   "driver.decision.pending.title": "طلبكِ قيد المراجعة",

@@ -87,6 +87,32 @@
   margin-inline: auto;
 }
 
+/* ── Rejection reason card ── */
+.decision-rejection-reason {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 360px;
+}
+
+.decision-rejection-reason__text {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+  font-style: italic;
+}
+
+.decision-rejection-note {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  max-inline-size: 30ch;
+  margin-inline: auto;
+}
+
 /* ── Safety badges row ── */
 .decision-badges {
   display: flex;

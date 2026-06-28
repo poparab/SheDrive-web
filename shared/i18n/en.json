@@ -369,6 +369,8 @@
   "driver.decision.approved.body": "Welcome to SheDrive. You're ready to start driving.",
   "driver.decision.rejected.title": "We couldn't approve your application",
   "driver.decision.rejected.body": "Please contact our support team for more details.",
+  "driver.decision.rejected.reasonIntro": "Unfortunately we could not approve your application at this time. Reason:",
+  "driver.decision.rejected.reasonPlaceholder": "Uploaded document unclear — please re-upload your driving licence",
   "driver.decision.start": "Start Working",
   "driver.decision.contact": "Contact Support",
   "driver.decision.pending.title": "Your application is under review",
