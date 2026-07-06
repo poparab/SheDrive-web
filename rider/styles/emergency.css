@@ -280,6 +280,45 @@
   color: var(--color-text-muted);
 }
 
+/* ── Notified emergency contacts (Phase 1 SOS) ── */
+.emergency-contacts-notified {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) 0 0;
+  border-block-start: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.emergency-contacts-notified:empty {
+  display: none;
+}
+.emergency-contact-notified {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.emergency-contact-notified__name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+.emergency-contact-notified__meta {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-align: end;
+}
+.emergency-no-contacts {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+.emergency-no-contacts[hidden] {
+  display: none;
+}
+
 /* ── Recap ── */
 .emergency-recap {
   background: var(--color-surface);

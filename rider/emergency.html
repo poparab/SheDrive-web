@@ -43,9 +43,9 @@
       <div class="emergency-hero__pulse" aria-hidden="true">
         <span class="emergency-hero__dot"></span>
       </div>
-      <h1 class="emergency-hero__title" data-i18n="emergency.title">تم إبلاغ مركز السلامة</h1>
+      <h1 class="emergency-hero__title" data-i18n="emergency.title">تم إخطار جهات اتصال الطوارئ</h1>
       <p class="emergency-hero__subtitle" data-i18n="emergency.subtitle">
-        فرق الأمان في طريقها إليكِ. ابقي هادئة.
+        تتم مشاركة موقعك المباشر معهم الآن. ابقي هادئة.
       </p>
       </section>
 
@@ -93,30 +93,10 @@
           </svg>
         </button>
 
-        <button
-          type="button"
-          class="emergency-call"
-          data-call-label="emergency.callSafety"
-          data-i18n-aria-label="emergency.callSafety"
-          aria-label="اتصال بمركز سلامة SheDrive"
-        >
-          <span class="emergency-call__icon emergency-call__icon--safety" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-          </span>
-          <span class="emergency-call__body">
-            <span class="emergency-call__label" data-i18n="emergency.callSafety">مركز سلامة SheDrive</span>
-            <span class="emergency-call__number" data-i18n="emergency.safetyNumber">19911</span>
-          </span>
-          <svg class="emergency-call__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
       </div>
 
       <section class="emergency-timeline" aria-live="polite">
-        <h2 class="emergency-timeline__title" data-i18n="emergency.timelineTitle">حالة الاستجابة</h2>
+        <h2 class="emergency-timeline__title" data-i18n="emergency.contactsTitle">جهات الاتصال التي تم إخطارها</h2>
 
         <div class="emergency-step emergency-step--active" data-step="1">
           <span class="emergency-step__indicator" aria-hidden="true">
@@ -125,7 +105,7 @@
             </svg>
             <span class="emergency-step__spinner"></span>
           </span>
-          <span class="emergency-step__text" data-i18n="emergency.step1">تم إرسال تنبيه الطوارئ إلى مركز السلامة.</span>
+          <span class="emergency-step__text" data-i18n="emergency.step1">تم إرسال تنبيه الطوارئ إلى جهات اتصالك.</span>
         </div>
 
         <div class="emergency-step emergency-step--pending" data-step="2">
@@ -135,18 +115,13 @@
             </svg>
             <span class="emergency-step__spinner"></span>
           </span>
-          <span class="emergency-step__text" data-i18n="emergency.step2">مشاركة موقعكِ المباشر مع فريق الأمان.</span>
+          <span class="emergency-step__text" data-i18n="emergency.step2">تتم مشاركة موقعك المباشر مع جهات اتصالك.</span>
         </div>
 
-        <div class="emergency-step emergency-step--pending" data-step="3">
-          <span class="emergency-step__indicator" aria-hidden="true">
-            <svg class="emergency-step__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span class="emergency-step__spinner"></span>
-          </span>
-          <span class="emergency-step__text" data-i18n="emergency.step3">جاري تواصل أحد مستشاري السلامة معكِ.</span>
-        </div>
+        <ul class="emergency-contacts-notified" id="notified-contacts" role="list"></ul>
+        <p class="emergency-no-contacts" id="no-contacts-msg" data-i18n="emergency.noContacts" hidden>
+          لم تُضيفي جهات اتصال للطوارئ بعد. يمكنك إضافتها من شاشة جهات اتصال الطوارئ.
+        </p>
       </section>
 
       <section class="emergency-recap">

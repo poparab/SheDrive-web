@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SheDrive Driver — الطوارئ</title>
+    <title>SheDrive Driver — جهات اتصال الطوارئ</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,39 +33,11 @@
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </a>
-        <span data-i18n="driver.sos.title">مركز الطوارئ</span>
+        <span data-i18n="sos.title">جهات اتصال الطوارئ</span>
       </sd-app-header>
 
-      <main class="sos-coming-soon" role="main">
-        <div class="sos-coming-soon__content">
-          <div class="sos-coming-soon__icon" aria-hidden="true">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </div>
-
-          <h1 class="sos-coming-soon__title" data-i18n="driver.sos.title">مركز الطوارئ</h1>
-          <p class="sos-coming-soon__body" data-i18n="driver.sos.comingSoon">
-            هذه الميزة قيد التطوير
-          </p>
-          <p class="sos-coming-soon__sub" data-i18n="driver.sos.body">
-            نعمل على نظام طوارئ متكامل للسائقات يتضمن خطاً مباشراً لوزارة الداخلية
-          </p>
-
-          <!-- Emergency phone fallback always visible -->
-          <div class="sos-coming-soon__fallback" role="note">
-            <p class="sos-coming-soon__fallback-label" data-i18n="driver.sos.emergencyLabel">
-              طوارئ الشرطة:
-            </p>
-            <a href="tel:122" class="sos-coming-soon__phone">122</a>
-          </div>
-
-          <a href="./home.html" class="btn btn--ghost btn--full" data-i18n="driver.sos.back">
-            رجوع إلى الشاشة الرئيسية
-          </a>
-        </div>
+      <main class="driver-sos-main" role="main">
+        <section class="sos-contacts" id="sos-contacts-root" aria-label="جهات اتصال الطوارئ" data-i18n-aria-label="sos.title"></section>
       </main>
 
     </sd-page>

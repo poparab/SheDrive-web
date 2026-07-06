@@ -49,7 +49,7 @@ export const Drawer = {
           ['menu.profile', 'person', 'ملفي الشخصي'],
           ['menu.rides', 'list', 'رحلاتي'],
           ['menu.payments', 'credit-card', 'المدفوعات'],
-          ['menu.safety', 'shield', 'الأمان'],
+          ['menu.safety', 'shield', 'جهات اتصال الطوارئ'],
           ['menu.settings', 'settings', 'الإعدادات'],
           ['menu.help', 'help-circle', 'المساعدة'],
           ['menu.schedule', 'calendar', 'جدولة رحلة'],
