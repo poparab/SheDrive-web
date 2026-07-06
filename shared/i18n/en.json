@@ -622,7 +622,7 @@
   "onboarding.nid.error.format": "National ID must be 14 digits",
 
   "onboarding.dob.error.format": "Invalid date format",
-  "onboarding.dob.error.age": "You must be at least 21 years old",
+  "onboarding.dob.error.age": "You must be at least 18 years old",
 
   "onboarding.vehicle.make.label": "Make (brand)",
   "onboarding.vehicle.make.placeholder": "e.g. Toyota",
@@ -680,7 +680,7 @@
   "onboarding.step5.title": "Profile photo",
   "onboarding.step5.subtitle": "Take a clear photo of your face for your driver profile",
 
-  "onboarding.error.age": "You must be at least 21 years old",
+  "onboarding.error.age": "You must be at least 18 years old",
   "onboarding.error.nid": "National ID must be 14 digits",
   "onboarding.error.make": "Please enter the vehicle make",
   "onboarding.error.model": "Please enter the vehicle model",
@@ -719,6 +719,19 @@
   "onboarding.regFront.aria": "Upload front of vehicle registration",
   "onboarding.regBack.label": "Vehicle registration — back",
   "onboarding.regBack.aria": "Upload back of vehicle registration",
+  "onboarding.licenceNumber.label": "Driving licence number",
+  "onboarding.licenceNumber.placeholder": "Licence number as printed",
+  "onboarding.licenceNumber.error.empty": "Enter your driving licence number",
+  "onboarding.licenceNumber.error.format": "Invalid licence number",
+  "onboarding.licenceNumber.error.length": "Licence number must be 6–20 characters",
+  "onboarding.licenceExpiry.label": "Driving licence expiry date",
+  "onboarding.licenceExpiry.error.empty": "Enter your driving licence expiry date",
+  "onboarding.licenceExpiry.error.format": "Invalid date format",
+  "onboarding.licenceExpiry.error.expired": "Driving licence has expired",
+  "onboarding.regExpiry.label": "Vehicle registration expiry date",
+  "onboarding.regExpiry.error.empty": "Enter your vehicle registration expiry date",
+  "onboarding.regExpiry.error.format": "Invalid date format",
+  "onboarding.regExpiry.error.expired": "Vehicle registration has expired",
 
   "onboarding.vehicle.color.placeholder": "Select colour",
   "onboarding.vehicle.color.white": "White",

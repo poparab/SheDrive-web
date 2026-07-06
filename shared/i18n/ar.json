@@ -622,7 +622,7 @@
   "onboarding.nid.error.format": "رقم الهوية يجب أن يكون 14 رقماً",
 
   "onboarding.dob.error.format": "صيغة التاريخ غير صحيحة",
-  "onboarding.dob.error.age": "يجب أن يكون عمركِ 21 عاماً على الأقل",
+  "onboarding.dob.error.age": "يجب أن يكون عمركِ 18 عاماً على الأقل",
 
   "onboarding.vehicle.make.label": "الماركة (الشركة المصنّعة)",
   "onboarding.vehicle.make.placeholder": "مثل: تويوتا",
@@ -680,7 +680,7 @@
   "onboarding.step5.title": "صورة شخصية",
   "onboarding.step5.subtitle": "التقطي صورة واضحة لوجهك لملفك الشخصي",
 
-  "onboarding.error.age": "يجب أن يكون عمرك 21 عامًا على الأقل",
+  "onboarding.error.age": "يجب أن يكون عمرك 18 عامًا على الأقل",
   "onboarding.error.nid": "رقم الهوية يجب أن يكون 14 رقمًا",
   "onboarding.error.make": "أدخلي ماركة السيارة",
   "onboarding.error.model": "أدخلي موديل السيارة",
@@ -719,6 +719,19 @@
   "onboarding.regFront.aria": "رفع الوجه الأمامي لاستمارة السيارة",
   "onboarding.regBack.label": "استمارة السيارة — الوجه الخلفي",
   "onboarding.regBack.aria": "رفع الوجه الخلفي لاستمارة السيارة",
+  "onboarding.licenceNumber.label": "رقم رخصة القيادة",
+  "onboarding.licenceNumber.placeholder": "رقم الرخصة كما هو مدوّن",
+  "onboarding.licenceNumber.error.empty": "أدخلي رقم رخصة القيادة",
+  "onboarding.licenceNumber.error.format": "رقم الرخصة غير صحيح",
+  "onboarding.licenceNumber.error.length": "يجب أن يكون رقم الرخصة بين 6 و20 خانة",
+  "onboarding.licenceExpiry.label": "تاريخ انتهاء رخصة القيادة",
+  "onboarding.licenceExpiry.error.empty": "أدخلي تاريخ انتهاء رخصة القيادة",
+  "onboarding.licenceExpiry.error.format": "صيغة التاريخ غير صحيحة",
+  "onboarding.licenceExpiry.error.expired": "رخصة القيادة منتهية الصلاحية",
+  "onboarding.regExpiry.label": "تاريخ انتهاء رخصة تسيير السيارة",
+  "onboarding.regExpiry.error.empty": "أدخلي تاريخ انتهاء رخصة تسيير السيارة",
+  "onboarding.regExpiry.error.format": "صيغة التاريخ غير صحيحة",
+  "onboarding.regExpiry.error.expired": "رخصة تسيير السيارة منتهية الصلاحية",
 
   "onboarding.vehicle.color.placeholder": "اختاري اللون",
   "onboarding.vehicle.color.white": "أبيض",

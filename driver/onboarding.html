@@ -77,12 +77,12 @@
               <span id="name-error" class="field__error" role="alert" hidden></span>
             </div>
 
-            <!-- Date of birth (age ≥ 21) -->
+            <!-- Date of birth (age ≥ 18) -->
             <div class="field">
               <label class="field__label" for="date-of-birth" data-i18n="onboarding.dob.label">تاريخ الميلاد</label>
               <input type="date" id="date-of-birth" class="input" aria-required="true" aria-describedby="dob-error" />
               <span id="dob-error" class="field__error" role="alert" hidden data-i18n="onboarding.error.age">
-                يجب أن يكون عمرك 21 عامًا على الأقل
+                يجب أن يكون عمرك 18 عامًا على الأقل
               </span>
             </div>
 
@@ -344,6 +344,24 @@
               <span id="licence-back-error" class="field__error" role="alert" hidden></span>
             </div>
 
+            <!-- Driving licence number (#1575) -->
+            <div class="field">
+              <label class="field__label" for="licence-number" data-i18n="onboarding.licenceNumber.label">رقم رخصة القيادة</label>
+              <input type="text" id="licence-number" class="input" data-i18n-placeholder="onboarding.licenceNumber.placeholder" placeholder="رقم الرخصة كما هو مدوّن" autocomplete="off" aria-required="true" aria-describedby="licence-number-error" />
+              <span id="licence-number-error" class="field__error" role="alert" hidden data-i18n="onboarding.licenceNumber.error.empty">
+                أدخلي رقم رخصة القيادة
+              </span>
+            </div>
+
+            <!-- Driving licence expiry date (#1575) -->
+            <div class="field">
+              <label class="field__label" for="licence-expiry" data-i18n="onboarding.licenceExpiry.label">تاريخ انتهاء رخصة القيادة</label>
+              <input type="date" id="licence-expiry" class="input" aria-required="true" aria-describedby="licence-expiry-error" />
+              <span id="licence-expiry-error" class="field__error" role="alert" hidden data-i18n="onboarding.licenceExpiry.error.empty">
+                أدخلي تاريخ انتهاء رخصة القيادة
+              </span>
+            </div>
+
             <!-- Registration front -->
             <div class="upload-zone" id="reg-front-zone">
               <input type="file" id="reg-front-input" accept="image/*" class="upload-zone__input" aria-label="الوجه الأمامي لاستمارة السيارة" data-i18n-aria-label="onboarding.regFront.aria" />
@@ -372,6 +390,15 @@
                 <span class="upload-zone__hint" data-i18n="onboarding.upload.hint">اضغطي لاختيار صورة</span>
               </div>
               <span id="reg-back-error" class="field__error" role="alert" hidden></span>
+            </div>
+
+            <!-- Vehicle registration expiry date (#1575) -->
+            <div class="field">
+              <label class="field__label" for="reg-expiry" data-i18n="onboarding.regExpiry.label">تاريخ انتهاء رخصة تسيير السيارة</label>
+              <input type="date" id="reg-expiry" class="input" aria-required="true" aria-describedby="reg-expiry-error" />
+              <span id="reg-expiry-error" class="field__error" role="alert" hidden data-i18n="onboarding.regExpiry.error.empty">
+                أدخلي تاريخ انتهاء رخصة تسيير السيارة
+              </span>
             </div>
 
             <span id="docs-all-error" class="field__error" role="alert" hidden data-i18n="onboarding.error.allDocs">

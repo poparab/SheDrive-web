@@ -106,7 +106,7 @@ function runWizard() {
       if (ok) { dobEl?.focus(); ok = false; }
     } else {
       const age = (Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-      if (age < 21) {
+      if (age < 18) {
         if (dobErr) dobErr.hidden = false;
         if (ok) { dobEl?.focus(); ok = false; }
       } else { if (dobErr) dobErr.hidden = true; }
@@ -229,8 +229,23 @@ function runWizard() {
     const required = ['licence-front-zone', 'licence-back-zone', 'reg-front-zone', 'reg-back-zone'];
     const allUploaded = required.every((id) => qs(`#${id}`)?.classList.contains('has-file'));
     const allErr = qs('#docs-all-error');
+
+    // Typed fields: licence number + licence/registration expiry (#1575)
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const num = qs('#licence-number');
+    const licExp = qs('#licence-expiry');
+    const regExp = qs('#reg-expiry');
+    const numOk = !!num && /^[A-Za-z0-9]{6,20}$/.test(num.value.trim());
+    const licExpOk = !!licExp && !!licExp.value && new Date(licExp.value) > today;
+    const regExpOk = !!regExp && !!regExp.value && new Date(regExp.value) > today;
+    const toggleErr = (id, ok) => { const el = qs(`#${id}`); if (el) el.hidden = ok; };
+    toggleErr('licence-number-error', numOk);
+    toggleErr('licence-expiry-error', licExpOk);
+    toggleErr('reg-expiry-error', regExpOk);
+
     if (!allUploaded) { if (allErr) allErr.hidden = false; return; }
     if (allErr) allErr.hidden = true;
+    if (!numOk || !licExpOk || !regExpOk) return;
     goToStep(5);
   });
 
