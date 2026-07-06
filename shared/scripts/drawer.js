@@ -86,8 +86,10 @@ export const Drawer = {
     const NAV_MAP = {
       'menu.profile':  './profile.html',
       'menu.rides':    './history.html',
-      'menu.payments': './payment-method.html',
+      'menu.payments': './payments.html',
       'menu.safety':   './sos.html',
+      'menu.settings': './settings.html',
+      'menu.help':     './help.html',
       'menu.schedule': './schedule.html',
     };
 
