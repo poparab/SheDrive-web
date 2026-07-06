@@ -490,6 +490,21 @@
   "schedule.body": "Soon you'll be able to book rides in advance",
   "schedule.back": "Back",
 
+  "payments.title": "Payment Methods",
+  "payments.comingSoon": "Cash payment in Phase 1",
+  "payments.body": "Pay the driver in cash at the end of your trip. Card payment is coming soon",
+  "payments.back": "Back",
+
+  "settings.title": "Settings",
+  "settings.comingSoon": "This feature is coming soon",
+  "settings.body": "Soon you'll be able to manage your account settings and preferences",
+  "settings.back": "Back",
+
+  "help.title": "Help & Support",
+  "help.comingSoon": "This feature is coming soon",
+  "help.body": "FAQs and ways to reach support will be available here soon",
+  "help.back": "Back",
+
   "complete.starsError": "Please select a star rating before submitting",
   "complete.fareBreakdown": "Fare breakdown",
   "complete.baseFare": "Base fare",
@@ -517,6 +532,10 @@
   "home.dest.sameAsPickup": "Please choose a destination different from pickup",
   "home.pickup.required": "Choose a pickup location",
   "home.dest.required": "Choose your destination",
+  "home.child.label": "This ride is for a child (under 12)",
+  "home.child.hint": "Children are the only exception to the women-only policy",
+  "home.hours.closed": "Service is currently closed",
+  "home.hours.next": "Opens again at 6:00 AM",
 
   "matching.cancelTitle": "Cancel request?",
   "matching.cancelBody": "Your request will be cancelled with no charge",

@@ -47,6 +47,17 @@
         <button type="button" class="btn btn--ghost btn--sm gps-banner__settings" id="gps-settings-btn" data-i18n="home.gps.settings">فتح الإعدادات</button>
       </div>
 
+      <!-- Service-closed / outside-operating-hours notice (state=closed) — #1791 -->
+      <div class="hours-banner" id="hours-banner" role="status" aria-live="polite" hidden>
+        <span class="hours-banner__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span class="hours-banner__text">
+          <span class="hours-banner__title" data-i18n="home.hours.closed">الخدمة مغلقة حالياً</span>
+          <span class="hours-banner__sub" data-i18n="home.hours.next">تفتح في تمام الساعة ٦:٠٠ صباحاً</span>
+        </span>
+      </div>
+
       <!-- Map-pin drop overlay (state=pin-pickup | pin-dest) -->
       <div class="map-pin-overlay" id="map-pin-overlay" hidden aria-modal="true" role="dialog" data-i18n-aria-label="aria.pinOverlay">
         <div class="map-pin-overlay__pin" aria-hidden="true">
@@ -227,6 +238,18 @@
           </div>
           <p class="field__error" id="same-location-error" hidden role="alert" data-i18n="home.dest.sameAsPickup">يرجى اختيار وجهة مختلفة عن موقع الانطلاق</p>
 
+          <!-- Child-passenger declaration (per-trip, default off) — #1790 -->
+          <label class="child-toggle" for="child-toggle-input">
+            <span class="child-toggle__control">
+              <input type="checkbox" id="child-toggle-input" class="child-toggle__checkbox" role="switch" />
+              <span class="child-toggle__track" aria-hidden="true"><span class="child-toggle__thumb"></span></span>
+            </span>
+            <span class="child-toggle__text">
+              <span class="child-toggle__label" data-i18n="home.child.label">هذه الرحلة لطفل (أقل من ١٢ سنة)</span>
+              <span class="child-toggle__hint" data-i18n="home.child.hint">الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط</span>
+            </span>
+          </label>
+
           <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
             طلب رحلة
           </sd-button>
@@ -294,12 +317,19 @@
 
     <script type="module" src="scripts/home.js"></script>
 
-    <!-- Demo only: ?state=search | fare | fare-error | gps-denied | pin-pickup | pin-dest -->
+    <!-- Demo only: ?state=search | fare | fare-error | gps-denied | pin-pickup | pin-dest | closed -->
     <script type="module">
       const s = new URLSearchParams(location.search).get('state');
       if (s) document.body.dataset.state = s;
       if (s === 'gps-denied') {
         document.getElementById('gps-banner').hidden = false;
+      }
+      if (s === 'closed') {
+        document.getElementById('hours-banner').hidden = false;
+        ['request-ride-btn', 'confirm-ride-btn'].forEach((id) => {
+          const btn = document.getElementById(id);
+          if (btn) btn.setAttribute('disabled', '');
+        });
       }
       if (s === 'pin-pickup' || s === 'pin-dest') {
         document.getElementById('map-pin-overlay').hidden = false;

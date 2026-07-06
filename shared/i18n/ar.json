@@ -490,6 +490,21 @@
   "schedule.body": "ستتمكنين قريباً من حجز رحلاتك مسبقاً",
   "schedule.back": "رجوع",
 
+  "payments.title": "وسائل الدفع",
+  "payments.comingSoon": "الدفع نقداً في المرحلة الأولى",
+  "payments.body": "الدفع نقداً للسائقة عند انتهاء الرحلة. سنضيف الدفع بالبطاقة قريباً",
+  "payments.back": "رجوع",
+
+  "settings.title": "الإعدادات",
+  "settings.comingSoon": "هذه الميزة قريباً",
+  "settings.body": "ستتمكنين قريباً من إدارة إعدادات حسابك وتفضيلاتك",
+  "settings.back": "رجوع",
+
+  "help.title": "المساعدة والدعم",
+  "help.comingSoon": "هذه الميزة قريباً",
+  "help.body": "ستتوفر قريباً الأسئلة الشائعة وطرق التواصل مع الدعم",
+  "help.back": "رجوع",
+
   "complete.starsError": "يرجى اختيار عدد النجوم قبل الإرسال",
   "complete.fareBreakdown": "تفاصيل السعر",
   "complete.baseFare": "التكلفة الأساسية",
@@ -517,6 +532,10 @@
   "home.dest.sameAsPickup": "يرجى اختيار وجهة مختلفة عن موقع الانطلاق",
   "home.pickup.required": "اختاري موقع الانطلاق",
   "home.dest.required": "اختاري وجهتكِ",
+  "home.child.label": "هذه الرحلة لطفل (أقل من ١٢ سنة)",
+  "home.child.hint": "الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط",
+  "home.hours.closed": "الخدمة مغلقة حالياً",
+  "home.hours.next": "تفتح في تمام الساعة ٦:٠٠ صباحاً",
 
   "matching.cancelTitle": "إلغاء الطلب؟",
   "matching.cancelBody": "سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة",

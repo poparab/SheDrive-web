@@ -1,0 +1,31 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — المساعدة والدعم</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body>
+    <sd-page body-class="app-shell stub-page help-page" screen-styles="/rider/styles/rider.css, /rider/styles/coming-soon.css" drawer>
+      <sd-app-header bar-class="stub-topbar" inner-class="stub-topbar__inner" title-class="stub-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="stub-topbar__title-text" data-i18n="help.title">المساعدة والدعم</span>
+      </sd-app-header>
+
+      <main class="stub-content">
+        <div class="coming-soon-card">
+          <div class="coming-soon-card__icon" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h2 class="coming-soon-card__title" data-i18n="help.comingSoon">هذه الميزة قريباً</h2>
+          <p class="coming-soon-card__body" data-i18n="help.body">ستتوفر قريباً الأسئلة الشائعة وطرق التواصل مع الدعم</p>
+          <a href="./home.html" class="btn btn--primary btn--full coming-soon-card__back" data-i18n="help.back">رجوع</a>
+        </div>
+      </main>
+    </sd-page>
+    <script type="module" src="scripts/coming-soon.js"></script>
+  </body>
+</html>

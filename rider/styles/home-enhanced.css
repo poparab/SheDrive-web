@@ -451,3 +451,122 @@
   color: var(--color-danger, #dc3545);
   margin: 0;
 }
+
+/* ── Outside-operating-hours notice (#1791) ────────── */
+
+.hours-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-bg, rgba(255, 193, 7, 0.12));
+  border-bottom: 1px solid var(--color-warning, #ffc107);
+  color: var(--color-text);
+}
+
+.hours-banner[hidden] { display: none; }
+
+.hours-banner__icon {
+  flex-shrink: 0;
+  color: var(--color-warning, #ffc107);
+}
+
+.hours-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hours-banner__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.hours-banner__sub {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Child-passenger declaration toggle (#1790) ────── */
+
+.child-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.child-toggle__control {
+  position: relative;
+  flex-shrink: 0;
+  margin-block-start: 2px;
+}
+
+.child-toggle__checkbox {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.child-toggle__track {
+  display: block;
+  inline-size: 44px;
+  block-size: 26px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  transition: background var(--transition-fast);
+}
+
+.child-toggle__thumb {
+  display: block;
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+
+.child-toggle__checkbox:checked + .child-toggle__track {
+  background: var(--color-primary-600);
+}
+
+.child-toggle__checkbox:checked + .child-toggle__track .child-toggle__thumb {
+  transform: translateX(18px);
+}
+
+[dir="rtl"] .child-toggle__checkbox:checked + .child-toggle__track .child-toggle__thumb {
+  transform: translateX(-18px);
+}
+
+.child-toggle__checkbox:focus-visible + .child-toggle__track {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+.child-toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.child-toggle__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.child-toggle__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
