@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SheDrive — Phase 1 Story Map</title>
+</head>
+<body>
+<style>
+  :root{
+    --ground:#F4F1F5; --surface:#FFFFFF; --ink:#241E2A; --muted:#726A78;
+    --faint:#9A93A1; --hair:#E6DFEA; --hair-2:#EFEAF1;
+    --plum:#5A2452; --plum-soft:#E7DEEA; --rose:#E5486F; --rose-deep:#B41E4F; --rose-soft:#FBE7EE;
+    --blue:#1D5FB0; --blue-soft:#DDEBF6; --amber:#B7791F; --amber-soft:#FAEFD9; --amber-deep:#8A5A0F;
+    --rider:#2563C9; --driver:#B7791F; --api:#0E8A8F; --admin:#2F855A;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --shadow: 0 1px 2px rgba(36,30,42,.06), 0 2px 8px rgba(36,30,42,.05);
+    --shadow-lift: 0 6px 20px rgba(36,30,42,.14);
+  }
+  *{box-sizing:border-box}
+  body{margin:0}
+  .wrap{
+    font-family:var(--font);color:var(--ink);
+    background:radial-gradient(120% 80% at 100% 0%, #F7EEF3 0%, rgba(247,238,243,0) 55%), var(--ground);
+    min-height:100vh;padding:22px clamp(14px,3vw,34px) 60px;-webkit-font-smoothing:antialiased;
+  }
+  .masthead{max-width:1180px;margin:0 auto 20px}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--plum);font-weight:700;margin:0 0 8px;display:flex;align-items:center;gap:9px}
+  .eyebrow::before{content:"";width:22px;height:2px;background:var(--rose);border-radius:2px}
+  h1{font-size:clamp(26px,4.4vw,40px);line-height:1.04;margin:0 0 10px;letter-spacing:-.02em;font-weight:800;text-wrap:balance}
+  h1 span{color:var(--plum)}
+  .lede{margin:0;max-width:66ch;color:var(--muted);font-size:15.5px;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:650}
+
+  .stats{max-width:1180px;margin:18px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
+  .stat{background:var(--surface);border:1px solid var(--hair);border-radius:13px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat.s1{border-top:3px solid var(--plum)}
+  .stat.s2{border-top:3px solid var(--blue)}
+  .stat.later{border-top:3px solid var(--faint)}
+  .stat .n{font-size:23px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .n small{font-size:13px;font-weight:650;color:var(--muted)}
+  .stat .l{font-size:11.5px;color:var(--muted);margin-top:3px;letter-spacing:.02em}
+  .stat .sub{font-size:11px;color:var(--faint);margin-top:6px}
+  .stat .sub b{font-variant-numeric:tabular-nums;color:var(--muted)}
+
+  .toolbar{max-width:1180px;margin:20px auto 12px;display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow)}
+  .ctl{display:flex;align-items:center;gap:8px}
+  .ctl .cap{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .seg{display:inline-flex;border:1px solid var(--hair);border-radius:9px;overflow:hidden;background:var(--ground)}
+  .seg button{appearance:none;border:0;background:transparent;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 12px;border-right:1px solid var(--hair);transition:background .12s,color .12s}
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed="true"]{background:var(--plum);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--rose);outline-offset:-2px}
+  .lane-toggles{display:flex;gap:7px;flex-wrap:wrap}
+  .lanechip{appearance:none;cursor:pointer;font:inherit;font-size:12px;font-weight:650;display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:20px;border:1.5px solid var(--c);background:var(--surface);color:var(--ink);transition:opacity .12s,background .12s}
+  .lanechip .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  .lanechip[aria-pressed="false"]{opacity:.34;background:var(--ground);border-style:dashed}
+  .lanechip:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+  .pathbtn{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;font-weight:650;padding:7px 13px;border-radius:9px;border:1.5px solid var(--plum);color:var(--plum);background:var(--surface);transition:background .12s,color .12s}
+  .pathbtn[aria-pressed="true"]{background:var(--plum);color:#fff}
+  .pathbtn:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+  .spacer{flex:1 1 auto}
+  .hint{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px}
+  .hint kbd{font:inherit;font-size:10.5px;background:var(--ground);border:1px solid var(--hair);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--muted)}
+
+  .legend{max-width:1180px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:11.5px;color:var(--muted);padding:0 4px}
+  .legend .grp{display:flex;align-items:center;gap:7px}
+  .spr{font-size:10.5px;font-weight:750;padding:2px 7px;border-radius:20px;letter-spacing:.02em}
+  .spr.s1{background:var(--plum-soft);color:var(--plum)}
+  .spr.s2{background:var(--blue-soft);color:var(--blue)}
+  .spr.l{background:#EDEAEF;color:#8B8391}
+  .spchip{font-size:10px;font-weight:750;font-variant-numeric:tabular-nums;padding:2px 6px;border-radius:6px;background:#F1EEF4;color:#524A59}
+  .spchip.none{background:var(--amber-soft);color:var(--amber-deep)}
+  .swatch{width:22px;height:0;border-top:2.5px solid var(--rose)}
+  .swatch.down{border-top-color:var(--rider);border-top-style:dashed}
+
+  .board-scroll{max-width:1180px;margin:0 auto;overflow:auto;max-height:74vh;border:1px solid var(--hair);border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
+  .board-inner{position:relative;width:max-content;min-width:100%}
+  .board{display:grid;grid-template-columns:126px repeat(8, 220px);position:relative;z-index:1}
+  .corner{position:sticky;left:0;top:0;z-index:6;background:var(--surface);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .phhead{position:sticky;top:0;z-index:4;background:var(--surface);border-bottom:1px solid var(--hair);border-right:1px solid var(--hair-2);padding:11px 13px 10px}
+  .phhead .pn{font-size:10px;font-weight:800;color:var(--faint);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+  .phhead .pt{font-size:13px;font-weight:750;letter-spacing:-.01em;margin-top:2px;line-height:1.2}
+  .phhead .ps{font-size:10.5px;color:var(--faint);margin-top:3px;line-height:1.3}
+  .lanehead{position:sticky;left:0;z-index:3;background:var(--surface);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair-2);padding:12px 12px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+  .lanehead::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 3px 3px 0;background:var(--c)}
+  .lanehead .ln{font-size:13.5px;font-weight:800;letter-spacing:-.01em;color:var(--c)}
+  .lanehead .lk{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .lanehead .lc{font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+  .cell{border-right:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2);padding:9px;display:flex;flex-direction:column;gap:8px;min-height:64px;background:linear-gradient(180deg, rgba(244,241,245,.35), rgba(244,241,245,0) 40px)}
+  .lanerow-rider .cell{--c:var(--rider)}
+  .lanerow-driver .cell{--c:var(--driver)}
+  .lanerow-api .cell{--c:var(--api)}
+  .lanerow-admin .cell{--c:var(--admin)}
+
+  .card{position:relative;background:var(--surface);border:1px solid var(--hair);border-left:3px solid var(--c);border-radius:9px;padding:8px 9px 8px 10px;cursor:pointer;transition:box-shadow .13s,transform .13s,border-color .13s,opacity .13s;box-shadow:0 1px 1.5px rgba(36,30,42,.05)}
+  .card.later{background:#FCFBFC}
+  .card:hover{box-shadow:var(--shadow-lift);transform:translateY(-1px)}
+  .card:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+  .card .top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+  .card .id{font-size:10.5px;font-weight:750;color:var(--faint);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .card .badges{display:flex;align-items:center;gap:4px}
+  .card .t{font-size:12px;line-height:1.28;font-weight:600;color:var(--ink);letter-spacing:-.005em}
+  .card .spr{font-size:9px;padding:1.5px 6px}
+  .card .spchip{font-size:9px;padding:1.5px 5px}
+
+  .board.has-focus .card{opacity:.26;filter:saturate(.6)}
+  .board.has-focus .card.is-focus{opacity:1;filter:none;border-color:var(--plum);box-shadow:0 0 0 2px var(--plum), var(--shadow-lift);transform:translateY(-1px)}
+  .board.has-focus .card.is-up{opacity:1;filter:none;box-shadow:0 0 0 2px var(--rose)}
+  .board.has-focus .card.is-down{opacity:1;filter:none;box-shadow:0 0 0 2px var(--rider)}
+  .card.on-path{outline:2px dashed var(--plum);outline-offset:1px}
+  .board.path-on .card:not(.on-path){opacity:.3}
+
+  svg.wires{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible}
+  svg.wires path{fill:none;stroke-linecap:round}
+  svg.wires .w-up{stroke:var(--rose);stroke-width:2}
+  svg.wires .w-down{stroke:var(--rider);stroke-width:2;stroke-dasharray:2 5}
+
+  .panel{position:fixed;right:18px;bottom:18px;width:min(360px,calc(100vw - 36px));background:var(--surface);border:1px solid var(--hair);border-radius:16px;box-shadow:0 12px 40px rgba(36,30,42,.24);z-index:40;overflow:hidden;transform:translateY(140%);transition:transform .26s cubic-bezier(.2,.7,.2,1)}
+  .panel.open{transform:translateY(0)}
+  .panel .ph{padding:13px 15px;border-bottom:1px solid var(--hair);position:relative}
+  .panel .ph .pid{font-size:11px;font-weight:750;color:var(--faint);font-variant-numeric:tabular-nums}
+  .panel .ph .pt{font-size:15.5px;font-weight:750;letter-spacing:-.01em;margin-top:2px;padding-right:26px;line-height:1.25}
+  .panel .ph .meta{display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .panel .ph .lanetag{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;color:var(--c)}
+  .panel .ph .lanetag .dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .panel .close{position:absolute;top:11px;right:11px;width:26px;height:26px;border-radius:7px;border:1px solid var(--hair);background:var(--surface);cursor:pointer;color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center}
+  .panel .close:hover{background:var(--ground)}
+  .panel .body{padding:12px 15px 15px;max-height:44vh;overflow:auto}
+  .dep-h{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:750;margin:2px 0 8px;display:flex;align-items:center;gap:7px}
+  .dep-h.up{color:var(--rose-deep)}
+  .dep-h.down{color:var(--rider)}
+  .dep-h .cnt{background:var(--ground);color:var(--muted);border-radius:20px;padding:1px 7px;font-size:10px}
+  .dep-list{display:flex;flex-direction:column;gap:5px;margin:0 0 15px}
+  .deprow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid var(--hair);background:var(--surface);cursor:pointer;text-align:left;font:inherit;transition:background .12s}
+  .deprow:hover{background:var(--ground)}
+  .deprow .di{font-size:10.5px;font-weight:750;color:var(--faint);font-variant-numeric:tabular-nums;flex:none;width:38px}
+  .deprow .dt{font-size:12px;font-weight:600;line-height:1.25;flex:1}
+  .deprow .dl{width:7px;height:7px;border-radius:50%;flex:none}
+  .deprow.missing{opacity:.6;cursor:default}
+  .deprow.missing:hover{background:var(--surface)}
+  .none{font-size:12px;color:var(--faint);font-style:italic;margin:0 0 14px}
+
+  .footnote{max-width:1180px;margin:18px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .footnote b{color:var(--ink)}
+  .footnote code{background:var(--surface);border:1px solid var(--hair);border-radius:5px;padding:1px 5px;font-size:11px}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+  @media (max-width:640px){.panel{right:8px;left:8px;bottom:8px;width:auto}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">SheDrive · Phase 1 planning · committed from Azure DevOps</p>
+    <h1>User Story Map — <span>Sprint 1 &amp; 2 committed, the rest sequenced</span></h1>
+    <p class="lede">Every Phase&nbsp;1 story on the <b>ride journey</b> (left → right) by <b>who builds it</b> (Rider, Driver, API, Admin). Story points and sprint tags are the <b>live values from ADO</b>. <b>Sprint 1</b> is driver-app + API only (no portal); <b>Sprint 2</b> adds the admin portal. Everything grey is <b>Later</b> — sequenced but not yet slotted, because one mobile developer can't build it all at once. Click any story to trace what it's <b>blocked by</b> and what it <b>blocks</b>.</p>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Sprint summary"></section>
+
+  <div class="toolbar" role="region" aria-label="Board controls">
+    <div class="ctl">
+      <span class="cap">Sprint</span>
+      <div class="seg" id="sprintSeg" role="group" aria-label="Filter by sprint">
+        <button data-sprint="all" aria-pressed="true">All</button>
+        <button data-sprint="S1" aria-pressed="false">Sprint 1</button>
+        <button data-sprint="S2" aria-pressed="false">Sprint 2</button>
+        <button data-sprint="L" aria-pressed="false">Later</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="cap">Lanes</span>
+      <div class="lane-toggles" id="laneToggles"></div>
+    </div>
+    <button class="pathbtn" id="pathBtn" aria-pressed="false">◇ Walking skeleton</button>
+    <div class="spacer"></div>
+    <div class="hint"><span>Click a card · <kbd>Esc</kbd> clears</span></div>
+  </div>
+
+  <div class="legend" aria-hidden="false">
+    <div class="grp"><span class="spr s1">S1</span> Sprint 1 (committed)</div>
+    <div class="grp"><span class="spr s2">S2</span> Sprint 2 (committed)</div>
+    <div class="grp"><span class="spr l">Later</span> sequenced backlog</div>
+    <div class="grp"><span class="spchip">5</span> story points</div>
+    <div class="grp"><span class="spchip none">?</span> not yet estimated</div>
+    <div class="grp"><span class="swatch"></span> blocked by</div>
+    <div class="grp"><span class="swatch down"></span> blocks</div>
+  </div>
+
+  <div class="board-scroll">
+    <div class="board-inner" id="boardInner">
+      <svg class="wires" id="wires" aria-hidden="true"></svg>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    <b>How to read it.</b> Columns are the phases of one ride, in order; rows are the four delivery tracks. Sprint tags &amp; points mirror ADO iterations <code>SheDrive\Sprint 1</code> and <code>SheDrive\Sprint 2</code> as committed. <b>Walking skeleton</b> is the thinnest end-to-end ride. Notes: address autocomplete is now handled <b>on-device via the Maps SDK</b> (no API story); push-notification and auth-token services were completed as <b>Sprint 0 infrastructure</b>, so they don't appear as stories. A few <span style="color:var(--amber-deep)">?</span> cards are <b>not yet estimated</b> — they can't enter a sprint until they are. Phase&nbsp;1.5 payment &amp; scheduling stories are excluded.
+  </p>
+</div>
+
+<aside class="panel" id="panel" aria-live="polite">
+  <div class="ph">
+    <div class="pid" id="pPid"></div>
+    <div class="pt" id="pPt"></div>
+    <div class="meta">
+      <span class="lanetag" id="pLane"><span class="dot"></span><span></span></span>
+      <span class="spr" id="pSpr"></span>
+      <span class="spchip" id="pSp"></span>
+      <span style="font-size:11px;color:var(--faint)" id="pPhase"></span>
+    </div>
+    <button class="close" id="pClose" aria-label="Close details">✕</button>
+  </div>
+  <div class="body">
+    <div class="dep-h up">Blocked by <span class="cnt" id="upCnt">0</span></div>
+    <div class="dep-list" id="upList"></div>
+    <div class="dep-h down">Blocks <span class="cnt" id="downCnt">0</span></div>
+    <div class="dep-list" id="downList"></div>
+  </div>
+</aside>
+
+<script>
+const PHASES = [
+  {id:'auth',     n:'01', t:'Foundation & Auth',       s:'Accounts, OTP, sessions, portal'},
+  {id:'onboard',  n:'02', t:'Driver Onboarding',       s:'Wizard + admin approval'},
+  {id:'booking',  n:'03', t:'Booking Setup',           s:'Home, fare · driver availability · pricing'},
+  {id:'matching', n:'04', t:'Matching & Dispatch',     s:'Request → find → accept'},
+  {id:'trip',     n:'05', t:'Active Trip',             s:'Navigate, verify, live track'},
+  {id:'complete', n:'06', t:'Completion & Payment',    s:'End trip, cash fare'},
+  {id:'post',     n:'07', t:'Rating · History · Profile', s:'Feedback & records'},
+  {id:'safety',   n:'08', t:'Safety, SOS & Lifecycle', s:'SOS, cancellation, suspend, reports'},
+];
+const LANES = [
+  {id:'rider',  t:'Rider',  k:'Mobile', c:'var(--rider)'},
+  {id:'driver', t:'Driver', k:'Mobile', c:'var(--driver)'},
+  {id:'api',    t:'API',    k:'Backend', c:'var(--api)'},
+  {id:'admin',  t:'Admin',  k:'Portal', c:'var(--admin)'},
+];
+// [lane, phase, id, title, sprint(S1|S2|L), storyPoints(null=unestimated), deps]
+const S = [
+  // RIDER
+  ['rider','auth',1545,'Register (phone + OTP)','L',3,[1620,1621]],
+  ['rider','auth',1546,'Log in','L',3,[1622,1620]],
+  ['rider','auth',1547,'Log out','L',3,[1624]],
+  ['rider','auth',1745,'Session persists','L',3,[1547]],
+  ['rider','booking',1548,'Home screen + map','L',5,[1627]],
+  ['rider','booking',1549,'Address search (SDK)','L',3,[]],
+  ['rider','booking',1550,'Set pickup point','L',5,[1549]],
+  ['rider','booking',1551,'Set destination','L',3,[1549,1552]],
+  ['rider','booking',1552,'Fare estimate','L',8,[1627,1628]],
+  ['rider','matching',1554,'Matching screen','L',13,[1629,1630,1631]],
+  ['rider','matching',1555,'Confirmed driver card','L',5,[1631,1633]],
+  ['rider','matching',1790,'Declare child passenger','L',1,[1783,1588]],
+  ['rider','matching',1791,'Blocked outside hours','L',5,[1785]],
+  ['rider','trip',1559,'Driver-arrived state','L',5,[1633,1634]],
+  ['rider','trip',1560,'Push: driver arrived','L',3,[1634]],
+  ['rider','trip',1561,'Live driver location','L',8,[1818,1633,1653]],
+  ['rider','complete',1563,'Push: trip complete','L',1,[1638]],
+  ['rider','complete',1564,'Trip summary (cash)','L',5,[1637,1636]],
+  ['rider','post',1565,'Rate driver','L',3,[1639]],
+  ['rider','post',1799,'Skip rating','L',null,[1640]],
+  ['rider','post',1567,'Trip history','L',3,[1641]],
+  ['rider','post',1568,'Past trip + rate later','L',3,[1641,1639]],
+  ['rider','post',1724,'View / edit profile','L',3,[1721]],
+  ['rider','post',1729,'Change language','L',5,[1728]],
+  ['rider','safety',1719,'Cancel trip','L',5,[1715,1554,1652]],
+  ['rider','safety',1787,'Emergency contacts / SOS','L',3,[1780]],
+  // DRIVER
+  ['driver','auth',1569,'Register → onboarding','S1',3,[1620,1621]],
+  ['driver','auth',1570,'Log in','S1',3,[1620,1622]],
+  ['driver','auth',1571,'Log out','L',3,[1624]],
+  ['driver','auth',1746,'Session persists','L',5,[1570]],
+  ['driver','onboard',1572,'Personal details','S1',5,[1642]],
+  ['driver','onboard',1854,'Capture National ID','L',null,[1642,1572]],
+  ['driver','onboard',1573,'Vehicle details','S2',5,[1642]],
+  ['driver','onboard',1575,'Licence + registration','S1',3,[1642]],
+  ['driver','onboard',1574,'Vehicle photos (5)','S2',5,[1642]],
+  ['driver','onboard',1686,'Profile selfie','L',null,[1642]],
+  ['driver','onboard',1576,'Pending state','S1',5,[1643,1644]],
+  ['driver','onboard',1577,'Push: decision','S2',3,[1659,1660]],
+  ['driver','booking',1578,'Home + map','L',3,[1645,1646]],
+  ['driver','booking',1579,'Toggle online / offline','L',3,[1645,1646]],
+  ['driver','booking',1580,'Location streaming','L',5,[1646]],
+  ['driver','booking',1792,'View overall rating','L',null,[1786]],
+  ['driver','matching',1581,'Push: incoming request','L',3,[1647]],
+  ['driver','matching',1582,'Request details + timer','L',5,[1648]],
+  ['driver','matching',1583,'Accept trip','L',3,[1649]],
+  ['driver','matching',1584,'Reject trip','L',3,[1650]],
+  ['driver','matching',1585,'10s auto-expire','L',null,[1651]],
+  ['driver','trip',1586,'Navigate to pickup','L',5,[1817,1649,1652,1653]],
+  ['driver','trip',1587,'Confirm arrival','L',5,[1652,1634]],
+  ['driver','trip',1767,'Waiting counter','L',null,[1587,1633]],
+  ['driver','trip',1588,'Verify rider is female','L',null,[1635,1652,1687,1783]],
+  ['driver','trip',1589,'Start trip (boarded)','L',3,[1817,1652]],
+  ['driver','trip',1590,'Navigate to destination','L',3,[1817,1652,1653]],
+  ['driver','trip',1591,'End trip','L',5,[1652,1636]],
+  ['driver','complete',1592,'Cash to collect','L',3,[1636]],
+  ['driver','complete',1766,'Net earnings','L',5,[1759]],
+  ['driver','post',1593,'Trip history','L',5,[1655]],
+  ['driver','post',1594,'Past trip detail','L',3,[1655,1637]],
+  ['driver','post',1736,'Earnings dashboard','L',5,[1735]],
+  ['driver','post',1788,'Cash balance owed','L',null,[1781]],
+  ['driver','post',1731,'Change language','L',5,[1728]],
+  ['driver','post',1801,'View profile','L',5,[1800,1792,1731]],
+  ['driver','safety',1722,'Cancel accepted trip','L',5,[1720,1652,1759]],
+  ['driver','safety',1951,'Emergency contacts / SOS','L',null,[1952]],
+  // API
+  ['api','auth',1620,'Request OTP via SMS','S1',3,[]],
+  ['api','auth',1621,'Register with OTP','S1',3,[1620]],
+  ['api','auth',1622,'Log in with OTP','S1',3,[1620]],
+  ['api','auth',1623,'Retrieve own profile','S1',1,[]],
+  ['api','auth',1624,'Invalidate session','S1',3,[]],
+  ['api','onboard',1642,'Submit onboarding application','S1',5,[]],
+  ['api','onboard',1643,'Query onboarding status','S1',3,[]],
+  ['api','onboard',1644,'Go-online gate + decision push','S1',1,[1659,1660]],
+  ['api','booking',1747,'Fastest traffic-aware route','S1',5,[]],
+  ['api','booking',1627,'Fare estimate (route data)','S1',5,[1747]],
+  ['api','booking',1628,'Fare engine (rate card)','S1',8,[]],
+  ['api','booking',1645,'Set availability status','S2',3,[]],
+  ['api','booking',1646,'Update GPS location','S2',3,[]],
+  ['api','booking',1786,'Driver rating summary','L',null,[1654]],
+  ['api','matching',1629,'Create trip request','S2',3,[1783,1785]],
+  ['api','matching',1630,'Matching engine + reassign','S2',13,[1645,1646]],
+  ['api','matching',1631,'Poll match status','L',null,[1630]],
+  ['api','matching',1647,'Push request to driver','L',null,[1630]],
+  ['api','matching',1648,'Retrieve pending request','L',null,[1630]],
+  ['api','matching',1649,'Driver accepts trip','L',8,[1630]],
+  ['api','matching',1650,'Driver rejects trip','L',3,[1630]],
+  ['api','matching',1651,'Reassign on reject / timeout','L',null,[1630]],
+  ['api','matching',1783,'Trip child-passenger flag','L',null,[]],
+  ['api','matching',1785,'Reject outside operating hours','L',null,[]],
+  ['api','trip',1652,'Trip state machine','L',null,[]],
+  ['api','trip',1653,'Driver GPS stream','L',5,[]],
+  ['api','trip',1633,'Live trip state + driver loc','L',5,[1652,1653]],
+  ['api','trip',1634,'Push driver-arrived','L',null,[1652]],
+  ['api','trip',1635,'Trip first-trip flag','L',null,[]],
+  ['api','trip',1817,'Route + turn-by-turn (driver)','L',null,[]],
+  ['api','trip',1818,'Route geometry (rider)','L',null,[]],
+  ['api','complete',1636,'Final fare + settlement','L',null,[1628]],
+  ['api','complete',1637,'Completed trip + rating store','L',null,[]],
+  ['api','complete',1638,'Push trip completion','L',null,[1652]],
+  ['api','post',1639,'Submit driver rating','L',3,[]],
+  ['api','post',1640,'Close trip without rating','L',null,[]],
+  ['api','post',1654,'Update driver aggregate rating','L',3,[1639]],
+  ['api','post',1641,'Rider trip history','L',5,[]],
+  ['api','post',1655,'Driver trip history','L',3,[]],
+  ['api','post',1718,'Driver past trip detail','L',1,[]],
+  ['api','post',1721,'Rider profile get / update','L',null,[]],
+  ['api','post',1800,'Driver profile get','L',3,[]],
+  ['api','post',1728,'Language preference store','L',1,[]],
+  ['api','post',1735,'Driver earnings summary','L',5,[1636]],
+  ['api','post',1781,'Driver cash balance owed','L',null,[1636]],
+  ['api','safety',1715,'Rider cancels trip','L',null,[1652,1764]],
+  ['api','safety',1720,'Driver cancels trip','L',8,[1652,1764]],
+  ['api','safety',1764,'Cancellation fees after grace','L',null,[1759]],
+  ['api','safety',1687,'Suspend rider (gender mismatch)','L',3,[1739]],
+  ['api','safety',1739,'Account suspension status','L',null,[]],
+  ['api','safety',1780,'Notify contacts on SOS (rider)','L',null,[]],
+  ['api','safety',1952,'Notify contacts on SOS (driver)','L',null,[]],
+  // ADMIN
+  ['admin','auth',1656,'Portal shell + login','S2',3,[]],
+  ['admin','auth',1806,'Admin 2FA','L',5,[1656]],
+  ['admin','auth',1807,'Add admin account','L',5,[1656]],
+  ['admin','auth',1820,'Admin accounts list','L',5,[1656]],
+  ['admin','auth',1821,'Enable / disable admins','L',3,[1820]],
+  ['admin','auth',1822,'Password reset / first login','L',5,[1656]],
+  ['admin','onboard',1657,'Pending applications queue','S2',5,[1642]],
+  ['admin','onboard',1658,'View full application','S2',5,[1657]],
+  ['admin','onboard',1659,'Approve application','S2',5,[1658]],
+  ['admin','onboard',1660,'Reject application + reason','S2',5,[1658]],
+  ['admin','booking',1756,'Create service zone','L',8,[]],
+  ['admin','booking',1757,'Configure zone rate card','L',8,[1756]],
+  ['admin','booking',1759,'Global pricing + cancellation','L',5,[]],
+  ['admin','booking',1830,'Edit / delete zones','L',8,[1756]],
+  ['admin','booking',1831,'Zone list + map','L',5,[1756]],
+  ['admin','trip',1669,'Live summary dashboard','L',5,[1652]],
+  ['admin','trip',1670,'Trip list','L',5,[1652]],
+  ['admin','trip',1671,'Trip detail + state history','L',5,[1652]],
+  ['admin','trip',1823,'Live operations map','L',13,[1646,1653]],
+  ['admin','trip',1824,'Ops map clustering','L',5,[1823]],
+  ['admin','trip',1825,'Ops map marker detail','L',5,[1823]],
+  ['admin','trip',1826,'Ops map layer filter','L',5,[1823]],
+  ['admin','complete',1672,'Completed trip + fare / rating','L',8,[1637]],
+  ['admin','post',1661,'Rider list','L',5,[]],
+  ['admin','post',1662,'Rider profile','L',5,[1661]],
+  ['admin','post',1665,'Driver list (all statuses)','L',5,[]],
+  ['admin','post',1666,'Driver profile','L',5,[1665]],
+  ['admin','safety',1740,'Suspend rider','L',5,[1739]],
+  ['admin','safety',1741,'Reinstate rider','L',3,[1739]],
+  ['admin','safety',1742,'Suspend driver','L',5,[1739]],
+  ['admin','safety',1743,'Reinstate driver','L',3,[1739]],
+  ['admin','safety',1810,'Gender-mismatch queue','L',5,[1687]],
+  ['admin','safety',1811,'Action mismatch report','L',5,[1687]],
+  ['admin','safety',1832,'Revenue & commission report','L',3,[1636]],
+  ['admin','safety',1833,'Earnings / settlement report','L',8,[1636]],
+  ['admin','safety',1816,'Admin audit log','L',8,[]],
+];
+const CRITICAL = new Set([1620,1621,1545,1569,1642,1657,1658,1659,1627,1628,1548,1552,1629,1630,1631,1554,1647,1581,1649,1583,1555,1652,1653,1633,1586,1587,1559,1589,1561,1591,1636,1592,1564]);
+
+const stories = S.map(([lane,ph,id,t,s,sp,d])=>({lane,ph,id,t,s,sp,d}));
+const byId = new Map(stories.map(o=>[o.id,o]));
+const dependents = new Map();
+stories.forEach(o=>o.d.forEach(dep=>{ if(!dependents.has(dep)) dependents.set(dep,[]); dependents.get(dep).push(o.id); }));
+const LC = {rider:'#2563C9',driver:'#B7791F',api:'#0E8A8F',admin:'#2F855A'};
+const LNAME = {rider:'Rider',driver:'Driver',api:'API',admin:'Admin'};
+const PNAME = Object.fromEntries(PHASES.map(p=>[p.id,p.t]));
+const spOf = o => (o && typeof o.sp === 'number') ? o.sp : 0;
+
+(function stats(){
+  const el = document.getElementById('stats');
+  const sum = arr => arr.reduce((a,o)=>a+spOf(o),0);
+  const s1 = stories.filter(o=>o.s==='S1'), s2 = stories.filter(o=>o.s==='S2'), later = stories.filter(o=>o.s==='L');
+  const unest = stories.filter(o=>o.sp===null).length;
+  const cards = [
+    {cls:'s1', n:sum(s1), unit:'SP', l:'Sprint 1 — committed', sub:`${s1.length} stories · driver + API, no portal`},
+    {cls:'s2', n:sum(s2), unit:'SP', l:'Sprint 2 — committed', sub:`${s2.length} stories · adds admin portal`},
+    {cls:'later', n:sum(later), unit:'SP', l:'Later — sequenced', sub:`${later.length} stories · ${unest} not yet estimated`},
+    {cls:'', n:stories.length, unit:'', l:'Phase 1 stories on board', sub:`autocomplete → SDK · push/auth = Sprint 0`},
+  ];
+  el.innerHTML = cards.map(c=>`<div class="stat ${c.cls}"><div class="n">${c.n}${c.unit?` <small>${c.unit}</small>`:''}</div><div class="l">${c.l}</div><div class="sub">${c.sub}</div></div>`).join('');
+})();
+
+const board = document.getElementById('board');
+const laneVisible = {rider:true,driver:true,api:true,admin:true};
+let sprintFilter = 'all';
+
+function render(){
+  board.innerHTML='';
+  const corner = document.createElement('div'); corner.className='corner'; board.appendChild(corner);
+  PHASES.forEach(p=>{
+    const h=document.createElement('div'); h.className='phhead';
+    h.innerHTML=`<div class="pn">${p.n}</div><div class="pt">${p.t}</div><div class="ps">${p.s}</div>`;
+    board.appendChild(h);
+  });
+  LANES.forEach(lane=>{
+    if(!laneVisible[lane.id]){return;}
+    const laneStories = stories.filter(o=>o.lane===lane.id && (sprintFilter==='all'||o.s===sprintFilter));
+    const laneSP = laneStories.reduce((a,o)=>a+spOf(o),0);
+    const lh=document.createElement('div'); lh.className='lanehead'; lh.style.setProperty('--c',lane.c);
+    lh.innerHTML=`<div class="lk">${lane.k}</div><div class="ln">${lane.t}</div><div class="lc">${laneStories.length} stories · ${laneSP} SP</div>`;
+    board.appendChild(lh);
+    PHASES.forEach(p=>{
+      const cell=document.createElement('div'); cell.className='cell cell-'+lane.id; cell.style.setProperty('--c',lane.c);
+      laneStories.filter(o=>o.ph===p.id).forEach(o=>cell.appendChild(makeCard(o)));
+      board.appendChild(cell);
+    });
+  });
+  applyPathClass();
+  if(focusId && byId.has(focusId) && document.querySelector(`.card[data-id="${focusId}"]`)) focus(focusId,true);
+  else clearFocus();
+}
+
+const SPRLBL={S1:'S1',S2:'S2',L:'Later'};
+const SPRCLS={S1:'s1',S2:'s2',L:'l'};
+function makeCard(o){
+  const c=document.createElement('div');
+  c.className='card'+(o.s==='L'?' later':'');
+  c.style.setProperty('--c',LC[o.lane]);
+  c.dataset.id=o.id; c.tabIndex=0; c.setAttribute('role','button');
+  c.setAttribute('aria-label',`${o.id} ${o.t}. ${o.sp===null?'not estimated':o.sp+' points'}. ${SPRLBL[o.s]}. ${o.d.length} dependencies.`);
+  const spTxt = o.sp===null ? '<span class="spchip none">?</span>' : `<span class="spchip">${o.sp}</span>`;
+  c.innerHTML=`<div class="top"><span class="id">#${o.id}</span><div class="badges"><span class="spr ${SPRCLS[o.s]}">${SPRLBL[o.s]}</span>${spTxt}</div></div><div class="t">${o.t}</div>`;
+  c.addEventListener('click',()=>focus(o.id));
+  c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();focus(o.id);}});
+  return c;
+}
+
+const wires=document.getElementById('wires');
+const boardInner=document.getElementById('boardInner');
+let focusId=null;
+
+function focus(id,silent){
+  focusId=id;
+  const o=byId.get(id);
+  board.classList.add('has-focus');
+  board.querySelectorAll('.card').forEach(c=>c.classList.remove('is-focus','is-up','is-down'));
+  const fc=board.querySelector(`.card[data-id="${id}"]`);
+  if(fc) fc.classList.add('is-focus');
+  const ups=o.d.filter(d=>byId.has(d));
+  const downs=(dependents.get(id)||[]);
+  ups.forEach(d=>{const el=board.querySelector(`.card[data-id="${d}"]`);if(el)el.classList.add('is-up');});
+  downs.forEach(d=>{const el=board.querySelector(`.card[data-id="${d}"]`);if(el)el.classList.add('is-down');});
+  drawWires(id,ups,downs);
+  openPanel(o,ups,downs);
+  if(fc && !silent){fc.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}
+}
+
+function centre(el){
+  const r=el.getBoundingClientRect(), b=boardInner.getBoundingClientRect();
+  return {x:r.left-b.left+r.width/2, y:r.top-b.top+r.height/2, l:r.left-b.left, rt:r.right-b.left};
+}
+function drawWires(id,ups,downs){
+  wires.setAttribute('width',boardInner.offsetWidth);
+  wires.setAttribute('height',boardInner.offsetHeight);
+  wires.innerHTML='';
+  const fc=board.querySelector(`.card[data-id="${id}"]`);
+  if(!fc)return;
+  const f=centre(fc);
+  const edge=(a,b)=>{ const ax = b.x>=a.x? a.rt : a.l; const bx = b.x>=a.x? b.l : b.rt; return [ax,a.y,bx,b.y]; };
+  const path=(x1,y1,x2,y2,cls)=>{
+    const mx=(x1+x2)/2;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',`M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+    p.setAttribute('class',cls); wires.appendChild(p);
+  };
+  ups.forEach(d=>{const el=board.querySelector(`.card[data-id="${d}"]`);if(!el)return;const u=centre(el);const[a,b,c2,e]=edge(f,u);path(a,b,c2,e,'w-up');});
+  downs.forEach(d=>{const el=board.querySelector(`.card[data-id="${d}"]`);if(!el)return;const dn=centre(el);const[a,b,c2,e]=edge(f,dn);path(a,b,c2,e,'w-down');});
+}
+
+function clearFocus(){
+  focusId=null;
+  board.classList.remove('has-focus');
+  board.querySelectorAll('.card').forEach(c=>c.classList.remove('is-focus','is-up','is-down'));
+  wires.innerHTML='';
+  closePanel();
+}
+
+const panel=document.getElementById('panel');
+function depRow(id){
+  const o=byId.get(id);
+  if(!o){return `<div class="deprow missing"><span class="di">#${id}</span><span class="dt">(consolidated / not on board)</span></div>`;}
+  const sp = o.sp===null?'?':o.sp;
+  return `<button class="deprow" data-goto="${id}"><span class="dl" style="background:${LC[o.lane]}"></span><span class="di">#${id}</span><span class="dt">${o.t}</span><span class="spchip${o.sp===null?' none':''}">${sp}</span></button>`;
+}
+function openPanel(o,ups,downs){
+  document.getElementById('pPid').textContent='#'+o.id;
+  document.getElementById('pPt').textContent=o.t;
+  const lane=document.getElementById('pLane');
+  lane.style.setProperty('--c',LC[o.lane]);
+  lane.querySelector('span:last-child').textContent=LNAME[o.lane];
+  const spr=document.getElementById('pSpr');
+  spr.className='spr '+SPRCLS[o.s]; spr.textContent={S1:'Sprint 1',S2:'Sprint 2',L:'Later'}[o.s];
+  const psp=document.getElementById('pSp');
+  psp.className='spchip'+(o.sp===null?' none':''); psp.textContent=(o.sp===null?'? SP':o.sp+' SP');
+  document.getElementById('pPhase').textContent='· '+PNAME[o.ph];
+  const upAll=o.d;
+  document.getElementById('upCnt').textContent=upAll.length;
+  document.getElementById('downCnt').textContent=downs.length;
+  document.getElementById('upList').innerHTML = upAll.length? upAll.map(depRow).join('') : '<p class="none">Nothing — this is a starting point.</p>';
+  document.getElementById('downList').innerHTML = downs.length? downs.map(depRow).join('') : '<p class="none">Nothing depends on this one.</p>';
+  panel.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>focus(+b.dataset.goto)));
+  panel.classList.add('open');
+}
+function closePanel(){panel.classList.remove('open');}
+document.getElementById('pClose').addEventListener('click',clearFocus);
+
+document.getElementById('sprintSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  sprintFilter=b.dataset.sprint;
+  document.querySelectorAll('#sprintSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  render();
+});
+const laneToggles=document.getElementById('laneToggles');
+LANES.forEach(l=>{
+  const b=document.createElement('button');
+  b.className='lanechip';b.style.setProperty('--c',l.c);b.setAttribute('aria-pressed','true');
+  b.innerHTML=`<span class="dot"></span>${l.t}`;
+  b.addEventListener('click',()=>{laneVisible[l.id]=!laneVisible[l.id];b.setAttribute('aria-pressed',laneVisible[l.id]);render();});
+  laneToggles.appendChild(b);
+});
+const pathBtn=document.getElementById('pathBtn');
+let pathOn=false;
+pathBtn.addEventListener('click',()=>{pathOn=!pathOn;pathBtn.setAttribute('aria-pressed',pathOn);applyPathClass();});
+function applyPathClass(){
+  board.classList.toggle('path-on',pathOn);
+  board.querySelectorAll('.card').forEach(c=>c.classList.toggle('on-path',pathOn&&CRITICAL.has(+c.dataset.id)));
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')clearFocus();});
+document.querySelector('.board-scroll').addEventListener('click',e=>{if(e.target.classList.contains('cell')||e.target.classList.contains('board'))clearFocus();});
+let rt;
+window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(focusId)focus(focusId,true);},120);});
+
+render();
+</script>
+</body>
+</html>
