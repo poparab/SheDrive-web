@@ -1,6 +1,6 @@
 name = "shedrive-web"
+pages_build_output_dir = "."
 compatibility_date = "2026-05-14"
-compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "."
