@@ -79,22 +79,6 @@
             <!-- Step 1: Phone number -->
             <section class="login-step" id="step-phone" aria-label="Phone number step">
 
-              <!-- Register-only: full name -->
-              <div class="field auth-mode--register" id="name-field" hidden>
-                <label class="field__label" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
-                <input
-                  type="text"
-                  id="name-input"
-                  name="fullname"
-                  class="input"
-                  autocomplete="name"
-                  data-i18n-placeholder="register.name.placeholder"
-                  placeholder="الاسم كما هو رسمياً"
-                  aria-describedby="name-error"
-                />
-                <span id="name-error" class="field__error" role="alert" hidden></span>
-              </div>
-
               <div class="field">
                 <label class="field__label" for="phone-input" data-i18n="login.phone.label">
                   رقم الهاتف
@@ -124,8 +108,8 @@
                     name="phone"
                     class="input"
                     inputmode="numeric"
-                    pattern="[0-9]{10}"
-                    maxlength="10"
+                    pattern="[0-9]{11}"
+                    maxlength="11"
                     autocomplete="tel-national"
                     data-i18n-placeholder="login.phone.placeholder"
                     style="flex: 1 1 auto; min-inline-size: 0;"
@@ -136,7 +120,7 @@
                 </div>
 
                 <span id="phone-error" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden data-i18n="login.error.phone">
-                  يرجى إدخال رقم هاتف مصري مكوّن من 10 أرقام
+                  يرجى إدخال رقم هاتف مصري مكوّن من 11 رقماً
                 </span>
               </div>
 
@@ -147,6 +131,23 @@
 
             <!-- Step 2: OTP (hidden until OTP sent) -->
             <section class="login-step login-step--hidden" id="step-otp" aria-label="Verification code step">
+
+              <!-- Register-only: full name (collected alongside OTP per #1545) -->
+              <div class="field auth-mode--register" id="name-field" hidden>
+                <label class="field__label" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
+                <input
+                  type="text"
+                  id="name-input"
+                  name="fullname"
+                  class="input"
+                  autocomplete="name"
+                  data-i18n-placeholder="register.name.placeholder"
+                  placeholder="الاسم كما هو رسمياً"
+                  aria-describedby="name-error"
+                />
+                <span id="name-error" class="field__error" role="alert" hidden></span>
+              </div>
+
               <div class="field otp-panel">
                 <label class="field__label otp-panel__title" data-i18n="login.otp.label">رمز التحقق</label>
                 <p class="field__hint otp-panel__hint" id="otp-hint" data-i18n="login.otp.hint">

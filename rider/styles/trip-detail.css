@@ -211,6 +211,32 @@
   color: var(--color-primary-700);
 }
 
+/* ── Distance & duration (#1568) ──────────────────────── */
+
+.trip-detail-meta {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.trip-detail-meta__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.trip-detail-meta__value {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.trip-detail-meta__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
 /* ── Rating ─────────────────────────────────────────── */
 
 .trip-detail-rating__title {

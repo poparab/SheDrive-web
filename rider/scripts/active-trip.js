@@ -156,14 +156,41 @@ if (urlState === 'arrived' || document.body.dataset.state === 'arrived') {
   }
 }
 
-// ── Cancel trip ───────────────────────────────────────
+// ── Cancel trip (#1719/#1852) ──────────────────────────
+// Free within the grace period; a fee applies once the driver has arrived, or once she's
+// been en route to pickup for 3+ minutes.
+const CANCEL_GRACE_PERIOD_MS = 3 * 60 * 1000;
 const cancelDialog = qs('#trip-cancel-dialog');
 const cancelBtn    = qs('#trip-cancel-btn');
 
-cancelBtn?.addEventListener('click', () => cancelDialog?.open?.());
+function feeApplies() {
+  if (document.body.dataset.state === 'arrived') return true;
+  const matchedAt = Number(sessionStorage.getItem('shedrive.tripMatchedAt') || Date.now());
+  return Date.now() - matchedAt >= CANCEL_GRACE_PERIOD_MS;
+}
+
+cancelBtn?.addEventListener('click', () => {
+  if (cancelDialog) {
+    const fee = feeApplies();
+    cancelDialog.setAttribute('body-key', fee ? 'cancel.tripBodyFee' : 'cancel.tripBody');
+    cancelDialog.dataset.feeApplies = String(fee);
+  }
+  cancelDialog?.open?.();
+});
+
 cancelDialog?.addEventListener('sd-confirm', () => {
   clearInterval(etaInterval);
+  const fee = cancelDialog?.dataset.feeApplies === 'true';
+  // Keep the trip (marked cancelled) so home.html restores pickup/destination — #1719.
+  sessionStorage.setItem('shedrive.pendingTrip', JSON.stringify({
+    pickup: trip.pickup,
+    destination: trip.destination,
+    childPassenger: trip.childPassenger,
+    cancelled: true,
+    cancellationFeeApplied: fee,
+  }));
   sessionStorage.removeItem('shedrive.activeTrip');
+  sessionStorage.removeItem('shedrive.tripMatchedAt');
   window.location.assign('./home.html');
 });
 
@@ -220,23 +247,3 @@ qs('#demo-end-btn')?.addEventListener('click', () => {
   window.location.assign('./trip-complete.html');
 });
 
-// ── Call / Message stubs ──────────────────────────────
-qs('#call-btn')?.addEventListener('click', () => {
-  showToast(translate('trip.call') + '…', 'info');
-});
-
-qs('#message-btn')?.addEventListener('click', () => {
-  showToast(translate('trip.message') + '…', 'info');
-});
-
-// ── Toast helper ──────────────────────────────────────
-function showToast(msg, type = 'info') {
-  const container = qs('#toast-container');
-  if (!container) return;
-  const t = document.createElement('div');
-  t.className = `toast toast--${type}`;
-  t.setAttribute('role', 'status');
-  t.textContent = msg;
-  container.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
-}

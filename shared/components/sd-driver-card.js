@@ -27,7 +27,10 @@ class SdDriverCard extends HTMLElement {
     this.replaceChildren();
 
     if (variant === 'compact') {
-      this.append(this.buildCompactAvatar(avatarFallback), this.buildCompactInfo(nameId, nameFallback, promptKey, promptFallback));
+      this.append(
+        this.buildCompactAvatar(avatarFallback),
+        this.buildCompactInfo(nameId, nameFallback, promptKey, promptFallback, ratingId, ratingFallback, vehicleId, vehicleFallback),
+      );
     } else {
       this.append(
         this.buildDetailedAvatar(avatarFallback),
@@ -99,7 +102,7 @@ class SdDriverCard extends HTMLElement {
     return avatar;
   }
 
-  buildCompactInfo(nameId, nameFallback, promptKey, promptFallback) {
+  buildCompactInfo(nameId, nameFallback, promptKey, promptFallback, ratingId, ratingFallback, vehicleId, vehicleFallback) {
     const info = document.createElement('div');
     info.className = 'driver-card__info';
 
@@ -115,6 +118,24 @@ class SdDriverCard extends HTMLElement {
       prompt.setAttribute('data-i18n', promptKey);
       prompt.textContent = promptFallback;
       info.appendChild(prompt);
+    }
+
+    if (ratingId) {
+      const rating = document.createElement('p');
+      rating.className = 'driver-card__rating';
+      rating.id = ratingId;
+      rating.setAttribute('aria-label', 'التقييم');
+      rating.setAttribute('data-i18n-aria-label', 'trip.rating');
+      rating.textContent = ratingFallback;
+      info.appendChild(rating);
+    }
+
+    if (vehicleId) {
+      const vehicle = document.createElement('p');
+      vehicle.className = 'driver-card__vehicle';
+      vehicle.id = vehicleId;
+      vehicle.textContent = vehicleFallback;
+      info.appendChild(vehicle);
     }
 
     return info;

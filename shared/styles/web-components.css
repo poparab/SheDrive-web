@@ -159,6 +159,62 @@ sd-confirm-dialog .confirm-dialog__body {
   line-height: var(--leading-relaxed);
 }
 
+/* ── sd-driver-card (compact variant) — shared across trip-complete and trip-detail ── */
+.driver-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.driver-card__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+}
+
+.driver-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.driver-card__name {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.driver-card__prompt {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.driver-card__rating {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.driver-card__vehicle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
 sd-confirm-dialog .confirm-dialog__actions {
   display: flex;
   flex-direction: column;

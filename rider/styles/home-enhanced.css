@@ -250,8 +250,11 @@
   text-align: center;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  display: none;
   margin: 0;
+}
+
+.search-no-results[hidden] {
+  display: none;
 }
 
 /* Hide suggestions list by default; shown while typing (designer static demo shows both) */

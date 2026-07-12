@@ -14,6 +14,8 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
+qs('#login-form')?.addEventListener('submit', (e) => e.preventDefault());
+
 // ── Mode state ────────────────────────────────────────
 let mode = 'login'; // 'login' | 'register'
 let attempts = 0;
@@ -72,7 +74,7 @@ const phoneError = qs('#phone-error');
 const sendOtpBtn = qs('#send-otp-btn');
 
 function validatePhone(digits) {
-  return /^01[0-9]/.test(digits) && digits.length === 10;
+  return /^01[0125]/.test(digits) && digits.length === 11;
 }
 
 function clearPhoneError() {
@@ -96,26 +98,6 @@ sendOtpBtn?.addEventListener('click', () => {
     return;
   }
 
-  // Validate name in register mode
-  if (mode === 'register') {
-    const nameVal = (nameInput?.value || '').trim();
-    if (!nameVal) {
-      if (nameError) { nameError.textContent = translate('register.name.error.empty'); nameError.hidden = false; }
-      nameInput?.focus();
-      return;
-    }
-    if (!/^[\p{L}\s'-]+$/u.test(nameVal)) {
-      if (nameError) { nameError.textContent = translate('register.name.error.format'); nameError.hidden = false; }
-      nameInput?.focus();
-      return;
-    }
-    if (nameVal.length < 2 || nameVal.length > 50) {
-      if (nameError) { nameError.textContent = translate('register.name.error.length'); nameError.hidden = false; }
-      nameInput?.focus();
-      return;
-    }
-  }
-
   // Mock: phone starting 0199 is "not registered" in login mode
   if (mode === 'login' && digits.startsWith('0199')) {
     showPhoneError('login.error.notRegistered');
@@ -131,14 +113,9 @@ sendOtpBtn?.addEventListener('click', () => {
     return;
   }
 
-  // Mock: register mode with already-registered number (0100) → silent login
-  if (mode === 'register' && digits.startsWith('0100')) {
-    auth.login('rider', digits);
-    window.location.assign('./home.html');
-    return;
-  }
-
-  // Proceed to OTP step
+  // Proceed to OTP step. A register-mode number that's already registered (0100) still
+  // gets an OTP sent and verified per #1545 scenario 2 — verifyOtp() auto-logs her in
+  // on success with no separate "conflict" error shown.
   startOtpStep(digits);
 });
 
@@ -184,7 +161,32 @@ function clearOtpError() {
   otpInput?.removeAttribute('error');
 }
 
+// Register mode collects full name alongside OTP (#1545). Returns true if OK to proceed.
+function validateNameForSubmit() {
+  if (mode !== 'register') return true;
+  const nameVal = (nameInput?.value || '').trim();
+  if (!nameVal) {
+    if (nameError) { nameError.textContent = translate('register.name.error.empty'); nameError.hidden = false; }
+    nameInput?.focus();
+    return false;
+  }
+  if (!/^[\p{L}\s'-]+$/u.test(nameVal)) {
+    if (nameError) { nameError.textContent = translate('register.name.error.format'); nameError.hidden = false; }
+    nameInput?.focus();
+    return false;
+  }
+  if (nameVal.length < 2 || nameVal.length > 50) {
+    if (nameError) { nameError.textContent = translate('register.name.error.length'); nameError.hidden = false; }
+    nameInput?.focus();
+    return false;
+  }
+  if (nameError) nameError.hidden = true;
+  return true;
+}
+
 function verifyOtp(value) {
+  if (!validateNameForSubmit()) return;
+
   if (isExpired) {
     showOtpError('login.error.expired');
     otpInput?.setAttribute('error', 'true');

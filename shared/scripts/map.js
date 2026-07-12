@@ -129,7 +129,9 @@ export const MapService = {
           resolve([pos.coords.longitude, pos.coords.latitude]);
         },
         (err) => {
-          reject(new Error(`Geolocation error: ${err.message}`));
+          const error = new Error(`Geolocation error: ${err.message}`);
+          error.code = err.code; // preserve PERMISSION_DENIED (1) / POSITION_UNAVAILABLE (2) / TIMEOUT (3)
+          reject(error);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
       );

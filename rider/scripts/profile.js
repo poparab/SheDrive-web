@@ -6,18 +6,42 @@ import { storage } from '../../shared/scripts/storage.js';
 auth.requireAuth();
 await initI18n();
 
+document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
+  btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
+);
+
 const session     = auth.getSession();
 const phoneInput  = qs('#profile-phone');
 const nameInput   = qs('#profile-name');
 const emailInput  = qs('#profile-email');
 const nameError   = qs('#profile-name-error');
 const saveBtn     = qs('#save-btn');
+const phoneNote   = qs('#profile-phone-note');
+const heroName    = qs('#profile-hero-name');
+const heroPhone   = qs('#profile-hero-phone');
 
 // Populate fields
-if (phoneInput) phoneInput.value = session?.phone ? `+20 ${session.phone}` : '';
+const displayPhone = session?.phone ? `+20 ${session.phone}` : '';
+if (phoneInput) phoneInput.value = displayPhone;
 const saved = storage.get('shedrive.profile') || {};
 if (nameInput)  nameInput.value  = saved.name  || '';
 if (emailInput) emailInput.value = saved.email || '';
+
+function updateHero() {
+  if (heroName) heroName.textContent = nameInput?.value?.trim() || translate('profile.title');
+  if (heroPhone) heroPhone.textContent = displayPhone;
+}
+updateHero();
+
+// Tapping the read-only phone field does not enter edit mode — it shows an explanatory note (#1724).
+phoneInput?.addEventListener('click', () => { if (phoneNote) phoneNote.hidden = false; });
+phoneInput?.addEventListener('focus', () => { if (phoneNote) phoneNote.hidden = false; });
+
+// Logout — #1853
+qs('#profile-logout-btn')?.addEventListener('click', () => {
+  auth.logout();
+  window.location.replace('./index.html');
+});
 
 // Language selector
 const currentLang = localStorage.getItem('shedrive.lang') || 'ar';
@@ -52,6 +76,7 @@ qs('#profile-form')?.addEventListener('submit', (e) => {
   }
   if (nameError) nameError.hidden = true;
   storage.set('shedrive.profile', { name, email: emailInput?.value?.trim() || '' });
+  updateHero();
   showToast(translate('profile.success'), 'success');
 });
 

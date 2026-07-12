@@ -10,9 +10,11 @@
  *   sd-otp-change    — fired on each digit change; detail.value = current string (may be partial)
  */
 
+import { translate, I18N_EVENT } from '../scripts/i18n.js';
+
 const TEMPLATE = document.createElement('template');
 TEMPLATE.innerHTML = `
-<div class="otp-boxes" role="group" aria-label="رمز التحقق">
+<div class="otp-boxes" role="group">
 </div>
 `;
 
@@ -20,6 +22,7 @@ class SdOtpInput extends HTMLElement {
   constructor() {
     super();
     this._boxes = [];
+    this._onI18nUpdate = () => this._applyLabels();
   }
 
   static get observedAttributes() {
@@ -30,6 +33,11 @@ class SdOtpInput extends HTMLElement {
     this.appendChild(TEMPLATE.content.cloneNode(true));
     this._container = this.querySelector('.otp-boxes');
     this._build();
+    document.addEventListener(I18N_EVENT, this._onI18nUpdate);
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener(I18N_EVENT, this._onI18nUpdate);
   }
 
   attributeChangedCallback(name) {
@@ -50,7 +58,6 @@ class SdOtpInput extends HTMLElement {
       input.maxLength = 1;
       input.className = 'otp-box';
       input.autocomplete = i === 0 ? 'one-time-code' : 'off';
-      input.setAttribute('aria-label', `الرقم ${i + 1} من ${len}`);
       input.dataset.index = String(i);
 
       input.addEventListener('input', (e) => this._onInput(e, i));
@@ -62,7 +69,13 @@ class SdOtpInput extends HTMLElement {
       this._boxes.push(input);
     }
 
+    this._applyLabels();
     this._updateErrorState();
+  }
+
+  _applyLabels() {
+    if (this._container) this._container.setAttribute('aria-label', translate('aria.otp.group'));
+    this._boxes.forEach((b, i) => b.setAttribute('aria-label', translate('aria.otp.digit', { n: String(i + 1) })));
   }
 
   _onInput(e, index) {

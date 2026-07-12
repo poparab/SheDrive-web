@@ -120,7 +120,7 @@
           </button>
         </div>
 
-        <!-- Current location quick-select -->
+        <!-- Current location quick-select — pickup only, per #1550/#1551 -->
         <button type="button" class="search-current-loc" id="use-current-loc-btn">
           <span class="search-current-loc__icon" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -131,77 +131,73 @@
           <span data-i18n="home.search.currentLoc">موقعي الحالي</span>
         </button>
 
-        <div role="listbox" id="search-suggestions" aria-label="اقتراحات البحث">
-          <!-- Recent searches -->
-          <p class="search-section-label" data-i18n="home.search.recent">البحث السابق</p>
-          <ul class="search-list" aria-label="البحث السابق">
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">سيتي ستارز — النزهة</span>
-                <span class="search-row__sub">مدينة نصر، القاهرة</span>
-              </span>
-            </li>
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">المستشفى التخصصي</span>
-                <span class="search-row__sub">المعادي، القاهرة</span>
-              </span>
-            </li>
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">الجامعة الأمريكية — التحرير</span>
-                <span class="search-row__sub">وسط القاهرة</span>
-              </span>
-            </li>
-          </ul>
+        <!-- Drop a pin on the map — available for both pickup and destination -->
+        <button type="button" class="search-current-loc" id="pin-drop-btn">
+          <span class="search-current-loc__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </span>
+          <span data-i18n="home.search.pinDrop">تحديد على الخريطة</span>
+        </button>
 
-          <!-- Autocomplete suggestions (shown while typing) -->
-          <ul class="search-list search-list--suggestions" aria-label="اقتراحات">
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">مول العرب</span>
-                <span class="search-row__sub">طريق مصر - الإسكندرية الصحراوي، الجيزة · 14 كم</span>
-              </span>
-            </li>
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">مطار القاهرة الدولي</span>
-                <span class="search-row__sub">المطار، القاهرة · 22 كم</span>
-              </span>
-            </li>
-            <li class="search-row" role="option" aria-selected="false" tabindex="0">
-              <span class="search-row__icon search-row__icon--pin" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </span>
-              <span class="search-row__text">
-                <span class="search-row__name">برج القاهرة</span>
-                <span class="search-row__sub">الزمالك، القاهرة · 5 كم</span>
-              </span>
-            </li>
-          </ul>
+        <div role="listbox" id="search-suggestions" aria-label="اقتراحات البحث">
+          <!-- Recent searches (shown while the query is under 2 characters) -->
+          <div id="search-recent-block">
+            <p class="search-section-label" data-i18n="home.search.recent">البحث السابق</p>
+            <ul class="search-list" id="search-recent-list" aria-label="البحث السابق">
+              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="سيتي ستارز — النزهة" data-sub="مدينة نصر، القاهرة">
+                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </span>
+                <span class="search-row__text">
+                  <span class="search-row__name">سيتي ستارز — النزهة</span>
+                  <span class="search-row__sub">مدينة نصر، القاهرة</span>
+                </span>
+              </li>
+              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="المستشفى التخصصي" data-sub="المعادي، القاهرة">
+                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </span>
+                <span class="search-row__text">
+                  <span class="search-row__name">المستشفى التخصصي</span>
+                  <span class="search-row__sub">المعادي، القاهرة</span>
+                </span>
+              </li>
+              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="الجامعة الأمريكية — التحرير" data-sub="وسط القاهرة">
+                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </span>
+                <span class="search-row__text">
+                  <span class="search-row__name">الجامعة الأمريكية — التحرير</span>
+                  <span class="search-row__sub">وسط القاهرة</span>
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Autocomplete suggestions — rendered from search-input by scripts/home.js (2-char threshold, max 5) -->
+          <ul class="search-list search-list--suggestions" id="search-suggestions-list" aria-label="اقتراحات" hidden></ul>
 
           <!-- No results state (hidden by default) -->
-          <p class="search-no-results" aria-live="polite" data-i18n="home.search.noResults">لا توجد نتائج</p>
+          <p class="search-no-results" id="search-no-results" aria-live="polite" data-i18n="home.search.noResults" hidden>لا توجد نتائج</p>
         </div>
       </div>
 
       <!-- ── Booking Bottom Sheet (default state) ──────── -->
       <sd-bottom-sheet id="ride-sheet" data-i18n-aria-label="aria.requestRideSheet">
+
+        <!-- Child-passenger declaration (per-trip, default off) — #1790. Persistent across
+             both the default and fare-estimate panels so it stays visible before requesting. -->
+        <label class="child-toggle" for="child-toggle-input">
+          <span class="child-toggle__control">
+            <input type="checkbox" id="child-toggle-input" class="child-toggle__checkbox" role="switch" />
+            <span class="child-toggle__track" aria-hidden="true"><span class="child-toggle__thumb"></span></span>
+          </span>
+          <span class="child-toggle__text">
+            <span class="child-toggle__label" data-i18n="home.child.label">هذه الرحلة لطفل (أقل من ١٢ سنة)</span>
+            <span class="child-toggle__hint" data-i18n="home.child.hint">الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط</span>
+          </span>
+        </label>
+
         <!-- Default booking panel -->
         <div class="fare-default-panel">
           <div class="pickup-destination">
@@ -238,19 +234,8 @@
           </div>
           <p class="field__error" id="same-location-error" hidden role="alert" data-i18n="home.dest.sameAsPickup">يرجى اختيار وجهة مختلفة عن موقع الانطلاق</p>
 
-          <!-- Child-passenger declaration (per-trip, default off) — #1790 -->
-          <label class="child-toggle" for="child-toggle-input">
-            <span class="child-toggle__control">
-              <input type="checkbox" id="child-toggle-input" class="child-toggle__checkbox" role="switch" />
-              <span class="child-toggle__track" aria-hidden="true"><span class="child-toggle__thumb"></span></span>
-            </span>
-            <span class="child-toggle__text">
-              <span class="child-toggle__label" data-i18n="home.child.label">هذه الرحلة لطفل (أقل من ١٢ سنة)</span>
-              <span class="child-toggle__hint" data-i18n="home.child.hint">الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط</span>
-            </span>
-          </label>
-
-          <sd-button id="request-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
+          <!-- Inactive until a fare has been fetched (fare panel below) — #1548/#1552 -->
+          <sd-button id="request-ride-btn" variant="primary" size="lg" full disabled data-i18n="home.requestRide">
             طلب رحلة
           </sd-button>
         </div>
@@ -262,7 +247,7 @@
               <div class="pickup-destination__connector" aria-hidden="true"></div>
               <div class="pickup-row pickup-row--pickup">
                 <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
-                <span class="fare-route__label">موقعي الحالي</span>
+                <span class="fare-route__label" id="fare-route-pickup">موقعي الحالي</span>
               </div>
               <div class="pickup-row">
                 <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>

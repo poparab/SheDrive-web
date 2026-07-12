@@ -74,7 +74,7 @@
         <!-- ── Date & time ────────────────────────────── -->
         <section class="trip-detail-card trip-detail-datetime" aria-label="تاريخ ووقت الرحلة">
           <span class="trip-detail-card__label" data-i18n="tripDetail.date">التاريخ والوقت</span>
-          <span class="trip-detail-card__value trip-detail-datetime__value">الإثنين، ٢ يونيو ٢٠٢٦ — ٠٩:٣٤ ص</span>
+          <span class="trip-detail-card__value trip-detail-datetime__value" id="detail-datetime">الإثنين، ٢ يونيو ٢٠٢٦ — ٠٩:٣٤ ص</span>
         </section>
 
         <!-- ── Route detail ───────────────────────────── -->
@@ -83,7 +83,7 @@
             <span class="trip-detail-route__dot trip-detail-route__dot--green" aria-hidden="true"></span>
             <div class="trip-detail-route__text">
               <span class="trip-detail-route__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
-              <span class="trip-detail-route__address">المعادي، القاهرة — شارع ٩</span>
+              <span class="trip-detail-route__address" id="detail-pickup">المعادي، القاهرة — شارع ٩</span>
             </div>
           </div>
           <div class="trip-detail-route__connector" aria-hidden="true"></div>
@@ -91,8 +91,20 @@
             <span class="trip-detail-route__dot trip-detail-route__dot--magenta" aria-hidden="true"></span>
             <div class="trip-detail-route__text">
               <span class="trip-detail-route__label" data-i18n="home.destination.label">الوجهة</span>
-              <span class="trip-detail-route__address">مدينة نصر — سيتي ستارز</span>
+              <span class="trip-detail-route__address" id="detail-destination">مدينة نصر — سيتي ستارز</span>
             </div>
+          </div>
+        </section>
+
+        <!-- ── Trip distance & duration (#1568) ────────── -->
+        <section class="trip-detail-card trip-detail-meta" aria-label="المسافة والمدة" role="list">
+          <div class="trip-detail-meta__item" role="listitem">
+            <span class="trip-detail-meta__value" id="detail-distance">8.2 <span data-i18n="complete.km">كم</span></span>
+            <span class="trip-detail-meta__label" data-i18n="complete.distance">المسافة</span>
+          </div>
+          <div class="trip-detail-meta__item" role="listitem">
+            <span class="trip-detail-meta__value" id="detail-duration">18 <span data-i18n="complete.minutes">دقيقة</span></span>
+            <span class="trip-detail-meta__label" data-i18n="complete.duration">المدة</span>
           </div>
         </section>
 
@@ -102,6 +114,8 @@
           variant="compact"
           name-id="detail-driver-name"
           name-fallback="نورا أحمد"
+          vehicle-id="detail-driver-vehicle"
+          vehicle-fallback="تويوتا كورولا 2023 — أبيض"
           avatar="ن"
           prompt-key="trip.driver"
           prompt-fallback="سائقتك"
@@ -113,30 +127,31 @@
 
           <div class="trip-detail-fare__row">
             <span data-i18n="tripDetail.base">السعر الأساسي</span>
-            <span>٥ ج.م.</span>
+            <span id="detail-fare-base">٥ ج.م.</span>
           </div>
           <div class="trip-detail-fare__row">
             <span data-i18n="tripDetail.distanceFare">رسوم المسافة</span>
-            <span>٣٢ ج.م.</span>
+            <span id="detail-fare-distance">٣٢ ج.م.</span>
           </div>
           <div class="trip-detail-fare__row">
             <span data-i18n="tripDetail.durationFare">رسوم الوقت</span>
-            <span>١٨ ج.م.</span>
+            <span id="detail-fare-duration">١٨ ج.م.</span>
           </div>
 
           <div class="trip-detail-fare__divider" role="separator" aria-hidden="true"></div>
 
           <div class="trip-detail-fare__row trip-detail-fare__row--total">
             <span data-i18n="tripDetail.total">الإجمالي</span>
-            <span class="trip-detail-fare__total-amount">٥٥ ج.م.</span>
+            <span class="trip-detail-fare__total-amount" id="detail-fare-total">٥٥ ج.م.</span>
           </div>
         </section>
 
-        <!-- ── Your rating ────────────────────────────── -->
-        <section class="trip-detail-card trip-detail-rating state--rated" aria-label="تقييمك">
+        <!-- ── Your rating (populated from the selected trip's rating, or the interactive
+             rate-section below if she skipped the post-trip prompt — #1568) ─────────── -->
+        <section class="trip-detail-card trip-detail-rating state--rated" id="rating-display-section" aria-label="تقييمك">
           <h3 class="trip-detail-rating__title" data-i18n="tripDetail.yourRating">تقييمك</h3>
 
-          <div class="trip-detail-rating__stars" aria-label="٥ نجوم من ٥" role="img">
+          <div class="trip-detail-rating__stars" id="detail-rating-stars" role="img">
             <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
             <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
             <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
@@ -144,11 +159,7 @@
             <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
           </div>
 
-          <div class="trip-detail-rating__tags">
-            <span class="tag-chip tag-chip--selected" data-i18n="complete.tagSafe">قيادة آمنة</span>
-            <span class="tag-chip tag-chip--selected" data-i18n="complete.tagClean">سيارة نظيفة</span>
-            <span class="tag-chip tag-chip--selected" data-i18n="complete.tagOnTime">في الموعد</span>
-          </div>
+          <div class="trip-detail-rating__tags" id="detail-rating-tags"></div>
         </section>
 
         <!-- ── Rate this trip (state=unrated) ───────────── -->
@@ -158,21 +169,17 @@
           <p class="field__error" id="detail-stars-error" hidden role="alert" data-i18n="complete.starsError">يرجى اختيار تقييم أولاً</p>
           <button type="button" class="btn btn--primary btn--full" id="detail-rate-btn" data-i18n="tripDetail.rateTripSubmit">إرسال التقييم</button>
         </section>
-        <p class="trip-detail-rated-msg state--rated" id="rating-submitted-msg" hidden data-i18n="tripDetail.ratingSubmitted">تم إرسال تقييمك</p>
+        <p class="trip-detail-rated-msg" id="rating-submitted-msg" hidden data-i18n="tripDetail.ratingSubmitted">تم إرسال تقييمك</p>
 
         <!-- ── Trip reference ─────────────────────────── -->
         <p class="trip-detail-ref">
           <span data-i18n="tripDetail.ref">رقم الرحلة</span>
-          <span class="trip-detail-ref__id">#SDR-20260602-0041</span>
+          <span class="trip-detail-ref__id" id="detail-ref-id">#SDR-20260602-0041</span>
         </p>
 
       </main>
     </sd-page>
 
     <script type="module" src="scripts/trip-detail.js"></script>
-    <script type="module">
-      const s = new URLSearchParams(location.search).get('state');
-      if (s) document.body.dataset.state = s;
-    </script>
   </body>
 </html>

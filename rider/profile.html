@@ -8,7 +8,7 @@
   </head>
   <body>
     <sd-page body-class="app-shell profile-page" screen-styles="/rider/styles/rider.css, /rider/styles/profile.css" drawer>
-      <sd-app-header bar-class="profile-topbar" inner-class="profile-topbar__inner" title-class="profile-topbar__title">
+      <sd-app-header bar-class="profile-topbar" inner-class="profile-topbar__inner" title-class="profile-topbar__title" hide-lang-toggle>
         <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </sd-button>
@@ -16,16 +16,27 @@
       </sd-app-header>
 
       <main class="profile-content">
+
+        <!-- Profile hero — #1853 -->
+        <section class="profile-hero" aria-label="ملخص الملف الشخصي">
+          <div class="profile-hero__avatar" id="profile-avatar" aria-hidden="true">ش</div>
+          <div class="profile-hero__text">
+            <p class="profile-hero__name" id="profile-hero-name">—</p>
+            <p class="profile-hero__phone" id="profile-hero-phone">—</p>
+          </div>
+        </section>
+
         <form id="profile-form" class="profile-form" novalidate>
 
           <div class="field">
             <label class="field__label" for="profile-phone" data-i18n="profile.phone.label">رقم الهاتف</label>
-            <input type="tel" id="profile-phone" class="input" readonly aria-readonly="true" />
+            <input type="tel" id="profile-phone" class="input" readonly aria-readonly="true" aria-describedby="profile-phone-note" />
+            <span id="profile-phone-note" class="field__hint" hidden data-i18n="profile.phone.readonly">رقم الهاتف لا يمكن تغييره</span>
           </div>
 
           <div class="field">
             <label class="field__label" for="profile-name" data-i18n="profile.name.label">الاسم الكامل</label>
-            <input type="text" id="profile-name" class="input" data-i18n-placeholder="register.name.placeholder" placeholder="الاسم كما هو رسمياً" autocomplete="name" />
+            <input type="text" id="profile-name" class="input" maxlength="60" data-i18n-placeholder="register.name.placeholder" placeholder="الاسم كما هو رسمياً" autocomplete="name" />
             <span id="profile-name-error" class="field__error" role="alert" hidden></span>
           </div>
 
@@ -44,6 +55,26 @@
 
           <button type="submit" class="btn btn--primary btn--full" id="save-btn" data-i18n="profile.save">حفظ التغييرات</button>
         </form>
+
+        <!-- Quick links — #1853 -->
+        <nav class="profile-quick-links" data-i18n-aria-label="aria.profile.quickLinks">
+          <a class="profile-quick-link" href="./history.html">
+            <span class="profile-quick-link__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </span>
+            <span class="profile-quick-link__label" data-i18n="profile.myTrips">رحلاتي</span>
+            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+          <a class="profile-quick-link" href="./payments.html">
+            <span class="profile-quick-link__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </span>
+            <span class="profile-quick-link__label" data-i18n="profile.payments">وسائل الدفع</span>
+            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        </nav>
+
+        <button type="button" class="btn btn--ghost btn--full profile-logout-btn" id="profile-logout-btn" data-i18n="menu.logout">تسجيل الخروج</button>
       </main>
     </sd-page>
 

@@ -49,42 +49,12 @@ ratingStars?.addEventListener('change', (event) => {
   tagsSection?.setAttribute('aria-hidden', 'true');
 });
 
-// ── Tag chips (multi-select) ──
+// ── Tag chips (multi-select from the 3 predefined tags only — #1565) ──
 qsa('.tag-chip').forEach(chip =>
   chip.addEventListener('click', () => chip.classList.toggle('is-selected'))
 );
 
-// ── Tip chips (single-select) ──
-const tipChips = qsa('.tip-chip');
-tipChips[0]?.classList.add('is-selected'); // default: no tip
-tipChips[0]?.setAttribute('aria-pressed', 'true');
-
-tipChips.forEach(chip => {
-  chip.addEventListener('click', () => {
-    tipChips.forEach(c => {
-      c.classList.remove('is-selected');
-      c.setAttribute('aria-pressed', 'false');
-    });
-    chip.classList.add('is-selected');
-    chip.setAttribute('aria-pressed', 'true');
-  });
-});
-
-// ── Payment branch ────────────────────────────────────
-const paymentMethod = localStorage.getItem('shedrive.paymentMethod');
-const urlState = new URLSearchParams(location.search).get('state');
-const isCard = paymentMethod === 'card' || urlState === 'card';
-const cashNote = qs('#cash-note');
-const payNowBtn = qs('#pay-now-btn');
-
-if (cashNote) cashNote.hidden = isCard;
-if (payNowBtn) payNowBtn.hidden = !isCard;
-
-payNowBtn?.addEventListener('click', () => {
-  window.location.assign('./payment.html');
-});
-
-// ── Submit: validate stars, send rating + navigate home ──
+// ── Submit: validate stars, send rating + tags, navigate home ──
 const starsError = qs('#stars-error');
 
 qs('#submit-btn').addEventListener('click', () => {
@@ -94,8 +64,11 @@ qs('#submit-btn').addEventListener('click', () => {
     return;
   }
   if (starsError) starsError.hidden = true;
+
+  const tags = qsa('.tag-chip.is-selected').map((chip) => chip.dataset.i18n);
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.setItem('shedrive.completedRating', '1');
+  sessionStorage.setItem('shedrive.lastRating', JSON.stringify({ stars: currentRating, tags }));
   showToast(translate('complete.thanks'), 'success');
   setTimeout(() => window.location.replace('./home.html'), 800);
 });

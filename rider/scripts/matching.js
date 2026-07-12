@@ -90,8 +90,16 @@ function openCancelDialog() {
 
 function cancelRequest() {
   clearTimers();
-  sessionStorage.removeItem('shedrive.pendingTrip');
+  // Cancelling while searching/matched is always free (#1719 scenario 1/2 — matching.html
+  // auto-advances to active-trip.html within ~2s, well under the 3-minute grace period).
+  // Keep the trip (marked cancelled) so home.html can restore pickup/destination.
+  if (pendingTrip) {
+    sessionStorage.setItem('shedrive.pendingTrip', JSON.stringify({ ...pendingTrip, cancelled: true }));
+  } else {
+    sessionStorage.removeItem('shedrive.pendingTrip');
+  }
   sessionStorage.removeItem('shedrive.activeTrip');
+  sessionStorage.removeItem('shedrive.tripMatchedAt');
   window.location.assign('./home.html');
 }
 
@@ -141,6 +149,9 @@ function startSearch() {
       driver: mockDriver,
       trip: pendingTrip || {},
     }));
+    // Marks when the driver was matched (en_route_pickup begins) — active-trip.js uses this
+    // to decide whether a same-driver cancellation is still inside the free grace period (#1719).
+    sessionStorage.setItem('shedrive.tripMatchedAt', String(Date.now()));
     document.body.dataset.state = 'confirmed';
     showPushBanner();
 

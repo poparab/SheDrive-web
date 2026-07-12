@@ -461,7 +461,5 @@
 }
 
 /* ── Cancel trip visibility ─────────────────────────── */
-
-[data-state="arrived"] .state--cancelable {
-  display: none;
-}
+/* Cancel stays visible after the driver arrives (#1719) — a fee applies instead of
+   the button disappearing; the fee-vs-free distinction is handled in active-trip.js. */
