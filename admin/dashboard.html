@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Dashboard</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+    <!--
+      Map screens load the Mapbox pair statically so the CSS is parsed before
+      mapbox-gl.js runs; ad-styles dedupes it against the `mapbox` attribute.
+    -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="dashboard"
+      page-title="Operations dashboard"
+      screen-styles="styles/dashboard.css"
+      mapbox
+    >
+      <!-- #1669 — five live metric cards, refreshed every 30 seconds -->
+      <section aria-labelledby="metrics-heading">
+        <div class="dash__section-head">
+          <h2 class="ad-section__title" id="metrics-heading">Platform metrics</h2>
+          <p class="ad-section__hint" id="metrics-status">Loading live metrics…</p>
+        </div>
+
+        <div class="ad-stats" id="metric-cards">
+          <ad-stat-card id="metric-active-trips" label="Active trips" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-online-drivers" label="Online drivers" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-trips-today" label="Total trips today" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-riders" label="Total registered riders" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-drivers" label="Total approved drivers" value="—"></ad-stat-card>
+        </div>
+
+        <div class="ad-form-error" id="metrics-error" role="alert"></div>
+      </section>
+
+      <!-- #1823–#1826 — live operations map -->
+      <section class="ad-section" aria-labelledby="map-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="map-heading">Live operations map</h2>
+            <p class="ad-section__hint" id="map-status">Cairo / Giza service area</p>
+          </div>
+          <div class="ad-row">
+            <label class="ad-filters__label" for="layer-filter">Show</label>
+            <select class="input" id="layer-filter">
+              <option value="all" selected>All</option>
+              <option value="drivers">Online drivers</option>
+              <option value="requests">Ride requests</option>
+            </select>
+          </div>
+        </div>
+
+        <ad-map-panel id="ops-map"></ad-map-panel>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/dashboard.js"></script>
+  </body>
+</html>

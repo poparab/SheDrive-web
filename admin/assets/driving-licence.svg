@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-label="Placeholder driving licence document">
+  <rect width="400" height="260" fill="#f8f7fb"/>
+  <rect x="8" y="8" width="384" height="244" rx="10" fill="#ffffff" stroke="#e5e2ee" stroke-width="2"/>
+  <rect x="8" y="8" width="384" height="44" rx="10" fill="#10b981"/>
+  <text x="24" y="36" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#ffffff">DRIVING LICENCE — SAMPLE</text>
+  <rect x="26" y="70" width="80" height="98" rx="6" fill="#e5e2ee"/>
+  <circle cx="66" cy="102" r="18" fill="#c9c3dd"/>
+  <path d="M39 154c0-15 12-24 27-24s27 9 27 24z" fill="#c9c3dd"/>
+  <g fill="#6b6580" font-family="Inter, sans-serif" font-size="10">
+    <text x="124" y="82">LICENCE NUMBER</text>
+    <text x="124" y="122">CATEGORY</text>
+    <text x="264" y="122">EXPIRY DATE</text>
+    <text x="124" y="162">ISSUING AUTHORITY</text>
+  </g>
+  <g fill="#1a1530" font-family="Inter, sans-serif" font-size="13" font-weight="600">
+    <text x="124" y="100">DL-•••••••</text>
+    <text x="124" y="140">Private</text>
+    <text x="264" y="140">••/••/••••</text>
+    <text x="124" y="180">Cairo Traffic Dept.</text>
+  </g>
+  <rect x="26" y="196" width="348" height="1" fill="#e5e2ee"/>
+  <text x="26" y="222" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Placeholder asset for the SheDrive admin mockup.</text>
+  <text x="26" y="238" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Contains no real personal data.</text>
+  <text x="200" y="150" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#d63ae2" opacity="0.18" text-anchor="middle" transform="rotate(-16 200 150)">SAMPLE ONLY</text>
+</svg>

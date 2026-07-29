@@ -64,6 +64,20 @@ Then open:
 
 - **Rider app:** http://localhost:8000/rider/
 - **Driver app:** http://localhost:8000/driver/
+- **Admin portal:** http://localhost:8000/admin/ — screen index at `/admin/screens.html`
+
+### Admin portal
+
+Desktop-first, English-only operations portal. Interactive mockups with a mock
+backend: filters, sorting, pagination and account actions all work, but nothing
+talks to a real API and a reload resets the data.
+
+Sign in with any seeded admin email — e.g. `ops.lead@shedrive.app` — password
+`shedrive2026`, then 2FA code `123456`.
+
+Every list screen accepts `?state=empty`, `?state=loading`, `?state=error` or
+`?state=long` to force a state. Component and mock-API docs are in
+`docs/ux/admin-component-contract.md`.
 
 ## Cloudflare Pages
 

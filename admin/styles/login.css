@@ -1,0 +1,157 @@
+/*
+ * login.css — SheDrive admin portal sign-in screen
+ * Centred single-column auth card. Every value references a design token.
+ */
+
+.auth {
+  width: min(26rem, 100%);
+  padding: var(--admin-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.auth__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+}
+
+.auth__brand-label {
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.auth__card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.auth__title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+}
+
+.auth__hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.auth__card form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.auth__code {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.auth__link {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-primary-600);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth__link:hover {
+  color: var(--color-primary-700);
+}
+
+.auth__qr {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-gutter-tight);
+  padding: var(--admin-gutter-tight);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.auth__qr img {
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.auth__secret {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.auth__secret code {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.auth__recovery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.auth__recovery-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) var(--admin-gutter-tight);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--admin-gutter-tight);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.auth__success {
+  margin: 0;
+  padding: var(--space-3) var(--admin-gutter-tight);
+  border-radius: var(--radius-sm);
+  background: rgba(var(--color-success-rgb), 0.1);
+  border: 1px solid rgba(var(--color-success-rgb), 0.35);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+}
+
+.auth__footer {
+  margin: 0;
+  text-align: center;
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.auth__footer code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+}

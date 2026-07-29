@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Sign in</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body class="admin-auth">
+    <main class="auth">
+      <div class="auth__brand">
+        <img src="../shared/assets/logos/shedrive-wordmark.svg" alt="SheDrive" height="34" />
+        <span class="auth__brand-label">Admin portal</span>
+      </div>
+
+      <!-- Step 1 — email + password (#1656) -->
+      <section class="auth__card" id="step-credentials" aria-labelledby="credentials-heading">
+        <h1 class="auth__title" id="credentials-heading">Sign in</h1>
+        <p class="auth__hint">Operations staff only. Two-factor authentication is required.</p>
+
+        <div class="ad-form-error" id="credentials-error" role="alert"></div>
+
+        <form id="credentials-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="email">Email</label>
+            <input
+              class="input"
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="username"
+              maxlength="254"
+              placeholder="you@shedrive.app"
+            />
+            <span class="field__error" id="email-error" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="password">Password</label>
+            <input
+              class="input"
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="128"
+            />
+            <span class="field__error" id="password-error" hidden></span>
+          </div>
+
+          <button class="btn btn--primary btn--full" type="submit" id="credentials-submit">
+            Continue
+          </button>
+        </form>
+
+        <button class="auth__link" type="button" id="forgot-link">Forgot your password?</button>
+      </section>
+
+      <!-- Step 2 — second factor (#1806) -->
+      <section class="auth__card" id="step-2fa" aria-labelledby="tfa-heading" hidden>
+        <h1 class="auth__title" id="tfa-heading">Two-factor authentication</h1>
+        <p class="auth__hint" id="tfa-hint">
+          Enter the 6-digit code from your authenticator app.
+        </p>
+
+        <div class="ad-form-error" id="tfa-error" role="alert"></div>
+
+        <form id="tfa-form" novalidate>
+          <div class="field" id="totp-field">
+            <label class="field__label" for="totp">Authentication code</label>
+            <input
+              class="input auth__code"
+              id="totp"
+              name="totp"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              placeholder="••••••"
+            />
+            <span class="field__hint">Mockup code: 123456</span>
+            <span class="field__error" id="totp-error" hidden></span>
+          </div>
+
+          <div class="field" id="recovery-field" hidden>
+            <label class="field__label" for="recovery">Recovery code</label>
+            <input class="input" id="recovery" name="recovery" type="text" placeholder="SD-RECOVERY-01" />
+            <span class="field__hint">Mockup code: SD-RECOVERY-01</span>
+            <span class="field__error" id="recovery-error" hidden></span>
+          </div>
+
+          <button class="btn btn--primary btn--full" type="submit" id="tfa-submit">Verify</button>
+        </form>
+
+        <button class="auth__link" type="button" id="toggle-recovery">
+          Lost your device? Use a recovery code
+        </button>
+        <button class="auth__link" type="button" id="tfa-back">Back to sign in</button>
+      </section>
+
+      <!-- First-time enrolment (#1806 Scenario 1) -->
+      <section class="auth__card" id="step-enrol" aria-labelledby="enrol-heading" hidden>
+        <h1 class="auth__title" id="enrol-heading">Set up two-factor authentication</h1>
+        <p class="auth__hint">
+          Scan this QR code with your authenticator app, then confirm a generated code.
+        </p>
+
+        <div class="auth__qr">
+          <img src="assets/totp-qr.svg" alt="Authenticator QR code placeholder" width="168" height="168" />
+          <div class="auth__secret">
+            <span class="field__label">Or enter this secret manually</span>
+            <code id="enrol-secret">JBSW Y3DP EHPK 3PXP</code>
+          </div>
+        </div>
+
+        <div class="ad-stub">
+          <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
+          <span>Mockup placeholder — the QR code is decorative and not scannable.</span>
+        </div>
+
+        <div class="auth__recovery" id="enrol-recovery">
+          <span class="field__label">Recovery codes — shown once</span>
+          <ul class="auth__recovery-list" id="recovery-list"></ul>
+        </div>
+
+        <button class="btn btn--primary btn--full" type="button" id="enrol-continue">
+          I have saved my recovery codes
+        </button>
+      </section>
+
+      <!-- Forced first-login password change (#1822) -->
+      <section class="auth__card" id="step-change" aria-labelledby="change-heading" hidden>
+        <h1 class="auth__title" id="change-heading">Choose a new password</h1>
+        <p class="auth__hint">
+          This is your first sign-in, so you must set your own password before continuing.
+        </p>
+
+        <div class="ad-form-error" id="change-error" role="alert"></div>
+
+        <form id="change-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="new-password">New password</label>
+            <input class="input" id="new-password" type="password" autocomplete="new-password" maxlength="128" />
+            <span class="field__hint">At least 8 characters.</span>
+            <span class="field__error" id="new-password-error" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="confirm-password">Confirm new password</label>
+            <input class="input" id="confirm-password" type="password" autocomplete="new-password" maxlength="128" />
+            <span class="field__error" id="confirm-password-error" hidden></span>
+          </div>
+
+          <button class="btn btn--primary btn--full" type="submit">Set password and continue</button>
+        </form>
+      </section>
+
+      <!-- Password reset request (#1822) -->
+      <section class="auth__card" id="step-forgot" aria-labelledby="forgot-heading" hidden>
+        <h1 class="auth__title" id="forgot-heading">Reset your password</h1>
+        <p class="auth__hint">
+          We will email a reset link to your SheDrive admin address.
+        </p>
+
+        <div class="ad-form-error" id="forgot-error" role="alert"></div>
+        <p class="auth__success" id="forgot-success" hidden>
+          If that email belongs to an admin account, a reset link is on its way.
+        </p>
+
+        <form id="forgot-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="forgot-email">Email</label>
+            <input class="input" id="forgot-email" type="email" maxlength="254" placeholder="you@shedrive.app" />
+            <span class="field__error" id="forgot-email-error" hidden></span>
+          </div>
+
+          <button class="btn btn--primary btn--full" type="submit">Send reset link</button>
+        </form>
+
+        <button class="auth__link" type="button" id="forgot-back">Back to sign in</button>
+      </section>
+
+      <p class="auth__footer">
+        Mockup credentials — any admin email in the seed data with password
+        <code>shedrive2026</code>. Try <code>ops.lead@shedrive.app</code>.
+        <a href="screens.html">Screen index</a>
+      </p>
+    </main>
+
+    <script type="module" src="scripts/login.js"></script>
+  </body>
+</html>

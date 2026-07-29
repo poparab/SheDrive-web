@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-label="Placeholder vehicle registration document">
+  <rect width="400" height="260" fill="#f8f7fb"/>
+  <rect x="8" y="8" width="384" height="244" rx="10" fill="#ffffff" stroke="#e5e2ee" stroke-width="2"/>
+  <rect x="8" y="8" width="384" height="44" rx="10" fill="#3b82f6"/>
+  <text x="24" y="36" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#ffffff">VEHICLE REGISTRATION — SAMPLE</text>
+  <g fill="#6b6580" font-family="Inter, sans-serif" font-size="10">
+    <text x="26" y="82">PLATE NUMBER</text>
+    <text x="206" y="82">MAKE / MODEL</text>
+    <text x="26" y="126">YEAR</text>
+    <text x="116" y="126">COLOUR</text>
+    <text x="206" y="126">CHASSIS</text>
+    <text x="26" y="170">REGISTRATION EXPIRY</text>
+    <text x="206" y="170">OWNER</text>
+  </g>
+  <g fill="#1a1530" font-family="Inter, sans-serif" font-size="13" font-weight="600">
+    <text x="26" y="102">••• ••••</text>
+    <text x="206" y="102">•••••• ••••••</text>
+    <text x="26" y="146">••••</text>
+    <text x="116" y="146">•••••</text>
+    <text x="206" y="146">•••••••••••••</text>
+    <text x="26" y="190">••/••/••••</text>
+    <text x="206" y="190">•••••• ••••••</text>
+  </g>
+  <rect x="26" y="204" width="348" height="1" fill="#e5e2ee"/>
+  <text x="26" y="226" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Placeholder asset for the SheDrive admin mockup.</text>
+  <text x="26" y="242" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Contains no real vehicle or personal data.</text>
+  <text x="200" y="150" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#d63ae2" opacity="0.18" text-anchor="middle" transform="rotate(-16 200 150)">SAMPLE ONLY</text>
+</svg>

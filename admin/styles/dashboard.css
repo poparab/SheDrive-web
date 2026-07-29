@@ -1,0 +1,28 @@
+/*
+ * dashboard.css — SheDrive admin operations dashboard
+ * KPI row + live operations map. All values from design tokens.
+ */
+
+.dash__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--admin-gutter-tight);
+  margin-block-end: var(--admin-gutter-tight);
+  flex-wrap: wrap;
+}
+
+.dash__section-head .ad-section__hint {
+  margin: 0;
+}
+
+/* The five #1669 cards should stay on one row on a standard ops display. */
+@media (min-width: 1280px) {
+  #metric-cards {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+#metrics-error {
+  margin-block-start: var(--admin-gutter-tight);
+}

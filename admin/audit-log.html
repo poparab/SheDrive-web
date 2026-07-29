@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Audit log</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="audit-log"
+      page-title="Admin activity audit log"
+      breadcrumb="Administration > Audit log"
+      screen-styles="styles/audit-log.css"
+    >
+      <!-- #1816 — read-only immutable log of every consequential admin action -->
+      <section class="ad-section" aria-labelledby="audit-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="audit-heading">Audit entries</h2>
+            <p class="ad-section__hint">
+              Every state-changing admin action is recorded immutably. This log is read-only.
+              Pricing changes keep their dedicated log (#1760) and are cross-linked here.
+            </p>
+          </div>
+        </div>
+
+        <ad-filter-bar id="audit-filters"></ad-filter-bar>
+        <ad-data-table id="audit-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/audit-log.js"></script>
+  </body>
+</html>

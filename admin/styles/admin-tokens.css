@@ -1,0 +1,52 @@
+/*
+ * admin-tokens.css — SheDrive admin portal density tokens
+ * Extends shared/styles/tokens.css with the desktop-density values the admin
+ * portal needs. This is a token-definition file, so literal values are correct
+ * here — every other admin CSS file must reference these via var().
+ */
+
+:root {
+  /* ── Shell layout ─────────────────────────────────── */
+  --admin-nav-w: 15rem;
+  --admin-topbar-h: 3.5rem;
+  --admin-content-max: 96rem;
+  --admin-panel-w: 27rem;
+  --admin-gutter: var(--space-6);
+  --admin-gutter-tight: var(--space-4);
+
+  /* ── Data grid density ────────────────────────────── */
+  --admin-row-h: 2.75rem;
+  --admin-cell-pad-x: var(--space-4);
+  --admin-cell-pad-y: var(--space-3);
+  --admin-fs-table: var(--fs-sm);
+  --admin-fs-label: var(--fs-xs);
+  --admin-col-min: 7rem;
+
+  /* ── Shell surfaces ───────────────────────────────── */
+  --admin-page-bg: var(--color-surface-alt);
+  --admin-nav-bg: var(--color-text);
+  --admin-nav-fg: var(--color-surface);
+  --admin-nav-fg-muted: rgba(var(--color-surface-rgb), 0.64);
+  --admin-nav-section-fg: rgba(var(--color-surface-rgb), 0.42);
+  --admin-nav-hover-bg: rgba(var(--color-surface-rgb), 0.08);
+  --admin-nav-active-bg: rgba(var(--color-primary-500-rgb), 0.3);
+  --admin-nav-border: rgba(var(--color-surface-rgb), 0.1);
+
+  /* ── Table surfaces ───────────────────────────────── */
+  --admin-table-header-bg: var(--color-surface-alt);
+  --admin-table-header-fg: var(--color-text-muted);
+  --admin-row-hover-bg: rgba(var(--color-primary-500-rgb), 0.06);
+  --admin-row-active-bg: rgba(var(--color-primary-500-rgb), 0.1);
+
+  /* ── Map surfaces ─────────────────────────────────── */
+  --admin-map-h: 24rem;
+  --admin-map-h-tall: 32rem;
+  --admin-zone-active-fill: rgba(var(--color-primary-500-rgb), 0.28);
+  --admin-zone-inactive-fill: rgba(var(--color-text-muted-rgb), 0.18);
+
+  /* ── Misc ─────────────────────────────────────────── */
+  --admin-stub-bg: rgba(var(--color-warning-rgb), 0.1);
+  --admin-stub-border: rgba(var(--color-warning-rgb), 0.45);
+  --admin-skeleton-bg: rgba(var(--color-text-muted-rgb), 0.12);
+  --admin-doc-thumb: 8rem;
+}

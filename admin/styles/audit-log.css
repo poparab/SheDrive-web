@@ -1,0 +1,50 @@
+/*
+ * audit-log.css — SheDrive admin activity audit log
+ * The before/after column needs to stay legible without widening the grid.
+ */
+
+.audit__diff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--admin-fs-label);
+  max-width: 22rem;
+}
+
+.audit__diff-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.audit__diff-key {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+.audit__diff-before {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.audit__diff-arrow {
+  color: var(--color-text-muted);
+}
+
+.audit__diff-after {
+  font-weight: var(--fw-medium);
+}
+
+.audit__target {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.audit__target-type {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

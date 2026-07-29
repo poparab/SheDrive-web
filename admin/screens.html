@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Mockup screen index</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body class="admin-shell screens-page">
+    <main class="screens">
+      <header class="screens__header">
+        <div class="screens__brand">
+          <img src="../shared/assets/logos/shedrive-wordmark.svg" alt="SheDrive" height="34" />
+          <span class="screens__brand-label">Admin portal — coded mockups</span>
+        </div>
+
+        <p class="screens__lead">
+          Interactive mockups of the SheDrive admin portal, built on the production
+          front-end stack. Data is mock but behaviour is real: filters, sorting,
+          pagination and account actions all work. Desktop-first and English-only,
+          per the agreed admin UX rules.
+        </p>
+
+        <p class="screens__progress" id="screen-progress"></p>
+
+        <div class="screens__notice">
+          <h2 class="screens__notice-title">How to review these</h2>
+          <ul>
+            <li>
+              Sign in at <a href="index.html">index.html</a> with
+              <code>ops.lead@shedrive.app</code> / <code>shedrive2026</code>, then the
+              2FA code <code>123456</code>.
+            </li>
+            <li>
+              Every list screen accepts a forced state in the URL —
+              <code>?state=empty</code>, <code>?state=loading</code>,
+              <code>?state=error</code>, <code>?state=long</code>. The chips below link
+              straight to them.
+            </li>
+            <li>
+              <code>?state=long</code> stretches names and addresses to test overflow,
+              including long Arabic-transliterated names in an English grid.
+            </li>
+            <li>
+              Maps use Mapbox because it is already wired into this repo. Stories
+              #1823–#1826, #1756 and #1831 specify the Google Maps JavaScript API —
+              that discrepancy is open and needs a decision.
+            </li>
+            <li>
+              Nothing here talks to a backend. Actions mutate in-memory data, so a full
+              page reload resets everything to the seed state.
+            </li>
+          </ul>
+        </div>
+      </header>
+
+      <div id="screen-groups"></div>
+
+      <footer class="screens__footer">
+        <p>
+          Screen-to-story mapping and open questions are tracked in
+          <code>docs/ux/admin-wireframes.md</code>. Component APIs are documented in
+          <code>docs/ux/admin-component-contract.md</code>.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="scripts/screens.js"></script>
+  </body>
+</html>

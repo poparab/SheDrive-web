@@ -1,0 +1,216 @@
+/*
+ * screens.css — SheDrive admin mockup screen index
+ * The designer's contact sheet. Standalone page, no app shell.
+ */
+
+body.screens-page {
+  display: block;
+}
+
+.screens {
+  max-width: var(--admin-content-max);
+  margin-inline: auto;
+  padding: var(--space-10) var(--admin-gutter) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.screens__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+  max-width: 56rem;
+}
+
+.screens__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.screens__brand-label {
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.screens__lead {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.screens__progress {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+.screens__notice {
+  padding: var(--admin-gutter-tight) var(--admin-gutter);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-inline-start: var(--space-1) solid var(--color-primary-500);
+  border-radius: var(--radius-md);
+}
+
+.screens__notice-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.screens__notice ul {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
+}
+
+.screens__notice code,
+.screens__footer code {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  font-size: var(--admin-fs-label);
+}
+
+.screen-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.screen-group__title {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.screen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: var(--admin-gutter-tight);
+}
+
+.screen-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--admin-gutter-tight);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.screen-card--planned {
+  background: var(--color-surface-alt);
+  border-style: dashed;
+}
+
+.screen-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.screen-card__title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+}
+
+.screen-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.screen-card__title a:hover {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+}
+
+.screen-card__file {
+  margin: 0;
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen-card__stories {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+}
+
+.screen-card__stories a {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+.screen-card__notes {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+}
+
+.screen-card__states {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.screen-card__states-label {
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+.screen-card__states a.chip:hover {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-600);
+}
+
+.screen-card--planned .chip {
+  opacity: 0.5;
+}
+
+.screens__footer {
+  padding-block-start: var(--admin-gutter-tight);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.screens__footer p {
+  margin: 0;
+}
