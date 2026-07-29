@@ -72,6 +72,8 @@ Desktop-first, English-only operations portal. Interactive mockups with a mock
 backend: filters, sorting, pagination and account actions all work, but nothing
 talks to a real API and a reload resets the data.
 
+**Live:** https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/screens
+
 Sign in with any seeded admin email — e.g. `ops.lead@shedrive.app` — password
 `shedrive2026`, then 2FA code `123456`.
 
@@ -79,15 +81,38 @@ Every list screen accepts `?state=empty`, `?state=loading`, `?state=error` or
 `?state=long` to force a state. Component and mock-API docs are in
 `docs/ux/admin-component-contract.md`.
 
-## Cloudflare Pages
+## Live deployment
 
-This repository is deployable on Cloudflare Pages as a static site.
+**Base URL:** https://shedrive-web.abdelrahman-arcorp.workers.dev
 
-- The repository root is the Pages output directory.
-- `wrangler.toml` sets `pages_build_output_dir = "."` so Pages deploys the full site, not only `rider/` or `driver/`.
-- The root URL redirects to `/rider/` via `index.html`.
+This is a **Cloudflare Worker** (static assets), not Cloudflare Pages, despite the
+`pages_build_output_dir` key still present in `wrangler.toml`. It auto-deploys on push
+to `main`.
 
-If your deployment renders HTML with no styles, the usual cause is publishing only one app folder instead of the full repository root. Redeploy from the repository root so `shared/`, `rider/`, and `driver/` are all present.
+| App | URL |
+|---|---|
+| Rider | [/rider/home](https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home) |
+| Driver | [/driver/](https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/) |
+| **Admin — screen index** | [/admin/screens](https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/screens) |
+| Admin — sign in | [/admin/](https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/) |
+
+### URL shape
+
+The Worker serves assets with `.html` stripped: requesting `/admin/screens.html`
+returns a **307 redirect** to `/admin/screens`, and `/admin/index.html` redirects to
+`/admin/`. Query strings survive the redirect, so `?state=` links work either way.
+In-page links are written with `.html` (which works locally and on any plain static
+server) and simply take one redirect hop in production — nothing to change.
+
+### Also deployed
+
+GitHub Pages publishes the same repo at
+https://poparab.github.io/SheDrive-web/ (with literal `.html` URLs and no redirects).
+It is a working mirror, not the canonical URL — share the Worker URL.
+
+If a deployment renders HTML with no styles, the usual cause is publishing only one
+app folder instead of the full repository root. Redeploy from the root so `shared/`,
+`rider/`, `driver/`, and `admin/` are all present.
 
 **Rider clickable flow** (5 screens):
 `rider/index.html` (Splash + Login) → `rider/home.html` (Book a Ride) → `rider/matching.html` (Finding a Driver) → `rider/active-trip.html` (Live Trip + SOS)
