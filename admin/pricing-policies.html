@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Global pricing policies</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="pricing-policies"
+      page-title="Global pricing policies"
+      breadcrumb="Money & config > Global policies"
+      screen-styles="styles/pricing.css"
+    >
+      <div class="ad-stub">
+        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
+        <span>
+          These policies apply across <strong>all zones</strong>. Changes take effect immediately
+          for new trips; a trip already in progress keeps the values active when the driver
+          accepted it. Per-zone amounts live on each zone's rate card.
+        </span>
+      </div>
+
+      <div class="pricing__policies">
+        <!-- #1759 — cancellation policy -->
+        <section class="ad-section" aria-labelledby="cancel-heading">
+          <div class="ad-section__header">
+            <div>
+              <h2 class="ad-section__title" id="cancel-heading">Cancellation policy</h2>
+              <p class="ad-section__hint" id="cancel-meta"></p>
+            </div>
+          </div>
+          <div class="ad-section__body">
+            <form class="pricing__form" id="cancel-form" novalidate>
+              <div class="ad-form-error" id="cancel-error" role="alert"></div>
+              <div id="cancel-fields"></div>
+              <div class="ad-row ad-row--end">
+                <button class="btn btn--ghost btn--sm" type="button" id="cancel-reset">
+                  Revert changes
+                </button>
+                <button class="btn btn--primary btn--sm" type="submit">
+                  Save cancellation policy
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- #1759 — platform commission -->
+        <section class="ad-section" aria-labelledby="commission-heading">
+          <div class="ad-section__header">
+            <div>
+              <h2 class="ad-section__title" id="commission-heading">Platform commission</h2>
+              <p class="ad-section__hint" id="commission-meta"></p>
+            </div>
+          </div>
+          <div class="ad-section__body">
+            <form class="pricing__form" id="commission-form" novalidate>
+              <div class="ad-form-error" id="commission-error" role="alert"></div>
+              <div id="commission-fields"></div>
+              <p class="pricing__meta" id="commission-example"></p>
+              <div class="ad-row ad-row--end">
+                <button class="btn btn--ghost btn--sm" type="button" id="commission-reset">
+                  Revert changes
+                </button>
+                <button class="btn btn--primary btn--sm" type="submit">Save commission</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/pricing-policies.js"></script>
+  </body>
+</html>

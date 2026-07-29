@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Reconciliation</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="reconciliation"
+      page-title="Per-driver earnings & settlement"
+      breadcrumb="Money & config > Reconciliation"
+      screen-styles="styles/detail.css, styles/list.css, styles/pricing.css"
+    >
+      <section class="ad-section" aria-labelledby="filters-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="filters-heading">Driver & period</h2>
+            <p class="ad-section__hint">
+              Select a driver to answer a payment query or review her settlement position.
+            </p>
+          </div>
+        </div>
+        <ad-filter-bar id="recon-filters"></ad-filter-bar>
+      </section>
+
+      <!-- #1833 S2 — a driver is required before a report can be generated -->
+      <div id="no-driver">
+        <ad-empty-state
+          icon="⇌"
+          heading="Select a driver"
+          message="Choose a driver above to generate her earnings and settlement report."
+        ></ad-empty-state>
+      </div>
+
+      <div id="report" hidden>
+        <div class="ad-stats">
+          <ad-stat-card id="card-trips" label="Completed trips" value="—"></ad-stat-card>
+          <ad-stat-card id="card-gross" label="Gross fares" value="—"></ad-stat-card>
+          <ad-stat-card id="card-commission" label="Commission deducted" value="—"></ad-stat-card>
+          <ad-stat-card id="card-net" label="Net earnings" value="—"></ad-stat-card>
+          <ad-stat-card id="card-balance" label="Outstanding cash balance" value="—"></ad-stat-card>
+        </div>
+
+        <div class="ad-split" style="margin-block-start: var(--admin-gutter)">
+          <section class="ad-section" aria-labelledby="rows-heading">
+            <div class="ad-section__header">
+              <h2 class="ad-section__title" id="rows-heading">Per-trip breakdown</h2>
+            </div>
+            <ad-data-table id="trip-table"></ad-data-table>
+          </section>
+
+          <aside class="ad-split__aside">
+            <section class="ad-section" aria-labelledby="split-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="split-heading">Cash vs digital</h2>
+              </div>
+              <div class="ad-section__body">
+                <div class="detail__money" id="split-rows"></div>
+              </div>
+            </section>
+
+            <!-- #1813 is unwritten, so settlement is a visible stub -->
+            <section class="ad-section" aria-labelledby="settle-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="settle-heading">Settlement</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <div class="ad-stub">
+                  <span class="ad-stub__icon" aria-hidden="true">⚠</span>
+                  <span>
+                    Recording a cash settlement belongs to story <strong>#1813 (cash
+                    reconciliation)</strong>, which is listed as in-scope for Phase 1 but has not
+                    been written yet. The control is shown disabled rather than designed
+                    speculatively — the outstanding balance above comes from the same story.
+                  </span>
+                </div>
+                <button class="btn btn--primary btn--full" type="button" disabled>
+                  Record settlement — awaiting story #1813
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <div class="ad-form-error" id="recon-error" role="alert"></div>
+    </ad-shell>
+
+    <script type="module" src="scripts/reconciliation.js"></script>
+  </body>
+</html>

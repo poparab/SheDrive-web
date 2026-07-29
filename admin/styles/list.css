@@ -1,0 +1,45 @@
+/*
+ * list.css — SheDrive admin shared list-screen styling
+ * Used by every grid screen (applications, drivers, riders, trips, safety,
+ * admin users). Screen-specific rules stay in their own stylesheet.
+ */
+
+.list__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.list__name-primary {
+  font-weight: var(--fw-medium);
+  overflow-wrap: anywhere;
+}
+
+.list__name-secondary {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.list__link {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+  white-space: nowrap;
+}
+
+.list__expired {
+  color: var(--color-danger);
+  font-weight: var(--fw-medium);
+}
+
+.list__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.list__rating-star {
+  color: var(--color-warning);
+}

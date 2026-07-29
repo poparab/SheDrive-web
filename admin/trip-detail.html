@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Trip detail</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="trips"
+      page-title="Trip detail"
+      breadcrumb="Trips|trips.html > Trip"
+      screen-styles="styles/detail.css, styles/list.css"
+      mapbox
+    >
+      <div id="trip-missing" hidden>
+        <ad-empty-state icon="⚠" heading="Trip not found" message="This trip record does not exist.">
+          <a class="btn btn--secondary btn--sm" href="trips.html">Back to trips</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="trip-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <ad-detail-section id="parties" section-title="Rider & driver"></ad-detail-section>
+            <ad-detail-section id="route" section-title="Pickup & destination"></ad-detail-section>
+
+            <!-- #1671 — chronological state timeline -->
+            <section class="ad-section" aria-labelledby="timeline-heading">
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="timeline-heading">State timeline</h2>
+                  <p class="ad-section__hint">
+                    Every transition this trip passed through, with timestamps in UTC+2.
+                  </p>
+                </div>
+              </div>
+              <div class="ad-section__body">
+                <ad-timeline id="timeline"></ad-timeline>
+              </div>
+            </section>
+
+            <!-- #1672 — actual route travelled, completed trips only -->
+            <section class="ad-section" id="route-section" aria-labelledby="map-heading" hidden>
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="map-heading">Actual route travelled</h2>
+                  <p class="ad-section__hint" id="route-summary"></p>
+                </div>
+              </div>
+              <ad-map-panel id="route-map"></ad-map-panel>
+            </section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="summary" section-title="Trip"></ad-detail-section>
+
+            <!-- #1671 S2 — original estimate for any incomplete trip -->
+            <ad-detail-section id="estimate" section-title="Original fare estimate" hidden>
+            </ad-detail-section>
+
+            <!-- #1672 S1 — fare breakdown, completed trips only -->
+            <section class="ad-section" id="fare-section" aria-labelledby="fare-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="fare-heading">Fare breakdown</h2>
+              </div>
+              <div class="ad-section__body">
+                <div class="detail__money" id="fare-rows"></div>
+              </div>
+            </section>
+
+            <!-- #1672 S2/S3 — rating, completed trips only -->
+            <section class="ad-section" id="rating-section" aria-labelledby="rating-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="rating-heading">Rider rating</h2>
+              </div>
+              <div class="ad-section__body">
+                <div id="rating-body"></div>
+              </div>
+            </section>
+
+            <!-- #1671 S5 — intervention actions, in-progress trips only -->
+            <section class="ad-section" id="actions-section" aria-labelledby="actions-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="actions-heading">Admin intervention</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <div class="ad-stub">
+                  <span class="ad-stub__icon" aria-hidden="true">⚠</span>
+                  <span>
+                    Cancel trip (#1808) and Reassign to another driver (#1809) are required by
+                    #1671 Scenario 5, but neither story has been written yet. Both controls are
+                    shown disabled rather than designed speculatively.
+                  </span>
+                </div>
+                <button class="btn btn--danger btn--full" type="button" disabled>
+                  Cancel trip — awaiting story #1808
+                </button>
+                <button class="btn btn--secondary btn--full" type="button" disabled>
+                  Reassign driver — awaiting story #1809
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/trip-detail.js"></script>
+  </body>
+</html>

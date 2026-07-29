@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver applications</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="driver-applications"
+      page-title="Driver applications"
+      breadcrumb="People > Driver applications"
+      screen-styles="styles/list.css"
+    >
+      <!-- #1657 — pending applications queue, oldest first -->
+      <section class="ad-section" aria-labelledby="queue-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="queue-heading">Pending applications</h2>
+            <p class="ad-section__hint">
+              Sorted oldest first — this is a work queue. Open an application to approve or
+              reject it.
+            </p>
+          </div>
+          <span class="badge badge--warning" id="queue-count">—</span>
+        </div>
+
+        <ad-filter-bar id="queue-filters"></ad-filter-bar>
+        <ad-data-table id="queue-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/driver-applications.js"></script>
+  </body>
+</html>

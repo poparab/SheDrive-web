@@ -276,6 +276,26 @@ const ZONE_DEFS = [
   { name: 'Helwan South', lng: 31.3341, lat: 29.8419, w: 0.04, h: 0.035, rate: null },
 ];
 
+/**
+ * Build a zone with its derived `status` getter. Exported because replayed
+ * session mutations need to recreate zones without losing that getter.
+ */
+export function makeZone({ id, name, rateCard = null, polygon, centre, createdBy, createdAt }) {
+  return {
+    id,
+    name,
+    // Status is derived from the rate card, never set by hand (#1757 Scenario 6).
+    get status() {
+      return this.rateCard ? 'active' : 'inactive';
+    },
+    rateCard,
+    polygon,
+    centre,
+    createdBy,
+    createdAt,
+  };
+}
+
 export const ZONES = ZONE_DEFS.map((def, index) => {
   const rateCard = def.rate
     ? {
@@ -288,19 +308,15 @@ export const ZONES = ZONE_DEFS.map((def, index) => {
       }
     : null;
 
-  return {
+  return makeZone({
     id: nextId(),
     name: def.name,
-    // Status is derived from the rate card, never set by hand (#1757 Scenario 6).
-    get status() {
-      return this.rateCard ? 'active' : 'inactive';
-    },
     rateCard,
     polygon: polygonAround(def.lng, def.lat, def.w, def.h),
     centre: [def.lng, def.lat],
     createdBy: ADMINS[index % 4].email,
     createdAt: NOW - (150 - index * 11) * DAY,
-  };
+  });
 });
 
 export const GLOBAL_POLICIES = {
@@ -638,6 +654,27 @@ export const SAFETY_REPORTS = MISMATCH_TRIPS.map((trip, index) => {
     riderStatusAtReport: resolved ? (resolution === 'suspended' ? 'suspended' : 'active') : 'pending_review',
   };
 }).sort((a, b) => a.reportedAt - b.reportedAt);
+
+// Reconcile the reported riders' actual account state with their reports. An
+// open report must genuinely hold the rider in pending_review (API #1687),
+// otherwise the queue and the rider profile contradict each other.
+SAFETY_REPORTS.forEach((report) => {
+  const rider = RIDERS.find((r) => r.id === report.riderId);
+  if (!rider) return;
+
+  if (report.status === 'open') {
+    rider.status = 'pending_review';
+    rider.suspensionReason = null;
+    rider.suspendedAt = null;
+  } else if (report.resolution === 'suspended') {
+    rider.status = 'suspended';
+    rider.suspensionReason = 'Gender-mismatch report upheld';
+    rider.suspendedAt = report.resolvedAt;
+  } else if (rider.status === 'pending_review') {
+    // Dismissed: back to active unless a separate suspension applies.
+    rider.status = 'active';
+  }
+});
 
 // ── Audit log (#1816) ─────────────────────────────────
 

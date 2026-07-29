@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Riders</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="riders"
+      page-title="Riders"
+      breadcrumb="People > Riders"
+      screen-styles="styles/list.css"
+    >
+      <!-- #1661 — rider list -->
+      <section class="ad-section" aria-labelledby="riders-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="riders-heading">All riders</h2>
+            <p class="ad-section__hint">
+              Open a rider to view her trip history and take account actions. Riders held in
+              Pending review were flagged automatically by a gender-mismatch report.
+            </p>
+          </div>
+        </div>
+
+        <ad-filter-bar id="riders-filters"></ad-filter-bar>
+        <ad-data-table id="riders-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/riders.js"></script>
+  </body>
+</html>

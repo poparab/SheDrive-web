@@ -132,6 +132,23 @@ body.admin-auth {
 
 .ad-nav__footer a {
   color: var(--admin-nav-fg-muted);
+  display: block;
+}
+
+.ad-nav__reset {
+  margin-block-start: var(--space-2);
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--admin-fs-label);
+  color: var(--admin-nav-section-fg);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ad-nav__reset:hover {
+  color: var(--admin-nav-fg-muted);
 }
 
 /* ── Main column ────────────────────────────────────── */

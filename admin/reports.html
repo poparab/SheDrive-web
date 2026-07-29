@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Revenue & commission</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="reports"
+      page-title="Revenue & commission summary"
+      breadcrumb="Money & config > Reports"
+      screen-styles="styles/detail.css, styles/pricing.css"
+    >
+      <section class="ad-section" aria-labelledby="filters-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="filters-heading">Period</h2>
+            <p class="ad-section__hint">
+              Platform-level financials from completed trips. Leave the dates empty for all time.
+            </p>
+          </div>
+        </div>
+        <ad-filter-bar id="report-filters"></ad-filter-bar>
+      </section>
+
+      <div class="ad-stats" id="report-cards">
+        <ad-stat-card id="card-trips" label="Completed trips" value="—"></ad-stat-card>
+        <ad-stat-card id="card-gross" label="Gross fares" value="—"></ad-stat-card>
+        <ad-stat-card id="card-commission" label="Platform commission" value="—"></ad-stat-card>
+        <ad-stat-card id="card-fees" label="Cancellation fees" value="—"></ad-stat-card>
+        <ad-stat-card id="card-net" label="Net driver earnings" value="—"></ad-stat-card>
+      </div>
+
+      <div class="ad-form-error" id="report-error" role="alert"></div>
+
+      <section class="ad-section" aria-labelledby="recon-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="recon-heading">Reconciliation check</h2>
+            <p class="ad-section__hint">
+              #1832 Scenario 4 requires gross fares to equal platform commission plus net driver
+              earnings. This panel proves it for the selected period.
+            </p>
+          </div>
+        </div>
+        <div class="ad-section__body">
+          <div class="detail__money" id="recon-rows"></div>
+        </div>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/reports.js"></script>
+  </body>
+</html>

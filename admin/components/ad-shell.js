@@ -26,6 +26,7 @@
 
 import { NAV_SECTIONS } from '../scripts/nav.js';
 import { adminAuth } from '../scripts/admin-auth.js';
+import { clearMutations } from '../scripts/mutations.js';
 import { injectAdminStyles, ensureToastHost } from './ad-styles.js';
 import '../../shared/components/sd-toast-host.js';
 import './ad-status-pill.js';
@@ -132,10 +133,25 @@ class AdShell extends HTMLElement {
 
     const footer = document.createElement('div');
     footer.className = 'ad-nav__footer';
+
     const screensLink = document.createElement('a');
     screensLink.href = 'screens.html';
     screensLink.textContent = 'Mockup screen index';
-    footer.append(screensLink);
+    footer.appendChild(screensLink);
+
+    // Actions persist for the browser session, so the designer needs a way back
+    // to a clean dataset without hunting through devtools.
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'ad-nav__reset';
+    reset.id = 'admin-reset-demo';
+    reset.textContent = 'Reset demo data';
+    reset.addEventListener('click', () => {
+      clearMutations();
+      window.location.reload();
+    });
+    footer.appendChild(reset);
+
     nav.appendChild(footer);
 
     return nav;

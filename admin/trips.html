@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Trips</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="trips"
+      page-title="Trips"
+      breadcrumb="Operations > Trips"
+      screen-styles="styles/list.css"
+    >
+      <!-- #1670 — all trips across all statuses -->
+      <section class="ad-section" aria-labelledby="trips-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="trips-heading">All trips</h2>
+            <p class="ad-section__hint">
+              The status filter maps onto the trip state machine: Searching, Active (matched
+              through trip started), Completed, and Expired. Click a row for the full state
+              timeline.
+            </p>
+          </div>
+        </div>
+
+        <ad-filter-bar id="trips-filters"></ad-filter-bar>
+        <ad-data-table id="trips-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/trips.js"></script>
+  </body>
+</html>

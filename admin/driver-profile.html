@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver profile</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="drivers"
+      page-title="Driver profile"
+      breadcrumb="Drivers|drivers.html > Profile"
+      screen-styles="styles/detail.css, styles/list.css"
+    >
+      <div id="profile-missing" hidden>
+        <ad-empty-state icon="⚠" heading="Driver not found" message="This driver account does not exist.">
+          <a class="btn btn--secondary btn--sm" href="drivers.html">Back to drivers</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="profile-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <ad-detail-section id="personal" section-title="Personal details"></ad-detail-section>
+            <ad-detail-section id="vehicle" section-title="Vehicle details"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="docs-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="docs-heading">Documents & photos</h2>
+              </div>
+              <div class="ad-section__body">
+                <ad-doc-viewer id="docs"></ad-doc-viewer>
+              </div>
+            </section>
+
+            <!-- Decision history: shown for pending, rejected and suspended (#1666 S2/S3) -->
+            <section class="ad-section" id="history-section" aria-labelledby="history-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="history-heading">Decision history</h2>
+              </div>
+              <div class="ad-section__body">
+                <ad-timeline id="history"></ad-timeline>
+              </div>
+            </section>
+
+            <!-- #1666 S5 — completed trips, 10 rows/page -->
+            <section class="ad-section" aria-labelledby="trips-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="trips-heading">Completed trips</h2>
+              </div>
+              <ad-data-table id="trips-table"></ad-data-table>
+            </section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="status-card" section-title="Account status"></ad-detail-section>
+            <ad-detail-section id="stats" section-title="Performance"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="actions-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="actions-heading">Account actions</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="ad-section__hint" id="action-hint"></p>
+                <button class="btn btn--danger btn--full" type="button" id="suspend-btn" hidden>
+                  Suspend driver
+                </button>
+                <button class="btn btn--primary btn--full" type="button" id="reinstate-btn" hidden>
+                  Reinstate driver
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="action-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/driver-profile.js"></script>
+  </body>
+</html>

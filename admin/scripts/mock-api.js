@@ -28,7 +28,29 @@ import {
   TRIPS_BY_ID,
   ZONES,
   ZONES_BY_ID,
+  makeZone,
 } from './seed.js';
+import {
+  applyMutations,
+  patch,
+  recordAdminCreate,
+  recordPolicies,
+  recordZoneCreate,
+  recordZoneDelete,
+} from './mutations.js';
+
+// Replay this session's recorded actions onto the seed before any screen reads
+// it, so a decision made on one screen is visible on the next.
+applyMutations({
+  DRIVERS,
+  RIDERS,
+  SAFETY_REPORTS,
+  ADMINS,
+  ZONES,
+  ZONES_BY_ID,
+  GLOBAL_POLICIES,
+  makeZone,
+});
 
 const LATENCY_MS = 380;
 const LONG_SUFFIX =
@@ -104,6 +126,10 @@ function respond(value, { emptyValue = null, latency = LATENCY_MS } = {}) {
     window.setTimeout(() => resolve(payload), latency);
   });
 }
+
+// APPLICATIONS is a derived view over DRIVERS, so replayed status changes have
+// to be reflected in it before any screen queries the queue.
+reindexApplications();
 
 const emptyPage = (pageSize = 20) => ({
   rows: [],
@@ -358,6 +384,10 @@ export const mockApi = {
       note: null,
     });
     reindexApplications();
+    patch('drivers', id, {
+      status: driver.status,
+      decisionHistory: driver.decisionHistory,
+    });
     return respond({ ok: true, status: driver.status });
   },
 
@@ -373,6 +403,11 @@ export const mockApi = {
       note: reason,
     });
     reindexApplications();
+    patch('drivers', id, {
+      status: driver.status,
+      rejectionReason: driver.rejectionReason,
+      decisionHistory: driver.decisionHistory,
+    });
     return respond({ ok: true, status: driver.status });
   },
 
@@ -415,6 +450,13 @@ export const mockApi = {
       actor: CURRENT_ADMIN.email,
       note: driver.suspensionReason,
     });
+    patch('drivers', id, {
+      status: driver.status,
+      suspensionReason: driver.suspensionReason,
+      online: false,
+      position: null,
+      decisionHistory: driver.decisionHistory,
+    });
     return respond({ ok: true, status: driver.status, pending: hasActiveTrip });
   },
 
@@ -428,6 +470,11 @@ export const mockApi = {
       at: Date.now(),
       actor: CURRENT_ADMIN.email,
       note: null,
+    });
+    patch('drivers', id, {
+      status: driver.status,
+      suspensionReason: null,
+      decisionHistory: driver.decisionHistory,
     });
     return respond({ ok: true, status: driver.status });
   },
@@ -462,6 +509,11 @@ export const mockApi = {
     rider.status = 'suspended';
     rider.suspensionReason = reason === 'Other' && note ? note : reason;
     rider.suspendedAt = Date.now();
+    patch('riders', id, {
+      status: rider.status,
+      suspensionReason: rider.suspensionReason,
+      suspendedAt: rider.suspendedAt,
+    });
     return respond({ ok: true, status: rider.status });
   },
 
@@ -471,6 +523,7 @@ export const mockApi = {
     rider.status = 'active';
     rider.suspensionReason = null;
     rider.suspendedAt = null;
+    patch('riders', id, { status: 'active', suspensionReason: null, suspendedAt: null });
     return respond({ ok: true, status: rider.status });
   },
 
@@ -559,7 +612,20 @@ export const mockApi = {
         rider.status = 'active';
         rider.suspensionReason = null;
       }
+      patch('riders', rider.id, {
+        status: rider.status,
+        suspensionReason: rider.suspensionReason,
+        suspendedAt: rider.suspendedAt ?? null,
+      });
     }
+
+    patch('reports', id, {
+      status: report.status,
+      resolution: report.resolution,
+      resolutionNote: report.resolutionNote,
+      resolvedAt: report.resolvedAt,
+      resolvedBy: report.resolvedBy,
+    });
 
     return respond({ ok: true, resolution, riderStatus: rider?.status ?? null });
   },
@@ -592,20 +658,19 @@ export const mockApi = {
     if (clash) {
       return Promise.reject(new MockApiError('A zone with this name already exists.', 409));
     }
-    const zone = {
+    const spec = {
       id: Date.now(),
       name: String(name).trim(),
-      get status() {
-        return this.rateCard ? 'active' : 'inactive';
-      },
       rateCard: null,
       polygon,
       centre: polygonCentre(polygon),
       createdBy: CURRENT_ADMIN.email,
       createdAt: Date.now(),
     };
+    const zone = makeZone(spec);
     ZONES.push(zone);
     ZONES_BY_ID.set(String(zone.id), zone);
+    recordZoneCreate(spec);
     return respond({ ok: true, id: zone.id, status: zone.status });
   },
 
@@ -623,6 +688,7 @@ export const mockApi = {
       zone.polygon = polygon;
       zone.centre = polygonCentre(polygon);
     }
+    patch('zones', id, { name: zone.name, polygon: zone.polygon, centre: zone.centre });
     return respond({ ok: true });
   },
 
@@ -631,6 +697,7 @@ export const mockApi = {
     if (index === -1) return Promise.reject(new MockApiError('Zone not found.', 404));
     ZONES.splice(index, 1);
     ZONES_BY_ID.delete(String(id));
+    recordZoneDelete(id);
     return respond({ ok: true });
   },
 
@@ -651,6 +718,7 @@ export const mockApi = {
       cancellationFee: Number(rateCard.cancellationFee ?? 0),
       updatedAt: Date.now(),
     };
+    patch('zones', id, { rateCard: zone.rateCard });
     return respond({ ok: true, status: zone.status });
   },
 
@@ -658,6 +726,7 @@ export const mockApi = {
     const zone = ZONES_BY_ID.get(String(id));
     if (!zone) return Promise.reject(new MockApiError('Zone not found.', 404));
     zone.rateCard = null;
+    patch('zones', id, { rateCard: null });
     return respond({ ok: true, status: zone.status });
   },
 
@@ -678,6 +747,7 @@ export const mockApi = {
         updatedBy: CURRENT_ADMIN.email,
       });
     }
+    recordPolicies(structuredClone(GLOBAL_POLICIES));
     return respond({ ok: true });
   },
 
@@ -832,6 +902,7 @@ export const mockApi = {
       twoFactorEnrolled: false,
     };
     ADMINS.unshift(admin);
+    recordAdminCreate(admin);
     return respond({ ok: true, id: admin.id });
   },
 
@@ -842,6 +913,7 @@ export const mockApi = {
       return Promise.reject(new MockApiError('You cannot disable your own account.', 422));
     }
     admin.status = status;
+    patch('admins', id, { status });
     return respond({ ok: true, status });
   },
 };

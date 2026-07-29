@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver application</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="driver-applications"
+      page-title="Driver application"
+      breadcrumb="Driver applications|driver-applications.html > Application"
+      screen-styles="styles/detail.css"
+    >
+      <!-- #1658 full application · #1659 approve · #1660 reject with reason -->
+      <div id="app-missing" hidden>
+        <ad-empty-state
+          icon="⚠"
+          heading="Application not found"
+          message="This application no longer exists, or it has already been reviewed."
+        >
+          <a class="btn btn--secondary btn--sm" href="driver-applications.html">
+            Back to the queue
+          </a>
+        </ad-empty-state>
+      </div>
+
+      <div id="app-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <ad-detail-section id="personal" section-title="Personal details"></ad-detail-section>
+            <ad-detail-section id="vehicle" section-title="Vehicle details"></ad-detail-section>
+            <ad-detail-section id="licence" section-title="Licence & registration"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="docs-heading">
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="docs-heading">Uploaded documents</h2>
+                  <p class="ad-section__hint">
+                    Click a document to open it larger. Images here are placeholders — the
+                    mockup never carries real ID scans.
+                  </p>
+                </div>
+              </div>
+              <div class="ad-section__body">
+                <ad-doc-viewer id="docs"></ad-doc-viewer>
+              </div>
+            </section>
+
+            <section class="ad-section" aria-labelledby="photos-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="photos-heading">Vehicle & profile photo</h2>
+              </div>
+              <div class="ad-section__body">
+                <ad-doc-viewer id="photos"></ad-doc-viewer>
+              </div>
+            </section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <section class="ad-section" aria-labelledby="decision-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="decision-heading">Decision</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="ad-section__hint" id="decision-hint">
+                  Approving lets this driver go online. Rejecting requires a reason, which the
+                  driver is notified with.
+                </p>
+                <button class="btn btn--primary btn--full" type="button" id="approve-btn">
+                  Approve application
+                </button>
+                <button class="btn btn--danger btn--full" type="button" id="reject-btn">
+                  Reject application
+                </button>
+              </div>
+            </section>
+
+            <ad-detail-section id="summary" section-title="Submission"></ad-detail-section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="decision-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/driver-application.js"></script>
+  </body>
+</html>

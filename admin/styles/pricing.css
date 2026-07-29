@@ -1,0 +1,82 @@
+/*
+ * pricing.css — SheDrive admin pricing screens
+ * Zone list warnings, rate-card summary cells, and the global policy forms.
+ */
+
+.pricing__warning {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--admin-fs-label);
+  color: var(--color-warning);
+  font-weight: var(--fw-medium);
+}
+
+.pricing__rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--admin-gutter-tight);
+  font-size: var(--admin-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.pricing__rate {
+  white-space: nowrap;
+}
+
+.pricing__rate-label {
+  color: var(--color-text-muted);
+}
+
+.pricing__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Global policy screen: two forms side by side on a wide display. */
+.pricing__policies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  gap: var(--admin-gutter);
+  align-items: start;
+}
+
+.pricing__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.pricing__form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem;
+  gap: var(--admin-gutter-tight);
+  align-items: start;
+}
+
+.pricing__form-row .field {
+  margin: 0;
+}
+
+.pricing__label-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pricing__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.pricing__label-hint {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+}
+
+.pricing__meta {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+}

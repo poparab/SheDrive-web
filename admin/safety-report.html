@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Safety report</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="safety"
+      page-title="Gender-mismatch report"
+      breadcrumb="Safety reports|safety-reports.html > Report"
+      screen-styles="styles/detail.css, styles/list.css"
+    >
+      <div id="report-missing" hidden>
+        <ad-empty-state icon="⚠" heading="Report not found" message="This report record does not exist.">
+          <a class="btn btn--secondary btn--sm" href="safety-reports.html">Back to the queue</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="report-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <section class="ad-section" aria-labelledby="statement-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="statement-heading">Reporting driver's statement</h2>
+              </div>
+              <div class="ad-section__body">
+                <p class="detail__statement" id="statement"></p>
+              </div>
+            </section>
+
+            <ad-detail-section id="trip-snapshot" section-title="Trip snapshot"></ad-detail-section>
+            <ad-detail-section id="rider-state" section-title="Reported rider"></ad-detail-section>
+            <ad-detail-section id="driver-info" section-title="Reporting driver"></ad-detail-section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="report-meta" section-title="Report"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="resolve-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="resolve-heading">Resolution</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="ad-section__hint" id="resolve-hint"></p>
+                <button class="btn btn--danger btn--full" type="button" id="suspend-btn" hidden>
+                  Suspend the reported rider
+                </button>
+                <button class="btn btn--secondary btn--full" type="button" id="dismiss-btn" hidden>
+                  Dismiss the report
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="resolve-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/safety-report.js"></script>
+  </body>
+</html>

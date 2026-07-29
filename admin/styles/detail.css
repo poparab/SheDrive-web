@@ -1,0 +1,84 @@
+/*
+ * detail.css — SheDrive admin shared detail-screen styling
+ * Used by application, driver/rider profile, trip detail and safety report.
+ */
+
+.detail__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.detail__heading {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+}
+
+.detail__subheading {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.detail__stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--admin-gutter-tight);
+}
+
+.detail__money {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detail__money-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--admin-gutter-tight);
+  font-size: var(--fs-sm);
+}
+
+.detail__money-row--total {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-base);
+}
+
+.detail__money-label {
+  color: var(--color-text-muted);
+}
+
+.detail__money-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.detail__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-lg);
+  color: var(--color-warning);
+}
+
+.detail__tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-block-start: var(--space-3);
+}
+
+.detail__statement {
+  margin: 0;
+  padding: var(--admin-gutter-tight);
+  background: var(--color-surface-alt);
+  border-inline-start: var(--space-1) solid var(--color-primary-500);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+}
