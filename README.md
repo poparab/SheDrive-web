@@ -74,8 +74,14 @@ talks to a real API and a reload resets the data.
 
 **Live:** https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/screens
 
-Sign in with any seeded admin email — e.g. `ops.lead@shedrive.app` — password
+**Internal screens are open — no sign-in required.** Opening any admin screen directly
+provisions a demo session so a deep link from the screen index or an ADO story always
+lands on that screen. The sign-in screen is still fully working (it is itself a design
+screen): use any seeded admin email — e.g. `ops.lead@shedrive.app` — password
 `shedrive2026`, then 2FA code `123456`.
+
+To see the production guard instead (unauthenticated access redirects to sign-in, per
+#1656 Scenario 6), sign out and add `?auth=strict` to any screen URL.
 
 Every list screen accepts `?state=empty`, `?state=loading`, `?state=error` or
 `?state=long` to force a state. Component and mock-API docs are in
