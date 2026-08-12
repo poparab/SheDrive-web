@@ -9,7 +9,7 @@
 import { injectAdminStyles, ensureToastHost } from '../components/ad-styles.js';
 import '../../shared/components/sd-toast-host.js';
 import { mockAuth, stateOverride } from './mock-api.js';
-import { adminAuth } from './admin-auth.js';
+import { adminAuth, DEMO_ADMIN_EMAIL } from './admin-auth.js';
 import { qs } from '../../shared/scripts/utils.js';
 
 injectAdminStyles({ screenStyles: 'styles/login.css' });
@@ -306,10 +306,53 @@ function completeSignIn() {
   window.location.href = './dashboard.html';
 }
 
+// ── ?step= deep links ─────────────────────────────────
+//
+// Three of these steps are normally only reachable by signing in as the one
+// seeded admin who has never logged in, which is not discoverable. Every other
+// screen in the portal is directly linkable, so these are too:
+//   ?step=forgot   reset request
+//   ?step=2fa      two-factor code
+//   ?step=enrol    first-time authenticator enrolment
+//   ?step=change   forced first-login password change
+const STEP_LINKS = {
+  credentials: 'credentials',
+  forgot: 'forgot',
+  '2fa': 'twoFactor',
+  enrol: 'enrol',
+  change: 'change',
+};
+
+function applyStepOverride() {
+  const requested = new URLSearchParams(window.location.search).get('step');
+  if (!requested) return;
+
+  const step = STEP_LINKS[requested];
+  if (!step) {
+    console.warn(
+      `[admin mockup] Unknown ?step=${requested}. Valid values: ${Object.keys(STEP_LINKS).join(', ')}.`,
+    );
+    return;
+  }
+
+  // A deep link skips the credentials step, so stand in an admin — otherwise
+  // completing the step would have no identity to sign in as.
+  pendingAdmin = {
+    email: DEMO_ADMIN_EMAIL,
+    requiresEnrolment: requested === 'enrol',
+    mustChangePassword: requested === 'change',
+  };
+
+  if (step === 'enrol') renderRecoveryCodes();
+  showStep(step);
+}
+
+applyStepOverride();
+
 // The ?state= override is a list-screen concern; note it here so the designer
 // knows the login screen deliberately ignores it.
 if (stateOverride()) {
   console.info(
-    `[admin mockup] ?state=${stateOverride()} has no effect on the sign-in screen.`,
+    `[admin mockup] ?state=${stateOverride()} has no effect on the sign-in screen. Use ?step= instead.`,
   );
 }

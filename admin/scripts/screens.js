@@ -31,8 +31,16 @@ export const SCREENS = [
       [1822, 'Password reset and first-login mandatory change'],
     ],
     states: [],
+    variantsLabel: 'Steps',
+    variants: [
+      { label: 'credentials', query: '' },
+      { label: 'reset request', query: '?step=forgot' },
+      { label: 'two-factor', query: '?step=2fa' },
+      { label: 'enrolment', query: '?step=enrol' },
+      { label: 'new password', query: '?step=change' },
+    ],
     notes:
-      'Five steps in one screen: credentials, 2FA, first-time enrolment, forced password change, reset request. Mockup credentials are printed on the card. The QR code is decorative — labelled as not scannable.',
+      'Five steps in one screen: credentials, 2FA, first-time enrolment, forced password change, reset request. Each step has a direct link below. The QR code is decorative — labelled as not scannable. Reaching the new-password step by actually signing in requires night.desk@shedrive.app (the one seeded admin who has never logged in); every other account goes straight to the dashboard.',
   },
   {
     group: 'Operations',
@@ -320,6 +328,28 @@ function renderCard(screen) {
     });
 
     card.appendChild(states);
+  }
+
+  // Screens whose sub-views are reached by a query param other than ?state=
+  // (currently only the sign-in screen's steps) list them the same way.
+  if (screen.variants?.length) {
+    const variants = document.createElement('div');
+    variants.className = 'screen-card__states';
+
+    const label = document.createElement('span');
+    label.className = 'screen-card__states-label';
+    label.textContent = `${screen.variantsLabel ?? 'Views'}:`;
+    variants.appendChild(label);
+
+    screen.variants.forEach((variant) => {
+      const link = document.createElement('a');
+      link.className = 'chip';
+      link.href = `${screen.file}${variant.query}`;
+      link.textContent = variant.label;
+      variants.appendChild(link);
+    });
+
+    card.appendChild(variants);
   }
 
   return card;

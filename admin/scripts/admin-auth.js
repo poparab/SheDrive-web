@@ -22,8 +22,10 @@ const LOGIN_URL = './index.html';
 /**
  * The demo identity used when a screen is opened cold. Matches the seed's
  * CURRENT_ADMIN so audit entries and "you" markers stay consistent.
+ * Exported so the sign-in screen's ?step= deep links can stand in an admin
+ * for steps that are normally reached only after entering credentials.
  */
-const DEMO_ADMIN_EMAIL = 'ops.lead@shedrive.app';
+export const DEMO_ADMIN_EMAIL = 'ops.lead@shedrive.app';
 
 /** True when the URL asks for production guard behaviour. */
 function strictAuth() {
