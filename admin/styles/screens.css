@@ -3,13 +3,13 @@
  * The designer's contact sheet. Standalone page, no app shell.
  */
 
+/* Also overrides the phone-frame centering base.css applies from 500px up. */
 body.screens-page {
   display: block;
 }
 
 .screens {
-  max-width: var(--admin-content-max);
-  margin-inline: auto;
+  width: 100%;
   padding: var(--space-10) var(--admin-gutter) var(--space-12);
   display: flex;
   flex-direction: column;

@@ -9,7 +9,6 @@
   /* ── Shell layout ─────────────────────────────────── */
   --admin-nav-w: 15rem;
   --admin-topbar-h: 3.5rem;
-  --admin-content-max: 96rem;
   --admin-panel-w: 27rem;
   --admin-gutter: var(--space-6);
   --admin-gutter-tight: var(--space-4);

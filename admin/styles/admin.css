@@ -8,6 +8,14 @@
 /* ── Page base ──────────────────────────────────────── */
 
 body.admin-shell {
+  /*
+   * shared/styles/base.css centres the body from 500px up (display:flex;
+   * justify-content:center) so the rider and driver apps render as a phone frame
+   * on desktop. The admin portal is a full-width desktop tool, so that centering
+   * has to be undone here — otherwise the shell only grows to its content width
+   * and sits inset from both edges of a wide screen.
+   */
+  display: block;
   min-height: 100vh;
   margin: 0;
   background: var(--admin-page-bg);
@@ -30,6 +38,7 @@ body.admin-auth {
   display: grid;
   grid-template-columns: var(--admin-nav-w) minmax(0, 1fr);
   min-height: 100vh;
+  width: 100%;
 }
 
 .ad-nav {
@@ -226,9 +235,12 @@ body.admin-auth {
   color: var(--color-text-muted);
 }
 
+/*
+ * No max-width: operations staff work on wide displays and the dense grids use
+ * every pixel. The content region always spans the full width beside the nav.
+ */
 .ad-content {
   padding: var(--admin-gutter);
-  max-width: var(--admin-content-max);
   width: 100%;
   display: flex;
   flex-direction: column;
