@@ -34,6 +34,7 @@ import {
   applyMutations,
   patch,
   recordAdminCreate,
+  recordAuditEntry,
   recordPolicies,
   recordZoneCreate,
   recordZoneDelete,
@@ -46,6 +47,8 @@ applyMutations({
   RIDERS,
   SAFETY_REPORTS,
   ADMINS,
+  TRIPS,
+  AUDIT_ENTRIES,
   ZONES,
   ZONES_BY_ID,
   GLOBAL_POLICIES,
@@ -561,6 +564,148 @@ export const mockApi = {
     return respond(TRIPS_BY_ID.get(String(id)) ?? null, { emptyValue: null });
   },
 
+  // ── Admin trip interventions (#1808, #1809) ─────────
+  //
+  // Both stories are UNWRITTEN. The behaviour below is a proposal, chosen to fit
+  // what the rest of the backlog already states rather than invented freely:
+  //   • Cancelling yields a distinct `cancelled` status, not an `expired` one.
+  //     #1671 Scenario 2 lists "in progress, cancelled, or expired" as three
+  //     separate cases, so `cancelled` is already part of the domain vocabulary.
+  //     Consequence: #1670's status filter needs a fifth option — flagged in
+  //     docs/ux/admin-wireframes.md.
+  //   • Reassigning keeps the trip live and returns it to `accepted`, since the
+  //     incoming driver has taken the job but has not started travelling yet.
+  //   • Both are recorded in the audit log, which #1816 explicitly requires.
+
+  /** Only a trip that has not reached a terminal state can be intervened on. */
+  isInterveneable(trip) {
+    return trip?.status === 'active' || trip?.status === 'searching';
+  },
+
+  /** Drivers eligible to take over a trip: approved, online, and not already busy. */
+  listReassignableDrivers(tripId) {
+    const trip = TRIPS_BY_ID.get(String(tripId));
+    const busy = new Set(
+      TRIPS.filter((t) => t.status === 'active' && t.driverId).map((t) => String(t.driverId)),
+    );
+
+    const rows = DRIVERS.filter(
+      (driver) =>
+        driver.status === 'approved' &&
+        driver.online &&
+        String(driver.id) !== String(trip?.driverId) &&
+        !busy.has(String(driver.id)),
+    ).map((driver) => ({
+      id: driver.id,
+      name: driver.name,
+      vehicle: `${driver.vehicle.make} ${driver.vehicle.model} · ${driver.vehicle.plate}`,
+      homeArea: driver.homeArea,
+      rating: driver.avgRating,
+    }));
+
+    return respond(rows, { emptyValue: [], latency: 200 });
+  },
+
+  cancelTrip(id, reason, note) {
+    const trip = TRIPS_BY_ID.get(String(id));
+    if (!trip) return Promise.reject(new MockApiError('Trip not found.', 404));
+    if (!this.isInterveneable(trip)) {
+      return Promise.reject(
+        new MockApiError('Only a trip that is still in progress can be cancelled.', 409),
+      );
+    }
+
+    const at = Date.now();
+    const recordedReason = reason === 'Other' && note ? note : reason;
+
+    trip.status = 'cancelled';
+    trip.cancellation = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
+    trip.stateHistory = [
+      ...trip.stateHistory,
+      { state: 'cancelled_by_admin', at, note: recordedReason },
+    ];
+    trip.updatedAt = at;
+
+    patch('trips', id, {
+      status: trip.status,
+      cancellation: trip.cancellation,
+      stateHistory: trip.stateHistory,
+      updatedAt: at,
+    });
+
+    addAuditEntry('cancel', 'trip', trip.id, { status: 'active' }, {
+      status: 'cancelled',
+      reason: recordedReason,
+    }, at);
+
+    return respond({ ok: true, status: trip.status });
+  },
+
+  reassignTrip(id, driverId, reason, note) {
+    const trip = TRIPS_BY_ID.get(String(id));
+    if (!trip) return Promise.reject(new MockApiError('Trip not found.', 404));
+    if (!this.isInterveneable(trip)) {
+      return Promise.reject(
+        new MockApiError('Only a trip that is still in progress can be reassigned.', 409),
+      );
+    }
+
+    const next = DRIVERS_BY_ID.get(String(driverId));
+    if (!next) return Promise.reject(new MockApiError('Driver not found.', 404));
+    if (next.status !== 'approved' || !next.online) {
+      return Promise.reject(
+        new MockApiError('That driver is no longer available to take this trip.', 409),
+      );
+    }
+    if (String(next.id) === String(trip.driverId)) {
+      return Promise.reject(
+        new MockApiError('That driver is already assigned to this trip.', 422),
+      );
+    }
+
+    const at = Date.now();
+    const previous = { id: trip.driverId, name: trip.driverName };
+    const recordedReason = reason === 'Other' && note ? note : reason;
+
+    trip.driverId = next.id;
+    trip.driverName = next.name;
+    trip.driverPhone = next.phone;
+    trip.vehicle = next.vehicle;
+    // The incoming driver has accepted but has not started travelling yet.
+    trip.status = 'active';
+    trip.stateHistory = [
+      ...trip.stateHistory,
+      {
+        state: 'reassigned_by_admin',
+        at,
+        note: `${previous.name ?? 'Unassigned'} → ${next.name} · ${recordedReason}`,
+      },
+      { state: 'accepted', at: at + 1000, note: null },
+    ];
+    trip.updatedAt = at + 1000;
+
+    patch('trips', id, {
+      driverId: trip.driverId,
+      driverName: trip.driverName,
+      driverPhone: trip.driverPhone,
+      vehicle: trip.vehicle,
+      status: trip.status,
+      stateHistory: trip.stateHistory,
+      updatedAt: trip.updatedAt,
+    });
+
+    addAuditEntry(
+      'reassign',
+      'trip',
+      trip.id,
+      { driver: previous.name ?? 'Unassigned' },
+      { driver: next.name, reason: recordedReason },
+      at,
+    );
+
+    return respond({ ok: true, driverName: next.name });
+  },
+
   // ── Safety reports (#1810, #1811) ───────────────────
 
   listSafetyReports({ status = 'open', from = '', to = '', page = 1, pageSize = 20, sort } = {}) {
@@ -943,6 +1088,27 @@ function polygonCentre(polygon) {
   const lng = points.reduce((sum, p) => sum + p[0], 0) / points.length;
   const lat = points.reduce((sum, p) => sum + p[1], 0) / points.length;
   return [lng, lat];
+}
+
+/**
+ * Append an entry to the audit log and persist it, so an intervention shows up
+ * on the audit-log screen as #1816 requires.
+ */
+function addAuditEntry(actionType, targetType, targetId, before, after, at) {
+  const entry = {
+    id: `AUD-${targetType}-${targetId}-${at}`,
+    at,
+    actor: CURRENT_ADMIN.email,
+    actionType,
+    targetType,
+    targetId,
+    before,
+    after,
+  };
+  AUDIT_ENTRIES.unshift(entry);
+  AUDIT_ENTRIES.sort((a, b) => b.at - a.at);
+  recordAuditEntry(entry);
+  return entry;
 }
 
 /** APPLICATIONS is a derived view; keep it in step after an approve/reject. */

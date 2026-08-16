@@ -33,6 +33,10 @@ const STATUS_MAP = {
   completed: { label: 'Completed', tone: 'success' },
   expired: { label: 'Expired', tone: 'danger' },
   created: { label: 'Created', tone: 'info' },
+  // Admin interventions (#1808, #1809)
+  cancelled: { label: 'Cancelled', tone: 'danger' },
+  cancelled_by_admin: { label: 'Cancelled by admin', tone: 'danger' },
+  reassigned_by_admin: { label: 'Reassigned by admin', tone: 'warning' },
 
   // Safety reports
   open: { label: 'Open', tone: 'warning' },

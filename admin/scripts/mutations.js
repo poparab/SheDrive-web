@@ -20,10 +20,12 @@ const EMPTY = {
   riders: {},
   reports: {},
   admins: {},
+  trips: {},     // id -> patched fields (status, driver, stateHistory)
   zones: {},     // id -> patched fields (incl. rateCard)
   zonesCreated: [],
   zonesDeleted: [],
   adminsCreated: [],
+  auditAdded: [],
   policies: null,
 };
 
@@ -73,6 +75,12 @@ export function recordAdminCreate(admin) {
   write(state);
 }
 
+/** #1816 requires trip cancel/reassign to appear in the audit log. */
+export function recordAuditEntry(entry) {
+  state.auditAdded.push(entry);
+  write(state);
+}
+
 export function recordPolicies(policies) {
   state.policies = policies;
   write(state);
@@ -93,10 +101,12 @@ export function hasMutations() {
     Object.keys(state.riders).length > 0 ||
     Object.keys(state.reports).length > 0 ||
     Object.keys(state.admins).length > 0 ||
+    Object.keys(state.trips).length > 0 ||
     Object.keys(state.zones).length > 0 ||
     state.zonesCreated.length > 0 ||
     state.zonesDeleted.length > 0 ||
     state.adminsCreated.length > 0 ||
+    state.auditAdded.length > 0 ||
     state.policies !== null
   );
 }
@@ -110,6 +120,8 @@ export function applyMutations({
   RIDERS,
   SAFETY_REPORTS,
   ADMINS,
+  TRIPS,
+  AUDIT_ENTRIES,
   ZONES,
   ZONES_BY_ID,
   GLOBAL_POLICIES,
@@ -119,6 +131,14 @@ export function applyMutations({
   applyPatches(RIDERS, state.riders);
   applyPatches(SAFETY_REPORTS, state.reports);
   applyPatches(ADMINS, state.admins);
+  applyPatches(TRIPS, state.trips);
+
+  if (AUDIT_ENTRIES && state.auditAdded.length) {
+    state.auditAdded.forEach((entry) => {
+      if (!AUDIT_ENTRIES.some((e) => e.id === entry.id)) AUDIT_ENTRIES.push(entry);
+    });
+    AUDIT_ENTRIES.sort((a, b) => b.at - a.at);
+  }
 
   state.adminsCreated.forEach((admin) => {
     if (!ADMINS.some((a) => String(a.id) === String(admin.id))) ADMINS.unshift(admin);

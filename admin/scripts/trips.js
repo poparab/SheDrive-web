@@ -46,6 +46,9 @@ filters.fields = [
       { value: 'searching', label: 'Searching' },
       { value: 'active', label: 'Active' },
       { value: 'completed', label: 'Completed' },
+      // #1670's spec lists four options; Cancelled is a fifth, needed once an
+      // admin can cancel a trip (#1808). Flagged in admin-wireframes.md.
+      { value: 'cancelled', label: 'Cancelled' },
       { value: 'expired', label: 'Expired' },
     ],
   },

@@ -81,7 +81,7 @@ export const SCREENS = [
     ],
     states: [],
     notes:
-      'Cancel (#1808) and Reassign (#1809) appear disabled — neither story is written yet. Completed trips add the recorded route, fare breakdown and rating.',
+      'Completed trips add the recorded route, fare breakdown and rating. An in-progress trip exposes Cancel (#1808) and Reassign (#1809) — both stories are still unwritten, so those flows are a PROPOSAL and the screen carries a notice saying so. Cancelling produces a distinct Cancelled status; reassigning keeps the trip live and hands it to another online driver. Both need BA sign-off.',
   },
   {
     group: 'Operations',

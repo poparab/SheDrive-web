@@ -801,8 +801,32 @@ export const REPORTS_BY_ID = new Map(SAFETY_REPORTS.map((r) => [r.id, r]));
 
 export const SEED_META = { generatedAt: NOW, MINUTE, HOUR, DAY };
 
+/**
+ * Reason lists for the two admin trip interventions. Stories #1808 (cancel) and
+ * #1809 (reassign) are unwritten, so these lists are a proposal drawn from the
+ * situations the rest of the backlog already describes — they need BA sign-off.
+ */
+const TRIP_CANCELLATION_REASONS = [
+  'Rider requested cancellation',
+  'Driver unresponsive',
+  'Safety concern raised',
+  'Vehicle breakdown',
+  'Duplicate or test trip',
+  'Other',
+];
+
+const TRIP_REASSIGNMENT_REASONS = [
+  'Driver unresponsive',
+  'Vehicle breakdown',
+  'Driver too far from pickup',
+  'Driver requested handover',
+  'Other',
+];
+
 export const REASON_LISTS = {
   driverSuspension: SUSPENSION_REASONS,
   riderSuspension: RIDER_SUSPENSION_REASONS,
   rejection: REJECTION_REASONS,
+  tripCancellation: TRIP_CANCELLATION_REASONS,
+  tripReassignment: TRIP_REASSIGNMENT_REASONS,
 };

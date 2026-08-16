@@ -93,22 +93,30 @@
                 <div class="ad-stub">
                   <span class="ad-stub__icon" aria-hidden="true">⚠</span>
                   <span>
-                    Cancel trip (#1808) and Reassign to another driver (#1809) are required by
-                    #1671 Scenario 5, but neither story has been written yet. Both controls are
-                    shown disabled rather than designed speculatively.
+                    <strong>Proposed behaviour — needs BA sign-off.</strong> Stories #1808
+                    (cancel) and #1809 (reassign) have not been written, so the flows below are
+                    a proposal built to fit the rest of the backlog. Review them as design
+                    intent, not as agreed requirements.
                   </span>
                 </div>
-                <button class="btn btn--danger btn--full" type="button" disabled>
-                  Cancel trip — awaiting story #1808
+                <p class="ad-section__hint" id="intervention-hint"></p>
+                <button class="btn btn--danger btn--full" type="button" id="cancel-trip">
+                  Cancel this trip
                 </button>
-                <button class="btn btn--secondary btn--full" type="button" disabled>
-                  Reassign driver — awaiting story #1809
+                <button class="btn btn--secondary btn--full" type="button" id="reassign-trip">
+                  Reassign to another driver
                 </button>
               </div>
             </section>
+
+            <!-- Recorded intervention, shown once a trip has been cancelled -->
+            <ad-detail-section id="cancellation" section-title="Cancellation" hidden>
+            </ad-detail-section>
           </aside>
         </div>
       </div>
+
+      <ad-form-modal id="intervention-modal"></ad-form-modal>
     </ad-shell>
 
     <script type="module" src="scripts/trip-detail.js"></script>
