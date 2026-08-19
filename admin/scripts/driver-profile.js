@@ -165,9 +165,25 @@ async function load() {
     { label: 'Submitted', value: formatDate(driver.submittedAt) },
   ];
 
-  // #1666 S3 — a suspended driver shows the recorded reason.
+  // #1666 S3 — a suspended driver shows the recorded reason, plus who suspended
+  // her and when. Derived from the decision history rather than stored twice, so
+  // it works for both seeded and live suspensions.
   if (driver.suspensionReason) {
-    statusItems.push({ label: 'Suspension reason', value: driver.suspensionReason, wide: true });
+    const suspension = [...driver.decisionHistory]
+      .reverse()
+      .find((entry) => entry.state === 'suspended' || entry.state === 'pending_suspension');
+
+    statusItems.push({
+      label: driver.status === 'pending_suspension' ? 'Pending suspension reason' : 'Suspension reason',
+      value: driver.suspensionReason,
+      wide: true,
+    });
+    if (suspension?.actor) {
+      statusItems.push({ label: 'Suspended by', value: suspension.actor });
+    }
+    if (suspension?.at) {
+      statusItems.push({ label: 'Suspended at', value: formatDateTime(suspension.at) });
+    }
   }
   if (driver.rejectionReason) {
     statusItems.push({ label: 'Rejection reason', value: driver.rejectionReason, wide: true });
