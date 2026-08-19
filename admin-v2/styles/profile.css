@@ -1,0 +1,63 @@
+/*
+ * profile.css — SheDrive admin portal "My profile"
+ * Only what this screen needs on top of the design kit's card and list-row
+ * idiom. Every value is a token from design-tokens.css / admin-tokens.css /
+ * shared tokens.css.
+ */
+
+.profile__grid {
+  align-items: stretch;
+}
+
+.profile__card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile__card > .card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Actions sit at the foot of the card, clear of the key/value list. */
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: auto;
+  padding-block-start: var(--admin-gutter-tight);
+}
+
+.profile__actions .btn i {
+  margin-inline-end: var(--space-2);
+}
+
+/* The honest footnote under each card — muted, never mistaken for a value. */
+.profile__hint {
+  margin: 0;
+  padding-block: var(--space-3);
+  font-size: var(--admin-fs-label);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.profile__hint:empty {
+  display: none;
+}
+
+.profile__hint code,
+.profile__card code {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  font-size: var(--admin-fs-label);
+  color: var(--color-primary-700);
+}
+
+/* Long values (emails, timestamps) must wrap rather than push the row wide. */
+.profile__card .list-item {
+  overflow-wrap: anywhere;
+}

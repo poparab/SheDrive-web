@@ -1,0 +1,261 @@
+/*
+ * screens.css — SheDrive admin mockup screen index (v2 design)
+ * The designer's contact sheet. Standalone page, no app shell: the kit's
+ * `.standard-card-theme2` cards do the heavy lifting, and this file only adds
+ * the index-specific layout on top. Every value is a token.
+ */
+
+/* Also overrides the phone-frame centering shared/styles/base.css applies. */
+body.screens-page {
+  display: block;
+}
+
+.screens {
+  width: 100%;
+  padding-block: var(--space-10) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.screens__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+  max-width: 64rem;
+}
+
+.screens__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.screens__brand img {
+  height: 2.5rem;
+  width: auto;
+}
+
+.screens__brand-label {
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.screens .section-title {
+  margin-block: var(--space-2) 0;
+}
+
+.screens__lead {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.screens__progress {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+}
+
+/* ── Reviewer guide card ────────────────────────────── */
+
+.screens__notice {
+  margin-block-start: var(--space-2);
+}
+
+.screens__notice ul {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+}
+
+.screens__notice a {
+  color: var(--color-primary-600);
+  font-weight: var(--fw-semibold);
+}
+
+.screens__notice code,
+.screens__footer code {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  font-size: var(--admin-fs-label);
+  color: var(--color-primary-700);
+}
+
+/* ── Groups & grid ──────────────────────────────────── */
+
+.screen-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.screen-group__title {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.screen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
+  gap: var(--admin-gutter-tight);
+  align-items: start;
+}
+
+/* ── Card ───────────────────────────────────────────── */
+/* The kit's .standard-card-theme2 supplies the frame, radius and padding. */
+
+.screen-card {
+  height: 100%;
+}
+
+.screen-card--planned {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.screen-card__head {
+  align-items: flex-start;
+}
+
+.screen-card__title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+}
+
+.screen-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.screen-card__title a:hover,
+.screen-card__title a:focus-visible {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+}
+
+.screen-card__file {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.screen-card__stories {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+}
+
+.screen-card__stories a {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-600);
+  text-decoration: none;
+}
+
+.screen-card__stories a:hover,
+.screen-card__stories a:focus-visible {
+  text-decoration: underline;
+}
+
+.screen-card__notes {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+}
+
+.screen-card__states {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.screen-card__states-label {
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+/* ── State chips ────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-medium);
+  line-height: var(--leading-normal);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.screen-card__states a.chip:hover,
+.screen-card__states a.chip:focus-visible {
+  border-color: var(--color-primary-500);
+  background: var(--color-surface);
+  color: var(--color-primary-600);
+}
+
+.screen-card--planned .chip {
+  opacity: 0.5;
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+
+.screens__footer {
+  padding-block-start: var(--admin-gutter-tight);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.screens__footer p {
+  margin: 0;
+}
+
+/* Language switch on the index — the page has no shell to host one. */
+.screens__lang {
+  display: flex;
+  gap: var(--space-2);
+  margin-block: var(--space-3) var(--space-4);
+}

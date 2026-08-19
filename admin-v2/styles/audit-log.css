@@ -1,0 +1,68 @@
+/*
+ * audit-log.css — SheDrive admin activity audit log (v2 design kit)
+ *
+ * The grid itself is the kit's `.custom-grid-list`, so this sheet only shapes
+ * the two composite cells audit-log.js builds: the before/after diff and the
+ * target identifier. The diff has to stay legible without widening the grid,
+ * which is why it wraps inside a capped column rather than stretching it.
+ *
+ * Class names are unchanged. Every value is a token.
+ */
+
+.audit__diff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 22rem;
+  font-size: var(--admin-fs-label);
+}
+
+.audit__diff-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.audit__diff-key {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+/* Old value struck through, new value carried in the brand ink. */
+.audit__diff-before {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.audit__diff-arrow {
+  color: var(--color-primary-500);
+}
+
+.audit__diff-after {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-700);
+}
+
+.audit__target {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.audit__target-type {
+  font-size: var(--admin-fs-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/*
+ * The arrow between the before and after values names a physical direction.
+ * In Arabic the row itself is reversed by the flex direction, so the glyph has
+ * to be mirrored to keep pointing from the old value towards the new one.
+ */
+[dir='rtl'] .audit__diff-arrow {
+  display: inline-block;
+  transform: rotate(180deg);
+}

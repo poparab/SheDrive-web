@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Mockup screen index</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body class="admin-shell screens-page">
+    <main class="screens container-fluid">
+      <header class="screens__header">
+        <div class="screens__brand">
+          <img src="vendor/img/logo.png" alt="SheDrive" height="40" />
+          <span class="screens__brand-label" data-i18n="screens.brandLabel">Admin portal — coded mockups</span>
+        </div>
+
+        <div class="section-title row gy-3">
+          <div class="title col-auto">
+            <h3 class="underline-title" data-i18n="screens.indexTitle">Mockup screen index</h3>
+          </div>
+          <div class="end-side col-auto ms-auto">
+            <a class="btn btn-primary-rounded-outline btn-x-sm" href="dashboard.html">
+              <i class="fa-solid fa-gauge-high"></i> Open the portal
+            </a>
+          </div>
+        </div>
+
+        <p class="screens__lead" data-i18n="screens.lead">
+          Interactive mockups of the SheDrive admin portal, built on the production front-end stack and re-skinned onto the delivered design kit. Data is mock but behaviour is real: filters, sorting, pagination and account actions all work. Desktop-first, and bilingual: English (the default) and Arabic (RTL).
+        </p>
+
+        <div class="screens__lang" id="screens-lang" aria-label="Language"></div>
+
+        <p class="screens__progress" id="screen-progress"></p>
+
+        <div class="standard-card-theme2 white-bg screens__notice">
+          <div class="card-header">
+            <div class="card-title">
+              <h5 data-i18n="screens.noticeTitle">How to review these</h5>
+              <span data-i18n="screens.noticeSubtitle">Reviewer guide</span>
+            </div>
+            <div class="icon"><img src="vendor/icons/user-guide.svg" alt="" /></div>
+          </div>
+          <div class="card-body">
+            <ul>
+              <li>
+                <strong>No sign-in needed.</strong> Every internal screen opens directly —
+                click any card below and you land on that screen. The same is true of the
+                links inside the ADO design stories.
+              </li>
+              <li>
+                The <a href="index.html">sign-in screen</a> is itself a design screen, so it
+                is still here to review. It works end to end with
+                <code>ops.lead@shedrive.app</code> / <code>shedrive2026</code>, then the 2FA
+                code <code>123456</code>.
+              </li>
+              <li>
+                To see the production behaviour where an unauthenticated visitor is bounced
+                to sign-in, add <code>?auth=strict</code> to any screen URL after signing out.
+              </li>
+              <li>
+                Every list screen accepts a forced state in the URL —
+                <code>?state=empty</code>, <code>?state=loading</code>,
+                <code>?state=error</code>, <code>?state=long</code>. The chips below link
+                straight to them.
+              </li>
+              <li>
+                <code>?state=long</code> stretches names and addresses to test overflow,
+                including long Arabic-transliterated names in an English grid.
+              </li>
+              <li>
+                The <strong>Access</strong> group now lists both routes through the same
+                flow: the multi-step sign-in screen (its steps are the
+                <code>?step=</code> links) and the design kit's standalone pages for each
+                individual step. They are the same journey drawn two ways.
+              </li>
+              <li data-i18n="screens.guideMaps">
+                Maps use Mapbox because it is already wired into this repo. Stories
+                #1823–#1826, #1756 and #1831 specify the Google Maps JavaScript API —
+                that discrepancy is open and needs a decision.
+              </li>
+              <li data-i18n="screens.guideBackend">
+                Nothing here talks to a backend. Actions mutate in-memory data, so a full
+                page reload resets everything to the seed state.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <div id="screen-groups"></div>
+
+      <footer class="screens__footer">
+        <p>
+          Screen-to-story mapping and open questions are tracked in
+          <code>docs/ux/admin-wireframes.md</code>. Component APIs are documented in
+          <code>docs/ux/admin-component-contract.md</code>. The design-kit port itself is
+          described in <code>admin-v2/DESIGN-PORT.md</code>.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="scripts/screens.js"></script>
+  </body>
+</html>

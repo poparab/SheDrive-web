@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Safety reports</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="safety"
+      page-title-key="safety.pageTitle"
+      breadcrumb-keys="nav.operations > nav.safety"
+      screen-styles="styles/list.css"
+    >
+      <!-- Kit KPI row — counts derived from the same list query the grid uses -->
+      <div
+        class="ad-stats"
+        id="safety-stats"
+        aria-label="Safety reports summary" data-i18n-label="safety.statsLabel" data-i18n-aria-label="safety.statsLabel"
+        data-i18n-aria-label="safety.statsLabel"
+      ></div>
+
+      <section class="ad-section" aria-labelledby="reports-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="reports-heading" data-i18n="safety.heading">Report queue</h2>
+            <p class="ad-section__hint" data-i18n="safety.hint">
+              SheDrive is women-only. When a driver reports that the rider who arrived was not
+              female, the trip is expired and the rider is held in Pending review automatically.
+              Oldest first — open a report to review it and resolve.
+            </p>
+          </div>
+          <span class="badge badge--warning" id="open-count" data-i18n="common.notAvailable">—</span>
+        </div>
+
+        <ad-filter-bar id="reports-filters"></ad-filter-bar>
+        <ad-data-table id="reports-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/safety-reports.js"></script>
+  </body>
+</html>

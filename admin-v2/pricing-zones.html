@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Pricing & zones</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="pricing-zones"
+      page-title-key="zones.title"
+      breadcrumb-keys="nav.money > nav.pricingZones"
+      screen-styles="styles/list.css, styles/pricing.css"
+      mapbox
+    >
+      <div class="ad-stub">
+        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
+        <span>
+          A zone's Active/Inactive status is <strong>derived from its rate card</strong> and can
+          never be toggled by hand. A zone with no rate card blocks all trips starting inside it.
+        </span>
+      </div>
+
+      <!-- #1831 — map overview of every zone -->
+      <section class="ad-section ad-section--flush" aria-labelledby="map-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="map-heading" data-i18n="zones.mapHeading">Coverage map</h2>
+            <p class="ad-section__hint" id="map-summary" data-i18n="dashboard.mapArea">Cairo / Giza service area</p>
+          </div>
+          <button class="btn btn-primary btn-x-sm" type="button" id="create-zone" data-i18n="zones.createZone">
+            Create zone
+          </button>
+        </div>
+        <ad-map-panel id="zone-map"></ad-map-panel>
+      </section>
+
+      <!-- Draw toolbar, shown only while drawing a boundary (#1756) -->
+      <section class="ad-section" id="draw-panel" aria-labelledby="draw-heading" hidden>
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="draw-heading" data-i18n="zones.drawHeading">Draw the zone boundary</h2>
+            <p class="ad-section__hint" id="draw-hint" data-i18n="zones.drawHint">
+              Click the map to place at least three points. The boundary must not cross itself.
+            </p>
+          </div>
+          <span class="badge badge--info" id="draw-count">0 points</span>
+        </div>
+        <div class="ad-section__body">
+          <div class="ad-form-error" id="draw-error" role="alert"></div>
+          <div class="ad-row">
+            <button class="btn btn-primary btn-x-sm" type="button" id="draw-finish" data-i18n="zones.finishBoundary">
+              Finish boundary
+            </button>
+            <button class="btn btn-tertiary btn-x-sm" type="button" id="draw-undo" data-i18n="zones.undoPoint">Undo point</button>
+            <button class="btn btn-tertiary btn-x-sm" type="button" id="draw-cancel" data-i18n="zones.rateCancel">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- #1831 — zone list, 50 rows/page, A→Z -->
+      <section class="ad-section" aria-labelledby="zones-heading">
+        <div class="ad-section__header">
+          <h2 class="ad-section__title" id="zones-heading" data-i18n="zones.zonesHeading">Zones</h2>
+        </div>
+        <ad-filter-bar id="zone-filters"></ad-filter-bar>
+        <ad-data-table id="zone-table"></ad-data-table>
+      </section>
+
+      <ad-form-modal id="zone-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/pricing-zones.js"></script>
+  </body>
+</html>

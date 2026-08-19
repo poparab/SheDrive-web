@@ -1,0 +1,829 @@
+/*
+ * admin-bridge.css — SheDrive admin portal v2 design bridge
+ *
+ * Loaded last, after the delivered design kit and after the portal's original
+ * admin.css. Two jobs:
+ *
+ *   1. Fit the portal shell to the kit's chrome (#sidebar / #content / header)
+ *      and add the few shell parts the kit's static pages do not have — the
+ *      sidebar footer and the topbar breadcrumb.
+ *   2. Re-skin the legacy vocabulary the screen scripts still emit
+ *      (.btn--*, .input, .field, .badge--*, .toast, .ad-*) so a screen that was
+ *      never touched still looks like it belongs to the kit.
+ *
+ * Every value is a token from design-tokens.css / admin-tokens.css.
+ */
+
+/* ── Page base ──────────────────────────────────────── */
+
+body.admin-shell,
+body.admin-auth {
+  display: block;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--admin-page-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  text-align: start;
+}
+
+body.admin-auth {
+  background: var(--color-surface);
+}
+
+/* ── Shell frame ────────────────────────────────────── */
+
+.ad-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/*
+ * The kit's sticky header pulls itself out to the edges with a -0.625rem inline
+ * margin, so #content has to keep the matching padding or the header overflows
+ * the viewport. admin.css's .ad-main rule does not set it; state it here.
+ */
+#content.ad-main {
+  padding-inline: 0.625rem;
+}
+
+/*
+ * .ad-content is also the Bootstrap .container-fluid, so it must keep the
+ * gutter padding that rows inside it cancel with negative margins.
+ */
+.ad-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  padding: 0 var(--bs-gutter-x, 1.5rem) var(--space-8);
+  padding-inline: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+}
+
+.ad-content > .section-title {
+  margin-block-end: 0;
+}
+
+/* Sidebar footer — the kit ships no equivalent, so it is built here. */
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-block-start: var(--space-6);
+  padding: var(--space-4) var(--space-2) var(--space-6);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+}
+
+.sidebar-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.sidebar-footer a:hover {
+  color: var(--color-primary-600);
+}
+
+.sidebar-footer .btn {
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+/* Breadcrumb in the topbar, in place of the kit's global search box. */
+.topbar-breadcrumb {
+  align-items: center;
+  min-width: 0;
+}
+
+.ad-breadcrumb.breadcrumb {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  --bs-breadcrumb-divider: '/';
+}
+
+.ad-breadcrumb .breadcrumb-item a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.ad-breadcrumb .breadcrumb-item a:hover {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+}
+
+.ad-breadcrumb .breadcrumb-item.active {
+  color: var(--color-primary-700);
+  font-weight: var(--fw-semibold);
+}
+
+/* ── Section blocks ─────────────────────────────────── */
+
+.ad-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+  overflow: visible;
+}
+
+/*
+ * Used where the section's only child draws its own kit card (the map panel).
+ * Without this the screen shows a card inside a card.
+ */
+.ad-section--flush {
+  background: none;
+  border: 0;
+}
+
+.ad-section--flush > .ad-section__header {
+  padding-inline: 0;
+  border-block-end: 0;
+}
+
+.ad-section__header {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+  align-items: flex-start;
+}
+
+.ad-section__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  color: var(--color-primary-700);
+}
+
+.ad-section__hint {
+  line-height: 1.6;
+}
+
+.ad-section__body {
+  padding: var(--space-4);
+}
+
+/* ── Layout helpers used by screen markup ───────────── */
+
+.ad-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ad-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ad-row--end {
+  justify-content: flex-end;
+}
+
+.ad-muted {
+  color: var(--color-text-muted);
+}
+
+/* ── Buttons (legacy .btn--* vocabulary) ────────────── */
+
+.btn--primary,
+.btn--secondary,
+.btn--ghost,
+.btn--danger,
+.btn--success,
+.btn--warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all ease 0.27s;
+}
+
+.btn--primary {
+  background: var(--color-primary-600);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-700);
+  color: #fff;
+}
+
+.btn--secondary,
+.btn--ghost {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-primary-700);
+}
+
+.btn--secondary:hover:not(:disabled),
+.btn--ghost:hover:not(:disabled) {
+  background: var(--admin-nav-hover-bg);
+  color: var(--color-primary-700);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #c40000;
+  color: #fff;
+}
+
+.btn--success {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.btn--warning {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.btn--sm {
+  padding: 0.3rem 0.75rem;
+  font-size: var(--fs-sm);
+}
+
+.btn--lg {
+  padding: 0.7rem 1.5rem;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn--icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Form controls (legacy .input / .field) ─────────── */
+
+.input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 0.2rem rgba(var(--color-primary-500-rgb), 0.2);
+}
+
+.input--error {
+  border-color: var(--color-danger);
+}
+
+textarea.input {
+  min-height: 6rem;
+  line-height: 1.6;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-end: var(--space-4);
+}
+
+.field__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-700);
+  line-height: 1.4;
+}
+
+.field__hint {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.field__error {
+  font-size: var(--fs-sm);
+  color: var(--color-danger);
+  line-height: 1.5;
+}
+
+.ad-form-error {
+  margin-block-end: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-soft);
+  border: 1px solid #ff7f7f;
+  border-radius: var(--admin-radius);
+  color: var(--color-danger);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.ad-form-error:empty {
+  display: none;
+}
+
+/* ── Badges (legacy .badge--* vocabulary) ───────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.15rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 2rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.badge--brand {
+  background: #efe5fb;
+  border-color: #c5a3f0;
+  color: var(--color-primary-700);
+}
+
+.badge--success {
+  background: var(--color-success-soft);
+  border-color: #8aff5f;
+  color: var(--color-success-strong);
+}
+
+.badge--warning {
+  background: var(--color-warning-soft);
+  border-color: #ffd599;
+  color: var(--color-warning-strong);
+}
+
+.badge--danger {
+  background: var(--color-danger-soft);
+  border-color: #ff7f7f;
+  color: var(--color-danger);
+}
+
+.badge--info {
+  background: var(--color-info-soft);
+  border-color: #99ddff;
+  color: #0077b3;
+}
+
+/* ── Skeletons ──────────────────────────────────────── */
+
+.ad-skeleton {
+  background: var(--admin-skeleton-bg);
+  border-radius: var(--admin-radius);
+}
+
+/* ── Stub markers (features intentionally not built) ── */
+
+.ad-stub {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-warning-soft);
+  border: 1px dashed #ffd599;
+  border-radius: var(--admin-radius);
+  color: var(--color-warning-strong);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+.ad-stub__icon {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+/* ── Toasts ─────────────────────────────────────────── */
+
+#toast-container {
+  position: fixed;
+  inset-block-end: var(--space-6);
+  inset-inline-end: var(--space-6);
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/*
+ * Bootstrap hides `.toast` unless it also carries `.show`, and the shared
+ * sd-toast-host never adds that class. Win on specificity rather than !important.
+ */
+#toast-container .toast {
+  display: block;
+  width: auto;
+  max-width: 24rem;
+  opacity: 1;
+}
+
+.toast {
+  min-width: 16rem;
+  max-width: 24rem;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-text);
+  border-radius: var(--admin-radius);
+  box-shadow: 0 0.5rem 1.5rem rgba(56, 17, 105, 0.25);
+  color: #fff;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.toast--success {
+  background: var(--color-success-strong);
+}
+
+.toast--danger {
+  background: var(--color-danger);
+}
+
+/* ── Spinner ────────────────────────────────────────── */
+
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.2rem solid var(--color-border);
+  border-block-start-color: var(--color-primary-600);
+  border-radius: 50%;
+  animation: ad-spin 0.8s linear infinite;
+}
+
+@keyframes ad-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Design-kit tweaks ──────────────────────────────── */
+
+/*
+ * The kit's grid header cells are plain text; the portal's grids are sortable,
+ * so the header cell holds a button. Make it read as the header, not a control.
+ */
+.custom-grid-list thead th .ad-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.custom-grid-list thead th .ad-table__sort:hover {
+  color: var(--color-primary-600);
+}
+
+.ad-table__sort-icon {
+  font-size: 0.75em;
+  opacity: 0.55;
+}
+
+.ad-table__sort[aria-sort='ascending'] .ad-table__sort-icon,
+.ad-table__sort[aria-sort='descending'] .ad-table__sort-icon {
+  opacity: 1;
+}
+
+.custom-grid-list tbody tr[data-row-link] {
+  cursor: pointer;
+}
+
+.custom-grid-list td.ad-table__num,
+.custom-grid-list th.ad-table__num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.custom-grid-list td.ad-table__nowrap {
+  white-space: nowrap;
+}
+
+/* Filter bar: the kit's row is one flex line; give labelled fields room. */
+.filter-container .ad-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 12rem;
+}
+
+.filter-container .ad-filters__field--grow {
+  flex: 1 1 16rem;
+}
+
+.filter-container .ad-filters__label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.filter-container .ad-filters__range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* KPI widgets row. */
+.ad-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+/* Pagination emitted by ad-data-table. */
+.ad-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-1) 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.ad-pagination .pagination {
+  margin: 0;
+}
+
+/* Detail key/value pairs, in the kit's list-row idiom. */
+.ad-detail-grid {
+  display: grid;
+  gap: 0;
+}
+
+.ad-detail-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.ad-detail-item:last-child {
+  border-block-end: 0;
+}
+
+.ad-detail-item__label {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-700);
+  font-size: var(--fs-sm);
+}
+
+.ad-detail-item__value {
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.ad-detail-item__value--muted {
+  color: var(--color-text-muted);
+}
+
+/* Two-column detail layout. */
+.ad-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 1200px) {
+  .ad-split {
+    grid-template-columns: minmax(0, 1fr) var(--admin-panel-w);
+    align-items: start;
+  }
+}
+
+.ad-split__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: static;
+}
+
+/* Tabs. */
+.ad-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.ad-tabs__btn {
+  padding: var(--space-2) var(--space-4);
+  background: none;
+  border: 0;
+  border-block-end: 3px solid transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ad-tabs__btn[aria-selected='true'] {
+  color: var(--color-primary-700);
+  border-block-end-color: var(--color-primary-600);
+  font-weight: var(--fw-semibold);
+}
+
+/* Modals rendered by ad-form-modal. */
+.ad-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(56, 17, 105, 0.45);
+  z-index: 1055;
+}
+
+.ad-modal {
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  overflow: auto;
+  background: var(--color-surface);
+  border-radius: 1rem;
+  box-shadow: 0 1.5rem 3rem rgba(56, 17, 105, 0.3);
+  z-index: 1056;
+}
+
+.ad-modal__header,
+.ad-modal__footer {
+  padding: var(--space-4);
+}
+
+.ad-modal__header {
+  border-block-end: 1px solid var(--color-border);
+}
+
+.ad-modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--color-primary-700);
+}
+
+.ad-modal__body {
+  padding: var(--space-4);
+}
+
+.ad-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+/* Map panel keeps its own frame but adopts the kit's card border. */
+.ad-map__frame {
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+  overflow: hidden;
+}
+
+/* ── List components on the kit (appended) ──────────── */
+
+/*
+ * The LTR build of the kit (vendor/css/styles.css) ships no `.filter-container`
+ * — only the RTL build does. ad-filter-bar renders the kit's markup, so the
+ * row is defined here, in tokens, with logical properties.
+ */
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+}
+
+.filter-container > i.fa-solid {
+  color: var(--color-primary-500);
+}
+
+.filter-container .date-inputs-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: auto;
+  color: var(--color-primary-600);
+  font-size: var(--fs-sm);
+}
+
+.filter-container .end-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.filter-container .btn {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+@media (max-width: 767px) {
+  .filter-container .form-control,
+  .filter-container .form-select,
+  .filter-container .btn,
+  .filter-container .date-inputs-container,
+  .filter-container .end-side {
+    width: 100%;
+  }
+}
+
+/* Custom elements are inline by default; these are block-level regions. */
+ad-filter-bar,
+ad-data-table,
+ad-empty-state,
+ad-stat-card {
+  display: block;
+}
+
+/* The kit's filter row is one flex line, so labelled fields size themselves. */
+.filter-container .ad-filters__field .form-control,
+.filter-container .ad-filters__field .form-select {
+  width: 100%;
+}
+
+/* Result blocks stand in for a grid, so they do not need the kit's full drop. */
+ad-empty-state .result-message {
+  margin-block-start: var(--space-10);
+  margin-block-end: var(--space-8);
+}
+
+.ad-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* Loading rows: the kit's grid frame with a pulsing bar in every cell. */
+.custom-grid-list tbody tr.ad-skeleton-row td {
+  padding-block: var(--space-3);
+}
+
+.custom-grid-list tbody tr.ad-skeleton-row .ad-skeleton {
+  height: var(--space-4);
+  min-width: var(--admin-col-min);
+}
+
+/* Pagination lives in the grid's tfoot cell, beside the row-count summary. */
+.custom-grid-list tfoot .ad-pagination {
+  white-space: normal;
+}
+
+/*
+ * The kit flips both chevrons 180° because its static pages are RTL. In the
+ * portal's English direction, point them the way they are named again;
+ * admin-rtl.css puts the rotation back for Arabic.
+ */
+.custom-grid-list tfoot .pagination .page-link i.fa-chevron-left,
+.custom-grid-list tfoot .pagination .page-link i.fa-chevron-right {
+  transform: none;
+}

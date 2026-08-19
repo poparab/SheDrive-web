@@ -1,0 +1,259 @@
+/*
+ * login.css — SheDrive admin portal (v2) authentication screens
+ *
+ * The delivered kit's split auth layout does the heavy lifting
+ * (.container-md-width / .login-start-side / .login-end-side / .authenticator /
+ * .otp-input / .password-requirements / .resend-counter all come from
+ * vendor/css/styles.css). This file only adds what the portal needs on top:
+ * step switching, the legacy .field__* / .ad-form-error error vocabulary, and
+ * the OTP box grouping. Every value is a token.
+ */
+
+/* ── Language switcher ──────────────────────────────── */
+/* The auth screens have no topbar, so the shell's language dropdown is
+   replaced by a small pair of flagged links above the form. login.js and
+   otp.js build it from LANGUAGES; every rule here is a logical property so
+   the pair sits on the inline-end side in both directions. */
+
+.auth-lang {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: var(--space-2);
+  width: 100%;
+  margin-block-end: var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+.auth-lang__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+}
+
+.auth-lang__option[aria-current='true'] {
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+}
+
+.auth-lang__option:not([aria-current='true']) {
+  color: var(--color-text-muted);
+}
+
+.auth-lang__flag {
+  width: var(--space-5);
+  height: var(--space-5);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.auth-lang__sep {
+  color: var(--color-border);
+}
+
+/* ── Step sections ──────────────────────────────────── */
+
+.login-start-side > section {
+  width: 100%;
+}
+
+.login-start-side h2 {
+  width: 100%;
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  color: var(--color-primary-700);
+}
+
+.login-start-side h3 {
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--color-primary-700);
+}
+
+/* ── Visually hidden labels ─────────────────────────── */
+/* The kit's auth inputs are placeholder-only; keep a real label for
+   screen readers without changing the visual design. */
+
+.auth-label-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Link-styled buttons ────────────────────────────── */
+/* login.js drives step switching, so "Forgot your password?", the recovery
+   toggle and the back links are <button>s wearing the kit's .primary-link. */
+
+.auth-linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Field errors and hints ─────────────────────────── */
+
+.login-start-side .field__error,
+.login-start-side .field__hint {
+  display: block;
+  width: 100%;
+  margin-block-start: var(--space-2);
+}
+
+.login-start-side .field__error[hidden] {
+  display: none;
+}
+
+.login-start-side .field__label {
+  display: block;
+  width: 100%;
+  margin-block-end: var(--space-2);
+}
+
+.login-start-side .ad-form-error {
+  width: 100%;
+  margin-block: var(--space-4) 0;
+}
+
+.login-start-side .ad-form-error:empty {
+  display: none;
+}
+
+.login-start-side .ad-stub {
+  width: 100%;
+  margin-block-start: var(--space-4);
+}
+
+/* Invalid single-line inputs. The kit sets the border with !important, so the
+   error state has to match that weight. */
+.login-start-side .form-control.input--error {
+  border-color: var(--color-danger) !important;
+}
+
+/* ── OTP boxes ──────────────────────────────────────── */
+/* A row of six .otp-input boxes plus the kit's em-dash separator. The joined
+   value is mirrored into the hidden single field login.js validates. */
+
+.otp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.auth-full {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+.otp-row .field__hint,
+.otp-row .field__error {
+  text-align: center;
+}
+
+/* Error state for the six boxes, driven by the hidden field's class so the
+   existing setFieldError() call site does not change. */
+.otp-row:has(input[type='hidden'].input--error) .otp-input,
+.otp-row.otp-row--error .otp-input {
+  border-color: var(--color-danger) !important;
+}
+
+/* ── Enrolment two-step block ───────────────────────── */
+/* The kit's .steps is a flex row; every heading, paragraph and panel inside it
+   is a full-width band. */
+
+.authenticator .steps > * {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+.authenticator .steps hr {
+  width: 100%;
+}
+
+.authenticator .code-field p {
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+/* ── Recovery codes (shown once at enrolment) ───────── */
+
+.auth__recovery-list {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3) var(--admin-gutter-tight);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--admin-gutter-tight);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary-700);
+}
+
+/* ── Success notice (password reset request) ────────── */
+
+.auth__success {
+  width: 100%;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--admin-gutter-tight);
+  border-radius: var(--admin-radius);
+  background: var(--color-success-soft);
+  border: 1px solid var(--color-success);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+}
+
+/* ── Mockup footer ──────────────────────────────────── */
+
+.auth__footer {
+  width: 100%;
+  margin: var(--admin-gutter) 0 0;
+  text-align: center;
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.auth__footer code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  color: var(--color-primary-700);
+}
+
+/* ── Resend countdown (email OTP screen) ────────────── */
+
+.login-start-side .btn.tertiary-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary-600);
+}
+
+.login-start-side .btn.tertiary-link:disabled {
+  color: var(--color-text-muted);
+}
+
+/* The unit word is its own translatable node, so it needs the space the kit's
+   bare text node used to get from the markup. */
+.resend-counter__unit {
+  margin-inline-start: var(--space-1);
+}

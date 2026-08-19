@@ -1,0 +1,76 @@
+/*
+ * design-tokens.css — SheDrive admin portal v2 palette bridge
+ *
+ * The delivered design kit (vendor/css/styles.css) is compiled SCSS with
+ * literal colors. Everything the admin portal wrote before the kit landed is
+ * token-driven. This file re-points the shared tokens at the kit's palette, so
+ * legacy screen CSS inherits the new look instead of fighting it.
+ *
+ * Literal values are correct here — this is a token-definition file. Every
+ * other admin-v2 stylesheet must keep using var().
+ */
+
+:root {
+  /* ── Brand ────────────────────────────────────────── */
+  --color-primary-700: #5c1cab;
+  --color-primary-600: #7323d7;
+  --color-primary-500: #9b5cf0;
+  --color-accent-500: #d63ae2;
+  --color-accent-400: #e879f9;
+  --color-primary-700-rgb: 92, 28, 171;
+  --color-primary-600-rgb: 115, 35, 215;
+  --color-primary-500-rgb: 155, 92, 240;
+  --color-accent-500-rgb: 214, 58, 226;
+  --color-accent-400-rgb: 232, 121, 249;
+  --gradient-brand: linear-gradient(135deg, #7323d7 0%, #d63ae2 100%);
+
+  /* ── Neutrals ─────────────────────────────────────── */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f2fd;
+  --color-border: #e9dcf9;
+  --color-text: #381169;
+  --color-text-muted: #7a6a92;
+  --color-surface-rgb: 255, 255, 255;
+  --color-surface-alt-rgb: 247, 242, 253;
+  --color-text-rgb: 56, 17, 105;
+  --color-text-muted-rgb: 122, 106, 146;
+  --color-border-rgb: 233, 220, 249;
+
+  /* ── Semantic ─────────────────────────────────────── */
+  --color-success: #35c500;
+  --color-success-strong: #279200;
+  --color-success-soft: #d5ffc5;
+  --color-warning: #ff9500;
+  --color-warning-strong: #c27100;
+  --color-warning-soft: #fff4e6;
+  --color-danger: #e50000;
+  --color-danger-soft: #ffe5e5;
+  --color-info: #00aaff;
+  --color-info-soft: #e5f6ff;
+  --color-success-rgb: 53, 197, 0;
+  --color-warning-rgb: 255, 149, 0;
+  --color-danger-rgb: 229, 0, 0;
+  --color-info-rgb: 0, 170, 255;
+
+  /* ── Typography ───────────────────────────────────── */
+  --font-sans: Tajawal-Regular, "Segoe UI", system-ui, sans-serif;
+  --font-display: Tajawal-Bold, "Segoe UI", system-ui, sans-serif;
+
+  /* ── Shell surfaces (override admin-tokens.css) ───── */
+  --admin-page-bg: #f7f2fd;
+  --admin-nav-bg: #ffffff;
+  --admin-nav-fg: #7323d7;
+  --admin-nav-fg-muted: #7a6a92;
+  --admin-nav-section-fg: #9b8bb2;
+  --admin-nav-hover-bg: #f2e9fd;
+  --admin-nav-active-bg: #e9dcf9;
+  --admin-nav-border: #e9dcf9;
+
+  --admin-table-header-bg: #f7f2fd;
+  --admin-table-header-fg: #5c1cab;
+  --admin-row-hover-bg: #faf6ff;
+  --admin-row-active-bg: #f2e9fd;
+
+  --admin-radius: 0.5rem;
+  --admin-skeleton-bg: rgba(115, 35, 215, 0.1);
+}

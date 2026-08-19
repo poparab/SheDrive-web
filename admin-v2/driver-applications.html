@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver applications</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="driver-applications"
+      page-title-key="nav.driverApplications"
+      breadcrumb-keys="nav.people > nav.driverApplications"
+      screen-styles="styles/list.css"
+    >
+      <!-- Kit KPI row — counts derived from the same list query the grid uses -->
+      <div
+        class="ad-stats"
+        id="applications-stats"
+        aria-label="Driver applications summary" data-i18n-label="applications.statsLabel" data-i18n-aria-label="applications.statsLabel"
+        data-i18n-aria-label="applications.statsLabel"
+      ></div>
+
+      <!-- #1657 — pending applications queue, oldest first -->
+      <section class="ad-section" aria-labelledby="queue-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="queue-heading" data-i18n="nav.driverApplications">
+              Driver applications
+            </h2>
+            <p class="ad-section__hint" data-i18n="applications.hint">
+              Every application — pending, approved and rejected. Sorted oldest first, because
+              the pending ones are a work queue. Filter by outcome to review decisions already
+              made. The badge always counts what is still awaiting review.
+            </p>
+          </div>
+          <span class="badge badge--warning" id="queue-count" data-i18n="common.notAvailable">—</span>
+        </div>
+
+        <ad-filter-bar id="queue-filters"></ad-filter-bar>
+        <ad-data-table id="queue-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/driver-applications.js"></script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" id="svg1709" width="682.66669" height="682.66669" viewBox="0 0 682.66669 682.66669">
+  <defs id="defs1713">
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath1723">
+      <path d="M 0,512 H 512 V 0 H 0 Z" id="path1721"/>
+    </clipPath>
+  </defs>
+  <mask id="custom"><rect id="bg" x="0" y="0" width="100%" height="100%" fill="white"/><g transform="matrix(1.3333333,0,0,-1.3333333,0,682.66667)"/></mask><g mask="url(#custom)"><g id="g1715" transform="matrix(1.3333333,0,0,-1.3333333,0,682.66667)">
+    <g id="g1717">
+      <g id="g1719" clip-path="url(#clipPath1723)">
+        <g id="g1725" transform="translate(140,376)">
+          <path d="M 0,0 C 0,64.065 51.935,116 116,116 180.065,116 232,64.065 232,0 232,-64.065 180.065,-116 116,-116 51.935,-116 0,-64.065 0,0 Z" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path1727"/>
+        </g>
+        <g id="g1729" transform="translate(242.5894,20)">
+          <path d="m 0,0 h -181.896 c -25.9,0 -45.095,23.845 -39.815,49.201 22.701,109.041 119.344,190.966 235.122,190.966" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path1731"/>
+        </g>
+        <g id="g1733" transform="translate(391,162)">
+          <path d="M 0,0 V -41 H 29" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path1735"/>
+        </g>
+        <g id="g1737" transform="translate(290,121)">
+          <path d="M 0,0 C 0,55.78 45.219,101 101,101 156.781,101 202,55.78 202,0 202,-55.78 156.781,-101 101,-101 45.219,-101 0,-55.78 0,0 Z" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path1739"/>
+        </g>
+      </g>
+    </g>
+  </g></g>
+</svg>

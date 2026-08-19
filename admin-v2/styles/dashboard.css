@@ -1,0 +1,49 @@
+/*
+ * dashboard.css — SheDrive admin operations dashboard (v2 design kit)
+ *
+ * The KPI tiles and the live operations map now sit in the delivered kit's
+ * cards, so this sheet only carries what the kit has no opinion about: the
+ * section head above the tiles, the five-across tile row on an ops display,
+ * and the spacing of the metrics error line.
+ *
+ * Class names are unchanged — dashboard.html and dashboard.js depend on them.
+ * Every value is a token from design-tokens.css / admin-tokens.css.
+ */
+
+.dash__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--admin-gutter-tight);
+  margin-block-end: var(--admin-gutter-tight);
+}
+
+.dash__section-head .ad-section__title {
+  margin: 0;
+  color: var(--color-primary-700);
+}
+
+.dash__section-head .ad-section__hint {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* The five #1669 cards should stay on one row on a standard ops display. */
+@media (min-width: 1280px) {
+  #metric-cards {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+#metrics-error {
+  margin-block-start: var(--admin-gutter-tight);
+}
+
+/*
+ * The live map is a kit card in its own right, so the section around it needs
+ * no second frame — let the card supply the border and the surface.
+ */
+#ops-map .ad-map__toolbar {
+  padding-inline: 0;
+}

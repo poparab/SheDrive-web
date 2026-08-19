@@ -1,0 +1,58 @@
+/*
+ * admin-rtl.css — SheDrive admin portal v2, Arabic (RTL) corrections
+ *
+ * Loaded only when the portal is in Arabic, after the kit's own RTL builds
+ * (bootstrap.rtl, styles-ar.css) and after the portal's bridge. Everything the
+ * portal writes uses logical properties, so this file is deliberately small —
+ * it only handles the places where a physical direction is genuinely meant.
+ */
+
+/*
+ * The pagination chevrons name a physical direction (fa-chevron-left / -right).
+ * The bridge cancels the kit's 180° rotation for LTR; in RTL the rotation is
+ * what makes "previous" point towards the start of the row, so put it back.
+ */
+.custom-grid-list tfoot .pagination .page-link i.fa-chevron-left,
+.custom-grid-list tfoot .pagination .page-link i.fa-chevron-right {
+  transform: rotate(180deg);
+}
+
+/* The round back button in the section title points at the start edge. */
+.section-title .btn-back i {
+  transform: rotate(180deg);
+}
+
+/* The legacy select caret is painted with a background gradient, not a glyph. */
+select.input {
+  background-position: left var(--space-4) center, left var(--space-3) center;
+}
+
+/*
+ * Latin data — emails, plate numbers, phone numbers, ids, money — must not be
+ * reordered by the bidi algorithm when it sits inside an Arabic sentence or an
+ * Arabic-aligned cell. These carry their own direction.
+ */
+.ad-ltr,
+.custom-grid-list td.ad-table__nowrap,
+.ad-detail-item__value--ltr {
+  direction: ltr;
+  text-align: end;
+  unicode-bidi: isolate;
+}
+
+.custom-grid-list th.ad-table__num,
+.custom-grid-list td.ad-table__num {
+  direction: ltr;
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+/* Mapbox draws its own controls LTR; keep its internals out of the flip. */
+.ad-map__canvas {
+  direction: ltr;
+}
+
+/* The kit's timeline rail sits on the start edge in both directions. */
+.timeline-vertical {
+  text-align: start;
+}

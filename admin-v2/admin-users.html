@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Admin users</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="admin-users"
+      page-title-key="adminUsers.pageTitle"
+      breadcrumb-keys="nav.administration > nav.adminUsers"
+      screen-styles="styles/list.css"
+    >
+      <!-- #1820 list · #1807 add · #1821 enable/disable -->
+      <section class="ad-section" aria-labelledby="admins-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="admins-heading" data-i18n="adminUsers.heading">Admin accounts</h2>
+            <p class="ad-section__hint" data-i18n="adminUsers.hint">
+              Every account has full super-admin privileges in this phase. A new account must
+              enrol two-factor authentication and change its password at first sign-in.
+            </p>
+          </div>
+          <button
+            class="btn btn-primary btn-x-sm"
+            type="button"
+            id="add-admin"
+            data-i18n="adminUsers.addButton"
+          >
+            Add admin user
+          </button>
+        </div>
+
+        <ad-filter-bar id="admins-filters"></ad-filter-bar>
+        <ad-data-table id="admins-table"></ad-data-table>
+      </section>
+
+      <ad-form-modal id="admin-modal"></ad-form-modal>
+      <sd-confirm-dialog id="confirm"></sd-confirm-dialog>
+    </ad-shell>
+
+    <script type="module" src="scripts/admin-users.js"></script>
+  </body>
+</html>

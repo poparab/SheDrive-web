@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Safety report</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="safety"
+      page-title-key="safetyReport.title"
+      breadcrumb-keys="nav.safety|safety-reports.html > safetyReport.crumb"
+      back="safety-reports.html"
+      screen-styles="styles/detail.css, styles/list.css"
+    >
+      <div id="report-missing" hidden>
+        <ad-empty-state icon="⚠" heading="Report not found" data-i18n-heading="safetyReport.notFoundHeading" message="This report record does not exist." data-i18n-message="safetyReport.notFoundMessage">
+          <a class="btn btn-primary-outline btn-x-sm" href="safety-reports.html" data-i18n="safetyReport.backToQueue">Back to the queue</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="report-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <section class="ad-section" aria-labelledby="statement-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="statement-heading" data-i18n="safetyReport.statementHeading">Reporting driver's statement</h2>
+              </div>
+              <div class="ad-section__body">
+                <p class="detail__statement" id="statement"></p>
+              </div>
+            </section>
+
+            <ad-detail-section id="trip-snapshot" section-title="Trip snapshot" data-i18n-section-title="safetyReport.tripSnapshot" data-i18n-title="safetyReport.tripSnapshot"></ad-detail-section>
+            <ad-detail-section id="rider-state" section-title="Reported rider" data-i18n-section-title="safetyReport.riderState" data-i18n-title="safetyReport.riderState"></ad-detail-section>
+            <ad-detail-section id="driver-info" section-title="Reporting driver" data-i18n-section-title="safetyReport.driverInfo" data-i18n-title="safetyReport.driverInfo"></ad-detail-section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="report-meta" section-title="Report" data-i18n-section-title="safetyReport.crumb" data-i18n-title="safetyReport.crumb"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="resolve-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="resolve-heading" data-i18n="safetyReport.resolveHeading">Resolution</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="ad-section__hint" id="resolve-hint"></p>
+                <button class="btn btn-danger btn--full" type="button" id="suspend-btn" hidden data-i18n="safetyReport.suspendBtn">
+                  Suspend the reported rider
+                </button>
+                <button class="btn btn-primary-outline btn--full" type="button" id="dismiss-btn" hidden data-i18n="safetyReport.dismissBtn">
+                  Dismiss the report
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="resolve-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/safety-report.js"></script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Dashboard</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+    <!--
+      Map screens load the Mapbox pair statically so the CSS is parsed before
+      mapbox-gl.js runs; ad-styles dedupes it against the `mapbox` attribute.
+    -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="dashboard"
+      page-title-key="dashboard.title"
+      screen-styles="styles/dashboard.css"
+      mapbox
+    >
+      <!-- #1669 — five live metric cards, refreshed every 30 seconds -->
+      <section aria-labelledby="metrics-heading">
+        <div class="dash__section-head">
+          <h2 class="ad-section__title" id="metrics-heading" data-i18n="dashboard.metricsHeading">Platform metrics</h2>
+          <p class="ad-section__hint" id="metrics-status" data-i18n="dashboard.metricsLoading">Loading live metrics…</p>
+        </div>
+
+        <div class="ad-stats" id="metric-cards">
+          <ad-stat-card id="metric-active-trips" label="Active trips" data-i18n-label="dashboard.metricActiveTrips" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-online-drivers" label="Online drivers" data-i18n-label="dashboard.metricOnlineDrivers" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-trips-today" label="Total trips today" data-i18n-label="dashboard.metricTripsToday" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-riders" label="Total registered riders" data-i18n-label="dashboard.metricRegisteredRiders" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-drivers" label="Total approved drivers" data-i18n-label="dashboard.metricApprovedDrivers" value="—"></ad-stat-card>
+        </div>
+
+        <div class="ad-form-error" id="metrics-error" role="alert"></div>
+      </section>
+
+      <!-- #1823–#1826 — live operations map -->
+      <section class="ad-section ad-section--flush" aria-labelledby="map-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="map-heading" data-i18n="dashboard.mapHeading">Live operations map</h2>
+            <p class="ad-section__hint" id="map-status" data-i18n="dashboard.mapArea">Cairo / Giza service area</p>
+          </div>
+          <div class="ad-row">
+            <label class="ad-filters__label" for="layer-filter" data-i18n="dashboard.show">Show</label>
+            <select class="form-select" id="layer-filter">
+              <option value="all" selected data-i18n="common.all">All</option>
+              <option value="drivers" data-i18n="dashboard.metricOnlineDrivers">Online drivers</option>
+              <option value="requests" data-i18n="dashboard.layerRequests">Ride requests</option>
+            </select>
+          </div>
+        </div>
+
+        <ad-map-panel id="ops-map"></ad-map-panel>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/dashboard.js"></script>
+  </body>
+</html>

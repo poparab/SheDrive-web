@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Email verification code</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body class="admin-auth">
+    <div class="container-fluid container-md-width">
+      <div class="row">
+        <div class="col-xl-6 col-xxl-5 login-start-side">
+          <!-- Language switcher — see login.js; built from LANGUAGES. -->
+          <nav class="auth-lang" id="auth-lang" data-i18n-aria-label="aria.languageMenu"></nav>
+
+          <img class="login-logo" src="vendor/img/logo.png" data-i18n-alt="aria.logo" alt="SheDrive" />
+
+          <form id="otp-form" novalidate>
+            <div class="authenticator">
+              <div class="data">
+                <img class="icon" src="vendor/icons/lock2.svg" alt="" />
+                <h2 id="otp-heading" data-i18n="auth.otpTitle">Email verification code</h2>
+                <p class="text-center" data-i18n="auth.otpIntro">
+                  Enter the code sent to your SheDrive admin email address to verify your account.
+                </p>
+              </div>
+
+              <div class="ad-form-error auth-full" id="otp-error" role="alert"></div>
+
+              <div
+                class="otp-row"
+                id="otp-field"
+                role="group"
+                aria-labelledby="otp-heading"
+                data-digit-key="auth.verifyDigit"
+              >
+                <input class="otp-input" id="otp-1" type="text" maxlength="1" aria-label="Verification code digit 1" />
+                <input class="otp-input" id="otp-2" type="text" maxlength="1" aria-label="Verification code digit 2" />
+                <input class="otp-input" id="otp-3" type="text" maxlength="1" aria-label="Verification code digit 3" />
+                <span class="dash" aria-hidden="true">—</span>
+                <input class="otp-input" id="otp-4" type="text" maxlength="1" aria-label="Verification code digit 4" />
+                <input class="otp-input" id="otp-5" type="text" maxlength="1" aria-label="Verification code digit 5" />
+                <input class="otp-input" id="otp-6" type="text" maxlength="1" aria-label="Verification code digit 6" />
+
+                <span class="field__hint auth-full" data-i18n="auth.mockTotp">
+                  Mockup code: 123456
+                </span>
+                <span class="field__error auth-full" id="otp-code-error" hidden></span>
+              </div>
+            </div>
+
+            <div class="buttons-container mt-3">
+              <button class="btn btn-primary-gradient btn-submit" type="submit" id="otp-submit">
+                <i class="fa-regular fa-paper-plane"></i
+                ><span id="otp-submit-label" data-i18n="auth.otpSubmit">Confirm &amp; send code</span>
+              </button>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col d-flex gap-2 align-items-center">
+                <button
+                  class="btn tertiary-link"
+                  type="button"
+                  id="otp-resend"
+                  data-i18n="auth.resendCode"
+                  disabled
+                >
+                  Resend code
+                </button>
+                <span class="resend-counter" id="otp-counter" aria-live="polite">
+                  <span id="otp-counter-value">60</span
+                  ><span class="resend-counter__unit" data-i18n="auth.seconds">seconds</span>
+                </span>
+              </div>
+            </div>
+          </form>
+
+          <p class="auth__footer">
+            <span data-i18n="auth.otpFooter">
+              Mockup screen — the email one-time code is not wired to a real mailbox. Any code other
+              than the seeded demo code is rejected.
+            </span>
+            <a class="primary-link" href="index.html" data-i18n="auth.backToSignIn">
+              Back to sign in
+            </a>
+            <a class="primary-link" href="screens.html" data-i18n="auth.screenIndex">
+              Screen index
+            </a>
+          </p>
+        </div>
+        <!-- End Col -->
+
+        <div class="d-none d-xl-block col-xl-6 col-xxl-7 login-end-side">
+          <img src="vendor/img/login-slogan.png" alt="" />
+        </div>
+        <!-- End Col -->
+      </div>
+      <!-- End Row -->
+    </div>
+    <!-- End Container -->
+
+    <script type="module" src="scripts/otp.js"></script>
+  </body>
+</html>

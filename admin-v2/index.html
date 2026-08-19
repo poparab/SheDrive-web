@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Sign in</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body class="admin-auth">
+    <div class="container-fluid container-md-width">
+      <div class="row">
+        <div class="col-xl-6 col-xxl-5 login-start-side">
+          <!-- Language switcher — the auth screens have no topbar, so the
+               shell's dropdown is replaced by this small pair of links.
+               Built from LANGUAGES by login.js. -->
+          <nav class="auth-lang" id="auth-lang" data-i18n-aria-label="aria.languageMenu"></nav>
+
+          <img class="login-logo" src="vendor/img/logo.png" data-i18n-alt="aria.logo" alt="SheDrive" />
+
+          <!-- Step 1 — email + password (#1656) -->
+          <section id="step-credentials" aria-labelledby="credentials-heading">
+            <h2 id="credentials-heading" data-i18n="auth.signIn">Sign in</h2>
+            <p class="mb-4" data-i18n="auth.signInIntro">
+              Operations staff only. Two-factor authentication is required.
+            </p>
+
+            <div class="ad-form-error" id="credentials-error" role="alert"></div>
+
+            <form id="credentials-form" novalidate>
+              <div class="input-group">
+                <label class="auth-label-sr" for="email" data-i18n="auth.emailLabel">Email</label>
+                <input
+                  class="form-control ad-ltr"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="username"
+                  maxlength="254"
+                  placeholder="Email"
+                  data-i18n-placeholder="auth.emailPlaceholder"
+                />
+                <img class="input-icon" src="vendor/icons/mail.svg" alt="" />
+              </div>
+              <span class="field__error" id="email-error" hidden></span>
+
+              <div class="input-group">
+                <label class="auth-label-sr" for="password" data-i18n="auth.passwordLabel">
+                  Password
+                </label>
+                <input
+                  class="form-control password"
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  maxlength="128"
+                  placeholder="Password"
+                  data-i18n-placeholder="auth.passwordPlaceholder"
+                />
+                <img class="input-icon" src="vendor/icons/lock2.svg" alt="" />
+                <button
+                  class="show-hide-icon"
+                  type="button"
+                  aria-label="Show or hide password"
+                  data-i18n-aria-label="auth.showHidePassword"
+                  aria-pressed="false"
+                >
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <span class="field__error" id="password-error" hidden></span>
+
+              <button
+                class="btn btn-primary-gradient btn-submit"
+                type="submit"
+                id="credentials-submit"
+                data-i18n="auth.continue"
+              >
+                Continue
+              </button>
+            </form>
+
+            <div class="row mt-4">
+              <div class="col text-end">
+                <button
+                  class="primary-link auth-linkbtn"
+                  type="button"
+                  id="forgot-link"
+                  data-i18n="auth.forgotPassword"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 2 — second factor (#1806) -->
+          <section id="step-2fa" aria-labelledby="tfa-heading" hidden>
+            <form id="tfa-form" novalidate>
+              <div class="authenticator">
+                <div class="data">
+                  <img class="icon" src="vendor/icons/lock2.svg" alt="" />
+                  <h2 id="tfa-heading" data-i18n="auth.tfaTitle">Two-factor authentication</h2>
+                  <p class="text-center" id="tfa-hint" data-i18n="auth.tfaHint">
+                    Enter the 6-digit code from your authenticator app.
+                  </p>
+                </div>
+
+                <div class="ad-form-error auth-full" id="tfa-error" role="alert"></div>
+
+                <div
+                  class="otp-row"
+                  id="totp-field"
+                  role="group"
+                  aria-labelledby="tfa-heading"
+                  data-digit-key="auth.codeDigit"
+                >
+                  <input class="otp-input" id="totp-1" type="text" maxlength="1" aria-label="Authentication code digit 1" />
+                  <input class="otp-input" id="totp-2" type="text" maxlength="1" aria-label="Authentication code digit 2" />
+                  <input class="otp-input" id="totp-3" type="text" maxlength="1" aria-label="Authentication code digit 3" />
+                  <span class="dash" aria-hidden="true">—</span>
+                  <input class="otp-input" id="totp-4" type="text" maxlength="1" aria-label="Authentication code digit 4" />
+                  <input class="otp-input" id="totp-5" type="text" maxlength="1" aria-label="Authentication code digit 5" />
+                  <input class="otp-input" id="totp-6" type="text" maxlength="1" aria-label="Authentication code digit 6" />
+
+                  <!--
+                    #totp is the single field login.js has always validated. The six
+                    boxes above mirror their joined value into it, so the 6-digit
+                    rule, attempt counting and lockout are enforced unchanged.
+                  -->
+                  <input type="hidden" id="totp" name="totp" />
+
+                  <span class="field__hint auth-full" data-i18n="auth.mockTotp">
+                    Mockup code: 123456
+                  </span>
+                  <span class="field__error auth-full" id="totp-error" hidden></span>
+                </div>
+
+                <div class="auth-full" id="recovery-field" hidden>
+                  <label class="auth-label-sr" for="recovery" data-i18n="auth.recoveryLabel">
+                    Recovery code
+                  </label>
+                  <input
+                    class="form-control recovery-code ad-ltr"
+                    id="recovery"
+                    name="recovery"
+                    type="text"
+                    placeholder="Exp. SD-RECOVERY-01"
+                    data-i18n-placeholder="auth.recoveryPlaceholder"
+                  />
+                  <span class="field__hint" data-i18n="auth.mockRecovery">
+                    Mockup code: SD-RECOVERY-01
+                  </span>
+                  <span class="field__error" id="recovery-error" hidden></span>
+                </div>
+              </div>
+
+              <div class="buttons-container mt-3">
+                <button
+                  class="btn btn-primary-gradient btn-submit"
+                  type="submit"
+                  id="tfa-submit"
+                  data-i18n="auth.verify"
+                >
+                  Verify
+                </button>
+              </div>
+            </form>
+
+            <div class="row justify-content-between mt-4">
+              <div class="col-auto">
+                <button
+                  class="primary-link auth-linkbtn"
+                  type="button"
+                  id="toggle-recovery"
+                  data-i18n="auth.useRecovery"
+                >
+                  Lost your device? Use a recovery code
+                </button>
+              </div>
+              <div class="col-auto">
+                <button
+                  class="primary-link auth-linkbtn"
+                  type="button"
+                  id="tfa-back"
+                  data-i18n="auth.backToSignIn"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- First-time enrolment (#1806 Scenario 1) -->
+          <section id="step-enrol" aria-labelledby="enrol-heading" hidden>
+            <div class="authenticator">
+              <div class="steps justify-content-center">
+                <h2 id="enrol-heading" data-i18n="auth.enrolTitle">
+                  Set up two-factor authentication
+                </h2>
+
+                <h3>
+                  <span class="step">1</span><span data-i18n="auth.enrolStep1">Scan QR code</span>
+                </h3>
+                <p class="text-center" data-i18n="auth.enrolStep1Body">
+                  Scan the QR code with your authenticator app, or copy the setup key below and
+                  enter it manually if you cannot scan it.
+                </p>
+
+                <div class="qr-code">
+                  <img
+                    src="assets/totp-qr.svg"
+                    alt="Authenticator setup QR code — mockup placeholder"
+                    data-i18n-alt="auth.qrAlt"
+                    width="168"
+                    height="168"
+                  />
+                </div>
+
+                <div class="code-field">
+                  <p class="ad-ltr" id="enrol-secret">JBSW Y3DP EHPK 3PXP</p>
+                  <button
+                    class="btn btn-light"
+                    type="button"
+                    id="enrol-copy"
+                    aria-label="Copy setup key"
+                    data-i18n-aria-label="auth.copySetupKey"
+                  >
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+
+                <div class="ad-stub">
+                  <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
+                  <span data-i18n="auth.qrStub">
+                    Mockup placeholder — the QR code is decorative and not scannable.
+                  </span>
+                </div>
+
+                <div id="enrol-recovery">
+                  <span class="field__label" data-i18n="auth.recoveryCodesLabel">
+                    Recovery codes — shown once
+                  </span>
+                  <ul class="auth__recovery-list" id="recovery-list"></ul>
+                </div>
+
+                <hr />
+
+                <h3>
+                  <span class="step">2</span><span data-i18n="auth.enrolStep2">Verify code</span>
+                </h3>
+                <p class="mb-4" data-i18n="auth.enrolStep2Body">
+                  Enter the 6-digit verification code from your authenticator app to finish
+                  enrolment.
+                </p>
+              </div>
+
+              <div
+                class="otp-row"
+                id="enrol-otp"
+                role="group"
+                aria-labelledby="enrol-heading"
+                data-digit-key="auth.verifyDigit"
+              >
+                <input class="otp-input" id="enrol-1" type="text" maxlength="1" aria-label="Verification code digit 1" />
+                <input class="otp-input" id="enrol-2" type="text" maxlength="1" aria-label="Verification code digit 2" />
+                <input class="otp-input" id="enrol-3" type="text" maxlength="1" aria-label="Verification code digit 3" />
+                <span class="dash" aria-hidden="true">—</span>
+                <input class="otp-input" id="enrol-4" type="text" maxlength="1" aria-label="Verification code digit 4" />
+                <input class="otp-input" id="enrol-5" type="text" maxlength="1" aria-label="Verification code digit 5" />
+                <input class="otp-input" id="enrol-6" type="text" maxlength="1" aria-label="Verification code digit 6" />
+              </div>
+            </div>
+
+            <div class="buttons-container mt-3">
+              <button
+                class="btn btn-primary-gradient btn-submit"
+                type="button"
+                id="enrol-continue"
+                data-i18n="auth.enrolContinue"
+              >
+                I have saved my recovery codes
+              </button>
+            </div>
+          </section>
+
+          <!-- Forced first-login password change (#1822) -->
+          <section id="step-change" aria-labelledby="change-heading" hidden>
+            <h2 id="change-heading" data-i18n="auth.changeTitle">Choose a new password</h2>
+            <p class="mb-4" data-i18n="auth.changeIntro">
+              This is your first sign-in, so you must set your own password before continuing.
+            </p>
+
+            <div class="ad-form-error" id="change-error" role="alert"></div>
+
+            <form id="change-form" novalidate>
+              <div class="input-group">
+                <label class="auth-label-sr" for="new-password" data-i18n="auth.newPasswordLabel">
+                  New password
+                </label>
+                <input
+                  class="form-control password"
+                  id="new-password"
+                  type="password"
+                  autocomplete="new-password"
+                  maxlength="128"
+                  placeholder="Type the new password"
+                  data-i18n-placeholder="auth.newPasswordPlaceholder"
+                />
+                <img class="input-icon" src="vendor/icons/lock2.svg" alt="" />
+                <button
+                  class="show-hide-icon"
+                  type="button"
+                  aria-label="Show or hide new password"
+                  data-i18n-aria-label="auth.showHideNewPassword"
+                  aria-pressed="false"
+                >
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <span class="field__error" id="new-password-error" hidden></span>
+
+              <div class="input-group">
+                <label
+                  class="auth-label-sr"
+                  for="confirm-password"
+                  data-i18n="auth.confirmPasswordLabel"
+                >
+                  Confirm new password
+                </label>
+                <input
+                  class="form-control password"
+                  id="confirm-password"
+                  type="password"
+                  autocomplete="new-password"
+                  maxlength="128"
+                  placeholder="Re-type the new password"
+                  data-i18n-placeholder="auth.confirmPasswordPlaceholder"
+                />
+                <img class="input-icon" src="vendor/icons/lock2.svg" alt="" />
+                <button
+                  class="show-hide-icon"
+                  type="button"
+                  aria-label="Show or hide confirmed password"
+                  data-i18n-aria-label="auth.showHideConfirmPassword"
+                  aria-pressed="false"
+                >
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <span class="field__error" id="confirm-password-error" hidden></span>
+
+              <ul class="password-requirements">
+                <li data-i18n="auth.requirementLength">Must be at least 8 characters long.</li>
+                <li data-i18n="auth.requirementMatch">Both entries must match.</li>
+              </ul>
+
+              <button class="btn btn-primary-gradient btn-submit" type="submit">
+                <i class="fa-solid fa-check"></i
+                ><span data-i18n="auth.setPassword">Set password and continue</span>
+              </button>
+            </form>
+          </section>
+
+          <!-- Password reset request (#1822) -->
+          <section id="step-forgot" aria-labelledby="forgot-heading" hidden>
+            <h2 id="forgot-heading" data-i18n="auth.forgotTitle">Reset your password</h2>
+            <p class="mb-4" data-i18n="auth.forgotIntro">
+              Enter your registered email address. We will email a reset link to your SheDrive
+              admin address.
+            </p>
+
+            <div class="ad-form-error" id="forgot-error" role="alert"></div>
+            <p class="auth__success" id="forgot-success" data-i18n="auth.forgotSuccess" hidden>
+              If that email belongs to an admin account, a reset link is on its way.
+            </p>
+
+            <form id="forgot-form" novalidate>
+              <div class="input-group">
+                <label class="auth-label-sr" for="forgot-email" data-i18n="auth.emailLabel">
+                  Email
+                </label>
+                <input
+                  class="form-control ad-ltr"
+                  id="forgot-email"
+                  type="email"
+                  maxlength="254"
+                  placeholder="Enter registered email"
+                  data-i18n-placeholder="auth.forgotEmailPlaceholder"
+                />
+                <img class="input-icon" src="vendor/icons/mail.svg" alt="" />
+              </div>
+              <span class="field__error" id="forgot-email-error" hidden></span>
+
+              <div class="row">
+                <div class="col-sm-6">
+                  <button class="btn btn-primary-gradient btn-submit d-flex" type="submit">
+                    <i class="fa-regular fa-paper-plane"></i
+                    ><span data-i18n="auth.sendResetLink">Send reset link</span>
+                  </button>
+                </div>
+                <div class="col-sm-6">
+                  <button
+                    class="btn btn-primary-outline btn-submit d-flex"
+                    type="button"
+                    id="forgot-back"
+                  >
+                    <i class="fa-solid fa-chevron-left"></i
+                    ><span data-i18n="auth.backToSignIn">Back to sign in</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <p class="auth__footer">
+            <span data-i18n="auth.footerCredentials">
+              Mockup credentials — any admin email in the seed data with password
+            </span>
+            <code class="ad-ltr">shedrive2026</code>.
+            <span data-i18n="auth.footerTry">Try</span>
+            <code class="ad-ltr">ops.lead@shedrive.app</code>.
+            <a class="primary-link" href="screens.html" data-i18n="auth.screenIndex">
+              Screen index
+            </a>
+          </p>
+        </div>
+        <!-- End Col -->
+
+        <div class="d-none d-xl-block col-xl-6 col-xxl-7 login-end-side">
+          <img src="vendor/img/login-slogan.png" alt="" />
+        </div>
+        <!-- End Col -->
+      </div>
+      <!-- End Row -->
+    </div>
+    <!-- End Container -->
+
+    <script type="module" src="scripts/login.js"></script>
+  </body>
+</html>

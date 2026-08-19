@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-label="Placeholder profile photo">
+  <rect width="400" height="260" fill="#f1eefa"/>
+  <circle cx="200" cy="104" r="42" fill="#c9c3dd"/>
+  <path d="M138 200c0-34 28-56 62-56s62 22 62 56z" fill="#c9c3dd"/>
+  <text x="200" y="232" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#6b6580" text-anchor="middle">PROFILE PHOTO — PLACEHOLDER</text>
+  <text x="200" y="248" font-family="Inter, sans-serif" font-size="10" fill="#6b6580" text-anchor="middle">Not a real person.</text>
+</svg>

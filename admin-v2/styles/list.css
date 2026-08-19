@@ -1,0 +1,66 @@
+/*
+ * list.css — SheDrive admin shared list-screen styling (v2 design)
+ * Used by every grid screen (applications, drivers, riders, trips, safety,
+ * admin users). Screen-specific rules stay in their own stylesheet.
+ *
+ * These helpers sit inside the design kit's `.custom-grid-list` cells, which
+ * already set the cell font, padding, and `white-space: nowrap`. Each rule
+ * therefore only adds what the kit does not: the two-line name stack, the
+ * link and expiry accents, and the rating cluster. Every value is a token.
+ */
+
+/* Two-line name cell: English name over a phone number or Arabic name. */
+.list__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.list__name-primary {
+  font-family: var(--font-display);
+  font-weight: var(--fw-medium);
+  color: var(--color-primary-700);
+  overflow-wrap: anywhere;
+}
+
+.list__name-secondary {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+}
+
+/* In-cell link — matches the kit's `.grid-options-btn` colouring. */
+.list__link {
+  color: var(--color-primary-600);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all ease 0.27s;
+}
+
+.list__link:hover,
+.list__link:focus-visible {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
+
+/* Expired documents and overdue SLAs read in the kit's danger colour. */
+.list__expired {
+  color: var(--color-danger);
+  font-weight: var(--fw-medium);
+}
+
+.list__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.list__rating-star {
+  color: var(--color-warning);
+  line-height: 1;
+}

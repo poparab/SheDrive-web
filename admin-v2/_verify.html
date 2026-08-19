@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>admin-v2 — screen smoke test</title>
+    <style>
+      body { font: 14px/1.5 system-ui; margin: 1rem; }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: left; font-size: 12px; }
+      .ok { color: #279200; } .bad { color: #e50000; font-weight: 700; }
+      iframe { width: 1280px; height: 900px; border: 1px solid #eee; }
+    </style>
+  </head>
+  <body>
+    <h1>admin-v2 smoke test</h1>
+    <p id="progress">starting…</p>
+    <table id="out"><thead><tr><th>page</th><th>result</th><th>detail</th></tr></thead><tbody></tbody></table>
+    <iframe id="frame" title="screen under test"></iframe>
+
+    <script type="module">
+      // Pages and the DOM markers that prove the screen actually rendered.
+      const PAGES = [
+        ['dashboard.html', { stats: 'ad-stat-card', map: '#ops-map' }],
+        ['trips.html', { rows: 'tbody tr', filters: '.filter-container', kpi: '#trips-stats ad-stat-card' }],
+        ['trips.html?state=empty', { state: '.result-message' }],
+        ['trips.html?state=error', { state: '.result-message' }],
+        ['driver-applications.html', { rows: 'tbody tr', kpi: '#applications-stats ad-stat-card' }],
+        ['driver-applications.html?state=empty', { state: '.result-message' }],
+        ['drivers.html', { rows: 'tbody tr', kpi: '#drivers-stats ad-stat-card' }],
+        ['riders.html', { rows: 'tbody tr', kpi: '#riders-stats ad-stat-card' }],
+        ['safety-reports.html', { rows: 'tbody tr', kpi: '#safety-stats ad-stat-card' }],
+        ['pricing-zones.html', { section: '.ad-section' }],
+        ['pricing-policies.html', { section: '.ad-section' }],
+        ['reports.html', { section: '.ad-section' }],
+        ['reconciliation.html', { section: '.ad-section' }],
+        ['audit-log.html', { rows: 'tbody tr', filters: '.filter-container' }],
+        ['admin-users.html', { rows: 'tbody tr' }],
+        ['screens.html', { links: 'a[href$=".html"]' }],
+        ['index.html', { form: 'form' }],
+        ['admin-profile.html', { card: '.standard-card-theme2, .ad-section' }],
+        ['2fa.html', { any: 'body' }],
+        ['2fa-setup.html', { any: 'body' }],
+        ['otp.html', { any: 'body' }],
+        ['recovery-code.html', { any: 'body' }],
+        ['password-forgot.html', { any: 'body' }],
+        ['password-new.html', { any: 'body' }],
+      ];
+
+      // Detail screens need a real record id, taken from the list grids.
+      const DETAIL = [
+        ['drivers.html', 'driver-profile.html', { cards: '.standard-card-theme2', docs: '.photo-trigger' }],
+        ['riders.html', 'rider-profile.html', { cards: '.standard-card-theme2' }],
+        ['trips.html', 'trip-detail.html', { cards: '.standard-card-theme2', timeline: '.timeline-vertical li' }],
+        ['driver-applications.html', 'driver-application.html', { cards: '.standard-card-theme2' }],
+        ['safety-reports.html', 'safety-report.html', { cards: '.standard-card-theme2, .ad-section' }],
+      ];
+
+      // The five deep-link auth pages redirect into index.html, so `dir` is
+      // asserted on the page they land on, not the redirector itself.
+      const REDIRECTORS = /^(2fa|2fa-setup|recovery-code|password-forgot|password-new)\.html/;
+
+      const ARABIC = /[؀-ۿ]/g;
+
+      const frame = document.getElementById('frame');
+      const tbody = document.querySelector('#out tbody');
+      const progress = document.getElementById('progress');
+
+      function row(page, ok, detail) {
+        const tr = document.createElement('tr');
+        const a = document.createElement('td');
+        a.textContent = page;
+        const b = document.createElement('td');
+        b.textContent = ok ? 'OK' : 'FAIL';
+        b.className = ok ? 'ok' : 'bad';
+        const c = document.createElement('td');
+        c.textContent = detail;
+        tr.append(a, b, c);
+        tbody.appendChild(tr);
+      }
+
+      // A cache-buster: the dev server serves cacheable HTML, and a stale page
+      // would report yesterday's translation state as today's.
+      let bust = 0;
+
+      function withLang(url, code) {
+        const [path, query = ''] = url.split('?');
+        const params = new URLSearchParams(query);
+        params.set('lang', code);
+        params.set('cb', String(Date.now() % 100000) + '-' + (bust += 1));
+        return `${path}?${params.toString()}`;
+      }
+
+      function load(url) {
+        return new Promise((resolve) => {
+          const done = () => {
+            frame.removeEventListener('load', done);
+            // Give module scripts and the mock API's latency time to paint.
+            setTimeout(resolve, 1400);
+          };
+          frame.addEventListener('load', done);
+          frame.src = url;
+        });
+      }
+
+      async function check(url, markers, code) {
+        const target = withLang(url, code);
+        await load(target);
+        const doc = frame.contentDocument;
+        const win = frame.contentWindow;
+        const found = {};
+        let ok = true;
+
+        for (const [name, sel] of Object.entries(markers)) {
+          const n = doc.querySelectorAll(sel).length;
+          found[name] = n;
+          if (n === 0) ok = false;
+        }
+
+        // screens.html is a standalone designer index, not a shell screen.
+        const isAuth = /index|2fa|otp|recovery|password|screens/.test(url);
+        if (!isAuth) {
+          const chrome = doc.querySelector('#sidebar') && doc.querySelector('#content');
+          found.chrome = chrome ? 1 : 0;
+          if (!chrome) ok = false;
+        }
+
+        // Direction must follow the language on every screen.
+        found.dir = doc.documentElement.getAttribute('dir');
+        const expectedDir = code === 'ar' ? 'rtl' : 'ltr';
+        if (found.dir !== expectedDir && !REDIRECTORS.test(url)) ok = false;
+
+        // Arabic coverage: the visible copy of a translated screen should be
+        // mostly Arabic script. A screen that renders as English in ar mode has
+        // simply not been translated.
+        if (code === 'ar') {
+          const region = doc.querySelector('#admin-content') ?? doc.body;
+          const text = (region.innerText || '').replace(/\s+/g, '');
+          const arabic = (text.match(ARABIC) || []).length;
+          found.arabicChars = arabic;
+          if (arabic < 20) ok = false;
+        }
+
+        // html has overflow-x:hidden from the kit, so measure the body box.
+        found.hScroll = doc.body.scrollWidth > win.innerWidth + 2 ? 'YES' : 'no';
+        if (found.hScroll === 'YES') ok = false;
+
+        row(`${target}`, ok, JSON.stringify(found));
+        return ok;
+      }
+
+      let failures = 0;
+
+      for (const code of ['en', 'ar']) {
+        for (const [url, markers] of PAGES) {
+          progress.textContent = `checking ${url} (${code}) …`;
+          try {
+            if (!(await check(url, markers, code))) failures += 1;
+          } catch (error) {
+            row(`${url}?lang=${code}`, false, String(error));
+            failures += 1;
+          }
+        }
+
+        for (const [listUrl, detailUrl, markers] of DETAIL) {
+          progress.textContent = `checking ${detailUrl} (${code}) …`;
+          try {
+            await load(withLang(listUrl, code));
+            const first = frame.contentDocument.querySelector('tbody tr[data-row-link]');
+            const href = first?.dataset.rowLink;
+            if (!href) {
+              row(`${detailUrl}?lang=${code}`, false, `no row link found on ${listUrl}`);
+              failures += 1;
+              continue;
+            }
+            if (!(await check(href, markers, code))) failures += 1;
+          } catch (error) {
+            row(`${detailUrl}?lang=${code}`, false, String(error));
+            failures += 1;
+          }
+        }
+      }
+
+      progress.textContent = `done — ${failures} failing page(s)`;
+      window.__verifyDone = true;
+      window.__verifyFailures = failures;
+      window.__verifyRows = [...tbody.rows].map((r) => [...r.cells].map((c) => c.textContent));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Trip detail</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="trips"
+      page-title-key="tripDetail.title"
+      breadcrumb-keys="nav.trips|trips.html > tripDetail.crumb"
+      back="trips.html"
+      screen-styles="styles/detail.css, styles/list.css"
+      mapbox
+    >
+      <div id="trip-missing" hidden>
+        <ad-empty-state icon="⚠" heading="Trip not found" data-i18n-heading="tripDetail.notFoundHeading" message="This trip record does not exist." data-i18n-message="tripDetail.notFoundMessage">
+          <a class="btn btn-primary-outline btn-x-sm" href="trips.html" data-i18n="tripDetail.backToTrips">Back to trips</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="trip-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <ad-detail-section id="parties" section-title="Rider &amp; driver"></ad-detail-section>
+            <ad-detail-section id="route" section-title="Pickup &amp; destination"></ad-detail-section>
+
+            <!-- #1671 — chronological state timeline -->
+            <section class="ad-section" aria-labelledby="timeline-heading">
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="timeline-heading" data-i18n="tripDetail.timelineHeading">State timeline</h2>
+                  <p class="ad-section__hint" data-i18n="tripDetail.timelineHint">
+                    Every transition this trip passed through, with timestamps in UTC+2.
+                  </p>
+                </div>
+              </div>
+              <div class="ad-section__body">
+                <ad-timeline id="timeline"></ad-timeline>
+              </div>
+            </section>
+
+            <!-- #1672 — actual route travelled, completed trips only -->
+            <section class="ad-section ad-section--flush" id="route-section" aria-labelledby="map-heading" hidden>
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="map-heading" data-i18n="tripDetail.mapHeading">Actual route travelled</h2>
+                  <p class="ad-section__hint" id="route-summary"></p>
+                </div>
+              </div>
+              <ad-map-panel id="route-map"></ad-map-panel>
+            </section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="summary" section-title="Trip" data-i18n-section-title="safetyReport.tripUnavailableLabel" data-i18n-title="safetyReport.tripUnavailableLabel"></ad-detail-section>
+
+            <!-- #1671 S2 — original estimate for any incomplete trip -->
+            <ad-detail-section id="estimate" section-title="Original fare estimate" data-i18n-section-title="tripDetail.estimate" data-i18n-title="tripDetail.estimate" hidden>
+            </ad-detail-section>
+
+            <!-- #1672 S1 — fare breakdown, completed trips only -->
+            <section class="ad-section" id="fare-section" aria-labelledby="fare-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="fare-heading" data-i18n="tripDetail.fareHeading">Fare breakdown</h2>
+              </div>
+              <div class="ad-section__body">
+                <div class="detail__money" id="fare-rows"></div>
+              </div>
+            </section>
+
+            <!-- #1672 S2/S3 — rating, completed trips only -->
+            <section class="ad-section" id="rating-section" aria-labelledby="rating-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="rating-heading" data-i18n="tripDetail.ratingHeading">Rider rating</h2>
+              </div>
+              <div class="ad-section__body">
+                <div id="rating-body"></div>
+              </div>
+            </section>
+
+            <!-- #1671 S5 — intervention actions, in-progress trips only -->
+            <section class="ad-section" id="actions-section" aria-labelledby="actions-heading" hidden>
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="actions-heading" data-i18n="tripDetail.actionsHeading">Admin intervention</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <div class="ad-stub">
+                  <span class="ad-stub__icon" aria-hidden="true">⚠</span>
+                  <span>
+                    <strong data-i18n="tripDetail.proposalStrong">Proposed behaviour — needs BA sign-off.</strong>
+                    <span data-i18n="tripDetail.proposalBody">Stories #1808
+                    (cancel) and #1809 (reassign) have not been written, so the flows below are
+                    a proposal built to fit the rest of the backlog. Review them as design
+                    intent, not as agreed requirements.</span>
+                  </span>
+                </div>
+                <p class="ad-section__hint" id="intervention-hint"></p>
+                <button class="btn btn-danger btn--full" type="button" id="cancel-trip" data-i18n="tripDetail.cancelBtn">
+                  Cancel this trip
+                </button>
+                <button class="btn btn-primary-outline btn--full" type="button" id="reassign-trip" data-i18n="tripDetail.reassignBtn">
+                  Reassign to another driver
+                </button>
+              </div>
+            </section>
+
+            <!-- Recorded intervention, shown once a trip has been cancelled -->
+            <ad-detail-section id="cancellation" section-title="Cancellation" data-i18n-section-title="tripDetail.cancellation" data-i18n-title="tripDetail.cancellation" hidden>
+            </ad-detail-section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="intervention-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/trip-detail.js"></script>
+  </body>
+</html>

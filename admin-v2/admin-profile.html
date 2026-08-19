@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — My profile</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      page-title-key="profile.title"
+      breadcrumb-keys="nav.administration > profile.title"
+      screen-styles="styles/profile.css"
+    >
+      <div class="ad-stub">
+        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
+        <span>
+          <strong>Read-only mockup.</strong> This is the page the topbar user menu points
+          at. The mock admin API has no self-service endpoint for editing your own
+          account, so nothing here saves and no field is editable. The two security
+          actions hand off to the enrolment and new-password screens, which are
+          themselves mockups. Every value below is read from the demo session and the
+          seeded admin record.
+        </span>
+      </div>
+
+      <div class="row gy-4 profile__grid">
+        <!-- ── Account ────────────────────────────────── -->
+        <div class="col-lg-6 col-xl-4">
+          <div class="standard-card-theme2 white-bg profile__card">
+            <div class="card-header">
+              <div class="card-title">
+                <h5 data-i18n="profile.accountTitle">Account</h5>
+                <span data-i18n="profile.accountSubtitle">Who you are signed in as</span>
+              </div>
+              <div class="icon"><img src="vendor/icons/profile-info.svg" alt="" /></div>
+            </div>
+
+            <div class="card-body pb-0">
+              <div class="list-multi-column no-border p-0">
+                <div class="row gx-4">
+                  <div class="col">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="common.email">Email</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="account-email">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="common.role">Role</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="account-role">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.accountStatus">Account status</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="account-status">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.accountCreated">Account created</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="account-created">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.lastSignIn">Last sign-in</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="account-last-login">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <p class="profile__hint" id="account-hint"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Security ───────────────────────────────── -->
+        <div class="col-lg-6 col-xl-4">
+          <div class="standard-card-theme2 white-bg profile__card">
+            <div class="card-header">
+              <div class="card-title">
+                <h5 data-i18n="profile.securityTitle">Security</h5>
+                <span data-i18n="profile.securitySubtitle">Two-factor and password</span>
+              </div>
+              <div class="icon"><img src="vendor/icons/lock.svg" alt="" /></div>
+            </div>
+
+            <div class="card-body pb-0">
+              <div class="list-multi-column no-border p-0">
+                <div class="row gx-4">
+                  <div class="col">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.twoFactor">Two-factor authentication</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="security-2fa">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.authenticatorApp">Authenticator app</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="security-authenticator">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.recoveryCodes">Recovery codes</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="security-recovery">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.passwordChanged">Password last changed</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="profile.notRecordedInMock">
+                        Not recorded in the mock
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile__actions">
+                <a class="btn btn-primary-rounded-outline btn-x-sm" href="2fa-setup.html">
+                  <i class="fa-solid fa-shield-halved"></i> Set up authenticator
+                </a>
+                <a class="btn btn-secondary-rounded-outline btn-x-sm" href="password-new.html">
+                  <i class="fa-solid fa-key"></i> Change password
+                </a>
+              </div>
+
+              <p class="profile__hint" data-i18n="profile.securityHint">
+                Both links open the design-kit screens for those flows. Completing them
+                does not change the seeded admin record.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Session ────────────────────────────────── -->
+        <div class="col-lg-6 col-xl-4">
+          <div class="standard-card-theme2 white-bg profile__card">
+            <div class="card-header">
+              <div class="card-title">
+                <h5 data-i18n="profile.sessionTitle">Session</h5>
+                <span data-i18n="profile.sessionSubtitle">This browser</span>
+              </div>
+              <div class="icon"><img src="vendor/icons/signal-waves.svg" alt="" /></div>
+            </div>
+
+            <div class="card-body pb-0">
+              <div class="list-multi-column no-border p-0">
+                <div class="row gx-4">
+                  <div class="col">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.signedInAs">Signed in as</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="session-email">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.sessionStarted">Session started</div>
+                      <div
+                        class="list-item col-auto justify-content-md-end"
+                        id="session-started">—</div>
+                    </div>
+
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="profile.storedUnder">Stored under</div>
+                      <div class="list-item col-auto justify-content-md-end">
+                        <code id="session-key">shedrive.adminSession</code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile__actions">
+                <button class="btn btn-danger-rounded-outline btn-x-sm" type="button" id="session-signout">
+                  <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                  <span data-i18n="shell.signOut">Sign out</span>
+                </button>
+              </div>
+
+              <p class="profile__hint">
+                Signing out clears the browser session and returns to the sign-in screen.
+                Because every internal screen is open for review, opening one again quietly
+                provisions a fresh demo session — add <code>?auth=strict</code> to a screen
+                URL to see the production redirect instead.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/admin-profile.js"></script>
+  </body>
+</html>

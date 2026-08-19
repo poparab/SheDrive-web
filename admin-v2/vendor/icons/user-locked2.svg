@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" id="svg3159" width="682.66669" height="682.66669" viewBox="0 0 682.66669 682.66669">
+  <defs id="defs3163">
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath3173">
+      <path d="M 0,512 H 512 V 0 H 0 Z" id="path3171"/>
+    </clipPath>
+  </defs>
+  <mask id="custom"><rect id="bg" x="0" y="0" width="100%" height="100%" fill="white"/><g transform="matrix(1.3333333,0,0,-1.3333333,0,682.66667)"/></mask><g mask="url(#custom)"><g id="g3165" transform="matrix(1.3333333,0,0,-1.3333333,0,682.66667)">
+    <g id="g3167">
+      <g id="g3169" clip-path="url(#clipPath3173)">
+        <g id="g3175" transform="translate(140,376)">
+          <path d="M 0,0 C 0,64.065 51.935,116 116,116 180.065,116 232,64.065 232,0 232,-64.065 180.065,-116 116,-116 51.935,-116 0,-64.065 0,0 Z" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path3177"/>
+        </g>
+        <g id="g3179" transform="translate(244,20)">
+          <path d="m 0,0 h -183.307 c -25.9,0 -45.094,23.845 -39.815,49.201 22.701,109.041 119.345,190.966 235.122,190.966" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path3181"/>
+        </g>
+        <g id="g3183" transform="translate(462,150.0137)">
+          <path d="m 0,0 h -108 c -16.568,0 -30,-13.432 -30,-30 V -130 H 30 V -30 C 30,-13.432 16.568,0 0,0 Z" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path3185"/>
+        </g>
+        <g id="g3187" transform="translate(447.9834,149.5596)">
+          <path d="M 0,0 V 36.454 C 0,57.985 -17.909,75.44 -40,75.44 -62.092,75.44 -80,57.985 -80,36.454 V 0" style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path3189"/>
+        </g>
+      </g>
+    </g>
+  </g></g>
+</svg>

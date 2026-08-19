@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-label="Placeholder national ID document">
+  <rect width="400" height="260" fill="#f8f7fb"/>
+  <rect x="8" y="8" width="384" height="244" rx="10" fill="#ffffff" stroke="#e5e2ee" stroke-width="2"/>
+  <rect x="8" y="8" width="384" height="44" rx="10" fill="#6b2bd9"/>
+  <text x="24" y="36" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#ffffff">NATIONAL ID — SAMPLE</text>
+  <rect x="26" y="70" width="86" height="104" rx="6" fill="#e5e2ee"/>
+  <circle cx="69" cy="106" r="19" fill="#c9c3dd"/>
+  <path d="M40 160c0-16 13-26 29-26s29 10 29 26z" fill="#c9c3dd"/>
+  <g fill="#6b6580" font-family="Inter, sans-serif" font-size="10">
+    <text x="130" y="82">FULL NAME</text>
+    <text x="130" y="122">NATIONAL ID NUMBER</text>
+    <text x="130" y="162">DATE OF BIRTH</text>
+  </g>
+  <g fill="#1a1530" font-family="Inter, sans-serif" font-size="13" font-weight="600">
+    <text x="130" y="100">•••••• ••••••••</text>
+    <text x="130" y="140">•••• •••• •••• ••••</text>
+    <text x="130" y="180">•• ••• ••••</text>
+  </g>
+  <rect x="26" y="196" width="348" height="1" fill="#e5e2ee"/>
+  <text x="26" y="222" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Placeholder asset for the SheDrive admin mockup.</text>
+  <text x="26" y="238" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Contains no real personal data.</text>
+  <text x="200" y="150" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#d63ae2" opacity="0.18" text-anchor="middle" transform="rotate(-16 200 150)">SAMPLE ONLY</text>
+</svg>

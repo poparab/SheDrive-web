@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-label="Placeholder vehicle photo">
+  <rect width="400" height="260" fill="#eceaf4"/>
+  <rect y="188" width="400" height="72" fill="#d9d5e8"/>
+  <path d="M74 188l22-46c4-9 13-14 23-14h162c10 0 19 5 23 14l22 46z" fill="#8b5cf6" opacity="0.85"/>
+  <rect x="60" y="188" width="280" height="34" rx="12" fill="#6b2bd9"/>
+  <path d="M120 132h64v34h-78z" fill="#ffffff" opacity="0.55"/>
+  <path d="M198 132h62l14 34h-76z" fill="#ffffff" opacity="0.55"/>
+  <circle cx="120" cy="222" r="20" fill="#1a1530"/>
+  <circle cx="120" cy="222" r="8" fill="#6b6580"/>
+  <circle cx="280" cy="222" r="20" fill="#1a1530"/>
+  <circle cx="280" cy="222" r="8" fill="#6b6580"/>
+  <rect x="168" y="196" width="64" height="18" rx="4" fill="#ffffff"/>
+  <text x="200" y="209" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#1a1530" text-anchor="middle">••• •••</text>
+  <text x="200" y="42" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#6b6580" text-anchor="middle">VEHICLE PHOTO — PLACEHOLDER</text>
+  <text x="200" y="60" font-family="Inter, sans-serif" font-size="10" fill="#6b6580" text-anchor="middle">Illustration only. Not a real vehicle.</text>
+</svg>

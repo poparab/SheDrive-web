@@ -1,0 +1,263 @@
+/*
+ * detail.css — SheDrive admin shared detail-screen styling (v2 design)
+ * Used by application, driver/rider profile, trip detail, safety report,
+ * reports and reconciliation.
+ *
+ * Two jobs:
+ *   1. The `.detail__*` vocabulary the screen scripts still emit, re-expressed
+ *      against the delivered kit's palette tokens.
+ *   2. The handful of adjustments the ported detail components need: the kit's
+ *      card/list idiom emitted by <ad-detail-section>, the kit's vertical
+ *      timeline emitted by <ad-timeline> (including the `muted` tone the kit
+ *      has no rule for), and the kit's lightbox gallery emitted by
+ *      <ad-doc-viewer>. These override the legacy `ad-*` rules in admin.css,
+ *      which still apply because the components keep the old class names on
+ *      the new nodes.
+ *
+ * Loaded last in the stack, so it wins over admin.css and admin-bridge.css.
+ * Every value comes from a token — no literals.
+ */
+
+/* ── Screen headings ────────────────────────────────── */
+
+.detail__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.detail__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-primary-700);
+}
+
+.detail__subheading {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.detail__stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--admin-gutter-tight);
+}
+
+/* ── Fare / money breakdown ─────────────────────────── */
+
+.detail__money {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detail__money-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--admin-gutter-tight);
+  font-size: var(--fs-sm);
+  color: var(--color-primary-700);
+}
+
+.detail__money-row--total {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-base);
+}
+
+.detail__money-label {
+  color: var(--color-text-muted);
+}
+
+.detail__money-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.detail__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-lg);
+  color: var(--color-warning);
+}
+
+.detail__tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-block-start: var(--space-3);
+}
+
+.detail__statement {
+  margin: 0;
+  padding: var(--admin-gutter-tight);
+  background: var(--color-surface-alt);
+  border-inline-start: var(--space-1) solid var(--color-primary-500);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-primary-700);
+}
+
+/* ── <ad-detail-section> — the kit's card + list rows ─ */
+
+.ad-detail-section {
+  display: block;
+}
+
+.ad-detail-section .standard-card-theme2 {
+  height: 100%;
+}
+
+/* The kit's card title slot: `spam` is the kit's own element name. */
+.ad-detail-section .card-title spam {
+  display: block;
+  font-size: var(--fs-xs);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.ad-detail-section .card-header .ad-detail-section__actions {
+  margin-inline-start: auto;
+  margin-inline-end: var(--space-3);
+}
+
+.ad-detail-section .card-header .ad-detail-section__actions:empty {
+  display: none;
+}
+
+/*
+ * The rows are Bootstrap rows now, so the flex/padding admin-bridge.css gives
+ * `.ad-detail-item` has to relax: the kit's `.list-row` already draws the rule
+ * line and the row spacing.
+ */
+.ad-detail-grid .ad-detail-item {
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+}
+
+.ad-detail-grid .ad-detail-item__label {
+  font-size: var(--fs-sm);
+  color: var(--color-primary-700);
+}
+
+.ad-detail-grid .ad-detail-item__value {
+  color: var(--color-text);
+}
+
+/* A wide value drops onto its own full-width line under its label. */
+.ad-detail-grid .ad-detail-item--wide .ad-detail-item__value {
+  flex: 1 0 100%;
+  justify-content: flex-start;
+  text-align: start;
+  line-height: var(--leading-normal);
+}
+
+/* ── <ad-timeline> — the kit's vertical timeline ────── */
+
+/* Undo the legacy two-column grid item from admin.css. */
+.timeline-vertical .ad-timeline__item {
+  grid-template-columns: none;
+  padding-block-end: var(--space-4);
+  gap: var(--space-1);
+}
+
+.timeline-vertical .ad-timeline__item:last-child {
+  padding-block-end: 0;
+}
+
+.timeline-vertical .ad-timeline__note {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-xs);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+/*
+ * The kit only tints the *last* item of a timeline. The portal's histories mark
+ * any step, so the tones are repeated here for every position — and `muted`,
+ * which the kit has no rule for at all, is defined outright.
+ */
+.timeline-vertical li.success::before {
+  background: var(--color-success);
+}
+
+.timeline-vertical li.success lable {
+  color: var(--color-success-strong);
+}
+
+.timeline-vertical li.danger::before {
+  background: var(--color-danger);
+}
+
+.timeline-vertical li.danger lable {
+  color: var(--color-danger);
+}
+
+.timeline-vertical li.warning::before {
+  background: var(--color-warning);
+}
+
+.timeline-vertical li.warning lable {
+  color: var(--color-warning-strong);
+}
+
+.timeline-vertical li.muted::before {
+  background: var(--color-border);
+}
+
+.timeline-vertical li.muted lable,
+.timeline-vertical li.muted span {
+  color: var(--color-text-muted);
+}
+
+/* ── <ad-doc-viewer> — the kit's lightbox gallery ───── */
+
+/*
+ * admin.css lays `.ad-docs` out as a grid of `.ad-doc` cards. The kit's
+ * `.lightbox-container` is a flex row of `.thumb-item`s, so those rules are
+ * neutralised here rather than in the component.
+ */
+.ad-docs.lightbox-container {
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--space-3);
+}
+
+.ad-doc.photo-trigger {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ad-doc.photo-trigger:focus-visible {
+  outline: var(--space-1) solid var(--color-primary-500);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.lightbox-container .thumb-item .thumb-img.ad-doc__frame {
+  aspect-ratio: auto;
+  display: block;
+}
+
+/* ── <ad-tabs> — kit-edge polish on the bridge's strip ─ */
+
+.ad-tabs__btn {
+  border-start-start-radius: var(--radius-sm);
+  border-start-end-radius: var(--radius-sm);
+  transition: all ease 0.27s;
+}
+
+.ad-tabs__btn:hover {
+  background: var(--admin-nav-hover-bg);
+  color: var(--color-primary-700);
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Drivers</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="drivers"
+      page-title-key="nav.drivers"
+      breadcrumb-keys="nav.people > nav.drivers"
+      screen-styles="styles/list.css"
+    >
+      <!-- Kit KPI row — counts derived from the same list query the grid uses -->
+      <div
+        class="ad-stats"
+        id="drivers-stats"
+        aria-label="Drivers summary" data-i18n-label="drivers.statsLabel" data-i18n-aria-label="drivers.statsLabel"
+        data-i18n-aria-label="drivers.statsLabel"
+      ></div>
+
+      <!-- #1665 — driver list across all statuses -->
+      <section class="ad-section" aria-labelledby="drivers-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="drivers-heading" data-i18n="drivers.heading">All drivers</h2>
+            <p class="ad-section__hint" data-i18n="drivers.hint">
+              Every driver account regardless of status. Approve and reject happen on the
+              applications queue; suspend and reinstate happen on a driver's profile.
+            </p>
+          </div>
+        </div>
+
+        <ad-filter-bar id="drivers-filters"></ad-filter-bar>
+        <ad-data-table id="drivers-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/drivers.js"></script>
+  </body>
+</html>

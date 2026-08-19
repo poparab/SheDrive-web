@@ -1,0 +1,95 @@
+/*
+ * pricing.css — SheDrive admin pricing screens (v2 design kit)
+ *
+ * Zone list warnings, rate-card summary cells, and the global policy forms.
+ * The grid, the cards and the form controls are all the kit's now, so this
+ * sheet keeps only the layout the kit has no opinion about.
+ *
+ * Class names are unchanged — pricing-zones.js, pricing-policies.js and
+ * reports.js emit every one of them. Every value is a token.
+ */
+
+/* A zone with no rate card blocks trips, so the warning has to read as one. */
+.pricing__warning {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--admin-fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--color-warning-strong);
+}
+
+/* ── Rate card summary cell ─────────────────────────── */
+
+.pricing__rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--admin-gutter-tight);
+  font-size: var(--admin-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.pricing__rate {
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.pricing__rate-label {
+  color: var(--color-text-muted);
+}
+
+.pricing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ── Global policy screen ───────────────────────────── */
+
+/* Two forms side by side on a wide display; the kit cards frame them. */
+.pricing__policies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  gap: var(--admin-gutter);
+  align-items: start;
+}
+
+.pricing__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gutter-tight);
+}
+
+.pricing__form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem;
+  gap: var(--admin-gutter-tight);
+  align-items: start;
+}
+
+.pricing__form-row .field {
+  margin: 0;
+}
+
+.pricing__label-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pricing__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-700);
+}
+
+.pricing__label-hint {
+  font-size: var(--admin-fs-label);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.pricing__meta {
+  font-size: var(--admin-fs-label);
+  color: var(--color-text-muted);
+}
