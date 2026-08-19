@@ -356,6 +356,8 @@ export const RIDERS = Array.from({ length: RIDER_COUNT }, (_, i) => {
     lastTripAt: tripsCompleted ? NOW - intBetween(0, 40) * DAY : null,
     suspensionReason: status === 'suspended' ? pick(RIDER_SUSPENSION_REASONS) : null,
     suspendedAt: status === 'suspended' ? NOW - intBetween(1, 30) * DAY : null,
+    // Riders have no decision-history timeline, so the acting admin is stored.
+    suspendedBy: status === 'suspended' ? ADMINS[i % 3].email : null,
   };
 });
 
@@ -666,10 +668,12 @@ SAFETY_REPORTS.forEach((report) => {
     rider.status = 'pending_review';
     rider.suspensionReason = null;
     rider.suspendedAt = null;
+    rider.suspendedBy = null;
   } else if (report.resolution === 'suspended') {
     rider.status = 'suspended';
     rider.suspensionReason = 'Gender-mismatch report upheld';
     rider.suspendedAt = report.resolvedAt;
+    rider.suspendedBy = report.resolvedBy;
   } else if (rider.status === 'pending_review') {
     // Dismissed: back to active unless a separate suspension applies.
     rider.status = 'active';
@@ -832,9 +836,19 @@ const DRIVER_REINSTATEMENT_REASONS = [
   'Other',
 ];
 
+/** Why a suspended rider is being let back on the platform. */
+const RIDER_REINSTATEMENT_REASONS = [
+  'Suspension lifted after review',
+  'Gender-mismatch report overturned',
+  'Payment issue resolved',
+  'Suspended in error',
+  'Other',
+];
+
 export const REASON_LISTS = {
   driverSuspension: SUSPENSION_REASONS,
   driverReinstatement: DRIVER_REINSTATEMENT_REASONS,
+  riderReinstatement: RIDER_REINSTATEMENT_REASONS,
   riderSuspension: RIDER_SUSPENSION_REASONS,
   rejection: REJECTION_REASONS,
   tripCancellation: TRIP_CANCELLATION_REASONS,

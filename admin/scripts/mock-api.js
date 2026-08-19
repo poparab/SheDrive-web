@@ -553,24 +553,57 @@ export const mockApi = {
   suspendRider(id, reason, note) {
     const rider = RIDERS_BY_ID.get(String(id));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
+    const at = Date.now();
     rider.status = 'suspended';
     rider.suspensionReason = reason === 'Other' && note ? note : reason;
-    rider.suspendedAt = Date.now();
+    rider.suspendedAt = at;
+    rider.suspendedBy = CURRENT_ADMIN.email;
+    rider.reinstatement = null;
     patch('riders', id, {
       status: rider.status,
       suspensionReason: rider.suspensionReason,
       suspendedAt: rider.suspendedAt,
+      suspendedBy: rider.suspendedBy,
+      reinstatement: null,
     });
+    addAuditEntry('suspend', 'rider', rider.id, { status: 'active' }, {
+      status: 'suspended',
+      reason: rider.suspensionReason,
+    }, at);
     return respond({ ok: true, status: rider.status });
   },
 
-  reinstateRider(id) {
+  reinstateRider(id, reason, note) {
     const rider = RIDERS_BY_ID.get(String(id));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
+
+    const at = Date.now();
+    // Same principle as a driver reinstatement: as consequential as the
+    // suspension it reverses, so it carries its own recorded reason.
+    const recordedReason = reason === 'Other' && note ? note : reason;
+    const previousStatus = rider.status;
+
     rider.status = 'active';
     rider.suspensionReason = null;
     rider.suspendedAt = null;
-    patch('riders', id, { status: 'active', suspensionReason: null, suspendedAt: null });
+    rider.suspendedBy = null;
+    rider.reinstatement = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
+
+    patch('riders', id, {
+      status: 'active',
+      suspensionReason: null,
+      suspendedAt: null,
+      suspendedBy: null,
+      reinstatement: rider.reinstatement,
+    });
+    addAuditEntry(
+      'reinstate',
+      'rider',
+      rider.id,
+      { status: previousStatus },
+      { status: 'active', reason: recordedReason },
+      at,
+    );
     return respond({ ok: true, status: rider.status });
   },
 
@@ -796,15 +829,21 @@ export const mockApi = {
       if (resolution === 'suspended') {
         rider.status = 'suspended';
         rider.suspensionReason = note || 'Gender-mismatch report upheld';
-        rider.suspendedAt = Date.now();
+        rider.suspendedAt = report.resolvedAt;
+        rider.suspendedBy = CURRENT_ADMIN.email;
       } else {
+        // A dismissal is not a manual reinstatement: the resolved report is the
+        // record, and the profile links to it.
         rider.status = 'active';
         rider.suspensionReason = null;
+        rider.suspendedAt = null;
+        rider.suspendedBy = null;
       }
       patch('riders', rider.id, {
         status: rider.status,
         suspensionReason: rider.suspensionReason,
         suspendedAt: rider.suspendedAt ?? null,
+        suspendedBy: rider.suspendedBy ?? null,
       });
     }
 

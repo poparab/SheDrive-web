@@ -9,7 +9,7 @@ import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
 import { REASON_LISTS, SAFETY_REPORTS } from './seed.js';
-import { formatCount, formatDate, formatEgp, formatPhone, humanize } from './format.js';
+import { formatCount, formatDate, formatDateTime, formatEgp, formatPhone, humanize } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -119,10 +119,22 @@ async function load() {
   const statusItems = [{ label: 'Status', value: pill }];
 
   if (rider.suspensionReason) {
-    statusItems.push({ label: 'Recorded reason', value: rider.suspensionReason, wide: true });
+    statusItems.push({ label: 'Suspension reason', value: rider.suspensionReason, wide: true });
+  }
+  if (rider.suspendedBy) {
+    statusItems.push({ label: 'Suspended by', value: rider.suspendedBy });
   }
   if (rider.suspendedAt) {
-    statusItems.push({ label: 'Suspended on', value: formatDate(rider.suspendedAt) });
+    statusItems.push({ label: 'Suspended on', value: formatDateTime(rider.suspendedAt) });
+  }
+  // Once reinstated, show why — otherwise the account reads as if it were never
+  // suspended, and the reversal has no recorded justification.
+  if (rider.reinstatement) {
+    statusItems.push(
+      { label: 'Reinstatement reason', value: rider.reinstatement.reason, wide: true },
+      { label: 'Reinstated by', value: rider.reinstatement.by },
+      { label: 'Reinstated at', value: formatDateTime(rider.reinstatement.at) },
+    );
   }
 
   // #1662 S3 — a Pending review rider links to the report that flagged her.
@@ -208,12 +220,31 @@ suspendBtn.addEventListener('click', () => {
 reinstateBtn.addEventListener('click', () => {
   modal.open({
     title: 'Reinstate this rider?',
-    description: 'She will be able to book rides again immediately.',
+    description:
+      'She will be able to book rides again immediately. Reinstating is as consequential as suspending, so it carries its own recorded reason and is written to the audit log.',
     confirmLabel: 'Reinstate rider',
-    fields: [],
-    onConfirm: async () => {
-      await mockApi.reinstateRider(id);
-      shell.showToast('Rider reinstated.', 'success');
+    fields: [
+      {
+        key: 'reason',
+        type: 'select',
+        label: 'Reinstatement reason',
+        required: true,
+        options: REASON_LISTS.riderReinstatement.map((r) => ({ value: r, label: r })),
+        emptyError: 'Select a reinstatement reason',
+      },
+      {
+        key: 'note',
+        type: 'textarea',
+        label: 'Explanatory note',
+        maxLength: 500,
+        requiredWhen: (values) => values.reason === 'Other',
+        emptyError: 'A note is required when the reason is "Other"',
+        lengthError: 'Too long — must be ≤ 500 characters',
+      },
+    ],
+    onConfirm: async (values) => {
+      await mockApi.reinstateRider(id, values.reason, values.note);
+      shell.showToast(`Rider reinstated — ${values.reason}.`, 'success');
       await load();
     },
   });

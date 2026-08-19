@@ -177,7 +177,7 @@ export const SCREENS = [
     ],
     states: [],
     notes:
-      'Three account states: Active, Pending review (set automatically by a gender-mismatch report), Suspended. Pending review links to the related report.',
+      'Three account states: Active, Pending review (set automatically by a gender-mismatch report), Suspended. Pending review links to the related report. A suspension shows its reason, actor and timestamp; reinstating requires its own recorded reason (a scope change vs #1741) and is written to the audit log.',
   },
   {
     group: 'Money & config',
