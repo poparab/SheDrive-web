@@ -8,7 +8,8 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatDateTime, formatEgp } from './format.js';
+import { statusLabel } from '../components/ad-status-pill.js';
+import { downloadCsv, formatDateTime, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -53,6 +54,34 @@ filters.fields = [
     ],
   },
   { type: 'daterange', key: 'date', label: 'Date', fromKey: 'from', toKey: 'to' },
+];
+
+filters.actions = [
+  {
+    label: 'Export CSV',
+    variant: 'ghost',
+    onClick: () => {
+      if (!lastRows.length) return;
+      downloadCsv(
+        `shedrive-trips-${toDateInputValue(Date.now())}.csv`,
+        ['Trip ID', 'Rider', 'Rider phone', 'Driver', 'Driver phone',
+         'Pickup area', 'Destination area', 'Status', 'Fare (EGP)', 'Date (UTC+2)'],
+        lastRows.map((t) => [
+          t.id,
+          t.riderName,
+          t.riderPhone,
+          t.driverName ?? '',
+          t.driverPhone ?? '',
+          t.pickup.area,
+          t.destination.area,
+          statusLabel(t.status),
+          // A trip without a final fare exports its estimate, marked as such.
+          t.fare ? t.fare.total.toFixed(2) : `${t.estimate.fare.toFixed(2)} (est.)`,
+          formatDateTime(t.createdAt),
+        ]),
+      );
+    },
+  },
 ];
 
 filters.addEventListener('change', (event) => {
@@ -155,6 +184,7 @@ table.addEventListener('pagechange', (event) => {
 });
 
 const guard = createRequestGuard();
+let lastRows = [];
 
 async function load() {
   const isCurrent = guard();
@@ -162,9 +192,11 @@ async function load() {
   try {
     const result = await mockApi.listTrips(query);
     if (!isCurrent()) return;
+    lastRows = result.rows;
     table.setData(result);
   } catch (error) {
     if (!isCurrent()) return;
+    lastRows = [];
     table.setError(error.message, load);
   }
 }

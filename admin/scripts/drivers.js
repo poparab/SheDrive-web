@@ -8,7 +8,8 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatCount, formatDate, formatPhone } from './format.js';
+import { statusLabel } from '../components/ad-status-pill.js';
+import { downloadCsv, formatCount, formatDate, formatPhone, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -47,6 +48,30 @@ filters.fields = [
       { value: 'suspended', label: 'Suspended' },
       { value: 'pending_suspension', label: 'Pending suspension' },
     ],
+  },
+];
+
+filters.actions = [
+  {
+    label: 'Export CSV',
+    variant: 'ghost',
+    onClick: () => {
+      if (!lastRows.length) return;
+      downloadCsv(
+        `shedrive-drivers-${toDateInputValue(Date.now())}.csv`,
+        ['Name', 'Phone number', 'Status', 'Onboarding submission date',
+         'Total trips', 'Average rating', 'Outstanding cash balance (EGP)'],
+        lastRows.map((d) => [
+          d.name,
+          formatPhone(d.phone),
+          statusLabel(d.status),
+          formatDate(d.submittedAt),
+          d.tripsCompleted,
+          d.avgRating ?? '',
+          d.cashBalance.toFixed(2),
+        ]),
+      );
+    },
   },
 ];
 
@@ -113,6 +138,7 @@ table.addEventListener('pagechange', (event) => {
 });
 
 const guard = createRequestGuard();
+let lastRows = [];
 
 async function load() {
   const isCurrent = guard();
@@ -120,9 +146,11 @@ async function load() {
   try {
     const result = await mockApi.listDrivers(query);
     if (!isCurrent()) return;
+    lastRows = result.rows;
     table.setData(result);
   } catch (error) {
     if (!isCurrent()) return;
+    lastRows = [];
     table.setError(error.message, load);
   }
 }

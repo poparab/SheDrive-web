@@ -67,7 +67,7 @@ export const SCREENS = [
     track: 'Built',
     stories: [[1670, 'Admin views trip list']],
     states: LIST_STATES,
-    notes: 'Status filter maps onto the trip state machine: Searching / Active / Completed / Expired.',
+    notes: 'Status filter maps onto the trip state machine: Searching / Active / Completed / Cancelled / Expired. Cancelled is a fifth option #1670 does not yet carry, needed once an admin can cancel a trip. CSV export respects the active filters.',
   },
   {
     group: 'Operations',
@@ -112,7 +112,7 @@ export const SCREENS = [
     track: 'Built',
     stories: [[1657, 'Admin views pending applications queue']],
     states: LIST_STATES,
-    notes: 'Sorted oldest-first — this is a work queue, not a browse list.',
+    notes: 'Lists EVERY application — pending, approved and rejected — with an Application outcome column and an outcome filter, plus CSV export. #1657 specifies a pending-only queue, so this is a scope change; the badge still counts only what is awaiting review. Sorted oldest-first, because the pending ones are a work queue.',
   },
   {
     group: 'People',
@@ -137,7 +137,7 @@ export const SCREENS = [
     track: 'Built',
     stories: [[1665, 'Admin views driver list across all statuses']],
     states: LIST_STATES,
-    notes: 'All statuses including Pending suspension.',
+    notes: 'All statuses including Pending suspension. CSV export respects the active filters.',
   },
   {
     group: 'People',
@@ -152,7 +152,7 @@ export const SCREENS = [
     ],
     states: [],
     notes:
-      'Suspending a driver who is mid-trip produces Pending suspension, not immediate suspension. Approve/reject deliberately live on the queue screens, not here.',
+      'Suspending a driver who is mid-trip produces Pending suspension, not immediate suspension. Reinstating now requires its own recorded reason (a scope change vs #1743) and is written to the audit log. Approve/reject deliberately live on the queue screens, not here.',
   },
   {
     group: 'People',

@@ -357,23 +357,50 @@ export const mockApi = {
 
   // ── Driver applications (#1657–#1660) ───────────────
 
-  listApplications({ search = '', from = '', to = '', page = 1, pageSize = 20, sort } = {}) {
-    const filtered = APPLICATIONS.filter(
+  /**
+   * The outcome of a driver's APPLICATION, which is not the same as her current
+   * account status: a suspended driver's application was still approved.
+   */
+  applicationOutcome(driver) {
+    if (driver.status === 'pending') return 'pending';
+    if (driver.status === 'rejected') return 'rejected';
+    return 'approved';
+  },
+
+  /**
+   * #1657 specifies a pending-only queue. This lists every application with an
+   * outcome filter instead, so an admin can also review what was already decided.
+   * Flagged as a scope change in docs/ux/admin-wireframes.md.
+   */
+  listApplications({ search = '', status = 'all', from = '', to = '', page = 1, pageSize = 20, sort } = {}) {
+    const rows = DRIVERS.map((driver) => ({
+      ...driver,
+      applicationOutcome: this.applicationOutcome(driver),
+    }));
+
+    const filtered = rows.filter(
       (app) =>
         (matchesText(app.name, search) || matchesText(app.phone, search)) &&
+        (status === 'all' || app.applicationOutcome === status) &&
         inDateRange(app.submittedAt, from, to),
     );
-    // #1657: default sort is submission date, oldest first.
+
+    // #1657: default sort is submission date, oldest first — it is a work queue.
     const sorted = sortRows(filtered, sort, { key: 'submittedAt', dir: 'asc' });
-    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
+    const page1 = paginate(sorted, page, pageSize);
+
+    // The "awaiting review" badge counts pending regardless of the active filter.
+    return respond(
+      { ...page1, pendingTotal: rows.filter((r) => r.applicationOutcome === 'pending').length },
+      { emptyValue: { ...emptyPage(pageSize), pendingTotal: 0 } },
+    );
   },
 
   getApplication(id) {
+    // Any application is viewable, not just a pending one — an admin needs to be
+    // able to open a decision that has already been made.
     const driver = DRIVERS_BY_ID.get(String(id));
-    if (!driver || driver.status !== 'pending') {
-      return respond(null, { emptyValue: null });
-    }
-    return respond(driver, { emptyValue: null });
+    return respond(driver ?? null, { emptyValue: null });
   },
 
   approveApplication(id) {
@@ -463,22 +490,39 @@ export const mockApi = {
     return respond({ ok: true, status: driver.status, pending: hasActiveTrip });
   },
 
-  reinstateDriver(id) {
+  reinstateDriver(id, reason, note) {
     const driver = DRIVERS_BY_ID.get(String(id));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
+
+    const at = Date.now();
+    // A reinstatement is as consequential as a suspension, so it carries its own
+    // recorded reason rather than being an unexplained status flip.
+    const recordedReason = reason === 'Other' && note ? note : reason;
+    const previousStatus = driver.status;
+
     driver.status = 'approved';
     driver.suspensionReason = null;
+    driver.reinstatement = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
     driver.decisionHistory.push({
       state: 'reinstated',
-      at: Date.now(),
+      at,
       actor: CURRENT_ADMIN.email,
-      note: null,
+      note: recordedReason,
     });
     patch('drivers', id, {
       status: driver.status,
       suspensionReason: null,
+      reinstatement: driver.reinstatement,
       decisionHistory: driver.decisionHistory,
     });
+    addAuditEntry(
+      'reinstate',
+      'driver',
+      driver.id,
+      { status: previousStatus },
+      { status: 'approved', reason: recordedReason },
+      at,
+    );
     return respond({ ok: true, status: driver.status });
   },
 

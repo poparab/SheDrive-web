@@ -172,6 +172,14 @@ async function load() {
   if (driver.rejectionReason) {
     statusItems.push({ label: 'Rejection reason', value: driver.rejectionReason, wide: true });
   }
+  // Once reinstated, show why — otherwise the account reads as if it were never suspended.
+  if (driver.reinstatement) {
+    statusItems.push(
+      { label: 'Reinstatement reason', value: driver.reinstatement.reason, wide: true },
+      { label: 'Reinstated by', value: driver.reinstatement.by },
+      { label: 'Reinstated at', value: formatDateTime(driver.reinstatement.at) },
+    );
+  }
 
   qs('#status-card').items = statusItems;
 
@@ -266,12 +274,31 @@ suspendBtn.addEventListener('click', () => {
 reinstateBtn.addEventListener('click', () => {
   modal.open({
     title: 'Reinstate this driver?',
-    description: 'She will be able to log in and go online again immediately.',
+    description:
+      'She will be able to log in and go online again immediately. Reinstating is as consequential as suspending, so it carries its own recorded reason and is written to the audit log.',
     confirmLabel: 'Reinstate driver',
-    fields: [],
-    onConfirm: async () => {
-      await mockApi.reinstateDriver(id);
-      shell.showToast('Driver reinstated.', 'success');
+    fields: [
+      {
+        key: 'reason',
+        type: 'select',
+        label: 'Reinstatement reason',
+        required: true,
+        options: REASON_LISTS.driverReinstatement.map((r) => ({ value: r, label: r })),
+        emptyError: 'Select a reinstatement reason',
+      },
+      {
+        key: 'note',
+        type: 'textarea',
+        label: 'Explanatory note',
+        maxLength: 500,
+        requiredWhen: (values) => values.reason === 'Other',
+        emptyError: 'A note is required when the reason is "Other"',
+        lengthError: 'Too long — must be ≤ 500 characters',
+      },
+    ],
+    onConfirm: async (values) => {
+      await mockApi.reinstateDriver(id, values.reason, values.note);
+      shell.showToast(`Driver reinstated — ${values.reason}.`, 'success');
       await load();
     },
   });

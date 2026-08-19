@@ -823,8 +823,18 @@ const TRIP_REASSIGNMENT_REASONS = [
   'Other',
 ];
 
+/** Why a suspended driver is being let back on the platform. */
+const DRIVER_REINSTATEMENT_REASONS = [
+  'Suspension lifted after review',
+  'Documents renewed and verified',
+  'Policy violation resolved',
+  'Suspended in error',
+  'Other',
+];
+
 export const REASON_LISTS = {
   driverSuspension: SUSPENSION_REASONS,
+  driverReinstatement: DRIVER_REINSTATEMENT_REASONS,
   riderSuspension: RIDER_SUSPENSION_REASONS,
   rejection: REJECTION_REASONS,
   tripCancellation: TRIP_CANCELLATION_REASONS,
