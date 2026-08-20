@@ -172,6 +172,8 @@ table.columns = [
     key: 'actor',
     label: t('audit.actorLabel'),
     sortable: true,
+    // Latin data: isolated from the bidi algorithm in Arabic.
+    ltr: true,
     render: (entry) => {
       const actor = document.createElement('span');
       actor.className = 'ad-ltr';

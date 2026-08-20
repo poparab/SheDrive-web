@@ -71,7 +71,7 @@ async function load() {
         ? link(`rider-profile.html?id=${report.riderId}`, `${report.riderName} →`)
         : report.riderName,
     },
-    { label: 'Phone', value: formatPhone(report.riderPhone) },
+    { label: t('common.phone'), value: formatPhone(report.riderPhone), ltr: true },
     { label: t('safetyReport.riderStatus'), value: riderPill },
     ...(report.rider?.suspensionReason
       ? [{ label: t('safetyReport.recordedReason'), value: report.rider.suspensionReason, wide: true }]
@@ -85,7 +85,7 @@ async function load() {
         ? link(`driver-profile.html?id=${report.driverId}`, `${report.driverName} →`)
         : report.driverName,
     },
-    ...(report.driver ? [{ label: 'Phone', value: formatPhone(report.driver.phone) }] : []),
+    ...(report.driver ? [{ label: t('common.phone'), value: formatPhone(report.driver.phone), ltr: true }] : []),
     ...(report.driver
       ? [
           {

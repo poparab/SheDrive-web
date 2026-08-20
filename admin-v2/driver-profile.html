@@ -18,15 +18,15 @@
     >
       <div id="profile-missing" hidden>
         <ad-empty-state icon="⚠" heading="Driver not found" data-i18n-heading="driverProfile.notFoundHeading" message="This driver account does not exist." data-i18n-message="driverProfile.notFoundMessage">
-          <a class="btn btn-primary-outline btn-x-sm" href="drivers.html" data-i18n="driverProfile.backToDrivers">Back to drivers</a>
+          <a class="btn btn-primary-outline btn--sm" href="drivers.html" data-i18n="driverProfile.backToDrivers">Back to drivers</a>
         </ad-empty-state>
       </div>
 
       <div id="profile-body" hidden>
         <div class="ad-split">
           <div class="ad-stack">
-            <ad-detail-section id="personal" section-title="Personal details" data-i18n-section-title="driverProfile.personal" data-i18n-title="driverProfile.personal"></ad-detail-section>
-            <ad-detail-section id="vehicle" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle" data-i18n-title="driverProfile.vehicle"></ad-detail-section>
+            <ad-detail-section id="personal" icon="user-2.svg" section-title="Personal details" data-i18n-section-title="driverProfile.personal"></ad-detail-section>
+            <ad-detail-section id="vehicle" icon="vehicle.svg" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle"></ad-detail-section>
 
             <section class="ad-section" aria-labelledby="docs-heading">
               <div class="ad-section__header">
@@ -57,8 +57,8 @@
           </div>
 
           <aside class="ad-split__aside">
-            <ad-detail-section id="status-card" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading" data-i18n-title="driverProfile.statusHeading"></ad-detail-section>
-            <ad-detail-section id="stats" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading" data-i18n-title="driverProfile.statsHeading"></ad-detail-section>
+            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
+            <ad-detail-section id="stats" icon="chart.svg" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading"></ad-detail-section>
 
             <section class="ad-section" aria-labelledby="actions-heading">
               <div class="ad-section__header">

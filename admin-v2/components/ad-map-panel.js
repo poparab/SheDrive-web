@@ -163,7 +163,7 @@ function skinToolbarControl(node) {
     (name) => name.startsWith('btn-') && name !== 'btn-close',
   );
   node.classList.add('btn');
-  if (!hasKitVariant) node.classList.add('btn-light-outline', 'btn-x-sm');
+  if (!hasKitVariant) node.classList.add('btn-light-outline', 'btn--sm');
   return node;
 }
 
@@ -257,7 +257,7 @@ class AdMapPanel extends HTMLElement {
    * Add a kit button to the toolbar row.
    * @returns {HTMLButtonElement} the button, so the caller can hold on to it
    */
-  addToolbarButton(label, onClick, { variant = 'btn-light-outline', size = 'btn-x-sm' } = {}) {
+  addToolbarButton(label, onClick, { variant = 'btn-light-outline', size = 'btn--sm' } = {}) {
     if (!this._built) this.build();
     const button = document.createElement('button');
     button.type = 'button';

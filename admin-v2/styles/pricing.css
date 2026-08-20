@@ -93,3 +93,13 @@
   font-size: var(--admin-fs-label);
   color: var(--color-text-muted);
 }
+
+/*
+ * Money KPI tiles carry a long figure plus a currency word ("17,588.56 EGP"),
+ * which wraps onto two lines at the shared tile width. Tighten the figure so
+ * the row reads as one line of numbers.
+ */
+#report-cards .number {
+  font-size: calc(1rem + 0.35vw);
+  white-space: nowrap;
+}

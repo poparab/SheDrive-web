@@ -106,7 +106,7 @@ Helpers in `components/ad-styles.js`: `assetUrl('vendor/img/logo.png')` and
 | Timeline | `<ol class="timeline-vertical"><li[.success|.danger]><lable>Label</lable><span>meta</span></li>` |
 | Document thumbnails | `.lightbox-container > a.photo-trigger[href=full][title] > .thumb-item > .thumb-img > .photo[style=background-image] > i.fa-expand` + `.thumb-details > h6 + p` |
 | Modal | Bootstrap 5 modal with `.modal.fade.popup-warning` / `.popup-success` |
-| Buttons | `.btn` + `.btn-primary`, `-secondary`, `-tertiary`, `-success`, `-warning`, `-danger`, `-info`, `-light`, `-white`, each with `-outline`, `-rounded`, `-rounded-outline`; sizes `.btn-x-xs .btn-x-sm .btn-x-md .btn-x-lg`; `.btn-back.btn-back-outline` (round), `.btn-primary-gradient`, `.btn-submit` |
+| Buttons | `.btn` + `.btn-primary`, `-secondary`, `-tertiary`, `-success`, `-warning`, `-danger`, `-info`, `-light`, `-white`, each with `-outline`, `-rounded`, `-rounded-outline`; `.btn-back.btn-back-outline` (round), `.btn-primary-gradient`, `.btn-submit`. **The kit has no size modifier** — `.btn-x-*` is a rotated `+` glyph used as a close/remove control, not a small button. For a compact button add `.btn--sm` from `admin-bridge.css`. |
 | Inputs | `.form-control`, `.form-select`, `.input-group` + `img.input-icon`, `.show-hide-icon` |
 | Section heading | `.section-title.row > .title.col-auto > h3.underline-title` |
 

@@ -139,14 +139,30 @@
  * line and the row spacing.
  */
 .ad-detail-grid .ad-detail-item {
+  /*
+   * admin.css stacks a detail item (label above value) — that was the v1 look.
+   * The kit's list row is label at the start, value at the end, on one line, so
+   * the direction has to be reset here or every value wraps under its label.
+   */
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
   padding-block: var(--space-1);
 }
 
 .ad-detail-grid .ad-detail-item__label {
+  /* The kit's row label is bold sentence case, not v1's uppercase micro-label. */
   font-size: var(--fs-sm);
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--color-primary-700);
+}
+
+.ad-detail-grid .ad-detail-item__value {
+  justify-content: flex-end;
+  text-align: end;
 }
 
 .ad-detail-grid .ad-detail-item__value {

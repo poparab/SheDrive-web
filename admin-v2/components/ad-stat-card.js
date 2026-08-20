@@ -68,14 +68,12 @@ class AdStatCard extends HTMLElement {
     const content = document.createElement('div');
     content.className = 'content';
     this._value = document.createElement('p');
-    this._value.className = 'number';
     // The KPI figure is always Latin digits (see scripts/format.js), so it is
-    // isolated from the bidi algorithm in Arabic. The isolation sits on an
-    // inline span, not on the block, so admin-rtl.css's text-align on .ad-ltr
-    // cannot move the number away from the tile's start edge.
-    this._valueText = document.createElement('span');
-    this._valueText.className = 'ad-ltr';
-    this._value.appendChild(this._valueText);
+    // isolated from the bidi algorithm in Arabic. The isolation goes on the
+    // block itself: the kit styles *any* <span> inside .content as its small
+    // caption line, so wrapping the figure in one shrinks it to caption size.
+    this._value.className = 'number ad-ltr-block';
+    this._valueText = this._value;
     this._label = document.createElement('p');
     this._meta = document.createElement('span');
     content.append(this._value, this._label, this._meta);

@@ -191,7 +191,7 @@ class AdShell extends HTMLElement {
     // to a clean dataset without hunting through devtools.
     const reset = document.createElement('button');
     reset.type = 'button';
-    reset.className = 'btn btn-light-outline btn-x-sm';
+    reset.className = 'btn btn-light-outline btn--sm';
     reset.id = 'admin-reset-demo';
     reset.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
     reset.appendChild(document.createTextNode(t('shell.resetDemo')));

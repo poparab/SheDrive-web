@@ -165,7 +165,7 @@ table.columns = [
 function actionButton(label, variant, onClick) {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = `btn btn-${variant} btn-x-sm`;
+  btn.className = `btn btn-${variant} btn--sm`;
   btn.textContent = label;
   btn.addEventListener('click', (event) => {
     event.stopPropagation();

@@ -129,11 +129,11 @@ async function load() {
 
   qs('#personal').items = [
     { label: t('field.fullName'), value: driver.name },
-    { label: t('common.phone'), value: formatPhone(driver.phone) },
+    { label: t('common.phone'), value: formatPhone(driver.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(driver.dob) },
-    { label: t('field.nid'), value: maskNid(driver.nid) },
+    { label: t('field.nid'), value: maskNid(driver.nid), ltr: true },
     { label: t('field.homeArea'), value: driver.homeArea },
-    { label: t('field.licence'), value: driver.licenceNumber },
+    { label: t('field.licence'), value: driver.licenceNumber, ltr: true },
     { label: t('field.licenceExpiry'), value: formatDate(driver.licenceExpiry) },
     { label: t('field.registrationExpiry'), value: formatDate(driver.registrationExpiry) },
   ];
@@ -142,7 +142,7 @@ async function load() {
     { label: t('field.make'), value: driver.vehicle.make },
     { label: t('field.model'), value: driver.vehicle.model },
     { label: t('field.year'), value: driver.vehicle.year },
-    { label: t('field.plate'), value: driver.vehicle.plate },
+    { label: t('field.plate'), value: driver.vehicle.plate, ltr: true },
     { label: t('field.colour'), value: driver.vehicle.colour },
     { label: t('field.type'), value: driver.vehicle.type },
   ];

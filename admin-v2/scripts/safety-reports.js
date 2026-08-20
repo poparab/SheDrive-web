@@ -107,6 +107,8 @@ table.columns = [
     key: 'riderPhone',
     label: t('safety.colReportedRiderPhone'),
     className: 'ad-table__nowrap',
+    // Latin data: isolated from the bidi algorithm in Arabic.
+    ltr: true,
     render: (row) => {
       const phone = document.createElement('span');
       phone.className = 'ad-ltr';

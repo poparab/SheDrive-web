@@ -541,7 +541,7 @@ if (langHost) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className =
-      option.code === lang() ? 'btn btn-primary btn-x-sm' : 'btn btn-primary-outline btn-x-sm';
+      option.code === lang() ? 'btn btn-primary btn--sm' : 'btn btn-primary-outline btn--sm';
     button.textContent = option.label;
     if (option.code === lang()) button.setAttribute('aria-current', 'true');
     button.addEventListener('click', () => setAdminLanguage(option.code));

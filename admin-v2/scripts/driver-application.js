@@ -52,16 +52,16 @@ async function load() {
 
   qs('#personal').items = [
     { label: t('field.fullName'), value: application.name },
-    { label: t('common.phone'), value: formatPhone(application.phone) },
+    { label: t('common.phone'), value: formatPhone(application.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(application.dob) },
-    { label: t('field.nid'), value: maskNid(application.nid) },
+    { label: t('field.nid'), value: maskNid(application.nid), ltr: true },
   ];
 
   qs('#vehicle').items = [
     { label: t('field.make'), value: application.vehicle.make },
     { label: t('field.model'), value: application.vehicle.model },
     { label: t('field.year'), value: application.vehicle.year },
-    { label: t('field.plate'), value: application.vehicle.plate },
+    { label: t('field.plate'), value: application.vehicle.plate, ltr: true },
     { label: t('field.colour'), value: application.vehicle.colour },
     { label: t('field.type'), value: application.vehicle.type },
   ];

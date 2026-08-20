@@ -21,15 +21,15 @@
     >
       <div id="trip-missing" hidden>
         <ad-empty-state icon="⚠" heading="Trip not found" data-i18n-heading="tripDetail.notFoundHeading" message="This trip record does not exist." data-i18n-message="tripDetail.notFoundMessage">
-          <a class="btn btn-primary-outline btn-x-sm" href="trips.html" data-i18n="tripDetail.backToTrips">Back to trips</a>
+          <a class="btn btn-primary-outline btn--sm" href="trips.html" data-i18n="tripDetail.backToTrips">Back to trips</a>
         </ad-empty-state>
       </div>
 
       <div id="trip-body" hidden>
         <div class="ad-split">
           <div class="ad-stack">
-            <ad-detail-section id="parties" section-title="Rider &amp; driver"></ad-detail-section>
-            <ad-detail-section id="route" section-title="Pickup &amp; destination"></ad-detail-section>
+            <ad-detail-section id="parties" icon="users.svg" section-title="Rider &amp; driver"></ad-detail-section>
+            <ad-detail-section id="route" icon="gps.svg" section-title="Pickup &amp; destination"></ad-detail-section>
 
             <!-- #1671 — chronological state timeline -->
             <section class="ad-section" aria-labelledby="timeline-heading">
@@ -59,10 +59,10 @@
           </div>
 
           <aside class="ad-split__aside">
-            <ad-detail-section id="summary" section-title="Trip" data-i18n-section-title="safetyReport.tripUnavailableLabel" data-i18n-title="safetyReport.tripUnavailableLabel"></ad-detail-section>
+            <ad-detail-section id="summary" icon="trips.svg" section-title="Trip" data-i18n-section-title="tripDetail.summary"></ad-detail-section>
 
             <!-- #1671 S2 — original estimate for any incomplete trip -->
-            <ad-detail-section id="estimate" section-title="Original fare estimate" data-i18n-section-title="tripDetail.estimate" data-i18n-title="tripDetail.estimate" hidden>
+            <ad-detail-section id="estimate" icon="prices.svg" section-title="Original fare estimate" data-i18n-section-title="tripDetail.estimate" hidden>
             </ad-detail-section>
 
             <!-- #1672 S1 — fare breakdown, completed trips only -->
@@ -112,7 +112,7 @@
             </section>
 
             <!-- Recorded intervention, shown once a trip has been cancelled -->
-            <ad-detail-section id="cancellation" section-title="Cancellation" data-i18n-section-title="tripDetail.cancellation" data-i18n-title="tripDetail.cancellation" hidden>
+            <ad-detail-section id="cancellation" icon="cancel-trip.svg" section-title="Cancellation" data-i18n-section-title="tripDetail.cancellation" hidden>
             </ad-detail-section>
           </aside>
         </div>

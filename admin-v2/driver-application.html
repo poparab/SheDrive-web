@@ -23,7 +23,7 @@
           heading="Application not found" data-i18n-heading="application.notFoundHeading"
           message="This application no longer exists, or it has already been reviewed." data-i18n-message="application.notFoundMessage"
         >
-          <a class="btn btn-primary-outline btn-x-sm" href="driver-applications.html" data-i18n="application.backToQueue">
+          <a class="btn btn-primary-outline btn--sm" href="driver-applications.html" data-i18n="application.backToQueue">
             Back to the queue
           </a>
         </ad-empty-state>
@@ -32,9 +32,9 @@
       <div id="app-body" hidden>
         <div class="ad-split">
           <div class="ad-stack">
-            <ad-detail-section id="personal" section-title="Personal details" data-i18n-section-title="driverProfile.personal" data-i18n-title="driverProfile.personal"></ad-detail-section>
-            <ad-detail-section id="vehicle" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle" data-i18n-title="driverProfile.vehicle"></ad-detail-section>
-            <ad-detail-section id="licence" section-title="Licence &amp; registration" data-i18n-section-title="application.licence"></ad-detail-section>
+            <ad-detail-section id="personal" icon="user-2.svg" section-title="Personal details" data-i18n-section-title="driverProfile.personal"></ad-detail-section>
+            <ad-detail-section id="vehicle" icon="vehicle.svg" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle"></ad-detail-section>
+            <ad-detail-section id="licence" icon="driving-license.svg" section-title="Licence &amp; registration" data-i18n-section-title="application.licence"></ad-detail-section>
 
             <section class="ad-section" aria-labelledby="docs-heading">
               <div class="ad-section__header">
@@ -80,7 +80,7 @@
               </div>
             </section>
 
-            <ad-detail-section id="summary" section-title="Submission" data-i18n-section-title="application.summary" data-i18n-title="application.summary"></ad-detail-section>
+            <ad-detail-section id="summary" icon="application-status.svg" section-title="Submission" data-i18n-section-title="application.summary"></ad-detail-section>
           </aside>
         </div>
       </div>

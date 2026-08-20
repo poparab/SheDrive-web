@@ -65,6 +65,8 @@ table.columns = [
     key: 'email',
     label: t('common.email'),
     sortable: true,
+    // Latin data: isolated from the bidi algorithm in Arabic.
+    ltr: true,
     render: (row) => {
       const wrap = document.createElement('span');
       wrap.className = 'list__name';
@@ -125,7 +127,7 @@ table.columns = [
       const btn = document.createElement('button');
       btn.type = 'button';
       const disabling = row.status === 'active';
-      btn.className = `btn btn-x-sm ${disabling ? 'btn-danger' : 'btn-primary-outline'}`;
+      btn.className = `btn btn--sm ${disabling ? 'btn-danger' : 'btn-primary-outline'}`;
       btn.textContent = disabling ? t('adminUsers.disable') : t('adminUsers.enable');
 
       // #1821 — an admin must not be able to lock herself out.

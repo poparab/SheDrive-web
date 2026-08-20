@@ -33,7 +33,6 @@ select.input {
  * Arabic-aligned cell. These carry their own direction.
  */
 .ad-ltr,
-.custom-grid-list td.ad-table__nowrap,
 .ad-detail-item__value--ltr {
   direction: ltr;
   text-align: end;
@@ -55,4 +54,14 @@ select.input {
 /* The kit's timeline rail sits on the start edge in both directions. */
 .timeline-vertical {
   text-align: start;
+}
+
+/*
+ * Block-level Latin isolation. Unlike .ad-ltr it keeps the start-edge
+ * alignment, so a KPI figure stays where the kit puts it.
+ */
+.ad-ltr-block {
+  direction: ltr;
+  text-align: start;
+  unicode-bidi: isolate;
 }

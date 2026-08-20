@@ -18,14 +18,14 @@
     >
       <div id="profile-missing" hidden>
         <ad-empty-state icon="⚠" heading="Rider not found" data-i18n-heading="riderProfile.notFoundHeading" message="This rider account does not exist." data-i18n-message="riderProfile.notFoundMessage">
-          <a class="btn btn-primary-outline btn-x-sm" href="riders.html" data-i18n="riderProfile.backToRiders">Back to riders</a>
+          <a class="btn btn-primary-outline btn--sm" href="riders.html" data-i18n="riderProfile.backToRiders">Back to riders</a>
         </ad-empty-state>
       </div>
 
       <div id="profile-body" hidden>
         <div class="ad-split">
           <div class="ad-stack">
-            <ad-detail-section id="personal" section-title="Rider details" data-i18n-section-title="riderProfile.personal" data-i18n-title="riderProfile.personal"></ad-detail-section>
+            <ad-detail-section id="personal" icon="user-2.svg" section-title="Rider details" data-i18n-section-title="riderProfile.personal"></ad-detail-section>
 
             <!-- #1662 S6 — trip history, 10 rows/page, read-only -->
             <section class="ad-section" aria-labelledby="trips-heading">
@@ -42,7 +42,7 @@
           </div>
 
           <aside class="ad-split__aside">
-            <ad-detail-section id="status-card" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading" data-i18n-title="driverProfile.statusHeading"></ad-detail-section>
+            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
 
             <section class="ad-section" aria-labelledby="actions-heading">
               <div class="ad-section__header">

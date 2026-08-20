@@ -255,9 +255,19 @@ body.admin-auth {
   color: #fff;
 }
 
+/*
+ * The kit ships no small-button size (its `.btn-x-*` classes are a rotated `+`
+ * used as a close control, not a size). So the compact size lives here, and it
+ * has to work on top of a kit colour class as well as on the legacy `.btn--*`.
+ */
 .btn--sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.313rem;
   padding: 0.3rem 0.75rem;
   font-size: var(--fs-sm);
+  line-height: 1.5;
 }
 
 .btn--lg {
@@ -826,4 +836,38 @@ ad-empty-state .result-message {
 .custom-grid-list tfoot .pagination .page-link i.fa-chevron-left,
 .custom-grid-list tfoot .pagination .page-link i.fa-chevron-right {
   transform: none;
+}
+
+/*
+ * The kit styles every <span> inside a widget's .content as its small caption
+ * line. A span nested inside the figure itself must not inherit that.
+ */
+.widjets-theme-2 .neutral-widjet .widjet-body .content .number span {
+  font-size: inherit;
+  font-family: inherit;
+}
+
+/*
+ * KPI tiles. The kit's widget body wraps, which is right for its own short
+ * Arabic labels but drops the whole content block below the icon as soon as a
+ * label is long ("Total registered riders"), leaving the tile half empty and
+ * out of line with its neighbours. Keep the icon and the content on one row and
+ * let the label wrap inside the content box instead.
+ */
+.widjets-theme-2 .neutral-widjet .widjet-body {
+  flex-wrap: nowrap;
+}
+
+.widjets-theme-2 .neutral-widjet .widjet-body .content {
+  min-width: 0;
+}
+
+.widjets-theme-2 .neutral-widjet .widjet-body .content .number {
+  margin-block-end: var(--space-1);
+  line-height: 1.2;
+}
+
+.widjets-theme-2 .neutral-widjet .widjet-body .content p:not(.number) {
+  margin: 0;
+  overflow-wrap: anywhere;
 }

@@ -105,7 +105,7 @@ async function load() {
 
   qs('#personal').items = [
     { label: t('field.fullName'), value: rider.name },
-    { label: t('common.phone'), value: formatPhone(rider.phone) },
+    { label: t('common.phone'), value: formatPhone(rider.phone), ltr: true },
     { label: t('riderProfile.registeredAt'), value: formatDate(rider.registeredAt) },
     { label: t('field.totalTrips'), value: formatCount(rider.tripsCompleted) },
     {
