@@ -23,7 +23,6 @@ const cards = {
   onlineDrivers: qs('#metric-online-drivers'),
   tripsToday: qs('#metric-trips-today'),
   registeredRiders: qs('#metric-riders'),
-  approvedDrivers: qs('#metric-drivers'),
 };
 
 const metricsStatus = qs('#metrics-status');
