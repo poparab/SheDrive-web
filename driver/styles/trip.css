@@ -392,6 +392,11 @@ body:not([data-state]) .state--in-ride { display: flex; }
 
 .cancel-modal { max-inline-size: 420px; }
 
+/* Stacked actions: the longer EN labels overflow a side-by-side row at 375px, and a
+   full-width destructive confirm reads the same in both languages. */
+.cancel-modal .modal__actions { flex-direction: column; }
+.cancel-modal .modal__actions > .btn { inline-size: 100%; }
+
 .cancel-reasons {
   border: 0;
   margin: 0;
@@ -432,4 +437,18 @@ body:not([data-state]) .state--in-ride { display: flex; }
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
+  border-inline-start: 3px solid transparent;
+}
+
+/* Free vs paid cancellation read differently at a glance (#1850) */
+.cancel-fee-note--free {
+  background: rgba(var(--color-success-rgb), 0.08);
+  border-inline-start-color: var(--color-success);
+  color: var(--color-text);
+}
+
+.cancel-fee-note--fee {
+  background: rgba(var(--color-warning-rgb), 0.1);
+  border-inline-start-color: var(--color-warning);
+  color: var(--color-text);
 }

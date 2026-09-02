@@ -15,6 +15,23 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
+// ── Entry state + designer previews (#1850) ───────
+// `?state=` picks the card to show so the cancel flow can be deep-linked from an ADO
+// design story; `?cancel=` additionally jumps straight into one fee branch. Applied
+// here rather than from an inline script so the badge, waiting counter and cancel
+// timestamps all initialise against the right state.
+const previewParams = new URLSearchParams(location.search);
+const previewState  = previewParams.get('state');
+const previewCancel = previewParams.get('cancel');
+const PREVIEW_STATES = ['en-route', 'arrived', 'verify-rider', 'in-ride'];
+const CANCEL_PREVIEWS = { free: 'en-route', fee: 'en-route', waiting: 'arrived', 'no-show': 'arrived' };
+
+const initialState = PREVIEW_STATES.includes(previewState)
+  ? previewState
+  : CANCEL_PREVIEWS[previewCancel] || 'en-route';
+
+setState(initialState); // setState/updateBadge are hoisted declarations
+
 // ── Map ───────────────────────────────────────────
 MapService.init('map');
 MapService.getUserLocation()
@@ -162,6 +179,23 @@ verifyFailDialog?.addEventListener('sd-confirm', () => {
   setTimeout(() => window.location.assign('./home.html'), 1800);
 });
 
+// ── Modal visibility helper ───────────────────────
+// components.css keeps .modal-backdrop at opacity 0 and .modal translated off-screen
+// until `.is-open` is set — toggling [hidden] alone is not enough.
+function openBackdrop(el) {
+  if (!el) return;
+  el.hidden = false;
+  el.removeAttribute('aria-hidden');
+  void el.offsetHeight; // flush the [hidden] removal so the transition still runs
+  el.classList.add('is-open');
+}
+function closeBackdrop(el) {
+  if (!el) return;
+  el.classList.remove('is-open');
+  el.hidden = true;
+  el.setAttribute('aria-hidden', 'true');
+}
+
 // ── Cancel trip with reason + fee (#1722) ─────────
 const CANCEL_FEE = { ar: '20 جنيه', en: 'EGP 20' };
 const DRIVER_GRACE_MS = 120000; // no fee within grace from acceptance
@@ -170,8 +204,13 @@ const NOSHOW_WAIT_MS  = 180000; // fee-free rider no-show wait from arrival
 const cancelBackdrop = qs('#cancel-backdrop');
 const cancelFeeText  = qs('#cancel-fee-text');
 const cancelConfirm  = qs('#cancel-confirm');
+const cancelFeeNote  = qs('#cancel-fee-note');
 const noShowRadio    = document.querySelector('#cancel-reasons input[value="no_show"]');
 let cancelTicker = null;
+
+// Grace runs from acceptance, not from the in-ride start — the driver can cancel long
+// before the trip timer ever starts.
+let acceptedTs = tripData.acceptedAt || Date.now();
 
 function feeAmount() {
   return document.documentElement.lang === 'ar' ? CANCEL_FEE.ar : CANCEL_FEE.en;
@@ -188,24 +227,24 @@ function refreshCancelState() {
   const reason = selectedReason();
   const st = getState();
   const now = Date.now();
-  const withinGrace = (now - tripStartTs) < DRIVER_GRACE_MS;
+  const withinGrace = (now - acceptedTs) < DRIVER_GRACE_MS;
   const arrived = st === 'arrived' || st === 'verify-rider';
   const noShowElapsed = arrivalTs ? now - arrivalTs : 0;
   const noShowReady = arrived && arrivalTs && noShowElapsed >= NOSHOW_WAIT_MS;
 
   if (noShowRadio) noShowRadio.disabled = !noShowReady;
 
-  let key = 'driver.cancel.fee.none';
-  let vars = {};
-  if (!((reason === 'no_show' && noShowReady) || withinGrace)) {
-    key = 'driver.cancel.fee.willApply';
-    vars = { amount: feeAmount() };
-  }
-  let text = translate(key, vars) || '';
+  const noFee = (reason === 'no_show' && noShowReady) || withinGrace;
+  let text = translate(noFee ? 'driver.cancel.fee.none' : 'driver.cancel.fee.willApply',
+    noFee ? {} : { amount: feeAmount() }) || '';
   if (arrived && arrivalTs && !noShowReady) {
     text += ' ' + translate('driver.cancel.fee.noShowWait', { time: mmss(NOSHOW_WAIT_MS - noShowElapsed) });
   }
   if (cancelFeeText) cancelFeeText.textContent = text;
+  if (cancelFeeNote) {
+    cancelFeeNote.classList.toggle('cancel-fee-note--free', noFee);
+    cancelFeeNote.classList.toggle('cancel-fee-note--fee', !noFee);
+  }
   if (cancelConfirm) cancelConfirm.disabled = !reason || (reason === 'no_show' && !noShowReady);
 }
 
@@ -214,16 +253,14 @@ function openCancel() {
   const st = getState();
   if (!arrivalTs && (st === 'arrived' || st === 'verify-rider')) arrivalTs = Date.now();
   document.querySelectorAll('#cancel-reasons input[name="cancel-reason"]').forEach((r) => { r.checked = false; });
-  cancelBackdrop.hidden = false;
-  cancelBackdrop.removeAttribute('aria-hidden');
+  openBackdrop(cancelBackdrop);
   refreshCancelState();
   if (cancelTicker) clearInterval(cancelTicker);
   cancelTicker = setInterval(refreshCancelState, 1000);
 }
 function closeCancel() {
   if (!cancelBackdrop) return;
-  cancelBackdrop.hidden = true;
-  cancelBackdrop.setAttribute('aria-hidden', 'true');
+  closeBackdrop(cancelBackdrop);
   if (cancelTicker) { clearInterval(cancelTicker); cancelTicker = null; }
 }
 
@@ -240,7 +277,7 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
   const reason = selectedReason();
   if (!reason) return;
   const now = Date.now();
-  const withinGrace = (now - tripStartTs) < DRIVER_GRACE_MS;
+  const withinGrace = (now - acceptedTs) < DRIVER_GRACE_MS;
   const noShowReady = arrivalTs && (now - arrivalTs) >= NOSHOW_WAIT_MS;
   const noFee = (reason === 'no_show' && noShowReady) || withinGrace;
   closeCancel();
@@ -250,6 +287,34 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
   showToast(msg || 'تم إلغاء الرحلة', noFee ? 'success' : 'danger');
   setTimeout(() => window.location.assign('./home.html'), 1800);
 });
+
+// ── Cancel preview scenarios (#1850) ──────────────
+// Each `?cancel=` value backdates the timestamps so a reviewer sees that branch
+// immediately instead of waiting out the real grace / no-show timers.
+const CANCEL_SCENARIOS = {
+  // En route, still inside the grace window — cancelling is free.
+  free:      () => { acceptedTs = Date.now(); },
+  // En route, past the grace window — a driver cancellation fee applies.
+  fee:       () => { acceptedTs = Date.now() - DRIVER_GRACE_MS - 60000; },
+  // Arrived, still counting down to the fee-free no-show option.
+  waiting:   () => { acceptedTs = Date.now() - DRIVER_GRACE_MS - 60000; arrivalTs = Date.now(); },
+  // Arrived, wait time elapsed — "rider no-show" is unlocked and fee-free.
+  'no-show': () => { acceptedTs = Date.now() - DRIVER_GRACE_MS - 60000; arrivalTs = Date.now() - NOSHOW_WAIT_MS; },
+};
+
+if (previewCancel && CANCEL_SCENARIOS[previewCancel]) {
+  CANCEL_SCENARIOS[previewCancel]();
+  openCancel(); // clears any prior selection, so preselect after opening
+  if (previewCancel === 'no-show' && noShowRadio) {
+    noShowRadio.checked = true;
+    refreshCancelState();
+  }
+} else if (getState() === 'arrived' || getState() === 'verify-rider') {
+  // A designer deep-linking straight to the arrived card has, by definition, already
+  // driven to pickup — well past the acceptance grace window.
+  acceptedTs = Date.now() - DRIVER_GRACE_MS - 60000;
+  arrivalTs = Date.now();
+}
 
 // ── Navigation deep-link (#1586 / #1590) ──────────
 document.querySelectorAll('.trip-nav-btn').forEach((btn) => {
@@ -281,16 +346,12 @@ qs('#complete-btn')?.addEventListener('click', () => {
 // ── SOS ───────────────────────────────────────────
 const sosBackdrop = qs('#sos-backdrop');
 
-qs('#sos-btn')?.addEventListener('click', () => {
-  if (sosBackdrop) { sosBackdrop.hidden = false; sosBackdrop.removeAttribute('aria-hidden'); }
-});
+qs('#sos-btn')?.addEventListener('click', () => openBackdrop(sosBackdrop));
 
-qs('#sos-cancel')?.addEventListener('click', () => {
-  if (sosBackdrop) { sosBackdrop.hidden = true; sosBackdrop.setAttribute('aria-hidden', 'true'); }
-});
+qs('#sos-cancel')?.addEventListener('click', () => closeBackdrop(sosBackdrop));
 
 qs('#sos-confirm')?.addEventListener('click', () => {
-  if (sosBackdrop) { sosBackdrop.hidden = true; sosBackdrop.setAttribute('aria-hidden', 'true'); }
+  closeBackdrop(sosBackdrop);
   const overlay = qs('#emergency-overlay');
   if (overlay) { overlay.hidden = false; overlay.removeAttribute('aria-hidden'); }
 });

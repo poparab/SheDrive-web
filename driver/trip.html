@@ -335,14 +335,8 @@
         </div>
       </div>
 
+      <!-- Preview states (?state= / ?cancel=) are handled in scripts/trip.js -->
       <script type="module" src="scripts/trip.js"></script>
-
-      <!-- Demo only: ?state=en-route | arrived | in-ride | verify-rider -->
-      <script type="module">
-        const s = new URLSearchParams(location.search).get('state');
-        if (s) document.body.dataset.state = s;
-        else   document.body.dataset.state = 'en-route';
-      </script>
     </sd-page>
   </body>
 </html>
