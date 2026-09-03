@@ -145,6 +145,13 @@
   gap: var(--space-2);
 }
 
+.sos-contacts__cap-hint {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
 .sos-contacts__form {
   display: flex;
   flex-direction: column;

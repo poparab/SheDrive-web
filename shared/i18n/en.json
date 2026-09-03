@@ -769,6 +769,8 @@
   "sos.liveLocationNote": "Your live location is shared only with your contacts — no third party.",
   "sos.contactsTitle": "Emergency contacts",
   "sos.addContact": "Add contact",
+  "sos.atCapacity": "You have saved the maximum of 5 contacts. Remove one to add another.",
+  "sos.capHint": "Up to 5 contacts.",
   "sos.empty": "You haven't added any emergency contacts yet.",
   "sos.emptyHint": "Add someone you trust to be alerted with your live location in an emergency.",
   "sos.name": "Name",

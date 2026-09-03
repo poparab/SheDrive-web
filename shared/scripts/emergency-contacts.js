@@ -15,6 +15,9 @@ import { translate, I18N_EVENT } from './i18n.js';
 
 export const EMERGENCY_CONTACTS_KEY = 'shedrive.emergencyContacts';
 
+/** Each contact is one paid SMS per alert, so the list is capped. (#1787 / #1951) */
+export const MAX_EMERGENCY_CONTACTS = 5;
+
 export function getEmergencyContacts() {
   const list = storage.get(EMERGENCY_CONTACTS_KEY);
   return Array.isArray(list) ? list : [];
@@ -85,6 +88,7 @@ export function mountEmergencyContacts(root) {
   function render() {
     contacts = getEmergencyContacts();
     const hasContacts = contacts.length > 0;
+    const atCapacity = contacts.length >= MAX_EMERGENCY_CONTACTS;
 
     root.innerHTML = `
       <p class="sos-contacts__intro">${translate('sos.intro')}</p>
@@ -102,10 +106,14 @@ export function mountEmergencyContacts(root) {
         <p class="sos-contacts__empty-hint">${translate('sos.emptyHint')}</p>
       </div>
 
-      <button type="button" class="btn btn--primary btn--full sos-contacts__add" id="sos-add-btn">
+      <button type="button" class="btn btn--primary btn--full sos-contacts__add" id="sos-add-btn"
+        ${atCapacity ? 'disabled' : ''}>
         <span aria-hidden="true">${icon('plus')}</span>
         <span>${translate('sos.addContact')}</span>
       </button>
+      <p class="sos-contacts__cap-hint" role="note">
+        ${atCapacity ? translate('sos.atCapacity') : translate('sos.capHint')}
+      </p>
 
       <form class="sos-contacts__form" id="sos-contact-form" hidden novalidate>
         <div class="field">
@@ -225,6 +233,14 @@ export function mountEmergencyContacts(root) {
     if (!ok) return;
 
     const list = getEmergencyContacts();
+
+    // Adding (not editing) a contact when already at capacity is rejected. (#1787 S1)
+    const isAdding = !editingId || editingId === 'new';
+    if (isAdding && list.length >= MAX_EMERGENCY_CONTACTS) {
+      toast(translate('sos.atCapacity'), 'danger');
+      return;
+    }
+
     if (editingId && editingId !== 'new') {
       const idx = list.findIndex((c) => c.id === editingId);
       if (idx >= 0) list[idx] = { ...list[idx], name, phone, relationship };
