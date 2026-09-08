@@ -1,5 +1,6 @@
 /* ============================================================
-   SheDrive — Emergency Safety Dashboard
+   SheDrive Driver — Emergency Safety Dashboard
+   Mirrors rider/styles/emergency.css so both apps read identically.
    Screen-scoped styles. All values via tokens except the red
    gradient and rgba pulse shadows.
    ============================================================ */
@@ -158,10 +159,6 @@
 
 .emergency-call__icon--ambulance {
   background: var(--color-success);
-}
-
-.emergency-call__icon--safety {
-  background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary-600), var(--color-accent-500)));
 }
 
 .emergency-call__body {
@@ -407,64 +404,8 @@
   z-index: 5;
 }
 
-/* ── Spinner util ── */
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary-600);
-  animation: spin 0.8s linear infinite;
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* ── Toast (mirrors rider/styles/trip.css) ── */
-.toast-container {
-  position: fixed;
-  top: var(--space-4);
-  inset-inline-end: var(--space-4);
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.toast {
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  background: var(--color-text);
-  color: white;
-  box-shadow: var(--shadow-md);
-  animation: toast-in 0.25s ease;
-}
-
-.toast--success {
-  background: var(--color-success);
-}
-
-.toast--danger {
-  background: var(--color-danger);
-}
-
-.toast--info {
-  background: var(--color-text);
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }

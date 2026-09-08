@@ -187,7 +187,12 @@
   "emergency.returnToTrip": "Return to trip",
   "emergency.cancelAlert": "Cancel alert (false alarm)",
   "emergency.cancelToast": "Alert cancelled",
-
+  "emergency.deliverySending": "Sending…",
+  "emergency.deliveryDelivered": "Delivered",
+  "emergency.deliveryFailed": "Could not deliver",
+  "emergency.stopSharing": "Stop sharing my location",
+  "emergency.sharingStopped": "Location sharing stopped.",
+  "emergency.recapRider": "Rider",
   "complete.title": "How was your ride?",
   "complete.subtitle": "Your rating helps us maintain safety standards",
   "complete.tripSummary": "Trip summary",

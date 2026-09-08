@@ -325,60 +325,6 @@ body:not([data-state]) .state--in-ride { display: flex; }
   gap: var(--space-3);
 }
 
-/* ── Emergency overlay ───────────────────────────── */
-
-.emergency-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--z-modal) + 10);
-  background: var(--color-danger);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8) var(--space-6);
-}
-
-.emergency-overlay[hidden] { display: none; }
-
-.emergency-overlay__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-5);
-  text-align: center;
-  max-inline-size: 380px;
-  color: var(--color-surface);
-}
-
-.emergency-overlay__icon { opacity: 0.9; }
-
-.emergency-overlay__title {
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-}
-
-.emergency-overlay__body {
-  font-size: var(--fs-base);
-  opacity: 0.9;
-  line-height: var(--leading-relaxed);
-  margin: 0;
-}
-
-.emergency-overlay__phone {
-  font-size: var(--fs-base);
-  opacity: 0.9;
-  margin: 0;
-}
-
-.emergency-overlay__tel {
-  color: var(--color-surface);
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  text-decoration: none;
-  display: block;
-  margin-block-start: var(--space-1);
-}
-
 @media (min-width: 768px) {
   .trip-card {
     max-inline-size: 480px;

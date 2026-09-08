@@ -352,13 +352,8 @@ qs('#sos-cancel')?.addEventListener('click', () => closeBackdrop(sosBackdrop));
 
 qs('#sos-confirm')?.addEventListener('click', () => {
   closeBackdrop(sosBackdrop);
-  const overlay = qs('#emergency-overlay');
-  if (overlay) { overlay.hidden = false; overlay.removeAttribute('aria-hidden'); }
-});
-
-qs('#emergency-return')?.addEventListener('click', () => {
-  const overlay = qs('#emergency-overlay');
-  if (overlay) { overlay.hidden = true; overlay.setAttribute('aria-hidden', 'true'); }
+  // The overlay is replaced by a full screen, matching the rider app. (#3969)
+  window.location.assign('./emergency.html');
 });
 
 // ── Toast helper ──────────────────────────────────

@@ -187,7 +187,12 @@
   "emergency.returnToTrip": "العودة إلى الرحلة",
   "emergency.cancelAlert": "إلغاء التنبيه (إنذار كاذب)",
   "emergency.cancelToast": "تم إلغاء التنبيه",
-
+  "emergency.deliverySending": "جارٍ الإرسال…",
+  "emergency.deliveryDelivered": "تم التسليم",
+  "emergency.deliveryFailed": "تعذّر التسليم",
+  "emergency.stopSharing": "إيقاف مشاركة موقعي",
+  "emergency.sharingStopped": "تم إيقاف مشاركة الموقع.",
+  "emergency.recapRider": "الراكبة",
   "complete.title": "كيف كانت رحلتك؟",
   "complete.subtitle": "تقييمك يساعدنا على الحفاظ على معايير الأمان",
   "complete.tripSummary": "ملخص الرحلة",

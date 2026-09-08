@@ -1,3 +1,10 @@
+/**
+ * emergency.js — Driver SOS alert screen controller (Phase 1 SOS)
+ * Mirrors rider/scripts/emergency.js: who was alerted, per-contact delivery
+ * status, live-location sharing, public emergency numbers, and a stand-down.
+ * (#1951 / #1952)
+ */
+
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
@@ -12,21 +19,28 @@ qsa('[data-lang-btn]').forEach((btn) =>
 );
 
 // ── Trip recap ──
-const activeTripRaw = sessionStorage.getItem('shedrive.activeTrip');
+// There is no driver vehicle profile in storage yet, so a plausible fallback
+// stands in when the active-trip record doesn't carry plate/vehicle (mock only).
+const tripRaw = sessionStorage.getItem('shedrive.activeDriverTrip');
 const fallback = {
-  driver: { name: 'نورا أحمد', plate: 'ق أ ب 123', vehicle: 'تويوتا كورولا 2023' },
-  trip: {},
+  rider: { name: 'نور أحمد', nameEn: 'Nour Ahmed' },
+  plate: 'ق د و ٤٥٦',
+  vehicle: 'هيونداي إلنترا 2022',
 };
-let data = fallback;
+let trip = fallback;
 try {
-  data = activeTripRaw ? JSON.parse(activeTripRaw) : fallback;
+  trip = tripRaw ? JSON.parse(tripRaw) : fallback;
 } catch (err) {
-  data = fallback;
+  trip = fallback;
 }
 
-qs('#recap-driver').textContent = data.driver?.name || '—';
-qs('#recap-plate').textContent = data.driver?.plate || '—';
-qs('#recap-vehicle').textContent = data.driver?.vehicle || '—';
+const riderName = document.documentElement.lang === 'ar'
+  ? (trip.rider?.name || fallback.rider.name)
+  : (trip.rider?.nameEn || trip.rider?.name || fallback.rider.nameEn);
+
+qs('#recap-rider').textContent = riderName || '—';
+qs('#recap-plate').textContent = trip.plate || fallback.plate;
+qs('#recap-vehicle').textContent = trip.vehicle || fallback.vehicle;
 qs('#recap-location').textContent = '30.0444°N, 31.2357°E';
 
 if (navigator.geolocation) {
@@ -67,7 +81,7 @@ function renderNotifiedContacts() {
     info.append(name, meta);
 
     // Delivery starts as "sending" and settles once the SMS gateway reports back.
-    // No gateway exists yet (#1780) — settleDeliveryStatuses() below simulates it.
+    // No gateway exists yet (#1952) — settleDeliveryStatuses() below simulates it.
     const status = document.createElement('span');
     status.className = 'emergency-contact-notified__status is-sending';
     // The key rides on the element: applyTranslations() re-renders it on a
@@ -81,7 +95,7 @@ function renderNotifiedContacts() {
 }
 renderNotifiedContacts();
 
-// ── Delivery status simulation (no SMS gateway yet — #1780) ──
+// ── Delivery status simulation (no SMS gateway yet — #1952) ──
 // Each contact settles from "sending" to "delivered", except the last of two-or-more
 // contacts, which settles to "failed" so the failure state is demonstrable.
 function settleDeliveryStatuses() {
@@ -140,13 +154,13 @@ qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
 });
 
 // ── Navigation ──
-qs('#return-btn').addEventListener('click', () => window.location.assign('./active-trip.html'));
-qs('#back-btn')?.addEventListener('click', () => window.location.assign('./active-trip.html'));
+qs('#return-btn').addEventListener('click', () => window.location.assign('./trip.html'));
+qs('#back-btn')?.addEventListener('click', () => window.location.assign('./trip.html'));
 
-// ── Cancel alert ──
+// ── Cancel alert — false alarm stand-down ──
 qs('#cancel-btn').addEventListener('click', () => {
   showToast(translate('emergency.cancelToast'), 'success');
-  setTimeout(() => window.location.assign('./active-trip.html'), 800);
+  setTimeout(() => window.location.assign('./trip.html'), 800);
 });
 
 // ── Toast helper ──
