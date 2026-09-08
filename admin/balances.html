@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver balances</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+  <body>
+    <ad-shell
+      active="balances"
+      page-title="Driver balances"
+      breadcrumb="Money &amp; config|reports.html > Driver balances"
+      screen-styles="styles/balances.css"
+    >
+      <section class="ad-section">
+        <p class="ad-section__lead">
+          On cash trips the driver keeps the fare and owes the platform its commission.
+          Record what she hands in to clear it — a settlement posts to her ledger and
+          unblocks her go-online immediately.
+        </p>
+      </section>
+
+      <div class="ad-stats">
+        <ad-stat-card id="card-owing" label="Drivers owing the platform" value="—"></ad-stat-card>
+        <ad-stat-card id="card-outstanding" label="Total outstanding" value="—"></ad-stat-card>
+        <ad-stat-card id="card-owed" label="Drivers we owe" value="—"></ad-stat-card>
+        <ad-stat-card id="card-blocked" label="Blocked from going online" value="—"></ad-stat-card>
+      </div>
+
+      <ad-filter-bar id="balance-filters"></ad-filter-bar>
+      <ad-data-table id="balance-table"></ad-data-table>
+
+      <!-- Ledger drawer for the selected driver -->
+      <section class="ad-section balance-ledger" id="ledger-panel" hidden>
+        <div class="ad-section__head">
+          <h2 class="ad-section__title" id="ledger-title">Ledger</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="ledger-close">Close</button>
+        </div>
+        <div class="balance-ledger__summary" id="ledger-summary"></div>
+        <div class="balance-ledger__actions">
+          <button type="button" class="btn btn--primary btn--sm" id="btn-settle">Record settlement</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-adjust">Post adjustment</button>
+        </div>
+        <ad-data-table id="ledger-table"></ad-data-table>
+      </section>
+
+      <ad-form-modal id="balance-modal"></ad-form-modal>
+    </ad-shell>
+    <script type="module" src="scripts/balances.js"></script>
+  </body>
+</html>

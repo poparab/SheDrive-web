@@ -22,6 +22,10 @@ export const en = {
     pricingPolicies: 'Global policies',
     reports: 'Reports',
     reconciliation: 'Reconciliation',
+    balances: 'Driver balances',
+    withdrawals: 'Withdrawals',
+    riderBalances: 'Rider balances',
+    settlements: 'Settlement day book',
     auditLog: 'Audit log',
     adminUsers: 'Admin users',
   },
@@ -82,6 +86,7 @@ export const en = {
   },
 
   status: {
+    paid: 'Paid',
     active: 'Active',
     disabled: 'Disabled',
     suspended: 'Suspended',
@@ -186,6 +191,10 @@ export const ar = {
     pricingPolicies: 'السياسات العالمية',
     reports: 'التقارير',
     reconciliation: 'المصالحات',
+    balances: 'أرصدة السائقات',
+    withdrawals: 'طلبات السحب',
+    riderBalances: 'أرصدة الراكبات',
+    settlements: 'دفتر التسويات اليومي',
     auditLog: 'سجل التدقيق',
     adminUsers: 'مديرو النظام',
   },
@@ -246,6 +255,7 @@ export const ar = {
   },
 
   status: {
+    paid: 'تم الصرف',
     active: 'نشط',
     disabled: 'معطّل',
     suspended: 'موقوف',

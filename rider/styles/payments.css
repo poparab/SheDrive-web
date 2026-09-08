@@ -1,0 +1,253 @@
+/*
+ * payments.css — Rider payment method + outstanding fees (spec §7.1)
+ * All values use tokens from tokens.css.
+ */
+
+.payments-page { background: var(--color-surface-alt); }
+
+.payments-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: rgba(var(--color-surface-rgb), 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.payments-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  block-size: 56px;
+}
+
+.payments-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+.payments-content {
+  max-inline-size: 560px;
+  margin-inline: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.payments-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payments-section__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Payment method rows ───────────────────────────── */
+
+.payment-method-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payment-method-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.payment-method-row--selected {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.1);
+}
+
+.payment-method-row__icon {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-primary-600);
+}
+
+.payment-method-row--disabled .payment-method-row__icon {
+  color: var(--color-text-muted);
+}
+
+.payment-method-row__text {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payment-method-row__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.payment-method-row__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.payment-method-row__badge {
+  flex: none;
+}
+
+.payment-method-row__check {
+  flex: none;
+  color: var(--color-primary-600);
+}
+
+/* Online payment — visibly and semantically unselectable */
+.payment-method-row--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payment-method-row--disabled .payment-method-row__label {
+  color: var(--color-text-muted);
+}
+
+/* ── Outstanding fees ──────────────────────────────── */
+
+.fees-blocked-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(var(--color-danger-rgb), 0.1);
+  border: 1px solid var(--color-danger);
+  color: var(--color-text);
+}
+
+.fees-blocked-notice[hidden] { display: none; }
+
+.fees-blocked-notice svg { flex: none; color: var(--color-danger); margin-block-start: 2px; }
+
+.fees-blocked-notice__msg {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.fees-zero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding-block: var(--space-8);
+}
+
+.fees-zero[hidden] { display: none; }
+
+.fees-zero__icon { color: var(--color-success); }
+
+.fees-zero__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.fees-zero__hint {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.fees-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fee-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.fee-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.fee-row__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.fee-row__amount {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+.fee-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.fee-row__meta a {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-weight: var(--fw-medium);
+}
+
+.fee-row__meta a:hover { text-decoration: underline; }
+
+.fee-row__note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.fee-row__note svg { flex: none; color: var(--color-warning); }
+
+/* ── Error state ───────────────────────────────────── */
+
+.payments-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-block: var(--space-10);
+}
+
+.payments-error[hidden] { display: none; }
+
+.payments-error__msg {
+  font-size: var(--fs-base);
+  color: var(--color-text);
+}

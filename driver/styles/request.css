@@ -114,6 +114,20 @@
   flex: 1;
 }
 
+/* Declared-child badge (#1783 S3) */
+.request-child-badge {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(var(--color-info-rgb), 0.12);
+  color: var(--color-info);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+.request-child-badge[hidden] { display: none; }
+
 .request-rider__name {
   font-size: var(--fs-base);
   font-weight: var(--fw-semibold);

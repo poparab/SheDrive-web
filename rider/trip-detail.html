@@ -138,6 +138,12 @@
             <span id="detail-fare-duration">١٨ ج.م.</span>
           </div>
 
+          <!-- Outstanding fee recovered on this trip — never folded into the fare (spec §3) -->
+          <div class="trip-detail-fare__row trip-detail-fare__row--fee" id="detail-fare-fee-row" hidden>
+            <span data-i18n="fees.recoveredLine">رسوم مستحقة سابقاً</span>
+            <span id="detail-fare-fee-amount"></span>
+          </div>
+
           <div class="trip-detail-fare__divider" role="separator" aria-hidden="true"></div>
 
           <div class="trip-detail-fare__row trip-detail-fare__row--total">
@@ -145,6 +151,7 @@
             <span class="trip-detail-fare__total-amount" id="detail-fare-total">٥٥ ج.م.</span>
           </div>
         </section>
+        <p class="trip-detail-fare-note" id="detail-fare-fee-note" hidden data-i18n="fees.recoveredNote">أُضيفت هذه الرسوم من رحلة إلغاء سابقة</p>
 
         <!-- ── Your rating (populated from the selected trip's rating, or the interactive
              rate-section below if she skipped the post-trip prompt — #1568) ─────────── -->

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Rider balances</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="rider-balances"
+      page-title-key="riderBalances.heading"
+      breadcrumb-keys="nav.money > nav.riderBalances"
+      screen-styles="styles/detail.css, styles/balances.css, styles/rider-balances.css"
+    >
+      <section class="ad-section">
+        <p class="ad-section__hint" data-i18n="riderBalances.lead">
+          A rider who cancels after the grace period owes a fee, recovered as a surcharge
+          on her next cash trip. Waive it with a reason, or post a correction — every
+          action posts an immutable entry, never edits an existing one.
+        </p>
+      </section>
+
+      <div class="ad-stats">
+        <ad-stat-card id="card-owing" label="Riders owing a fee" data-i18n-label="riderBalances.cardOwing" value="—"></ad-stat-card>
+        <ad-stat-card id="card-outstanding" label="Total outstanding" data-i18n-label="riderBalances.cardOutstanding" value="—"></ad-stat-card>
+        <ad-stat-card id="card-blocked" label="Riders at full recovery" data-i18n-label="riderBalances.cardFullRecovery" value="—"></ad-stat-card>
+      </div>
+
+      <ad-filter-bar id="rider-balance-filters"></ad-filter-bar>
+      <ad-data-table id="rider-balance-table"></ad-data-table>
+
+      <section class="ad-section balance-ledger" id="ledger-panel" hidden>
+        <div class="ad-section__header">
+          <h2 class="ad-section__title" id="ledger-title">Ledger</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="ledger-close" data-i18n="riderBalances.close">Close</button>
+        </div>
+        <div class="ad-section__body">
+          <div class="balance-ledger__summary" id="ledger-summary"></div>
+          <div class="balance-ledger__actions">
+            <button type="button" class="btn btn--primary btn--sm" id="btn-waive" data-i18n="riderBalances.waiveFee">Waive fee</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-adjust" data-i18n="riderBalances.postAdjustment">Post adjustment</button>
+          </div>
+          <ad-data-table id="ledger-table"></ad-data-table>
+        </div>
+      </section>
+
+      <ad-form-modal id="rider-balance-modal"></ad-form-modal>
+    </ad-shell>
+    <script type="module" src="scripts/rider-balances.js"></script>
+  </body>
+</html>

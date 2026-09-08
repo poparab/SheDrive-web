@@ -333,6 +333,16 @@ export const GLOBAL_POLICIES = {
     updatedAt: NOW - 9 * DAY,
     updatedBy: ADMINS[0].email,
   },
+  driverBalance: {
+    // 0 disables the go-online block entirely (#TBD-F)
+    outstandingLimit: 500,
+    withdrawalsEnabled: true,
+    minWithdrawal: 50,
+    maxWithdrawal: 2000,  // null = no cap
+    coolingOffDays: 7,
+    updatedAt: NOW - 5 * DAY,
+    updatedBy: ADMINS[0].email,
+  },
 };
 
 // ── Riders ────────────────────────────────────────────
@@ -796,6 +806,216 @@ export const AUDIT_ACTION_TYPES = [
 ];
 
 // ── Lookups ───────────────────────────────────────────
+
+// ── Driver balance ledger (#TBD-A) ────────────────────
+// One signed balance per driver, in EGP. Negative means she owes the platform
+// (the Phase 1 cash norm: she keeps the fare, the commission is a debt);
+// positive means the platform owes her and she can withdraw it.
+//
+// The balance is the sum of the ledger — nothing writes it directly. Every entry
+// is immutable; a mistake is corrected with a reversing `adjustment`.
+
+export const LEDGER_ENTRY_TYPES = [
+  'trip_commission',
+  'trip_earnings',
+  'driver_cancellation_fee',
+  'rider_cancellation_fee_share',
+  'settlement',
+  'withdrawal',
+  'adjustment',
+];
+
+export const SETTLEMENT_METHODS = ['Cash at office', 'Bank transfer', 'Deducted from payout'];
+export const PAYOUT_METHODS = ['Cash at office', 'Bank transfer', 'Mobile wallet'];
+
+let ledgerSeq = 0;
+const ledgerId = () => `led-${String(++ledgerSeq).padStart(5, '0')}`;
+
+function ledgerEntry(driverId, type, amount, at, extra = {}) {
+  return {
+    id: ledgerId(),
+    driverId: String(driverId),
+    type,
+    amount: round2(amount),
+    at,
+    ...extra,
+  };
+}
+
+const LEDGER = [];
+
+for (const driver of DRIVERS) {
+  if (!['approved', 'suspended', 'pending_suspension'].includes(driver.status)) continue;
+
+  const trips = TRIPS.filter(
+    (t) => t.status === 'completed' && String(t.driverId) === String(driver.id),
+  ).sort((a, b) => a.createdAt - b.createdAt);
+
+  trips.forEach((trip) => {
+    if (trip.paymentMethod === 'cash') {
+      // She holds the fare, so the platform's commission is a debt she owes.
+      LEDGER.push(ledgerEntry(driver.id, 'trip_commission', -trip.fare.commission, trip.createdAt, {
+        tripId: trip.id,
+        note: `Commission on trip ${trip.id}`,
+      }));
+    } else {
+      // The platform holds the fare, so her net earnings are a debt it owes her.
+      LEDGER.push(ledgerEntry(driver.id, 'trip_earnings', trip.fare.netEarnings, trip.createdAt, {
+        tripId: trip.id,
+        note: `Net earnings on trip ${trip.id}`,
+      }));
+    }
+  });
+
+  // A late driver cancellation or two, and the odd rider-cancellation share.
+  if (trips.length > 4 && rand() < 0.45) {
+    const trip = pick(trips);
+    LEDGER.push(
+      ledgerEntry(
+        driver.id,
+        'driver_cancellation_fee',
+        -GLOBAL_POLICIES.cancellation.driverCancellationFee,
+        trip.createdAt + HOUR,
+        { tripId: trip.id, note: 'Late cancellation after the grace period' },
+      ),
+    );
+  }
+  if (trips.length > 4 && rand() < 0.35) {
+    const trip = pick(trips);
+    LEDGER.push(
+      ledgerEntry(driver.id, 'rider_cancellation_fee_share', intBetween(10, 18), trip.createdAt + HOUR, {
+        tripId: trip.id,
+        note: 'Driver share of a rider cancellation fee',
+      }),
+    );
+  }
+
+  // Past payouts — digital earnings do not sit on the ledger forever; Finance
+  // pays them out, which is what keeps most drivers at or below zero on cash.
+  const earned = LEDGER.filter(
+    (e) => e.driverId === String(driver.id) && e.type === 'trip_earnings',
+  ).reduce((total, e) => total + e.amount, 0);
+
+  if (earned > 0) {
+    // Most drivers have been paid out in full; the rest still have something to
+    // withdraw, which is what gives the withdrawals queue anything to review.
+    let toDraw = round2(earned * (rand() < 0.55 ? 1 : between(0.2, 0.6)));
+    const payouts = intBetween(1, 2);
+    for (let i = 0; i < payouts && toDraw > 0; i += 1) {
+      const slice = i === payouts - 1 ? toDraw : round2(toDraw * between(0.4, 0.6));
+      LEDGER.push(
+        ledgerEntry(driver.id, 'withdrawal', -slice, NOW - intBetween(2, 50) * DAY, {
+          method: pick(PAYOUT_METHODS),
+          ref: `P-${intBetween(10000, 99999)}`,
+          note: 'Withdrawal paid to driver',
+          actor: pick(ADMINS).email,
+        }),
+      );
+      toDraw = round2(toDraw - slice);
+    }
+  }
+
+  // Past settlements — the operational counterpart that clears what she owes.
+  const settlements = rand() < 0.5 ? intBetween(0, 1) : 0;
+  for (let i = 0; i < settlements; i += 1) {
+    LEDGER.push(
+      ledgerEntry(driver.id, 'settlement', intBetween(60, 240), NOW - intBetween(3, 60) * DAY, {
+        method: pick(SETTLEMENT_METHODS),
+        ref: `S-${intBetween(1000, 1999)}`,
+        note: 'Cash received from driver',
+        actor: pick(ADMINS).email,
+      }),
+    );
+  }
+}
+
+export const LEDGER_ENTRIES = LEDGER.sort((a, b) => b.at - a.at);
+
+/** driverId -> entries, newest first. */
+export const LEDGER_BY_DRIVER = LEDGER_ENTRIES.reduce((map, entry) => {
+  const list = map.get(entry.driverId);
+  if (list) list.push(entry);
+  else map.set(entry.driverId, [entry]);
+  return map;
+}, new Map());
+
+/** The balance is always the sum of the ledger — never a stored figure. */
+export function balanceFromEntries(entries = []) {
+  return round2(entries.reduce((total, e) => total + e.amount, 0));
+}
+
+/**
+ * Recompute every driver's position from her ledger. Called once at seed time and
+ * again after session mutations replay, so a settlement recorded on one screen is
+ * already reflected in the balance shown on the next.
+ */
+export function recomputeBalances() {
+  for (const driver of DRIVERS) {
+    const balance = balanceFromEntries(LEDGER_BY_DRIVER.get(String(driver.id)));
+    driver.balance = balance;
+    driver.outstanding = balance < 0 ? round2(-balance) : 0;
+    driver.available = balance > 0 ? balance : 0;
+    // Kept for #1833, which reports the outstanding cash position.
+    driver.cashBalance = driver.outstanding;
+  }
+}
+
+recomputeBalances();
+
+// ── Withdrawal requests (#TBD-C / #TBD-E) ─────────────
+// A request reserves against the available balance; the ledger is debited only
+// when Finance marks it paid.
+
+// Weighted so the review queue is never empty on a fresh load — pending and
+// approved are the states an operator actually works.
+const WITHDRAWAL_STATUSES = [
+  'pending', 'pending', 'pending',
+  'approved', 'approved',
+  'paid', 'paid',
+  'rejected',
+  'cancelled',
+];
+
+let withdrawalSeq = 0;
+
+const WITHDRAWAL_LIST = [];
+
+for (const driver of DRIVERS.filter((d) => d.available > 0)) {
+  const count = intBetween(0, 2);
+  // Live requests reserve against the available balance, so seeded ones must not
+  // together exceed it — the same rule the API enforces (#TBD-C Scenario 3).
+  let unreserved = driver.available;
+
+  for (let i = 0; i < count; i += 1) {
+    const status = pick(WITHDRAWAL_STATUSES);
+    const holdsReservation = status === 'pending' || status === 'approved';
+    const minimum = GLOBAL_POLICIES.driverBalance.minWithdrawal;
+    const ceiling = holdsReservation ? unreserved : driver.available;
+    if (ceiling < minimum) break;
+
+    const amount = round2(Math.min(ceiling, intBetween(minimum, 1200)));
+    if (holdsReservation) unreserved = round2(unreserved - amount);
+
+    const requestedAt = NOW - intBetween(1, 45) * DAY;
+    const decided = status !== 'pending';
+    WITHDRAWAL_LIST.push({
+      id: `wd-${String(++withdrawalSeq).padStart(4, '0')}`,
+      driverId: String(driver.id),
+      driverName: driver.name,
+      amount,
+      status,
+      requestedAt,
+      decidedAt: decided ? requestedAt + intBetween(1, 5) * DAY : null,
+      decidedBy: decided ? pick(ADMINS).email : null,
+      payoutMethod: status === 'paid' ? pick(PAYOUT_METHODS) : null,
+      payoutRef: status === 'paid' ? `P-${intBetween(10000, 99999)}` : null,
+      reason: status === 'rejected' ? 'Balance could not be verified against her settlement record.' : null,
+    });
+  }
+}
+
+export const WITHDRAWALS = WITHDRAWAL_LIST.sort((a, b) => b.requestedAt - a.requestedAt);
+export const WITHDRAWALS_BY_ID = new Map(WITHDRAWALS.map((w) => [w.id, w]));
 
 export const RIDERS_BY_ID = new Map(RIDERS.map((r) => [String(r.id), r]));
 export const DRIVERS_BY_ID = new Map(DRIVERS.map((d) => [String(d.id), d]));

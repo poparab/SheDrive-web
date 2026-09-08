@@ -75,6 +75,42 @@
   padding-block-end: var(--space-1);
 }
 
+/* ── Itemised breakdown — fare + recovered rider fee (spec §3) ── */
+.cash-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 320px;
+  text-align: start;
+}
+
+.cash-breakdown__note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin-block-end: var(--space-1);
+}
+
+.cash-breakdown__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.cash-breakdown__row--total {
+  font-weight: var(--fw-bold);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
 /* ── Trip summary chip ── */
 .cash-trip-chip {
   display: inline-flex;

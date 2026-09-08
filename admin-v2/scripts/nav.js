@@ -52,6 +52,30 @@ export const NAV_SECTIONS = [
         href: 'reconciliation.html',
         icon: 'handshake.svg',
       },
+      {
+        key: 'balances',
+        labelKey: 'nav.balances',
+        href: 'balances.html',
+        icon: 'reports.svg',
+      },
+      {
+        key: 'withdrawals',
+        labelKey: 'nav.withdrawals',
+        href: 'withdrawals.html',
+        icon: 'reports.svg',
+      },
+      {
+        key: 'rider-balances',
+        labelKey: 'nav.riderBalances',
+        href: 'rider-balances.html',
+        icon: 'user-star.svg',
+      },
+      {
+        key: 'settlements',
+        labelKey: 'nav.settlements',
+        href: 'settlements.html',
+        icon: 'wallet.svg',
+      },
     ],
   },
   {

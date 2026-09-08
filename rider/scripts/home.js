@@ -4,10 +4,12 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
+import { storage } from '../../shared/scripts/storage.js';
+import { getRecoveryState, getOutstandingTotal, getRecoveryAmount } from './fee-store.js';
 
 // ── Auth guard ───────────────────────────────────────
 auth.requireAuth();
@@ -251,11 +253,24 @@ function selectResult(name) {
   }
 }
 
+// ── Account under review blocks the request (#1687 S4) ──
+// The server refuses the trip request while the rider is pending_review after a
+// driver's gender-mismatch report. `?account=review` previews the branch for the
+// design story without having to flag a session; it is a separate param from
+// `?state=` because that one already selects the home panel.
+const accountUnderReview =
+  new URLSearchParams(location.search).get('account') === 'review' ||
+  storage.get('shedrive.accountStatus') === 'pending_review';
+
 // ── Confirm fare → navigate to matching (only active path to request a ride) ──
 confirmRideBtn?.addEventListener('click', () => {
   if (confirmRideBtn.hasAttribute('disabled')) return;
   if (!hasFareContext()) return;
   if (checkSameLocation()) return;
+  if (accountUnderReview) {
+    window.location.assign('./account-review.html');
+    return;
+  }
   storePendingTrip(destinationInput?.value?.trim());
   window.location.assign('./matching.html');
 });
@@ -338,6 +353,53 @@ function checkOperatingHours() {
   return isOpen;
 }
 checkOperatingHours();
+
+// ── Outstanding rider fee (spec §7.1, #3995/#3998) ─────
+// She is NEVER blocked from booking — a block would deadlock, because taking a ride is
+// the only way a cash rider can clear a fee. Instead the recovery escalates: below the
+// threshold a dismissible banner names her oldest fee; at or above it a non-dismissible
+// banner names her WHOLE balance, because the amount added to this ride is much larger
+// and she has to see it before she confirms. Driven by fee-store.js's own query-string
+// switches (?fees=N, ?full, ?zero, ?error), so no extra state is needed here.
+const FEE_BANNER_DISMISSED_KEY = 'shedrive.feeBannerDismissed';
+
+function checkFeeStatus() {
+  const banner = qs('#fee-banner');
+  const dismissBtn = qs('#fee-banner-dismiss');
+  const owed = getOutstandingTotal();
+
+  // Booking is always available. Nothing here ever hides the ride sheet.
+  qs('#ride-sheet')?.removeAttribute('hidden');
+
+  if (owed <= 0) {
+    banner?.setAttribute('hidden', '');
+    return;
+  }
+
+  const full = getRecoveryState() === 'full';
+  const dismissed = sessionStorage.getItem(FEE_BANNER_DISMISSED_KEY) === '1';
+
+  // The full-recovery banner cannot be dismissed — she must see the larger amount.
+  if (!full && dismissed) {
+    banner?.setAttribute('hidden', '');
+    return;
+  }
+
+  qs('#fee-banner-msg').textContent = full
+    ? translate('fees.homeBannerFull', { amount: getRecoveryAmount() })
+    : translate('fees.homeBanner', { amount: getRecoveryAmount() });
+
+  banner?.classList.toggle('fee-banner--full', full);
+  if (dismissBtn) dismissBtn.hidden = full;
+  banner?.removeAttribute('hidden');
+}
+checkFeeStatus();
+document.addEventListener(I18N_EVENT, checkFeeStatus);
+
+qs('#fee-banner-dismiss')?.addEventListener('click', () => {
+  qs('#fee-banner')?.setAttribute('hidden', '');
+  sessionStorage.setItem(FEE_BANNER_DISMISSED_KEY, '1');
+});
 
 // ── Side drawer ──────────────────────────────────────
 qs('#menu-btn')?.addEventListener('click', () => Drawer.open());

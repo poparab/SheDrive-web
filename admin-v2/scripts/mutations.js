@@ -28,6 +28,9 @@ const EMPTY = {
   adminsCreated: [],
   auditAdded: [],
   policies: null,
+  ledgerAdded: [],      // driver balance ledger entries posted this session (#TBD-A)
+  withdrawals: {},      // id -> patched fields (status, payout, reason)
+  riderLedgerAdded: [], // rider fee ledger entries posted this session (financial core §2.2)
 };
 
 function read() {
@@ -82,6 +85,18 @@ export function recordAuditEntry(entry) {
   write(state);
 }
 
+/** Ledger entries are immutable, so they are only ever appended (#TBD-A). */
+export function recordLedgerEntry(entry) {
+  state.ledgerAdded.push(entry);
+  write(state);
+}
+
+/** Rider fee ledger entries are immutable too (financial core spec §2.3). */
+export function recordRiderLedgerEntry(entry) {
+  state.riderLedgerAdded.push(entry);
+  write(state);
+}
+
 export function recordPolicies(policies) {
   state.policies = policies;
   write(state);
@@ -108,7 +123,10 @@ export function hasMutations() {
     state.zonesDeleted.length > 0 ||
     state.adminsCreated.length > 0 ||
     state.auditAdded.length > 0 ||
-    state.policies !== null
+    state.policies !== null ||
+    state.ledgerAdded.length > 0 ||
+    Object.keys(state.withdrawals).length > 0 ||
+    state.riderLedgerAdded.length > 0
   );
 }
 
@@ -128,6 +146,14 @@ export function applyMutations({
   ZONES_BY_ID,
   GLOBAL_POLICIES,
   makeZone,
+  LEDGER_ENTRIES,
+  LEDGER_BY_DRIVER,
+  WITHDRAWALS,
+  WITHDRAWALS_BY_ID,
+  recomputeBalances,
+  RIDER_LEDGER_ENTRIES,
+  RIDER_LEDGER_BY_RIDER,
+  recomputeRiderBalances,
 }) {
   applyPatches(DRIVERS, state.drivers);
   applyPatches(RIDERS, state.riders);
@@ -174,7 +200,53 @@ export function applyMutations({
     if (state.policies.commission) {
       Object.assign(GLOBAL_POLICIES.commission, state.policies.commission);
     }
+    if (state.policies.driverBalance) {
+      Object.assign(GLOBAL_POLICIES.driverBalance, state.policies.driverBalance);
+    }
+    if (state.policies.riderFee) {
+      Object.assign(GLOBAL_POLICIES.riderFee, state.policies.riderFee);
+    }
   }
+
+  // Ledger entries replay before balances are recomputed, so a settlement made
+  // on one screen is already reflected in the balance shown on the next.
+  if (LEDGER_ENTRIES && state.ledgerAdded.length) {
+    state.ledgerAdded.forEach((entry) => {
+      if (LEDGER_ENTRIES.some((e) => e.id === entry.id)) return;
+      LEDGER_ENTRIES.push(entry);
+      const list = LEDGER_BY_DRIVER.get(entry.driverId);
+      if (list) list.push(entry);
+      else LEDGER_BY_DRIVER.set(entry.driverId, [entry]);
+    });
+    LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
+    LEDGER_BY_DRIVER.forEach((list) => list.sort((a, b) => b.at - a.at));
+  }
+
+  // Same replay-before-recompute rule for the rider fee ledger (financial core
+  // spec §2.2) — a waiver or adjustment made on one screen is already reflected
+  // in the balance shown on the next.
+  if (RIDER_LEDGER_ENTRIES && state.riderLedgerAdded.length) {
+    state.riderLedgerAdded.forEach((entry) => {
+      if (RIDER_LEDGER_ENTRIES.some((e) => e.id === entry.id)) return;
+      RIDER_LEDGER_ENTRIES.push(entry);
+      const list = RIDER_LEDGER_BY_RIDER.get(entry.riderId);
+      if (list) list.push(entry);
+      else RIDER_LEDGER_BY_RIDER.set(entry.riderId, [entry]);
+    });
+    RIDER_LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
+    RIDER_LEDGER_BY_RIDER.forEach((list) => list.sort((a, b) => b.at - a.at));
+  }
+
+  if (WITHDRAWALS_BY_ID) {
+    Object.entries(state.withdrawals).forEach(([id, fields]) => {
+      const request = WITHDRAWALS_BY_ID.get(String(id));
+      if (request) Object.assign(request, fields);
+    });
+    if (WITHDRAWALS) WITHDRAWALS.sort((a, b) => b.requestedAt - a.requestedAt);
+  }
+
+  if (typeof recomputeBalances === 'function') recomputeBalances();
+  if (typeof recomputeRiderBalances === 'function') recomputeRiderBalances();
 }
 
 function applyPatches(collection, patches) {

@@ -63,24 +63,20 @@
               </div>
             </section>
 
-            <!-- #1813 is unwritten, so settlement is a visible stub -->
+            <!-- Settlement now lives on the dedicated #1813 screen -->
             <section class="ad-section" aria-labelledby="settle-heading">
               <div class="ad-section__header">
-                <h2 class="ad-section__title" id="settle-heading" data-i18n="reconciliation.settlementHeading">Settlement</h2>
+                <h2 class="ad-section__title" id="settle-heading" data-i18n="recon.settleHeading">Settlement</h2>
               </div>
               <div class="ad-section__body ad-stack">
-                <div class="ad-stub">
-                  <span class="ad-stub__icon" aria-hidden="true">⚠</span>
-                  <span>
-                    Recording a cash settlement belongs to story <strong>#1813 (cash
-                    reconciliation)</strong>, which is listed as in-scope for Phase 1 but has not
-                    been written yet. The control is shown disabled rather than designed
-                    speculatively — the outstanding balance above comes from the same story.
-                  </span>
-                </div>
-                <button class="btn btn-primary btn--full" type="button" disabled data-i18n="reconciliation.settleButton">
-                  Record settlement — awaiting story #1813
-                </button>
+                <p class="ad-section__hint" data-i18n="recon.settleHint">
+                  Recording a settlement, posting an adjustment and reviewing the full
+                  transaction ledger are handled on the Driver balances screen, where the
+                  entry is posted and the balance is recomputed from it.
+                </p>
+                <a class="btn btn--primary btn--full" id="settle-link" href="balances.html" data-i18n="recon.settleLink">
+                  Open driver balances
+                </a>
               </div>
             </section>
           </aside>

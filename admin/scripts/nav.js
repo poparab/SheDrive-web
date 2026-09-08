@@ -34,6 +34,8 @@ export const NAV_SECTIONS = [
       { key: 'pricing-policies', label: 'Global policies', href: 'pricing-policies.html', icon: '%' },
       { key: 'reports', label: 'Reports', href: 'reports.html', icon: '∑' },
       { key: 'reconciliation', label: 'Reconciliation', href: 'reconciliation.html', icon: '⇌' },
+      { key: 'balances', label: 'Driver balances', href: 'balances.html', icon: '⚖' },
+      { key: 'withdrawals', label: 'Withdrawals', href: 'withdrawals.html', icon: '⇡' },
     ],
   },
   {

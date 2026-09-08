@@ -3,7 +3,7 @@
  *
  * Phase 1 SOS is limited to: saving personal emergency contacts and, when SOS is
  * triggered during a trip, alerting those contacts and sharing the user's live
- * location with them. There is no control room and no Ministry of Interior line.
+ * location with them. There is no control room and no operations team.
  *
  * Usage:
  *   import { mountEmergencyContacts } from '../../shared/scripts/emergency-contacts.js';
@@ -17,6 +17,28 @@ export const EMERGENCY_CONTACTS_KEY = 'shedrive.emergencyContacts';
 
 /** Each contact is one paid SMS per alert, so the list is capped. (#1787 / #1951) */
 export const MAX_EMERGENCY_CONTACTS = 5;
+
+/**
+ * Relationship is a fixed list plus `other`, so what gets stored is a stable key
+ * rather than whatever she typed. That is what lets the label follow a language
+ * switch; `other` carries her own words alongside it, in `relationshipOther`.
+ */
+export const RELATIONSHIP_OPTIONS = [
+  'mother', 'father', 'sister', 'brother', 'husband',
+  'daughter', 'son', 'friend', 'relative', 'colleague', 'other',
+];
+
+/**
+ * The label to show for a saved contact. Contacts saved before the dropdown
+ * existed hold free text, which is not a known key — show that back as she typed it.
+ */
+export function relationshipLabel(contact) {
+  const rel = (contact?.relationship || '').trim();
+  if (!rel) return '';
+  if (rel === 'other') return (contact.relationshipOther || '').trim() || translate('sos.rel.other');
+  if (RELATIONSHIP_OPTIONS.includes(rel)) return translate('sos.rel.' + rel);
+  return rel; // legacy free text
+}
 
 export function getEmergencyContacts() {
   const list = storage.get(EMERGENCY_CONTACTS_KEY);
@@ -70,7 +92,7 @@ export function mountEmergencyContacts(root) {
   }
 
   function contactCard(c) {
-    const meta = [c.relationship, c.phone].filter(Boolean).join(' · ');
+    const meta = [relationshipLabel(c), c.phone].filter(Boolean).join(' · ');
     return `
       <li class="sos-contact-card" data-id="${c.id}">
         <span class="sos-contact-card__avatar" aria-hidden="true">${(c.name || '?').trim().charAt(0)}</span>
@@ -128,7 +150,17 @@ export function mountEmergencyContacts(root) {
         </div>
         <div class="field">
           <label class="field__label" for="sos-relationship">${translate('sos.relationship')}</label>
-          <input type="text" id="sos-relationship" class="input" placeholder="${translate('sos.relationshipPlaceholder')}" />
+          <select id="sos-relationship" class="input">
+            <option value="">${translate('sos.relationshipNone')}</option>
+            ${RELATIONSHIP_OPTIONS.map(
+              (key) => `<option value="${key}">${translate('sos.rel.' + key)}</option>`,
+            ).join('')}
+          </select>
+        </div>
+        <div class="field" id="sos-relationship-other-field" hidden>
+          <label class="field__label" for="sos-relationship-other">${translate('sos.relationshipOther')}</label>
+          <input type="text" id="sos-relationship-other" class="input" placeholder="${translate('sos.relationshipOtherPlaceholder')}" />
+          <span class="field__error" id="sos-relationship-other-error" role="alert" hidden></span>
         </div>
         <div class="sos-contacts__form-actions">
           <button type="button" class="btn btn--ghost btn--full" id="sos-form-cancel">${translate('sos.cancel')}</button>
@@ -158,7 +190,7 @@ export function mountEmergencyContacts(root) {
       if (!c) return;
       el.querySelector('.sos-contact-card__name').textContent = c.name || '';
       el.querySelector('.sos-contact-card__meta').textContent =
-        [c.relationship, c.phone].filter(Boolean).join(' · ');
+        [relationshipLabel(c), c.phone].filter(Boolean).join(' · ');
     });
 
     wire();
@@ -178,20 +210,37 @@ export function mountEmergencyContacts(root) {
     const nameEl = form.querySelector('#sos-name');
     const phoneEl = form.querySelector('#sos-phone');
     const relEl = form.querySelector('#sos-relationship');
+    const relOtherEl = form.querySelector('#sos-relationship-other');
 
     if (id !== 'new') {
       const c = contacts.find((x) => x.id === id);
       if (c) {
         nameEl.value = c.name || '';
         phoneEl.value = c.phone || '';
-        relEl.value = c.relationship || '';
+        const rel = (c.relationship || '').trim();
+        const known = !rel || RELATIONSHIP_OPTIONS.includes(rel);
+        // A legacy free-text relationship reopens as `other`, with her words intact.
+        relEl.value = known ? rel : 'other';
+        relOtherEl.value = rel === 'other' ? (c.relationshipOther || '') : (known ? '' : rel);
       }
     } else {
       nameEl.value = '';
       phoneEl.value = '';
       relEl.value = '';
+      relOtherEl.value = '';
     }
+    syncRelationshipOther();
     nameEl.focus();
+  }
+
+  /** The free-text box exists only while `Other` is the selected relationship. */
+  function syncRelationshipOther() {
+    const relEl = root.querySelector('#sos-relationship');
+    const field = root.querySelector('#sos-relationship-other-field');
+    if (!relEl || !field) return;
+    const isOther = relEl.value === 'other';
+    field.hidden = !isOther;
+    if (!isOther) clearError('#sos-relationship-other-error', '#sos-relationship-other');
   }
 
   function closeForm() {
@@ -202,6 +251,7 @@ export function mountEmergencyContacts(root) {
     if (addBtn) addBtn.hidden = false;
     clearError('#sos-name-error', '#sos-name');
     clearError('#sos-phone-error', '#sos-phone');
+    clearError('#sos-relationship-other-error', '#sos-relationship-other');
   }
 
   function showError(errorSel, inputSel, msg) {
@@ -221,15 +271,24 @@ export function mountEmergencyContacts(root) {
     const nameEl = root.querySelector('#sos-name');
     const phoneEl = root.querySelector('#sos-phone');
     const relEl = root.querySelector('#sos-relationship');
+    const relOtherEl = root.querySelector('#sos-relationship-other');
     const name = (nameEl?.value || '').trim();
     const phone = (phoneEl?.value || '').trim();
     const relationship = (relEl?.value || '').trim();
+    const relationshipOther = (relOtherEl?.value || '').trim();
 
     let ok = true;
     clearError('#sos-name-error', '#sos-name');
     clearError('#sos-phone-error', '#sos-phone');
+    clearError('#sos-relationship-other-error', '#sos-relationship-other');
     if (!name) { showError('#sos-name-error', '#sos-name', translate('sos.errorName')); ok = false; }
     if (!isValidPhone(phone)) { showError('#sos-phone-error', '#sos-phone', translate('sos.errorPhone')); ok = false; }
+    // Relationship stays optional, but "Other" on its own says nothing, so if she
+    // picks it she has to say what it is.
+    if (relationship === 'other' && !relationshipOther) {
+      showError('#sos-relationship-other-error', '#sos-relationship-other', translate('sos.errorRelationshipOther'));
+      ok = false;
+    }
     if (!ok) return;
 
     const list = getEmergencyContacts();
@@ -243,9 +302,9 @@ export function mountEmergencyContacts(root) {
 
     if (editingId && editingId !== 'new') {
       const idx = list.findIndex((c) => c.id === editingId);
-      if (idx >= 0) list[idx] = { ...list[idx], name, phone, relationship };
+      if (idx >= 0) list[idx] = { ...list[idx], name, phone, relationship, relationshipOther };
     } else {
-      list.push({ id: newId(), name, phone, relationship });
+      list.push({ id: newId(), name, phone, relationship, relationshipOther });
     }
     saveContacts(list);
     contacts = list;
@@ -265,6 +324,7 @@ export function mountEmergencyContacts(root) {
   function wire() {
     root.querySelector('#sos-add-btn')?.addEventListener('click', () => openForm('new'));
     root.querySelector('#sos-form-cancel')?.addEventListener('click', closeForm);
+    root.querySelector('#sos-relationship')?.addEventListener('change', syncRelationshipOther);
     root.querySelector('#sos-contact-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       submitForm();

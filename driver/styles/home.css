@@ -1,0 +1,64 @@
+
+/* ── Balance-limit warning band (#TBD-G) ──────────── */
+
+.balance-warn {
+  position: absolute;
+  inset-inline: var(--space-4);
+  inset-block-start: calc(var(--space-4) + 56px);
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: rgba(var(--color-warning-rgb), 0.96);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.12));
+}
+
+.balance-warn__icon { flex: none; margin-block-start: 1px; }
+.balance-warn__msg { font-size: var(--fs-xs); line-height: var(--leading-relaxed); }
+
+.balance-warn--blocked {
+  background: rgba(var(--color-danger-rgb), 0.96);
+  color: var(--color-on-primary, #fff);
+}
+
+/* ── Go-online blocked sheet (#TBD-G) ─────────────── */
+
+.balance-block { position: fixed; inset: 0; z-index: 60; }
+
+.balance-block__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.balance-block__sheet {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  text-align: center;
+}
+
+.balance-block__icon { color: var(--color-danger); }
+
+.balance-block__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.balance-block__body {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}

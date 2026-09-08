@@ -218,3 +218,29 @@ expect the SOS additions and nothing else.
 
 Design: `docs/superpowers/specs/2026-09-03-sos-incident-lifecycle-design.md` §5.
 Stories: `#3945` / `#3946` (dev), `#3947` / `#3948` (design).
+
+## Intentional divergence from `admin/` — financial core (2026-09-08)
+
+Same rule, same deliberate exception, for the rider-fee half of the financial core
+ledger model. `admin/` (v1) has none of this — its driver-balance ledger stops at
+`#TBD-A`/`#1813` and never grows a rider side.
+
+| File | What was added |
+|---|---|
+| `scripts/seed.js` | `custody` on every trip; `payoutDestination` on drivers; the rider fee ledger (`RIDER_LEDGER_ENTRIES`, `RIDER_LEDGER_BY_RIDER`, `recomputeRiderBalances`); `GLOBAL_POLICIES.riderFee` and `driverBalance.warningBandPct`/`coolingOffDays`; `nextSettlementReceipt()`; a 4th/5th settlement channel |
+| `scripts/mock-api.js` | `listRiderBalances`, `getRiderLedger`, `waiveRiderFee`, `postRiderAdjustment`, `listSettlements`; `getFinanceOptions` now also returns `riderFeePolicy` |
+| `scripts/mutations.js` | a `riderLedgerAdded` patch collection, replayed onto the rider ledger the same way `ledgerAdded` replays onto the driver one |
+| `scripts/nav.js` | `rider-balances` and `settlements` entries, in Money & config |
+| `i18n/core.js`, `lists.js`, `config.js` | EN + AR strings (`riderBalances.*`, `settlements.*`, `nav.riderBalances`, `nav.settlements`, `screens.titleRiderBalances`/`titleSettlements`) |
+| `scripts/screens.js`, `_verify.html` | designer index cards, verify manifest rows |
+
+Two pre-existing bugs in this same file were also fixed while making this change,
+because they are triggered by the pattern this work repeats:
+`getFinanceOptions()` had no `?state=empty` handling (returned `null`, which crashes
+any caller that dereferences it immediately — `rider-balances.js` does); and
+`recordSettlement`/`postAdjustment`/`decideWithdrawal` passed formatted strings as an
+audit entry's `before`/`after` where `audit-log.js` requires plain objects (`key in
+before` throws on a string), silently breaking the audit log for *any* settlement,
+driver adjustment or withdrawal decision, not just the new rider ones.
+
+Design: `docs/superpowers/specs/2026-09-08-financial-core-design.md`.

@@ -1,0 +1,86 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive — الحساب قيد المراجعة</title>
+    <!-- CSS — explicit links so the page renders when opened directly (file://). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
+    <link rel="stylesheet" href="styles/rider.css" />
+    <link rel="stylesheet" href="styles/account-review.css" />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body class="app-shell review-page">
+    <sd-page body-class="app-shell review-page" screen-styles="styles/rider.css, styles/account-review.css">
+      <sd-app-header bar-class="review-topbar" inner-class="review-topbar__inner">
+        <a href="." data-slot="start" class="review-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
+          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
+        </a>
+      </sd-app-header>
+
+      <main class="review-content" id="main-content">
+        <!-- Account blocked after a driver's gender-mismatch report (#1687 S4). The
+             rider is told her account is under review; the reason is deliberately
+             non-accusatory because the report is not yet adjudicated (#1811). -->
+        <div class="review-card" role="status" aria-live="polite">
+          <div class="review-card__icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+
+          <h1 class="review-card__title" data-i18n="accountReview.title">حسابك قيد المراجعة</h1>
+
+          <p class="review-card__body" data-i18n="accountReview.body">
+            لا يمكنك طلب رحلات جديدة في الوقت الحالي. تلقّينا بلاغًا يتعلق بسياسة القيادة للنساء فقط، ويقوم فريق السلامة بمراجعته الآن.
+          </p>
+
+          <!-- Status row: mirrors the admin-side pending_review state (#1662 / #1810) -->
+          <div class="review-status">
+            <span class="review-status__label" data-i18n="accountReview.statusLabel">حالة الحساب</span>
+            <span class="review-status__pill" data-i18n="accountReview.statusPending">قيد المراجعة</span>
+          </div>
+
+          <dl class="review-meta">
+            <div class="review-meta__row">
+              <dt class="review-meta__key" data-i18n="accountReview.referenceLabel">رقم البلاغ</dt>
+              <dd class="review-meta__val" id="review-reference">GMR-4103</dd>
+            </div>
+            <div class="review-meta__row">
+              <dt class="review-meta__key" data-i18n="accountReview.raisedLabel">تاريخ البلاغ</dt>
+              <dd class="review-meta__val" id="review-raised">٣ سبتمبر ٢٠٢٦</dd>
+            </div>
+          </dl>
+
+          <p class="review-card__note" data-i18n="accountReview.note">
+            سنُخطرك بمجرد اتخاذ قرار. لا يُحتسب أي رسوم على الرحلة الملغاة.
+          </p>
+
+          <div class="review-actions">
+            <a class="btn btn--primary btn--full" href="tel:16123" data-i18n="accountReview.contactSupport">
+              تواصلي مع الدعم
+            </a>
+            <button type="button" class="btn btn--ghost btn--full" id="review-logout-btn" data-i18n="menu.logout">
+              تسجيل الخروج
+            </button>
+          </div>
+        </div>
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/account-review.js"></script>
+  </body>
+</html>

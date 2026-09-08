@@ -27,6 +27,8 @@ const EMPTY = {
   adminsCreated: [],
   auditAdded: [],
   policies: null,
+  ledgerAdded: [],      // driver balance ledger entries posted this session (#TBD-A)
+  withdrawals: {},      // id -> patched fields (status, payout, reason)
 };
 
 function read() {
@@ -81,6 +83,12 @@ export function recordAuditEntry(entry) {
   write(state);
 }
 
+/** Ledger entries are immutable, so they are only ever appended (#TBD-A). */
+export function recordLedgerEntry(entry) {
+  state.ledgerAdded.push(entry);
+  write(state);
+}
+
 export function recordPolicies(policies) {
   state.policies = policies;
   write(state);
@@ -126,6 +134,11 @@ export function applyMutations({
   ZONES_BY_ID,
   GLOBAL_POLICIES,
   makeZone,
+  LEDGER_ENTRIES,
+  LEDGER_BY_DRIVER,
+  WITHDRAWALS,
+  WITHDRAWALS_BY_ID,
+  recomputeBalances,
 }) {
   applyPatches(DRIVERS, state.drivers);
   applyPatches(RIDERS, state.riders);
@@ -171,7 +184,34 @@ export function applyMutations({
     if (state.policies.commission) {
       Object.assign(GLOBAL_POLICIES.commission, state.policies.commission);
     }
+    if (state.policies.driverBalance) {
+      Object.assign(GLOBAL_POLICIES.driverBalance, state.policies.driverBalance);
+    }
   }
+
+  // Ledger entries replay before balances are recomputed, so a settlement made
+  // on one screen is already reflected in the balance shown on the next.
+  if (LEDGER_ENTRIES && state.ledgerAdded.length) {
+    state.ledgerAdded.forEach((entry) => {
+      if (LEDGER_ENTRIES.some((e) => e.id === entry.id)) return;
+      LEDGER_ENTRIES.push(entry);
+      const list = LEDGER_BY_DRIVER.get(entry.driverId);
+      if (list) list.push(entry);
+      else LEDGER_BY_DRIVER.set(entry.driverId, [entry]);
+    });
+    LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
+    LEDGER_BY_DRIVER.forEach((list) => list.sort((a, b) => b.at - a.at));
+  }
+
+  if (WITHDRAWALS_BY_ID) {
+    Object.entries(state.withdrawals).forEach(([id, fields]) => {
+      const request = WITHDRAWALS_BY_ID.get(String(id));
+      if (request) Object.assign(request, fields);
+    });
+    if (WITHDRAWALS) WITHDRAWALS.sort((a, b) => b.requestedAt - a.requestedAt);
+  }
+
+  if (typeof recomputeBalances === 'function') recomputeBalances();
 }
 
 function applyPatches(collection, patches) {

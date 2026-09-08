@@ -1,0 +1,80 @@
+/*
+ * balances.css — driver balances, ledger and withdrawal requests (#1813, #TBD-E)
+ * Every value comes from a token; see admin-tokens.css.
+ */
+
+.ad-section__lead {
+  font-size: var(--ad-fs-sm);
+  line-height: var(--ad-leading-relaxed, 1.6);
+  color: var(--color-text-muted);
+  max-inline-size: 78ch;
+}
+
+/* ── Ledger panel ─────────────────────────────────── */
+
+.balance-ledger { margin-block-start: var(--ad-space-5); }
+
+.balance-ledger__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ad-space-3);
+  margin-block-end: var(--ad-space-4);
+}
+
+.balance-ledger__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--ad-space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--ad-radius);
+  background: var(--color-surface-alt);
+}
+
+.balance-ledger__stat-label {
+  font-size: var(--ad-fs-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.balance-ledger__stat-value {
+  font-size: var(--ad-fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.balance-ledger__actions {
+  display: flex;
+  gap: var(--ad-space-2);
+  margin-block-end: var(--ad-space-3);
+}
+
+/* ── Signed amounts ───────────────────────────────── */
+
+.ledger-amount { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+.ledger-amount--credit { color: var(--color-success); }
+.ledger-amount--debit  { color: var(--color-danger); }
+
+/* ── Withdrawal decisions ─────────────────────────── */
+
+.withdrawal-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ad-space-2);
+  flex-wrap: wrap;
+}
+
+.withdrawal-decided { font-size: var(--ad-fs-xs); color: var(--color-text-muted); }
+
+.withdrawal-shortfall {
+  font-size: var(--ad-fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .balance-ledger__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

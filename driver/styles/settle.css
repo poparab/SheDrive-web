@@ -1,0 +1,167 @@
+/*
+ * settle.css — Driver settlement screen (spec §5, §7.2)
+ * All values use tokens from tokens.css.
+ */
+
+.settle-page { background: var(--color-surface-alt); min-block-size: 100dvh; }
+
+.settle-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  max-inline-size: 560px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+/* ── What she owes ────────────────────────────────── */
+
+.settle-card {
+  background: linear-gradient(135deg, var(--color-danger), var(--color-primary-700, var(--color-primary-600)));
+  color: var(--color-on-primary, #fff);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.12));
+}
+
+.settle-card__label { font-size: var(--fs-sm); opacity: 0.9; }
+
+.settle-card__amount {
+  font-size: var(--fs-4xl, 2.5rem);
+  font-weight: var(--fw-bold);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+
+.settle-card__currency { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+
+.settle-card__explain {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  opacity: 0.92;
+  margin-block-start: var(--space-2);
+}
+
+/* ── Nothing to settle ─────────────────────────────── */
+
+.settle-zero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-block: var(--space-8);
+  color: var(--color-text-muted);
+}
+
+.settle-zero__icon { color: var(--color-success); }
+.settle-zero__msg { font-size: var(--fs-base); color: var(--color-text); }
+
+/* ── Section headings ──────────────────────────────── */
+
+.settle-section__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-block-end: var(--space-2);
+}
+
+/* ── Channels ──────────────────────────────────────── */
+
+.settle-channel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin-block-end: var(--space-2);
+}
+
+.settle-channel__name { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--color-text); }
+.settle-channel__note { font-size: var(--fs-xs); color: var(--color-text-muted); }
+
+/* ── Office ────────────────────────────────────────── */
+
+.settle-office__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.settle-office__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+}
+
+.settle-office__row svg { flex: none; color: var(--color-primary-600); margin-block-start: 2px; }
+
+/* ── History ───────────────────────────────────────── */
+
+.settle-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin-block-end: var(--space-2);
+}
+
+.settle-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.settle-row__amount { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--color-success); }
+
+.settle-row__receipt {
+  background: rgba(var(--color-primary-rgb, var(--color-primary-600-rgb)), 0.12);
+  color: var(--color-primary-600);
+}
+
+.settle-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.settle-history__empty {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding-block: var(--space-6);
+}
+
+/* ── Error state ──────────────────────────────────── */
+
+.settle-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-block: var(--space-8);
+}
+
+.settle-error__msg { font-size: var(--fs-base); color: var(--color-text); }

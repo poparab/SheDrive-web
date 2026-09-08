@@ -3,29 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — وسائل الدفع والرسوم المستحقة" />
     <title>SheDrive — وسائل الدفع</title>
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
-  <body>
-    <sd-page body-class="app-shell stub-page payments-page" screen-styles="/rider/styles/rider.css, /rider/styles/coming-soon.css" drawer>
-      <sd-app-header bar-class="stub-topbar" inner-class="stub-topbar__inner" title-class="stub-topbar__title">
+  <body class="app-shell payments-page">
+    <sd-page body-class="app-shell payments-page" screen-styles="/rider/styles/rider.css, /rider/styles/payments.css" drawer>
+      <sd-app-header bar-class="payments-topbar" inner-class="payments-topbar__inner" title-class="payments-topbar__title">
         <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </sd-button>
-        <span class="stub-topbar__title-text" data-i18n="payments.title">وسائل الدفع</span>
+        <span class="payments-topbar__title-text" data-i18n="payments.title">وسائل الدفع</span>
       </sd-app-header>
 
-      <main class="stub-content">
-        <div class="coming-soon-card">
-          <div class="coming-soon-card__icon" aria-hidden="true">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <h2 class="coming-soon-card__title" data-i18n="payments.comingSoon">الدفع نقداً في المرحلة الأولى</h2>
-          <p class="coming-soon-card__body" data-i18n="payments.body">الدفع نقداً للسائقة عند انتهاء الرحلة. سنضيف الدفع بالبطاقة قريباً</p>
-          <a href="./home.html" class="btn btn--primary btn--full coming-soon-card__back" data-i18n="payments.back">رجوع</a>
+      <main class="payments-content" id="main-content" aria-label="وسائل الدفع والرسوم المستحقة" data-i18n-aria-label="payments.title">
+
+        <!-- ── Error state (?error) ───────────────────── -->
+        <div class="payments-error" id="payments-error" hidden aria-hidden="true">
+          <p class="payments-error__msg" data-i18n="payments.errorMsg">تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.</p>
+          <button type="button" class="btn btn--ghost" id="payments-retry" data-i18n="common.retry">حاولي مجدداً</button>
+        </div>
+
+        <div id="payments-body">
+
+          <!-- ── Payment method ──────────────────────── -->
+          <section class="payments-section" aria-labelledby="method-heading">
+            <h2 class="payments-section__title" id="method-heading" data-i18n="payments.methodTitle">طريقة الدفع</h2>
+
+            <div class="payment-method-list" role="radiogroup" data-i18n-aria-label="payments.methodTitle" aria-label="طريقة الدفع">
+
+              <!-- Cash — the only active, selected method in Phase 1 -->
+              <div class="payment-method-row payment-method-row--selected" role="radio" aria-checked="true" tabindex="0">
+                <span class="payment-method-row__icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                </span>
+                <span class="payment-method-row__text">
+                  <span class="payment-method-row__label" data-i18n="payments.cash">نقداً</span>
+                  <span class="payment-method-row__hint" data-i18n="payments.cashHint">ادفعي نقداً للسائقة عند نهاية الرحلة</span>
+                </span>
+                <span class="badge badge--success payment-method-row__badge" data-i18n="payments.active">الطريقة الحالية</span>
+                <span class="payment-method-row__check" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+              </div>
+
+              <!-- Online payment — visibly and semantically unselectable, Phase 1 coming-soon -->
+              <div class="payment-method-row payment-method-row--disabled" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1">
+                <span class="payment-method-row__icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </span>
+                <span class="payment-method-row__text">
+                  <span class="payment-method-row__label" data-i18n="payments.online">الدفع الإلكتروني</span>
+                  <span class="payment-method-row__hint" data-i18n="payments.onlineHint">قريباً — الدفع بالبطاقة</span>
+                </span>
+                <span class="badge badge--info payment-method-row__badge" data-i18n="payments.onlineComingSoon">قريباً</span>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- ── Outstanding fees ─────────────────────── -->
+          <section class="payments-section" aria-labelledby="fees-heading">
+            <h2 class="payments-section__title" id="fees-heading" data-i18n="payments.outstandingTitle">الرسوم المستحقة</h2>
+
+            <!-- Blocked notice — shown only when the rider is at/over the fee limit -->
+            <div class="fees-blocked-notice" id="fees-blocked-notice" hidden aria-hidden="true" role="status">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p class="fees-blocked-notice__msg" id="fees-blocked-notice-msg"></p>
+            </div>
+
+            <!-- Zero state -->
+            <div class="fees-zero" id="fees-zero" hidden aria-hidden="true">
+              <div class="fees-zero__icon" aria-hidden="true">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <p class="fees-zero__title" data-i18n="payments.zeroFees">لا توجد رسوم مستحقة عليكِ</p>
+              <p class="fees-zero__hint" data-i18n="payments.zeroFeesHint">رائع! حسابكِ خالٍ من أي رسوم مستحقة.</p>
+            </div>
+
+            <!-- Fee rows -->
+            <div class="fees-list" id="fees-list"></div>
+          </section>
+
         </div>
       </main>
     </sd-page>
-    <script type="module" src="scripts/coming-soon.js"></script>
+
+    <script type="module" src="scripts/payments.js"></script>
   </body>
 </html>

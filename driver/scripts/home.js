@@ -4,9 +4,10 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { POLICY, getLimitState, getOutstanding } from './finance-store.js';
 import { storage } from '../../shared/scripts/storage.js';
 
 // ── Auth guard ───────────────────────────────────────
@@ -45,6 +46,13 @@ let isOnline = storage.get(ONLINE_KEY) === true;
 renderOnlineState();
 
 onlineToggle.addEventListener('click', () => {
+  // Balance gate (#TBD-F): only going online is refused. A driver already online is
+  // never knocked offline, and going offline is always allowed.
+  if (!isOnline && getLimitState() === 'blocked') {
+    openBalanceBlock();
+    return;
+  }
+
   isOnline = !isOnline;
   storage.set(ONLINE_KEY, isOnline);
   renderOnlineState();
@@ -53,6 +61,52 @@ onlineToggle.addEventListener('click', () => {
     isOnline ? 'success' : 'info',
   );
 });
+
+// ── Balance limit: warning band + blocked sheet (#TBD-G) ──
+const balanceWarn = qs('#balance-warn');
+const balanceBlock = qs('#balance-block');
+
+function renderBalanceWarn() {
+  const state = getLimitState();
+  const show = state !== 'ok';
+  balanceWarn.hidden = !show;
+  balanceWarn.setAttribute('aria-hidden', String(!show));
+  if (!show) return;
+
+  balanceWarn.classList.toggle('balance-warn--blocked', state === 'blocked');
+  qs('#balance-warn-msg').textContent =
+    state === 'blocked'
+      ? translate('driver.balance.limitBlock')
+      : translate('driver.balance.limitWarn', {
+          owed: getOutstanding(),
+          limit: POLICY.balanceLimit,
+        });
+}
+
+function openBalanceBlock() {
+  qs('#balance-block-body').textContent = translate('driver.home.blocked.body', {
+    owed: getOutstanding(),
+    limit: POLICY.balanceLimit,
+  });
+  balanceBlock.hidden = false;
+  balanceBlock.setAttribute('aria-hidden', 'false');
+  qs('#balance-block-close')?.focus();
+}
+
+function closeBalanceBlock() {
+  balanceBlock.hidden = true;
+  balanceBlock.setAttribute('aria-hidden', 'true');
+  onlineToggle.focus();
+}
+
+qs('#balance-block-close')?.addEventListener('click', closeBalanceBlock);
+qs('#balance-block-scrim')?.addEventListener('click', closeBalanceBlock);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !balanceBlock.hidden) closeBalanceBlock();
+});
+
+renderBalanceWarn();
+document.addEventListener(I18N_EVENT, renderBalanceWarn);
 
 function renderOnlineState() {
   onlineToggle.classList.toggle('toggle-pill--online', isOnline);
@@ -91,42 +145,6 @@ zonesBackdrop.addEventListener('click', (e) => {
     zonesBackdrop.hidden = true;
     zonesBackdrop.setAttribute('aria-hidden', 'true');
   }
-});
-
-// ── Profile sheet ────────────────────────────────
-const profileBackdrop = qs('#profile-backdrop');
-
-// Populate profile from session
-const session = auth.getSession();
-if (session) {
-  const initials = (session.phone || 'D').slice(-1).toUpperCase();
-  const avatarEl = qs('#profile-avatar');
-  if (avatarEl) avatarEl.textContent = initials;
-  const phoneEl = qs('#profile-phone');
-  if (phoneEl) phoneEl.textContent = '+20 ' + (session.phone || '');
-}
-
-qs('#profile-btn').addEventListener('click', () => {
-  profileBackdrop.hidden = false;
-  profileBackdrop.setAttribute('aria-hidden', 'false');
-  qs('#profile-close').focus();
-});
-
-qs('#profile-close').addEventListener('click', () => {
-  profileBackdrop.hidden = true;
-  profileBackdrop.setAttribute('aria-hidden', 'true');
-});
-
-profileBackdrop.addEventListener('click', (e) => {
-  if (e.target === profileBackdrop) {
-    profileBackdrop.hidden = true;
-    profileBackdrop.setAttribute('aria-hidden', 'true');
-  }
-});
-
-qs('#profile-logout').addEventListener('click', () => {
-  auth.logout();
-  window.location.assign('./index.html');
 });
 
 // ── Simulate request (demo) ───────────────────────

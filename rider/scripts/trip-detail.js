@@ -60,7 +60,27 @@ if (driverAvatarEl && trip.avatar) driverAvatarEl.textContent = trip.avatar;
 setText('detail-fare-base', `${trip.baseFare ?? '—'} ج.م.`);
 setText('detail-fare-distance', `${trip.distanceFare ?? '—'} ج.م.`);
 setText('detail-fare-duration', `${trip.timeFare ?? '—'} ج.م.`);
-setText('detail-fare-total', `${trip.fare ?? '—'} ج.م.`);
+
+// ── Outstanding fee recovered on this trip (spec §3, #3999) ──
+// Historic trips carry it as `trip.recoveredFee`; `?fee=N` overrides it for a demo
+// preview of any trip (including the fallback record) without needing prior state.
+const feeOverride = new URLSearchParams(location.search).get('fee');
+const recoveredFeeAmount = feeOverride ? Math.abs(Number(feeOverride)) || 0 : trip.recoveredFee ?? 0;
+
+const feeRow = qs('#detail-fare-fee-row');
+const feeNote = qs('#detail-fare-fee-note');
+const hasFee = recoveredFeeAmount > 0;
+
+if (feeRow) feeRow.hidden = !hasFee;
+if (feeNote) feeNote.hidden = !hasFee;
+if (hasFee) setText('detail-fare-fee-amount', `${recoveredFeeAmount} ج.م.`);
+
+if (trip.fare == null && !hasFee) {
+  setText('detail-fare-total', '—');
+} else {
+  const total = (trip.fare ?? 0) + (hasFee ? recoveredFeeAmount : 0);
+  setText('detail-fare-total', `${total} ج.م.`);
+}
 
 // ── Rating display vs. interactive rate section (#1568) ──
 function renderStaticStars(container, stars) {

@@ -4,7 +4,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, applyTranslations, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs, startWaitingCounter } from '../../shared/scripts/utils.js';
 
@@ -24,6 +24,9 @@ const previewParams = new URLSearchParams(location.search);
 const previewState  = previewParams.get('state');
 const previewCancel = previewParams.get('cancel');
 const PREVIEW_STATES = ['en-route', 'arrived', 'verify-rider', 'in-ride'];
+// `?child=1` forces the declared-child branch of the verify gate (#1588 S2) so the
+// exception can be deep-linked from the design story without seeding a trip.
+const previewChild = previewParams.get('child') === '1';
 const CANCEL_PREVIEWS = { free: 'en-route', fee: 'en-route', waiting: 'arrived', 'no-show': 'arrived' };
 
 const initialState = PREVIEW_STATES.includes(previewState)
@@ -127,6 +130,42 @@ function startWaiting() {
 
 if (getState() === 'arrived' || getState() === 'verify-rider') startWaiting();
 
+// ── Declared child passenger (#1588 S2 / #1783) ───
+// A declared child may ride whatever their gender — the single exception to the
+// women-only rule. The gender-mismatch cancel is withdrawn, not merely disabled, so
+// the driver cannot report a child she was told to expect.
+const isChildPassenger = previewChild || !!tripData.childPassenger;
+
+function applyChildMode() {
+  const notice   = qs('#child-notice');
+  const prompt   = qs('#verify-prompt');
+  const failBtn  = qs('#verify-fail-btn');
+  const okBtn    = qs('#verify-ok-btn');
+  if (!notice) return;
+
+  notice.hidden = !isChildPassenger;
+  if (failBtn) failBtn.hidden = isChildPassenger;
+
+  // Swap the prompt and the confirm label so the driver is asked to verify a child
+  // boarding, not a female rider.
+  if (prompt) {
+    prompt.setAttribute(
+      'data-i18n',
+      isChildPassenger ? 'verifyRider.childPrompt' : 'driver.trip.arrived.prompt'
+    );
+  }
+  if (okBtn) {
+    okBtn.setAttribute(
+      'data-i18n',
+      isChildPassenger ? 'verifyRider.childConfirm' : 'verifyRider.confirmed'
+    );
+  }
+  applyTranslations();
+}
+
+applyChildMode();
+document.addEventListener(I18N_EVENT, applyChildMode);
+
 // ── Arrived button → branch verify / start ────────
 qs('#arrived-btn')?.addEventListener('click', () => {
   const verifySection = qs('#verify-section');
@@ -154,7 +193,6 @@ qs('#start-trip-btn')?.addEventListener('click', () => {
 
 // ── Verify-rider OK (#1588) ───────────────────────
 const verifyOkDialog  = qs('#verify-ok-dialog');
-const verifyFailDialog = qs('#verify-fail-dialog');
 
 qs('#verify-ok-btn')?.addEventListener('click', () => {
   if (verifyOkDialog?.open) { verifyOkDialog.open(); }
@@ -166,17 +204,6 @@ verifyOkDialog?.addEventListener('sd-confirm', () => {
   tripStartTs = Date.now();
   setState('in-ride');
   startTripTimer();
-});
-
-// ── Verify-rider FAIL (#1588) ─────────────────────
-qs('#verify-fail-btn')?.addEventListener('click', () => {
-  if (verifyFailDialog?.open) { verifyFailDialog.open(); }
-  else { verifyFailDialog?.removeAttribute('hidden'); }
-});
-
-verifyFailDialog?.addEventListener('sd-confirm', () => {
-  showToast(translate('verifyRider.cancelledToast') || 'تم إلغاء الرحلة وإرسال تقرير أمان', 'danger');
-  setTimeout(() => window.location.assign('./home.html'), 1800);
 });
 
 // ── Modal visibility helper ───────────────────────
@@ -195,6 +222,44 @@ function closeBackdrop(el) {
   el.hidden = true;
   el.setAttribute('aria-hidden', 'true');
 }
+
+// ── Verify-rider FAIL → gender-mismatch report (#1588 S4) ──
+// The optional statement is the reporting driver's account of what happened; it is
+// carried on the report and shown to the super admin as the primary evidence when she
+// triages the queue (#1810 S3 / #1811).
+const failBackdrop  = qs('#verify-fail-backdrop');
+const statementEl   = qs('#verify-statement-input');
+const statementCnt  = qs('#verify-statement-count');
+
+statementEl?.addEventListener('input', () => {
+  if (statementCnt) statementCnt.textContent = String(statementEl.value.length);
+});
+
+qs('#verify-fail-btn')?.addEventListener('click', () => openBackdrop(failBackdrop));
+qs('#verify-fail-goback')?.addEventListener('click', () => closeBackdrop(failBackdrop));
+failBackdrop?.addEventListener('click', (e) => {
+  if (e.target === failBackdrop) closeBackdrop(failBackdrop);
+});
+
+qs('#verify-fail-confirm')?.addEventListener('click', () => {
+  // The report the API would submit (#1687): trip id, reporting driver, and the
+  // optional statement. Stashed so the flow is inspectable in the mockup.
+  const report = {
+    tripId: tripData.id || 'TRP-DEMO',
+    reason: 'gender_mismatch_report',
+    statement: (statementEl?.value || '').trim(),
+    reportedAt: new Date().toISOString(),
+  };
+  try {
+    sessionStorage.setItem('shedrive.genderMismatchReport', JSON.stringify(report));
+  } catch { /* preview-only stash */ }
+
+  closeBackdrop(failBackdrop);
+  if (waitCounterStop) waitCounterStop();
+  showToast(translate('verifyRider.cancelledToast') || 'تم إلغاء الرحلة وإرسال تقرير أمان', 'danger');
+  // Online status is preserved — she returns to home still available (#1588 S6).
+  setTimeout(() => window.location.assign('./home.html'), 1800);
+});
 
 // ── Cancel trip with reason + fee (#1722) ─────────
 const CANCEL_FEE = { ar: '20 جنيه', en: 'EGP 20' };

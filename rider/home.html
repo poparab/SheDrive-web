@@ -58,6 +58,17 @@
         </span>
       </div>
 
+      <!-- Outstanding-fee banner. Dismissible below the recovery threshold; above it
+           the dismiss button is hidden and the full balance is named (spec §3, #3998).
+           There is deliberately no blocked state — a block would deadlock. -->
+      <div class="fee-banner" id="fee-banner" role="status" aria-live="polite" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+        <span class="fee-banner__text" id="fee-banner-msg"></span>
+        <button type="button" class="btn btn--icon btn--ghost fee-banner__dismiss" id="fee-banner-dismiss" data-i18n-aria-label="aria.close" aria-label="إغلاق">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
       <!-- Map-pin drop overlay (state=pin-pickup | pin-dest) -->
       <div class="map-pin-overlay" id="map-pin-overlay" hidden aria-modal="true" role="dialog" data-i18n-aria-label="aria.pinOverlay">
         <div class="map-pin-overlay__pin" aria-hidden="true">

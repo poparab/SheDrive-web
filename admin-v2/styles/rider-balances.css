@@ -1,0 +1,36 @@
+/*
+ * rider-balances.css — rider fee balances & waive/adjust ledger (FIN-11)
+ * Every value comes from a token; see admin-tokens.css. The ledger drawer,
+ * signed-amount styling and blocked/allowed badge tone are shared with the
+ * driver side via balances.css — this file only carries what is specific here.
+ */
+
+/*
+ * balances.css (frozen — owned by the balances.html track, not this screen)
+ * styles the shared `.balance-ledger` drawer with `--ad-space-*` / `--ad-fs-*` /
+ * `--ad-radius` / `--ad-leading-relaxed` custom properties that are never
+ * defined anywhere in the token stack, so they resolve to nothing on this
+ * page. This screen loads balances.css for that shared drawer, so — without
+ * editing balances.css — alias the names it expects onto the real tokens.
+ */
+:root {
+  --ad-space-2: var(--space-2);
+  --ad-space-3: var(--space-3);
+  --ad-space-4: var(--space-4);
+  --ad-space-5: var(--space-5);
+  --ad-fs-xs: var(--fs-xs);
+  --ad-fs-sm: var(--fs-sm);
+  --ad-fs-lg: var(--fs-lg);
+  --ad-radius: var(--radius-md);
+  --ad-leading-relaxed: 1.6;
+}
+
+/* The phone column keeps its Latin digits LTR even inside an Arabic row —
+   see I18N-PORT.md's logical-properties rule. */
+#rider-balance-table .ad-ltr {
+  font-variant-numeric: tabular-nums;
+}
+
+.balance-ledger__stat-value {
+  overflow-wrap: anywhere;
+}

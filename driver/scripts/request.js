@@ -28,12 +28,17 @@ MapService.getUserLocation()
   .catch(() => {});
 
 // ── Mock request data ─────────────────────────────────
+// `?child=1` previews the declared-child request so the badge can be deep-linked from
+// the design story (#1783 S3).
+const childPassenger = new URLSearchParams(location.search).get('child') === '1';
+
 const mockRequest = {
   rider:    { name: 'نور', nameEn: 'Nour', rating: 4.8, distance: '1.2' },
   pickup:   { ar: 'المعادي، القاهرة',    en: 'Maadi, Cairo' },
   dest:     { ar: 'مدينة نصر، القاهرة', en: 'Nasr City, Cairo' },
   fare:     { ar: '65 جنيه',  en: 'EGP 65' },
   duration: { ar: '18 دقيقة', en: '18 min' },
+  childPassenger,
 };
 
 // Populate mock data
@@ -45,6 +50,9 @@ qs('#trip-pickup').textContent    = mockRequest.pickup.ar;
 qs('#trip-dest').textContent      = mockRequest.dest.ar;
 qs('#trip-fare').textContent      = mockRequest.fare.ar;
 qs('#trip-duration').textContent  = mockRequest.duration.ar;
+
+const childBadge = qs('#child-badge');
+if (childBadge) childBadge.hidden = !mockRequest.childPassenger;
 
 // ── Countdown — 10s with 3s urgency (#1582) ──────────
 const TOTAL = 10;
@@ -110,6 +118,9 @@ qs('#accept-btn').addEventListener('click', () => {
     dest:     mockRequest.dest,
     fare:     mockRequest.fare,
     duration: mockRequest.duration,
+    // Carried through to the arrived-pickup verify gate, which withdraws the
+    // gender-mismatch cancel for a declared child (#1588 S2).
+    childPassenger: mockRequest.childPassenger,
     startedAt: Date.now(),
   }));
   setTimeout(() => window.location.assign('./trip.html?state=en-route'), 800);

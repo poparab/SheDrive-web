@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Settlement day book</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="settlements"
+      page-title-key="settlements.heading"
+      breadcrumb-keys="nav.money > nav.settlements"
+      screen-styles="styles/list.css, styles/settlements.css"
+    >
+      <section class="ad-section">
+        <p class="ad-section__hint" data-i18n="settlements.lead">
+          Every settlement recorded against a driver balance, in one day book — the
+          artefact Finance reconciles against the bank. Filter by date, channel or admin,
+          and export the current view as CSV.
+        </p>
+      </section>
+
+      <div
+        class="ad-stats"
+        id="settlements-stats"
+        aria-label="Settlement totals"
+        data-i18n-aria-label="settlements.statsLabel"
+      ></div>
+
+      <div class="settlements-breakdown">
+        <ad-detail-section
+          id="by-channel"
+          section-title="By channel"
+          data-i18n-section-title="settlements.byChannel"
+          icon="wallet.svg"
+        ></ad-detail-section>
+        <ad-detail-section
+          id="by-admin"
+          section-title="By admin"
+          data-i18n-section-title="settlements.byAdmin"
+          icon="handshake.svg"
+        ></ad-detail-section>
+      </div>
+
+      <ad-filter-bar id="settlements-filters"></ad-filter-bar>
+      <ad-data-table id="settlements-table"></ad-data-table>
+    </ad-shell>
+    <script type="module" src="scripts/settlements.js"></script>
+  </body>
+</html>

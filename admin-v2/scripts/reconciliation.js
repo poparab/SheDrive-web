@@ -3,8 +3,8 @@
  * #1833: driver select (required) + date range, totals, cash-vs-digital split,
  * outstanding cash balance, per-trip rows at 20/page, empty state, CSV export.
  *
- * Recording a settlement needs story #1813, which is unwritten — the control is
- * a visible stub in the markup rather than invented behaviour.
+ * Recording a settlement, adjustments and the full ledger live on balances.html
+ * (#1813); this screen links across to it and reports the resulting position.
  */
 
 import { adminAuth } from './admin-auth.js';

@@ -47,10 +47,29 @@
           <p class="cash-subtitle" data-i18n="driver.cash.subtitle">أبلغي الراكبة بالمبلغ المطلوب</p>
         </div>
 
-        <!-- Gross fare badge (amount shown to rider) -->
+        <!-- Total-to-collect badge (fare, or fare + recovered rider fee) -->
         <div class="cash-fare-badge" role="status" aria-live="polite">
           <span class="cash-fare-badge__amount" id="cash-fare-amount">٦٥</span>
           <span class="cash-fare-badge__currency" data-i18n="driver.currency">جنيه</span>
+        </div>
+
+        <!-- ── Itemised breakdown — shown only when a rider fee is recovered on this trip (spec §3) ── -->
+        <div class="cash-breakdown" id="cash-breakdown" hidden aria-hidden="true">
+          <p class="cash-breakdown__note" data-i18n="driver.cash.riderFeeNote">
+            هذه الرحلة تتضمّن رسوم إلغاء مستحقة على راكبة سابقة. هذا المبلغ ليس من نصيبك — سلّميه كاملاً للمنصة.
+          </p>
+          <div class="cash-breakdown__row">
+            <span data-i18n="driver.cash.fareLine">الأجرة</span>
+            <span id="cash-breakdown-fare">٠</span>
+          </div>
+          <div class="cash-breakdown__row">
+            <span data-i18n="driver.cash.riderFeeLine">رسوم راكبة سابقة</span>
+            <span id="cash-breakdown-fee">٠</span>
+          </div>
+          <div class="cash-breakdown__row cash-breakdown__row--total">
+            <span data-i18n="driver.cash.totalLine">الإجمالي المطلوب تحصيله</span>
+            <span id="cash-breakdown-total">٠</span>
+          </div>
         </div>
 
         <!-- Net earnings card (#1766) — gross × 0.8, commission never shown -->

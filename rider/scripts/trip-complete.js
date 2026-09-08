@@ -6,6 +6,7 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
+import { getRecoveryAmount, recoverDueFees } from './fee-store.js';
 
 // ── Auth guard ──
 auth.requireAuth();
@@ -30,6 +31,47 @@ const data = raw
 qs('#driver-name').textContent = data.driver?.name || '—';
 qs('#trip-pickup').textContent = data.trip?.pickup || '—';
 qs('#trip-destination').textContent = data.trip?.destination || '—';
+
+// ── Outstanding fee recovered on this trip (spec §3, #3999) ──
+// The oldest outstanding fee is recovered on her next completed trip. `?fee=N`
+// forces a demo amount without needing to have seeded one on payments.html first.
+const feeOverride = new URLSearchParams(location.search).get('fee');
+let recoveredFee = null;
+
+if (feeOverride) {
+  const amount = Math.abs(Number(feeOverride)) || 0;
+  if (amount > 0) recoveredFee = { amount };
+} else {
+  // One fee below the recovery threshold, her whole balance above it (spec §3, #4002).
+  const amount = getRecoveryAmount();
+  if (amount > 0) {
+    const cleared = recoverDueFees(data.trip?.id || null);
+    if (cleared.length) recoveredFee = { amount, count: cleared.length };
+  }
+}
+
+function renderRecoveredFee() {
+  const feeRow = qs('#fare-fee-row');
+  const feeNote = qs('#fare-fee-note');
+  const totalEl = qs('#fare-total-amount');
+  if (!recoveredFee) {
+    if (feeRow) feeRow.hidden = true;
+    if (feeNote) feeNote.hidden = true;
+    return;
+  }
+
+  const currency = translate('home.fare.egp');
+  const baseTotal = 35; // base + distance + time fare rows above (mock trip pricing)
+  const total = baseTotal + recoveredFee.amount;
+
+  if (feeRow) {
+    feeRow.hidden = false;
+    qs('#fare-fee-amount').textContent = `${recoveredFee.amount} ${currency}`;
+  }
+  if (feeNote) feeNote.hidden = false;
+  if (totalEl) totalEl.textContent = `${total} ${currency}`;
+}
+renderRecoveredFee();
 
 // ── Star rating ──
 let currentRating = 0;

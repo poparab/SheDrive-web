@@ -117,7 +117,19 @@
 
         <!-- Verify-rider section (#1587 / #1588) — shown for driver's first trip -->
         <div class="trip-verify-section" id="verify-section">
-          <p class="trip-verify-prompt" data-i18n="driver.trip.arrived.prompt">
+          <!-- Declared-child notice (#1588 S2) — the only exception to the women-only
+               policy. When shown, the gender-mismatch cancel is withdrawn entirely. -->
+          <div class="trip-child-notice" id="child-notice" role="note" hidden>
+            <svg class="trip-child-notice__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="7" r="3"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/>
+            </svg>
+            <div class="trip-child-notice__text">
+              <strong class="trip-child-notice__title" data-i18n="verifyRider.childTitle">راكب طفل مُعلَن</strong>
+              <span class="trip-child-notice__body" data-i18n="verifyRider.childBody">أعلنت الراكبة أن هذه الرحلة لطفل أقل من ١٢ سنة. الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط — تأكّدي من صعود الطفل ولا تُلغي الرحلة بسبب النوع.</span>
+            </div>
+          </div>
+
+          <p class="trip-verify-prompt" id="verify-prompt" data-i18n="driver.trip.arrived.prompt">
             أكّدي هوية الراكبة وابدئي الرحلة
           </p>
           <p class="trip-verify-name" id="verify-rider-name">
@@ -294,16 +306,37 @@
         body-fallback="هل أنتِ متأكدة من هوية الراكبة؟"
       ></sd-confirm-dialog>
 
-      <sd-confirm-dialog
-        id="verify-fail-dialog"
-        title-key="verifyRider.failTitle"
-        body-key="verifyRider.failBody"
-        confirm-key="verifyRider.notFemale"
-        cancel-key="cancel.cancelBtn"
-        danger
-        title-fallback="هل أنتِ متأكدة؟"
-        body-fallback="سيتم إلغاء الرحلة وإرسال تقرير أمان"
-      ></sd-confirm-dialog>
+      <!-- Gender-mismatch report modal (#1588 S4) — confirmation plus the optional
+           statement that becomes the primary evidence in the admin queue (#1810 S3). -->
+      <div class="modal-backdrop" id="verify-fail-backdrop" hidden aria-hidden="true">
+        <div class="modal verify-fail-modal" role="dialog" aria-modal="true" aria-labelledby="verify-fail-title">
+          <h3 class="modal__title" id="verify-fail-title" data-i18n="verifyRider.failTitle">هل أنتِ متأكدة؟</h3>
+          <p class="modal__body" data-i18n="verifyRider.failBody">سيتم إلغاء الرحلة وإرسال تقرير أمان</p>
+
+          <div class="field verify-statement">
+            <label class="verify-statement__label" for="verify-statement-input" data-i18n="verifyRider.statementLabel">
+              ماذا حدث؟ (اختياري)
+            </label>
+            <textarea
+              class="input verify-statement__input"
+              id="verify-statement-input"
+              rows="3"
+              maxlength="500"
+              data-i18n-placeholder="verifyRider.statementPlaceholder"
+              placeholder="صِفي ما حدث عند نقطة الانطلاق"
+            ></textarea>
+            <p class="verify-statement__hint" id="verify-statement-hint" data-i18n="verifyRider.statementHint">
+              يُعرض نصّك على فريق السلامة عند مراجعة البلاغ.
+            </p>
+            <p class="verify-statement__count" aria-live="polite"><span id="verify-statement-count">0</span>/500</p>
+          </div>
+
+          <div class="modal__actions">
+            <button type="button" class="btn btn--ghost" id="verify-fail-goback" data-i18n="driver.cancel.goBack">رجوع</button>
+            <button type="button" class="btn btn--danger" id="verify-fail-confirm" data-i18n="verifyRider.failSubmit">تأكيد وإرسال البلاغ</button>
+          </div>
+        </div>
+      </div>
 
       <!-- ── SOS confirmation modal ── -->
       <div class="modal-backdrop" id="sos-backdrop" hidden aria-hidden="true">

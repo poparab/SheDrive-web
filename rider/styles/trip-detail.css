@@ -198,6 +198,20 @@
   margin: var(--space-2) 0;
 }
 
+/* Outstanding fee recovered on this trip — never folded into the fare (spec §3) */
+.trip-detail-fare__row--fee {
+  color: var(--color-danger);
+  font-weight: var(--fw-medium);
+}
+
+.trip-detail-fare-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.trip-detail-fare-note[hidden] { display: none; }
+
 .trip-detail-fare__row--total {
   font-size: var(--fs-base);
   font-weight: var(--fw-semibold);

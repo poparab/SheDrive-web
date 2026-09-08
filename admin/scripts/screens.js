@@ -224,7 +224,29 @@ export const SCREENS = [
     stories: [[1833, 'Super admin views per-driver earnings & settlement report']],
     states: ['empty', 'loading', 'error'],
     notes:
-      'The "Record settlement" action is a visible stub — cash reconciliation (#1813) has no written story yet, so nothing was invented for it.',
+      'Reports the position; recording a settlement lives on Driver balances (#1813), which this screen links across to.',
+  },
+  {
+    group: 'Money & config',
+    title: 'Driver balances & settlement',
+    file: 'balances.html',
+    status: 'built',
+    track: 'Built',
+    stories: [[1813, 'Super admin reconciles driver balances and records settlements']],
+    states: LIST_STATES,
+    notes:
+      'The balance is the sum of an immutable ledger, never a stored figure. Recording a settlement or posting an adjustment appends an entry and the balance is recomputed — which is what unblocks a driver stopped by the go-online balance limit.',
+  },
+  {
+    group: 'Money & config',
+    title: 'Withdrawal requests',
+    file: 'withdrawals.html',
+    status: 'built',
+    track: 'Built',
+    stories: [[0, '[Admin] Super admin reviews and processes driver withdrawal requests (#TBD-E — awaiting an ADO id)']],
+    states: LIST_STATES,
+    notes:
+      'Approve and reject are decisions; only "Mark paid" moves money and posts the withdrawal debit to the ledger. A rejection releases the reservation and returns the reason to the driver.',
   },
   {
     group: 'Administration',

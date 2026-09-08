@@ -22,12 +22,13 @@
     <link rel="stylesheet" href="../shared/styles/web-components.css" />
     <link rel="stylesheet" href="../shared/styles/rtl.css" />
     <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/home.css" />
 
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell driver-home-page">
-    <sd-page body-class="app-shell driver-home-page" screen-styles="styles/driver.css" mapbox>
+    <sd-page body-class="app-shell driver-home-page" screen-styles="styles/driver.css, styles/home.css" mapbox>
 
       <!-- ── GPS denied banner (#1578 / #1580) ── -->
       <div class="driver-gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
@@ -85,6 +86,31 @@
           </nav>
         </div>
       </header>
+
+      <!-- ── Balance-limit warning band (#TBD-G / API #TBD-F) ── -->
+      <div class="balance-warn" id="balance-warn" hidden aria-hidden="true" role="status">
+        <svg class="balance-warn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <p class="balance-warn__msg" id="balance-warn-msg"></p>
+      </div>
+
+      <!-- ── Go-online blocked sheet (#TBD-G) ── -->
+      <div class="balance-block" id="balance-block" hidden aria-hidden="true">
+        <div class="balance-block__scrim" id="balance-block-scrim"></div>
+        <div class="balance-block__sheet" role="dialog" aria-modal="true" aria-labelledby="balance-block-title">
+          <div class="balance-block__icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h2 class="balance-block__title" id="balance-block-title" data-i18n="driver.home.blocked.title">لا يمكنكِ الاتصال حتى تسدّدي رصيدك</h2>
+          <p class="balance-block__body" id="balance-block-body"></p>
+          <a href="./settle.html" class="btn btn--primary btn--full" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
+          <a href="./balance.html" class="btn btn--ghost btn--full" data-i18n="driver.home.blocked.viewBalance">عرض الرصيد</a>
+          <button type="button" class="btn btn--ghost btn--full" id="balance-block-close" data-i18n="driver.home.blocked.dismiss">إغلاق</button>
+        </div>
+      </div>
 
       <!-- ── Working Zones button (floating) ── -->
       <div class="driver-zones-btn-wrap">

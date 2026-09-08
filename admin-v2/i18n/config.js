@@ -145,6 +145,40 @@ export const en = {
 
   // ── Global pricing policies (#1759) ─────────────────
   policies: {
+    balanceHeading: 'Driver balance & withdrawals',
+    balanceWithdrawals: 'Withdrawals',
+    balanceWithdrawalsHint:
+      'When disabled, no driver is offered the withdrawal action in her app.',
+    balanceEnabled: 'Enabled',
+    balanceDisabled: 'Disabled',
+    saveBalance: 'Save balance & withdrawal policy',
+    balanceSaved: 'Driver balance and withdrawal policy saved.',
+    limitLabel: 'Outstanding balance limit',
+    limitHint:
+      'How much a driver may owe before she is stopped from going online. Set to 0 to disable the block.',
+    limitEmpty: 'Enter the outstanding balance limit',
+    limitRange: 'Must be between 0 and 100,000 EGP',
+    minLabel: 'Minimum withdrawal amount',
+    minHint: 'The smallest amount a driver may request in one withdrawal.',
+    minEmpty: 'Enter the minimum withdrawal amount',
+    minRange: 'Must be greater than 0 and at most 100,000 EGP',
+    maxLabel: 'Maximum withdrawal per request',
+    maxHint: 'Leave empty for no cap. Must not be less than the minimum.',
+    maxRange: 'Must be greater than 0 and at most 100,000 EGP',
+    maxBelowMin: 'Maximum must not be less than the minimum',
+    coolingLabel: 'Cooling-off period between requests',
+    coolingHint: 'How long a driver must wait before requesting again. 0 allows same-day repeats.',
+    coolingEmpty: 'Enter the cooling-off period',
+    coolingInvalid: 'Enter a whole number of days',
+    coolingRange: 'Must be between 0 and 30 days',
+    unitEgp: 'EGP',
+    unitDays: 'days',
+    balanceExample:
+      'A driver is warned from {warn} and blocked from going online at {limit}.',
+    balanceExampleOff:
+      'The go-online balance block is disabled — a driver can work whatever she owes.',
+    withdrawalsOpen: 'Withdrawals are open to drivers in credit.',
+    withdrawalsClosed: 'Withdrawals are closed.',
     title: 'Global pricing policies',
     notice1: 'These policies apply across',
     notice2: 'all zones',
@@ -237,11 +271,12 @@ export const en = {
     rowsHeading: 'Per-trip breakdown',
     splitHeading: 'Cash vs digital',
     settlementHeading: 'Settlement',
-    stub1: 'Recording a cash settlement belongs to story',
-    stub2: '#1813 (cash reconciliation)',
-    stub3:
-      ', which is listed as in-scope for Phase 1 but has not been written yet. The control is shown disabled rather than designed speculatively — the outstanding balance above comes from the same story.',
-    settleButton: 'Record settlement — awaiting story #1813',
+    settleHeading: 'Settlement',
+    settleHint:
+      'Recording a settlement, posting an adjustment and reviewing the full transaction ' +
+      'ledger are handled on the Driver balances screen, where the entry is posted and the ' +
+      'balance is recomputed from it.',
+    settleLink: 'Open driver balances',
     colTripDate: 'Trip date',
     colFare: 'Fare (EGP)',
     colCommission: 'Commission (EGP)',
@@ -300,6 +335,26 @@ export const en = {
 
   // ── Mockup screen index (designer / reviewer tool) ──
   screens: {
+    titleBalances: 'Driver balances & settlement',
+    notesBalances:
+      'The balance is the sum of an immutable ledger, never a stored figure. Recording a ' +
+      'settlement or posting an adjustment appends an entry and the balance is recomputed ' +
+      '— which is what unblocks a driver stopped by the go-online balance limit.',
+    titleWithdrawals: 'Withdrawal requests',
+    notesWithdrawals:
+      'Approve and reject are decisions; only "Mark paid" moves money and posts the ' +
+      'withdrawal debit to the ledger. A rejection releases the reservation and returns ' +
+      'the reason to the driver.',
+    titleRiderBalances: 'Rider balances',
+    notesRiderBalances:
+      'The rider side of the same ledger model: a late-cancellation fee is a debit, recovered ' +
+      'as a surcharge or waived with a reason. Waiving and adjusting both post an immutable ' +
+      'entry — never edit an existing one.',
+    titleSettlements: 'Settlement day book',
+    notesSettlements:
+      'A read-only report over the driver-balance ledger\'s settlement entries: every cash ' +
+      'handed in, totalled by channel and by admin, filterable by date and exportable as CSV ' +
+      '— the artefact Finance reconciles against the bank.',
     pageTitle: 'SheDrive Admin — Mockup screen index',
     brandLabel: 'Admin portal — coded mockups',
     indexTitle: 'Mockup screen index',
@@ -435,7 +490,7 @@ export const en = {
     notesReports:
       'Totals reconcile: gross fares = commission + net driver earnings. CSV export included.',
     notesReconciliation:
-      'The "Record settlement" action is a visible stub — cash reconciliation (#1813) has no written story yet, so nothing was invented for it.',
+      'Reports the position; recording a settlement lives on Driver balances (#1813), which this screen links across to.',
     notesAuditLog:
       'Read-only. Also the reference implementation of the filter-bar + data-table pattern every other grid follows — worth reviewing first.',
     notesAdminUsers: 'Not in the original 11-screen wireframe list, but three stories require it.',
@@ -575,6 +630,36 @@ export const ar = {
 
   // ── السياسات العالمية للأسعار ──────────────────────
   policies: {
+    balanceHeading: 'رصيد السائقة وطلبات السحب',
+    balanceWithdrawals: 'السحب',
+    balanceWithdrawalsHint: 'عند التعطيل لا يظهر خيار السحب لأي سائقة في تطبيقها.',
+    balanceEnabled: 'مفعّل',
+    balanceDisabled: 'معطّل',
+    saveBalance: 'حفظ سياسة الرصيد والسحب',
+    balanceSaved: 'تم حفظ سياسة رصيد السائقة والسحب.',
+    limitLabel: 'حد الرصيد المستحق',
+    limitHint: 'الحد الذي إذا بلغته مديونية السائقة مُنعت من الاتصال. اضبطه على 0 لتعطيل الحظر.',
+    limitEmpty: 'أدخل حد الرصيد المستحق',
+    limitRange: 'يجب أن تكون القيمة بين 0 و100,000 جنيه',
+    minLabel: 'الحد الأدنى لمبلغ السحب',
+    minHint: 'أقل مبلغ يمكن للسائقة طلبه في عملية سحب واحدة.',
+    minEmpty: 'أدخل الحد الأدنى لمبلغ السحب',
+    minRange: 'يجب أن يكون أكبر من 0 وألا يتجاوز 100,000 جنيه',
+    maxLabel: 'الحد الأقصى للسحب في الطلب الواحد',
+    maxHint: 'اتركه فارغاً لعدم وضع حد أقصى. ويجب ألا يقل عن الحد الأدنى.',
+    maxRange: 'يجب أن يكون أكبر من 0 وألا يتجاوز 100,000 جنيه',
+    maxBelowMin: 'يجب ألا يقل الحد الأقصى عن الحد الأدنى',
+    coolingLabel: 'فترة الانتظار بين الطلبات',
+    coolingHint: 'المدة التي تنتظرها السائقة قبل تقديم طلب جديد. القيمة 0 تسمح بالطلب في اليوم نفسه.',
+    coolingEmpty: 'أدخل فترة الانتظار بين الطلبات',
+    coolingInvalid: 'أدخل عدد أيام صحيح',
+    coolingRange: 'يجب أن تكون بين 0 و30 يوماً',
+    unitEgp: 'جنيه',
+    unitDays: 'أيام',
+    balanceExample: 'يتم تنبيه السائقة من {warn} وتُمنع من الاتصال عند {limit}.',
+    balanceExampleOff: 'حظر الاتصال بسبب الرصيد معطّل — يمكن للسائقة العمل مهما بلغت مديونيتها.',
+    withdrawalsOpen: 'السحب متاح للسائقات اللاتي لهن رصيد دائن.',
+    withdrawalsClosed: 'السحب مغلق.',
     title: 'السياسات العالمية للأسعار',
     notice1: 'تنطبق هذه السياسات على',
     notice2: 'جميع المناطق',
@@ -666,11 +751,11 @@ export const ar = {
     rowsHeading: 'التفصيل لكل رحلة',
     splitHeading: 'نقدي مقابل إلكتروني',
     settlementHeading: 'التسوية',
-    stub1: 'تسجيل التسوية النقدية يخص القصة',
-    stub2: '#1813 (المصالحة النقدية)',
-    stub3:
-      '، وهي مدرجة ضمن نطاق المرحلة الأولى لكنها لم تُكتب بعد. لذلك يظهر الزر معطّلًا بدلًا من تصميم سلوك افتراضي — والرصيد المستحق أعلاه يأتي من القصة نفسها.',
-    settleButton: 'تسجيل التسوية — في انتظار القصة #1813',
+    settleHeading: 'التسوية',
+    settleHint:
+      'تسجيل التسوية والتسويات اليدوية ومراجعة كشف الحساب الكامل تتم من شاشة أرصدة ' +
+      'السائقات، حيث يُقيَّد البند ويُعاد احتساب الرصيد منه.',
+    settleLink: 'فتح أرصدة السائقات',
     colTripDate: 'تاريخ الرحلة',
     colFare: 'الأجرة (جنيه)',
     colCommission: 'العمولة (جنيه)',
@@ -729,6 +814,25 @@ export const ar = {
 
   // ── دليل الشاشات (أداة للمصمم والمراجع) ────────────
   screens: {
+    titleBalances: 'أرصدة السائقات والتسويات',
+    notesBalances:
+      'الرصيد هو حاصل جمع كشف حساب غير قابل للتعديل، وليس رقماً مخزّناً. تسجيل التسوية ' +
+      'أو التسوية اليدوية يضيف قيداً ويُعاد احتساب الرصيد منه — وهو ما يرفع الحظر عن ' +
+      'السائقة الممنوعة من الاتصال بسبب حد الرصيد.',
+    titleWithdrawals: 'طلبات السحب',
+    notesWithdrawals:
+      'الموافقة والرفض قراران؛ أما "تم الصرف" فهو وحده ما يحرّك المال ويقيّد السحب ' +
+      'مديناً في كشف الحساب. والرفض يحرّر الحجز ويُعيد السبب إلى السائقة.',
+    titleRiderBalances: 'أرصدة الراكبات',
+    notesRiderBalances:
+      'الوجه الآخر لنفس نموذج كشف الحساب: رسم الإلغاء المتأخر قيد مدين، يُسترد كرسم ' +
+      'إضافي أو يُشطب بذكر سبب. الشطب والتسوية اليدوية كلاهما يُقيَّد كحركة جديدة ثابتة ' +
+      '— ولا يُعدَّل على حركة قائمة أبدًا.',
+    titleSettlements: 'دفتر التسويات اليومي',
+    notesSettlements:
+      'تقرير للقراءة فقط فوق حركات التسوية في كشف حساب السائقات: كل مبلغ نقدي تم ' +
+      'استلامه، مجمّعاً حسب القناة وحسب المدير، قابل للتصفية بالتاريخ والتصدير كملف ' +
+      'CSV — وهو المستند الذي تُطابق عليه المالية حساب البنك.',
     pageTitle: 'إدارة شي درايف — دليل الشاشات',
     brandLabel: 'لوحة الإدارة — نماذج مبرمجة',
     indexTitle: 'دليل الشاشات',
@@ -859,7 +963,7 @@ export const ar = {
     notesReports:
       'الإجماليات متطابقة: إجمالي الأجرة = العمولة + صافي أرباح السائقات. ويتضمن تصدير CSV.',
     notesReconciliation:
-      'زر "تسجيل التسوية" نموذج معطّل ظاهر — فالمصالحة النقدية (#1813) ليس لها قصة مكتوبة بعد، لذا لم يُخترع لها شيء.',
+      'تعرض الموقف المالي؛ أما تسجيل التسوية فيتم في شاشة أرصدة السائقات (#1813) التي ترتبط بها هذه الشاشة.',
     notesAuditLog:
       'للقراءة فقط. وهي أيضًا التطبيق المرجعي لنمط شريط التصفية + جدول البيانات الذي تتبعه كل الجداول الأخرى — يستحق المراجعة أولًا.',
     notesAdminUsers: 'ليست ضمن قائمة المخططات الأصلية المكوّنة من 11 شاشة، لكن ثلاث قصص تستلزمها.',
