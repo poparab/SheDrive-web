@@ -19,6 +19,7 @@ const EMPTY = {
   drivers: {},   // id -> patched fields
   riders: {},
   reports: {},
+  sosCases: {},  // id -> patched fields (status, outcome, closedAt/By)
   admins: {},
   trips: {},     // id -> patched fields (status, driver, stateHistory)
   zones: {},     // id -> patched fields (incl. rateCard)
@@ -119,6 +120,7 @@ export function applyMutations({
   DRIVERS,
   RIDERS,
   SAFETY_REPORTS,
+  SOS_CASES,
   ADMINS,
   TRIPS,
   AUDIT_ENTRIES,
@@ -130,6 +132,7 @@ export function applyMutations({
   applyPatches(DRIVERS, state.drivers);
   applyPatches(RIDERS, state.riders);
   applyPatches(SAFETY_REPORTS, state.reports);
+  applyPatches(SOS_CASES, state.sosCases);
   applyPatches(ADMINS, state.admins);
   applyPatches(TRIPS, state.trips);
 

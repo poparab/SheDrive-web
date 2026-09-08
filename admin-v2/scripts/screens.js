@@ -176,6 +176,30 @@ export const SCREENS = [
   },
   {
     group: t('nav.operations'),
+    title: t('screens.titleSosQueue'),
+    file: 'sos-requests.html',
+    icon: 'warning-sign.svg',
+    status: 'built',
+    track: t('screens.statusBuilt'),
+    stories: [[3945, 'Super admin reviews the SOS request queue']],
+    states: LIST_STATES,
+    notes:
+      t('screens.notesSosQueue'),
+  },
+  {
+    group: t('nav.operations'),
+    title: t('screens.titleSosDetail'),
+    file: 'sos-request.html',
+    icon: 'warning-sign.svg',
+    status: 'built',
+    track: t('screens.statusBuilt'),
+    stories: [[3946, 'Super admin actions an SOS request']],
+    states: [],
+    notes:
+      t('screens.notesSosDetail'),
+  },
+  {
+    group: t('nav.operations'),
     title: t('screens.titleSafetyQueue'),
     file: 'safety-reports.html',
     icon: 'shield.svg',

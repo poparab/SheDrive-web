@@ -1,0 +1,155 @@
+/*
+ * sos-request.css — SOS case detail and resolution
+ * Screen owner: admin-v2/sos-request.html
+ *
+ * Reuses the shared detail layout. What is local to this screen: the two
+ * standing notices, the alerted-contacts list, and the suspension ticks in the
+ * resolution rail.
+ */
+
+/* ── Standing notices ─────────────────────────────────── */
+
+/* Two things an admin will otherwise assume wrongly, so they are stated on the
+   screen rather than left to the reader: the trip was not stopped, and the case
+   is silent to both occupants. */
+.sos-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  background: rgba(var(--color-info-rgb), 0.08);
+  border-inline-start: 3px solid var(--color-info);
+  color: var(--color-text);
+}
+
+.sos-notice--silent {
+  background: rgba(var(--color-warning-rgb), 0.1);
+  border-inline-start-color: var(--color-warning);
+}
+
+/* ── Contacts alerted ─────────────────────────────────── */
+
+.sos-contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sos-contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.sos-contact__who {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.sos-contact__name {
+  font-weight: var(--fw-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sos-contact__rel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.sos-contact__phone {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.sos-contact__state {
+  padding: 0.05rem var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+.sos-contact__state--ok {
+  background: rgba(var(--color-success-rgb), 0.12);
+  color: var(--color-success);
+}
+
+/* A failed alert is the one thing here an admin may still need to chase. */
+.sos-contact__state--failed {
+  background: rgba(var(--color-danger-rgb), 0.12);
+  color: var(--color-danger);
+}
+
+@media (max-width: 60rem) {
+  .sos-contact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .sos-contact__phone {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Resolution rail ──────────────────────────────────── */
+
+.sos-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.sos-actions[hidden] {
+  display: none;
+}
+
+.sos-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.sos-check input {
+  inline-size: 1rem;
+  block-size: 1rem;
+  accent-color: var(--color-danger);
+  cursor: pointer;
+}
+
+.sos-check input:disabled {
+  cursor: not-allowed;
+}
+
+.sos-check input:disabled + span {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* ── Raiser pill in the incident header ───────────────── */
+
+.ad-section__header .sos-raiser__pill {
+  padding: 0.1rem var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}

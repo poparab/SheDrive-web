@@ -1,0 +1,75 @@
+/*
+ * sos-requests.css — SOS case queue
+ * Screen owner: admin-v2/sos-requests.html
+ *
+ * The queue's only visual job beyond the shared list styles is to stop a safety
+ * incident reading like an ordinary trip row. That is done with a leading
+ * severity stripe and a raised-by pill, not with a coloured row fill — a filled
+ * row would fight the shared hover and selected states.
+ */
+
+/* ── Leading cell: severity stripe + timestamp ────────── */
+
+.sos-when {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.sos-when__stripe {
+  flex: 0 0 auto;
+  inline-size: 3px;
+  block-size: 1.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+.sos-when--open .sos-when__stripe {
+  background: var(--color-danger);
+}
+
+.sos-when--open {
+  font-weight: var(--fw-bold);
+}
+
+/* ── Raised-by: who tapped the button ─────────────────── */
+
+.sos-raiser {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.sos-raiser__pill {
+  flex: 0 0 auto;
+  padding: 0.05rem var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+/* Rider and driver are told apart by hue, not by reading the label. */
+.sos-raiser__pill--rider {
+  background: rgba(var(--color-primary-500-rgb), 0.12);
+  color: var(--color-primary-700);
+}
+
+.sos-raiser__pill--driver {
+  background: rgba(var(--color-accent-500-rgb), 0.12);
+  color: var(--color-accent-500);
+}
+
+.sos-raiser__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Contacts alerted ─────────────────────────────────── */
+
+.sos-contacts--failed {
+  color: var(--color-danger);
+  font-weight: var(--fw-medium);
+}

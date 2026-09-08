@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — SOS case</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="sos"
+      page-title-key="sosCase.title"
+      breadcrumb-keys="nav.sos|sos-requests.html > sosCase.crumb"
+      back="sos-requests.html"
+      mapbox
+      screen-styles="styles/detail.css, styles/list.css, styles/sos-request.css"
+    >
+      <div id="case-missing" hidden>
+        <ad-empty-state
+          icon="⚠"
+          heading="SOS case not found"
+          data-i18n-heading="sosCase.notFoundHeading"
+          message="This SOS case does not exist."
+          data-i18n-message="sosCase.notFoundMessage"
+        >
+          <a class="btn btn-primary-outline btn--sm" href="sos-requests.html" data-i18n="sosCase.backToQueue">Back to the queue</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="case-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <section class="ad-section" aria-labelledby="incident-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="incident-heading" data-i18n="sosCase.incidentHeading">Incident</h2>
+                <span class="sos-raiser__pill" id="raiser-pill"></span>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="detail__statement" id="case-note"></p>
+                <!-- Two facts an admin will otherwise assume wrongly: the ride was
+                     not stopped, and neither occupant knows this was raised. -->
+                <p class="sos-notice" id="trip-unaffected" data-i18n="sosCase.tripUnaffected"></p>
+                <p class="sos-notice sos-notice--silent" id="silent-notice" data-i18n="sosCase.silentNotice"></p>
+              </div>
+            </section>
+
+            <ad-detail-section id="incident-facts" icon="warning-sign.svg" section-title="Incident" data-i18n-section-title="sosCase.incidentHeading"></ad-detail-section>
+
+            <section class="ad-section ad-section--flush" aria-labelledby="location-heading">
+              <div class="ad-section__header">
+                <div>
+                  <h2 class="ad-section__title" id="location-heading" data-i18n="sosCase.locationHeading">Location at trigger</h2>
+                </div>
+              </div>
+              <ad-map-panel id="case-map"></ad-map-panel>
+            </section>
+
+            <ad-detail-section id="location-facts" icon="gps.svg" section-title="Location at trigger" data-i18n-section-title="sosCase.locationHeading"></ad-detail-section>
+            <ad-detail-section id="rider-facts" icon="user-star.svg" section-title="Rider" data-i18n-section-title="sosCase.riderHeading"></ad-detail-section>
+            <ad-detail-section id="driver-facts" icon="steering-wheel.svg" section-title="Driver" data-i18n-section-title="sosCase.driverHeading"></ad-detail-section>
+            <ad-detail-section id="vehicle-facts" icon="trips.svg" section-title="Vehicle" data-i18n-section-title="sosCase.vehicleHeading"></ad-detail-section>
+            <ad-detail-section id="trip-facts" icon="trips.svg" section-title="Trip" data-i18n-section-title="sosCase.tripHeading"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="contacts-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="contacts-heading" data-i18n="sosCase.contactsHeading">Contacts alerted</h2>
+              </div>
+              <div class="ad-section__body">
+                <ul class="sos-contact-list" id="contact-list"></ul>
+                <p class="ad-section__hint" id="contacts-empty" hidden data-i18n="sosCase.noContacts"></p>
+              </div>
+            </section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="case-meta" icon="warning-sign.svg" section-title="Case" data-i18n-section-title="sosCase.caseMeta"></ad-detail-section>
+
+            <section class="ad-section" aria-labelledby="resolve-heading">
+              <div class="ad-section__header">
+                <h2 class="ad-section__title" id="resolve-heading" data-i18n="sosCase.resolveHeading">Resolution</h2>
+              </div>
+              <div class="ad-section__body ad-stack">
+                <p class="ad-section__hint" id="resolve-hint"></p>
+
+                <!-- The ticks sit in the rail, not in the confirm modal: the admin
+                     decides who is suspended and how the case closes in one place,
+                     then confirms once. -->
+                <fieldset class="sos-actions" id="suspend-fieldset" hidden>
+                  <legend class="sr-only" data-i18n="sosCase.resolveHeading">Resolution</legend>
+                  <label class="sos-check">
+                    <input type="checkbox" id="suspend-rider" />
+                    <span data-i18n="sosCase.suspendRiderLabel">Suspend the rider</span>
+                  </label>
+                  <label class="sos-check">
+                    <input type="checkbox" id="suspend-driver" />
+                    <span data-i18n="sosCase.suspendDriverLabel">Suspend the driver</span>
+                  </label>
+                </fieldset>
+
+                <button class="btn btn-primary btn--full" type="button" id="close-resolved-btn" hidden data-i18n="sosCase.resolvedBtn">
+                  Close — resolved
+                </button>
+                <button class="btn btn-primary-outline btn--full" type="button" id="close-false-btn" hidden data-i18n="sosCase.falseAlarmBtn">
+                  Close — false alarm
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <ad-form-modal id="close-modal"></ad-form-modal>
+    </ad-shell>
+
+    <script type="module" src="scripts/sos-request.js"></script>
+  </body>
+</html>

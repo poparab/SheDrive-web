@@ -12,6 +12,8 @@ export const NAV_SECTIONS = [
     items: [
       { key: 'dashboard', labelKey: 'nav.dashboard', href: 'dashboard.html', icon: 'Dashboard-2.svg' },
       { key: 'trips', labelKey: 'nav.trips', href: 'trips.html', icon: 'trips.svg' },
+      // SOS sits above Safety reports: a live emergency outranks women-only triage.
+      { key: 'sos', labelKey: 'nav.sos', href: 'sos-requests.html', icon: 'warning-sign.svg' },
       { key: 'safety', labelKey: 'nav.safety', href: 'safety-reports.html', icon: 'shield.svg' },
     ],
   },

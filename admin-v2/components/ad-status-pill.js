@@ -58,6 +58,15 @@ const STATUS_MAP = {
   resolved_suspended: { key: 'status.resolved_suspended', tone: 'danger' },
   resolved_dismissed: { key: 'status.resolved_dismissed', tone: 'success' },
 
+  // SOS cases — `open` and `resolved` above are shared with safety reports.
+  // Every suspension outcome is danger-toned: the case ended with someone losing
+  // access, and that must not read like a routine close.
+  closed: { key: 'status.closed', tone: 'neutral' },
+  rider_suspended: { key: 'status.rider_suspended', tone: 'danger' },
+  driver_suspended: { key: 'status.driver_suspended', tone: 'danger' },
+  both_suspended: { key: 'status.both_suspended', tone: 'danger' },
+  false_alarm: { key: 'status.false_alarm', tone: 'neutral' },
+
   // Zones
   inactive: { key: 'status.inactive', tone: 'warning' },
 

@@ -156,6 +156,46 @@ export const en = {
     csvFile: 'shedrive-gender-mismatch-reports',
   },
 
+  sos: {
+    pageTitle: 'SOS requests',
+    heading: 'Case queue',
+    hint:
+      'An SOS is raised from inside an active trip by the rider or the driver. The other ' +
+      'occupant is never told, and the trip runs on and settles as normal. Open cases first ' +
+      '— only an admin closes a case.',
+    statsLabel: 'SOS cases summary',
+
+    statusLabel: 'Case status',
+    raisedByLabel: 'Raised by',
+    timeLabel: 'Raised at',
+
+    colRaisedBy: 'Raised by',
+    colRaiserName: 'Name',
+    colTripId: 'Trip ID',
+    colTripState: 'Trip state at trigger',
+    colLocation: 'Location',
+    colContacts: 'Contacts alerted',
+    colOutcome: 'Outcome',
+
+    rider: 'Rider',
+    driver: 'Driver',
+    allRaisers: 'Anyone',
+    contactsCount: '{count} alerted',
+    contactsFailed: '{count} alerted · {failed} failed',
+
+    badgeOpen: '{count} open',
+    badgeShown: '{count} shown',
+
+    emptyHeading: 'No SOS cases need review',
+    emptyMessage: 'There are no SOS cases matching these filters.',
+
+    statTotal: 'Total cases',
+
+    csvCaseId: 'Case id',
+    csvTime: 'Raised at (UTC+2)',
+    csvFile: 'shedrive-sos-requests',
+  },
+
   audit: {
     pageTitle: 'Admin activity audit log',
     heading: 'Audit entries',
@@ -189,6 +229,7 @@ export const en = {
       refund: 'Refund',
       settlement: 'Settlement',
       'gender-mismatch resolution': 'Gender Mismatch Resolution',
+      'sos case closed': 'SOS Case Closed',
       'admin-account change': 'Admin Account Change',
     },
     target: {
@@ -395,6 +436,46 @@ export const ar = {
     csvFile: 'shedrive-gender-mismatch-reports',
   },
 
+  sos: {
+    pageTitle: 'طلبات الطوارئ',
+    heading: 'قائمة الحالات',
+    hint:
+      'يُرسل طلب الطوارئ من داخل رحلة جارية من الراكبة أو السائقة. ' +
+      'لا يُبلَّغ الطرف الآخر إطلاقًا، وتستمر الرحلة وتُحتسب كالمعتاد. ' +
+      'الحالات المفتوحة أولاً — ولا يغلق الحالة إلاّ المسؤول.',
+    statsLabel: 'ملخص حالات الطوارئ',
+
+    statusLabel: 'حالة الطلب',
+    raisedByLabel: 'مقدّمة من',
+    timeLabel: 'وقت الطلب',
+
+    colRaisedBy: 'مقدّمة من',
+    colRaiserName: 'الاسم',
+    colTripId: 'رقم الرحلة',
+    colTripState: 'حالة الرحلة عند الطلب',
+    colLocation: 'الموقع',
+    colContacts: 'جهات الاتصال المُخطَرة',
+    colOutcome: 'النتيجة',
+
+    rider: 'الراكبة',
+    driver: 'السائقة',
+    allRaisers: 'الجميع',
+    contactsCount: '{count} مُخطَرة',
+    contactsFailed: '{count} مُخطَرة · {failed} فشلت',
+
+    badgeOpen: '{count} مفتوح',
+    badgeShown: '{count} معروض',
+
+    emptyHeading: 'لا توجد حالات طوارئ تحتاج إلى مراجعة',
+    emptyMessage: 'لا توجد حالات طوارئ مطابقة لعوامل التصفية.',
+
+    statTotal: 'إجمالي الحالات',
+
+    csvCaseId: 'رقم الحالة',
+    csvTime: 'وقت الطلب (UTC+2)',
+    csvFile: 'shedrive-sos-requests-ar',
+  },
+
   audit: {
     pageTitle: 'سجل تدقيق نشاط المديرين',
     heading: 'سجلات التدقيق',
@@ -426,6 +507,7 @@ export const ar = {
       refund: 'استرداد',
       settlement: 'تسوية',
       'gender-mismatch resolution': 'معالجة بلاغ عدم تطابق الجنس',
+      'sos case closed': 'إغلاق حالة طوارئ',
       'admin-account change': 'تغيير حساب مدير',
     },
     target: {

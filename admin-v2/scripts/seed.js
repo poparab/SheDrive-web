@@ -680,6 +680,88 @@ SAFETY_REPORTS.forEach((report) => {
   }
 });
 
+// ── SOS cases (raised by #1780/#1952, triaged by the admin) ─────
+//
+// An SOS is a parallel record, not a trip state: the trip runs on, settles and is
+// rated exactly as normal, and the other occupant is never told. Only an admin
+// closes a case. Source trips therefore span every status that has both parties.
+
+// Kept separate so the note always matches who actually tapped the button — a
+// rider-raised case reading "the driver reported…" undermines the whole record.
+const SOS_NOTES_RIDER = [
+  'Rider reported feeling unwell and asked to stop.',
+  'Rider raised the alarm during a prolonged stop in traffic.',
+  'Rider raised the alarm after the route deviated unexpectedly.',
+  'Rider reported the driver refusing to stop at the agreed drop-off.',
+];
+
+const SOS_NOTES_DRIVER = [
+  'Driver reported being followed by another vehicle.',
+  'Driver reported an argument escalating inside the vehicle.',
+  'Driver reported a passenger refusing to leave at the destination.',
+];
+
+const SOS_TRIP_STATES = ['en_route_pickup', 'arrived_pickup', 'trip_started'];
+const SOS_OUTCOMES = ['rider_suspended', 'driver_suspended', 'resolved', 'false_alarm', 'both_suspended'];
+const SOS_CONTACT_NAMES = ['Mona Adel', 'Hoda Samir', 'Nour Hassan', 'Yasmin Fouad'];
+const SOS_RELATIONSHIPS = ['Sister', 'Mother', 'Friend', 'Husband'];
+
+// Both parties must exist — an SOS is always raised from inside an occupied car.
+const SOS_SOURCE_TRIPS = TRIPS.filter((t) => t.driverId && t.riderId).slice(0, 11);
+
+export const SOS_CASES = SOS_SOURCE_TRIPS.map((trip, index) => {
+  const raisedBy = index % 3 === 0 ? 'driver' : 'rider';
+  const closed = index >= 5;
+  const outcome = closed ? SOS_OUTCOMES[index % SOS_OUTCOMES.length] : null;
+  const raisedAt = trip.createdAt + intBetween(3, 25) * MINUTE;
+
+  return {
+    id: `SOS-${7200 + index}`,
+    tripId: trip.id,
+    raisedBy,
+    raisedAt,
+    tripStateAtTrigger: SOS_TRIP_STATES[index % SOS_TRIP_STATES.length],
+
+    riderId: trip.riderId,
+    riderName: trip.riderName,
+    riderPhone: trip.riderPhone,
+    driverId: trip.driverId,
+    driverName: trip.driverName,
+    driverPhone: trip.driverPhone,
+    vehicle: trip.vehicle,
+
+    // A snapshot at the moment of the tap — never a live feed (out of scope
+    // until an operations desk is staffed).
+    location: {
+      lat: 30.0444 + (index % 7) * 0.004,
+      lng: 31.2357 + (index % 5) * 0.004,
+      address: trip.pickup.address,
+    },
+    pickupAddress: trip.pickup.address,
+    destinationAddress: trip.destination.address,
+    zoneName: trip.zoneName,
+    note:
+      raisedBy === 'driver'
+        ? SOS_NOTES_DRIVER[index % SOS_NOTES_DRIVER.length]
+        : SOS_NOTES_RIDER[index % SOS_NOTES_RIDER.length],
+
+    // Contacts alerted, each carrying the result the SMS gateway reported.
+    contactsAlerted: Array.from({ length: (index % 3) + 1 }, (_, c) => ({
+      name: SOS_CONTACT_NAMES[(index + c) % SOS_CONTACT_NAMES.length],
+      phone: `+2010${String(20000000 + index * 137 + c * 11).slice(0, 8)}`,
+      relationship: SOS_RELATIONSHIPS[(index + c) % SOS_RELATIONSHIPS.length],
+      delivery: c === 0 && index % 4 === 3 ? 'failed' : 'delivered',
+    })),
+    liveLinkExpiresAt: raisedAt + 90 * MINUTE,
+
+    status: closed ? 'closed' : 'open',
+    outcome,
+    resolutionNote: closed ? 'Reviewed against the trip record and both statements.' : null,
+    closedAt: closed ? raisedAt + intBetween(1, 20) * HOUR : null,
+    closedBy: closed ? ADMINS[1].email : null,
+  };
+}).sort((a, b) => b.raisedAt - a.raisedAt);
+
 // ── Audit log (#1816) ─────────────────────────────────
 
 const AUDIT_ACTORS = ADMINS.filter((a) => a.status === 'active').map((a) => a.email);
@@ -792,7 +874,8 @@ export const AUDIT_ACTOR_OPTIONS = [...new Set(AUDIT_ENTRIES.map((e) => e.actor)
 
 export const AUDIT_ACTION_TYPES = [
   'approve', 'reject', 'suspend', 'reinstate', 'cancel', 'reassign',
-  'refund', 'settlement', 'gender-mismatch resolution', 'admin-account change',
+  'refund', 'settlement', 'gender-mismatch resolution', 'sos case closed',
+  'admin-account change',
 ];
 
 // ── Lookups ───────────────────────────────────────────
@@ -802,6 +885,7 @@ export const DRIVERS_BY_ID = new Map(DRIVERS.map((d) => [String(d.id), d]));
 export const TRIPS_BY_ID = new Map(TRIPS.map((t) => [t.id, t]));
 export const ZONES_BY_ID = new Map(ZONES.map((z) => [String(z.id), z]));
 export const REPORTS_BY_ID = new Map(SAFETY_REPORTS.map((r) => [r.id, r]));
+export const SOS_CASES_BY_ID = new Map(SOS_CASES.map((c) => [c.id, c]));
 
 export const SEED_META = { generatedAt: NOW, MINUTE, HOUR, DAY };
 

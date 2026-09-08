@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — SOS requests</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="sos"
+      page-title-key="sos.pageTitle"
+      breadcrumb-keys="nav.operations > nav.sos"
+      screen-styles="styles/list.css, styles/sos-requests.css"
+    >
+      <!-- Kit KPI row — counts come from the same list query the grid uses -->
+      <div
+        class="ad-stats"
+        id="sos-stats"
+        aria-label="SOS cases summary"
+        data-i18n-aria-label="sos.statsLabel"
+      ></div>
+
+      <section class="ad-section" aria-labelledby="sos-heading">
+        <div class="ad-section__header">
+          <div>
+            <h2 class="ad-section__title" id="sos-heading" data-i18n="sos.heading">Case queue</h2>
+            <p class="ad-section__hint" data-i18n="sos.hint">
+              An SOS is raised from inside an active trip by the rider or the driver. The other
+              occupant is never told, and the trip runs on and settles as normal. Open cases
+              first — only an admin closes a case.
+            </p>
+          </div>
+          <span class="badge badge--danger" id="open-count" data-i18n="common.notAvailable">—</span>
+        </div>
+
+        <ad-filter-bar id="sos-filters"></ad-filter-bar>
+        <ad-data-table id="sos-table"></ad-data-table>
+      </section>
+    </ad-shell>
+
+    <script type="module" src="scripts/sos-requests.js"></script>
+  </body>
+</html>

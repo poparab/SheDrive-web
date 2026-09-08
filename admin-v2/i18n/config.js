@@ -369,6 +369,8 @@ export const en = {
     titleDashboard: 'Operations dashboard',
     titleTrips: 'Trip list',
     titleTripDetail: 'Trip detail & completed trip',
+    titleSosQueue: 'SOS request queue',
+    titleSosDetail: 'SOS case detail & resolution',
     titleSafetyQueue: 'Gender-mismatch report queue',
     titleSafetyDetail: 'Safety report detail & resolution',
     titleApplications: 'Driver applications queue',
@@ -405,6 +407,13 @@ export const en = {
       'Status filter maps onto the trip state machine: Searching / Active / Completed / Cancelled / Expired. Cancelled is a fifth option #1670 does not yet carry, needed once an admin can cancel a trip. CSV export respects the active filters.',
     notesTripDetail:
       'Completed trips add the recorded route, fare breakdown and rating. An in-progress trip exposes Cancel (#1808) and Reassign (#1809) — both stories are still unwritten, so those flows are a PROPOSAL and the screen carries a notice saying so. Cancelling produces a distinct Cancelled status; reassigning keeps the trip live and hands it to another online driver. Both need BA sign-off.',
+    notesSosQueue:
+      'Raised from inside an active trip by the rider or the driver. The other occupant is ' +
+      'never told and the trip runs on as normal. Open cases sort above closed ones in every sort.',
+    notesSosDetail:
+      'The whole snapshot taken at the tap, then close the case. Tick either party, both or ' +
+      'neither to suspend; a suspension wins the recorded outcome. The note is required and a ' +
+      'closed case is never reopened.',
     notesSafetyQueue:
       'Replaces the "SOS queue" in the old wireframe list — SOS is deferred to a later phase; women-only enforcement triage is what is in scope.',
     notesSafetyDetail:
@@ -787,6 +796,8 @@ export const ar = {
     titleDashboard: 'لوحة العمليات',
     titleTrips: 'قائمة الرحلات',
     titleTripDetail: 'تفاصيل الرحلة والرحلة المكتملة',
+    titleSosQueue: 'قائمة طلبات الطوارئ',
+    titleSosDetail: 'تفاصيل حالة الطوارئ ومعالجتها',
     titleSafetyQueue: 'قائمة بلاغات عدم تطابق النوع',
     titleSafetyDetail: 'تفاصيل بلاغ السلامة ومعالجته',
     titleApplications: 'قائمة طلبات السائقات',
@@ -823,6 +834,12 @@ export const ar = {
       'يقابل مرشّح الحالة آلة حالات الرحلة: جارٍ البحث / نشطة / مكتملة / ملغاة / منتهية الصلاحية. والحالة "ملغاة" خيار خامس لا تحمله القصة #1670 بعد، وهو لازم بمجرد أن تتمكن الإدارة من إلغاء رحلة. ويحترم تصدير CSV عوامل التصفية الفعّالة.',
     notesTripDetail:
       'تضيف الرحلات المكتملة المسار المسجَّل وتفصيل الأجرة والتقييم. أما الرحلة الجارية فتتيح الإلغاء (#1808) وإعادة الإسناد (#1809) — وكلتا القصتين لم تُكتبا بعد، لذا فهذان المساران مقترحان وتحمل الشاشة تنبيهًا بذلك. وينتج عن الإلغاء حالة "ملغاة" مستقلة؛ أما إعادة الإسناد فتبقي الرحلة قائمة وتسلّمها لسائقة أخرى متصلة. وكلاهما يحتاج موافقة محلل الأعمال.',
+    notesSosQueue:
+      'تُرسَل من داخل رحلة جارية من الراكبة أو السائقة. لا يُبلَّغ الطرف الآخر وتستمر الرحلة ' +
+      'كالمعتاد. الحالات المفتوحة تظهر فوق المغلقة في كل ترتيب.',
+    notesSosDetail:
+      'كل ما سُجِّل لحظة الطلب، ثم إغلاق الحالة. اختاري أحد الطرفين أو كليهما أو لا أحد ' +
+      'للإيقاف؛ ويُسجَّل الإيقاف كنتيجة. الملاحظة إلزامية ولا تُعاد فتح الحالة المغلقة.',
     notesSafetyQueue:
       'تحل محل "قائمة الاستغاثة" في قائمة المخططات القديمة — فالاستغاثة مؤجَّلة لمرحلة لاحقة؛ والمشمول في النطاق هو فرز بلاغات إنفاذ سياسة "للنساء فقط".',
     notesSafetyDetail: 'إيقاف أو استبعاد. وملاحظة الإيقاف اختيارية — فالبلاغ نفسه هو السبب المسجَّل.',

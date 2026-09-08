@@ -24,6 +24,8 @@ import {
   RIDERS,
   RIDERS_BY_ID,
   SAFETY_REPORTS,
+  SOS_CASES,
+  SOS_CASES_BY_ID,
   TRIPS,
   TRIPS_BY_ID,
   ZONES,
@@ -46,6 +48,7 @@ applyMutations({
   DRIVERS,
   RIDERS,
   SAFETY_REPORTS,
+  SOS_CASES,
   ADMINS,
   TRIPS,
   AUDIT_ENTRIES,
@@ -856,6 +859,125 @@ export const mockApi = {
     });
 
     return respond({ ok: true, resolution, riderStatus: rider?.status ?? null });
+  },
+
+  // ── SOS cases ──────────────────────────────────────
+
+  listSosCases({ status = 'open', raisedBy = 'all', from = '', to = '', page = 1, pageSize = 20, sort } = {}) {
+    const filtered = SOS_CASES.filter(
+      (sosCase) =>
+        (status === 'all' || sosCase.status === status) &&
+        (raisedBy === 'all' || sosCase.raisedBy === raisedBy) &&
+        inDateRange(sosCase.raisedAt, from, to),
+    );
+    const sorted = sortRows(filtered, sort, { key: 'raisedAt', dir: 'desc' });
+    // Open cases float to the top of every sort: a safety queue is worked
+    // top-down, and a closed case must never bury an open one.
+    const ordered = [...sorted].sort((a, b) => {
+      if (a.status === b.status) return 0;
+      return a.status === 'open' ? -1 : 1;
+    });
+    return respond(paginate(ordered, page, pageSize), { emptyValue: emptyPage(pageSize) });
+  },
+
+  getSosCase(id) {
+    const sosCase = SOS_CASES_BY_ID.get(String(id)) ?? null;
+    if (!sosCase) return respond(null, { emptyValue: null });
+    return respond(
+      {
+        ...sosCase,
+        trip: TRIPS_BY_ID.get(sosCase.tripId) ?? null,
+        rider: RIDERS_BY_ID.get(String(sosCase.riderId)) ?? null,
+        driver: DRIVERS_BY_ID.get(String(sosCase.driverId)) ?? null,
+      },
+      { emptyValue: null },
+    );
+  },
+
+  /**
+   * Close a case. Either party, both, or neither may be suspended in the same
+   * action; a suspension always wins the recorded outcome, because "resolved"
+   * would understate what was actually done. Suspension goes through the same
+   * fields as a manual one, so the profile screen and the audit log show it
+   * identically however it was raised.
+   */
+  actionSosCase(id, { suspendRider = false, suspendDriver = false, outcome = 'resolved', note } = {}) {
+    const sosCase = SOS_CASES_BY_ID.get(String(id));
+    if (!sosCase) return Promise.reject(new MockApiError('SOS case not found.', 404));
+    if (sosCase.status === 'closed') {
+      return Promise.reject(new MockApiError('This case is already closed.', 409));
+    }
+
+    const now = Date.now();
+    const rider = RIDERS_BY_ID.get(String(sosCase.riderId));
+    const driver = DRIVERS_BY_ID.get(String(sosCase.driverId));
+    const reason = note || `Suspended from SOS case ${sosCase.id}`;
+
+    if (suspendRider && rider) {
+      rider.status = 'suspended';
+      rider.suspensionReason = reason;
+      rider.suspendedAt = now;
+      rider.suspendedBy = CURRENT_ADMIN.email;
+      patch('riders', rider.id, {
+        status: rider.status,
+        suspensionReason: rider.suspensionReason,
+        suspendedAt: rider.suspendedAt,
+        suspendedBy: rider.suspendedBy,
+      });
+    }
+
+    if (suspendDriver && driver) {
+      driver.status = 'suspended';
+      driver.suspensionReason = reason;
+      driver.suspendedAt = now;
+      driver.suspendedBy = CURRENT_ADMIN.email;
+      patch('drivers', driver.id, {
+        status: driver.status,
+        suspensionReason: driver.suspensionReason,
+        suspendedAt: driver.suspendedAt,
+        suspendedBy: driver.suspendedBy,
+      });
+    }
+
+    const recorded =
+      suspendRider && suspendDriver
+        ? 'both_suspended'
+        : suspendRider
+          ? 'rider_suspended'
+          : suspendDriver
+            ? 'driver_suspended'
+            : outcome;
+
+    sosCase.status = 'closed';
+    sosCase.outcome = recorded;
+    sosCase.resolutionNote = note || null;
+    sosCase.closedAt = now;
+    sosCase.closedBy = CURRENT_ADMIN.email;
+
+    patch('sosCases', id, {
+      status: sosCase.status,
+      outcome: sosCase.outcome,
+      resolutionNote: sosCase.resolutionNote,
+      closedAt: sosCase.closedAt,
+      closedBy: sosCase.closedBy,
+    });
+
+    // before/after are keyed field maps, not strings — the audit log diffs them
+    // per key. makeAuditEntry already records the entry for session replay.
+    makeAuditEntry(
+      'sos case closed',
+      'SOS case',
+      sosCase.id,
+      { status: 'open' },
+      { status: 'closed', outcome: recorded },
+    );
+
+    return respond({
+      ok: true,
+      outcome: recorded,
+      riderStatus: rider?.status ?? null,
+      driverStatus: driver?.status ?? null,
+    });
   },
 
   // ── Pricing & zones (#1756, #1757, #1759, #1830, #1831) ──

@@ -190,3 +190,31 @@ read as unchanged unless you null the `transition` property before measuring.
   profile screens, not separate pages — they are reached from the profile's account
   actions.
 - The kit's `*-empty` / `*-error` / `*-not-found` pages are the `?state=` variants.
+
+## Intentional divergence from `admin/` — SOS cases (2026-09-07)
+
+This document states that the data layer (`mock-api.js`, `seed.js`, `mutations.js`,
+`format.js`, `request-guard.js`, `admin-auth.js`) is identical across `admin/` and
+`admin-v2/` and must not be forked.
+
+**The SOS incident lifecycle breaks that rule, deliberately.** The two SOS screens
+(`sos-requests.html`, `sos-request.html`), together with everything they need, exist in
+`admin-v2/` only:
+
+| File | What was added |
+|---|---|
+| `scripts/seed.js` | `SOS_CASES`, `SOS_CASES_BY_ID` |
+| `scripts/mock-api.js` | `listSosCases`, `getSosCase`, `actionSosCase` |
+| `scripts/mutations.js` | a `sosCases` patch collection, replayed onto `SOS_CASES` |
+| `scripts/nav.js` | the `sos` entry, in Operations above Safety reports |
+| `i18n/core.js`, `lists.js`, `details.js`, `config.js` | EN + AR strings |
+| `scripts/screens.js`, `_verify.html` | designer index cards, verify manifest rows |
+
+`admin/` (v1) is **not** changed and has no SOS screens.
+
+This is recorded here rather than left to be discovered as drift. v2 is the direction of
+travel; back-porting to v1 is not planned. Anyone diffing the two data layers should
+expect the SOS additions and nothing else.
+
+Design: `docs/superpowers/specs/2026-09-03-sos-incident-lifecycle-design.md` §5.
+Stories: `#3945` / `#3946` (dev), `#3947` / `#3948` (design).
