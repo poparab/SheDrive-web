@@ -17,9 +17,6 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')));
 });
 
-// ── Navigation ────────────────────────────────────────
-qs('#back-btn').addEventListener('click', () => window.location.assign('./home.html'));
-
 // ── Mock data ─────────────────────────────────────────
 const MOCK_TRIPS = {
   today: [
