@@ -23,7 +23,7 @@ const query = { from: '', to: '', zoneId: 'all' };
 let summary = null;
 
 filters.fields = [
-  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: t('common.to') },
+  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: 'to' },
   {
     type: 'select',
     key: 'zoneId',

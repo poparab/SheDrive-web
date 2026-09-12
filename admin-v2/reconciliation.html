@@ -31,8 +31,9 @@
       <div id="no-driver">
         <ad-empty-state
           icon="⇌"
-          heading="Select a driver"
+          heading="Select a driver" data-i18n-heading="reconciliation.emptyHeading"
           message="Choose a driver above to generate her earnings and settlement report."
+          data-i18n-message="reconciliation.emptyMessage"
         ></ad-empty-state>
       </div>
 
@@ -66,15 +67,15 @@
             <!-- Settlement now lives on the dedicated #1813 screen -->
             <section class="ad-section" aria-labelledby="settle-heading">
               <div class="ad-section__header">
-                <h2 class="ad-section__title" id="settle-heading" data-i18n="recon.settleHeading">Settlement</h2>
+                <h2 class="ad-section__title" id="settle-heading" data-i18n="reconciliation.settleHeading">Settlement</h2>
               </div>
               <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" data-i18n="recon.settleHint">
+                <p class="ad-section__hint" data-i18n="reconciliation.settleHint">
                   Recording a settlement, posting an adjustment and reviewing the full
                   transaction ledger are handled on the Driver balances screen, where the
                   entry is posted and the balance is recomputed from it.
                 </p>
-                <a class="btn btn--primary btn--full" id="settle-link" href="balances.html" data-i18n="recon.settleLink">
+                <a class="btn btn--primary btn--full" id="settle-link" href="balances.html" data-i18n="reconciliation.settleLink">
                   Open driver balances
                 </a>
               </div>

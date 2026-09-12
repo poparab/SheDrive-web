@@ -57,7 +57,7 @@ filters.fields = [
       { value: 'inactive', label: t('status.inactive') },
     ],
   },
-  { type: 'daterange', key: 'date', label: t('zones.createdAt'), fromKey: 'from', toKey: t('common.to') },
+  { type: 'daterange', key: 'date', label: t('zones.createdAt'), fromKey: 'from', toKey: 'to' },
 ];
 
 filters.addEventListener('change', (event) => {

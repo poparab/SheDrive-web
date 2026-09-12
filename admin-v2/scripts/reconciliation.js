@@ -43,7 +43,7 @@ filters.fields = [
       })),
     ],
   },
-  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: t('common.to') },
+  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: 'to' },
 ];
 
 filters.actions = [
@@ -83,18 +83,18 @@ table.columns = [
     className: 'ad-table__nowrap',
     render: (trip) => formatDate(trip.createdAt),
   },
-  { key: 'fare', label: t('reconciliation.colFare'), numeric: true, render: (t) => formatEgp(t.fare.total) },
+  { key: 'fare', label: t('reconciliation.colFare'), numeric: true, render: (trip) => formatEgp(trip.fare.total) },
   {
     key: 'commission',
     label: t('reconciliation.colCommission'),
     numeric: true,
-    render: (t) => formatEgp(t.fare.commission),
+    render: (trip) => formatEgp(trip.fare.commission),
   },
   {
     key: 'net',
     label: t('reconciliation.colNet'),
     numeric: true,
-    render: (t) => formatEgp(t.fare.netEarnings),
+    render: (trip) => formatEgp(trip.fare.netEarnings),
   },
 ];
 
@@ -146,28 +146,28 @@ async function load() {
     if (!isCurrent()) return;
     latest = data;
 
-    const t = data.totals;
-    qs('#card-trips').value = formatCount(t.completedTrips);
-    qs('#card-gross').value = formatEgp(t.grossFares);
-    qs('#card-commission').value = formatEgp(t.commission);
-    qs('#card-net').value = formatEgp(t.netEarnings);
-    qs('#card-balance').value = formatEgp(t.outstandingCashBalance);
+    const totals = data.totals;
+    qs('#card-trips').value = formatCount(totals.completedTrips);
+    qs('#card-gross').value = formatEgp(totals.grossFares);
+    qs('#card-commission').value = formatEgp(totals.commission);
+    qs('#card-net').value = formatEgp(totals.netEarnings);
+    qs('#card-balance').value = formatEgp(totals.outstandingCashBalance);
     qs('#card-balance').meta = t('reconciliation.balanceMeta');
 
     const split = qs('#split-rows');
     split.textContent = '';
     split.append(
-      moneyRow(t('reconciliation.splitCash'), formatEgp(t.cashPortion)),
-      moneyRow(t('reconciliation.splitDigital'), formatEgp(t.digitalPortion)),
-      moneyRow(t('reports.cardGross'), formatEgp(t.grossFares), true),
-      moneyRow(t('reconciliation.cardBalance'), formatEgp(t.outstandingCashBalance)),
+      moneyRow(t('reconciliation.splitCash'), formatEgp(totals.cashPortion)),
+      moneyRow(t('reconciliation.splitDigital'), formatEgp(totals.digitalPortion)),
+      moneyRow(t('reports.cardGross'), formatEgp(totals.grossFares), true),
+      moneyRow(t('reconciliation.cardBalance'), formatEgp(totals.outstandingCashBalance)),
     );
 
     table.setData(data);
   } catch (error) {
     if (!isCurrent()) return;
     latest = null;
-    errorBox.textContent = `Could not load the settlement report: ${error.message}`;
+    errorBox.textContent = t('reconciliation.loadError', { message: error.message });
     errorBox.classList.add('is-visible');
     table.setError(error.message, load);
   }
