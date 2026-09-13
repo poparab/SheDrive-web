@@ -4,15 +4,17 @@
  * Same controller as admin/, with every user-visible string routed through t()
  * — admin-v2 is bilingual (see I18N-PORT.md).
  *
- * The balance is never edited. Recording a settlement or posting an adjustment
- * appends an immutable entry to the driver's ledger (#TBD-A) and the balance is
- * recomputed from it — which is also what unblocks her go-online (#TBD-F).
+ * The balance is never edited. Recording a settlement or a payout appends an
+ * immutable entry to the driver's ledger (#TBD-A) and the balance is recomputed
+ * from it — which is also what unblocks her go-online (#TBD-F). The Phase 1
+ * ledger has no correction mechanism: the post-adjustment action was cut
+ * deliberately (spec §10) to keep Phase 1 simple.
  */
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatDate, formatEgp, toDateInputValue } from './format.js';
+import { formatDate, formatDateTime, formatEgp, toDateInputValue, downloadCsv } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 
@@ -39,9 +41,18 @@ const ENTRY_LABEL_KEYS = {
   driver_cancellation_fee: 'balances.entryDriverCancellationFee',
   rider_cancellation_fee_share: 'balances.entryRiderCancellationFeeShare',
   settlement: 'balances.entrySettlement',
-  withdrawal: 'balances.entryWithdrawal',
-  adjustment: 'balances.entryAdjustment',
+  payout: 'balances.entryPayout',
 };
+
+/** "{type} · {number}" for the payout modal's read-only destination field. */
+function formatPayoutDestination(destination) {
+  if (!destination) return t('balances.payoutNoDestination');
+  const typeLabel =
+    destination.type === 'bank_transfer'
+      ? t('balances.payoutDestBankTransfer')
+      : t('balances.payoutDestMobileWallet');
+  return `${typeLabel} · ${destination.number}`;
+}
 
 // ── Filters ──────────────────────────────────────────
 filters.fields = [
@@ -66,7 +77,6 @@ filters.actions = [
     variant: 'ghost',
     onClick: async () => {
       const all = await mockApi.listDriverBalances({ ...query, page: 1, pageSize: 1000 });
-      const { downloadCsv } = await import('./format.js');
       downloadCsv(
         `${t('balances.csvName')}-${toDateInputValue(Date.now())}.csv`,
         [
@@ -82,6 +92,36 @@ filters.actions = [
           r.available.toFixed(2),
           r.lastSettlementAt ? formatDate(r.lastSettlementAt) : '',
           r.goOnlineBlocked ? t('balances.csvBlockedYes') : t('balances.csvBlockedNo'),
+        ]),
+      );
+    },
+  },
+  {
+    // The settlement day-book screen was cut (spec §10); this is the one part
+    // of it worth keeping — the export Finance reconciles against the bank.
+    label: t('balances.exportSettlementsCsv'),
+    variant: 'ghost',
+    onClick: async () => {
+      const rows = await mockApi.listSettlementEntries();
+      downloadCsv(
+        `${t('balances.settlementsCsvName')}-${toDateInputValue(Date.now())}.csv`,
+        [
+          t('common.name'),
+          t('balances.colAmount'),
+          t('balances.settleMethod'),
+          t('balances.settlementsColReference'),
+          t('balances.settlementsColReceipt'),
+          t('balances.settlementsColAdmin'),
+          t('balances.settlementsColTime'),
+        ],
+        rows.map((r) => [
+          r.driverName,
+          r.amount.toFixed(2),
+          r.method ?? '',
+          r.note ?? '',
+          r.ref ?? '',
+          r.actor ?? '',
+          formatDateTime(r.at),
         ]),
       );
     },
@@ -212,7 +252,6 @@ function renderLedgerSummary(driver) {
     [t('balances.statBalance'), driver.balance >= 0 ? `+${formatEgp(driver.balance)}` : `−${formatEgp(Math.abs(driver.balance))}`],
     [t('balances.statOutstanding'), formatEgp(driver.outstanding)],
     [t('balances.statAvailable'), formatEgp(driver.available)],
-    [t('balances.statReserved'), formatEgp(driver.reserved)],
   ];
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
@@ -229,6 +268,12 @@ function renderLedgerSummary(driver) {
 
   // Settling is only meaningful when there is something outstanding (#1813 S7).
   qs('#btn-settle').disabled = driver.outstanding <= 0;
+
+  // A payout needs both money owed and a destination on file (spec §5/§6) —
+  // the missing-destination case has to stay visibly refused, not hidden.
+  const hasAvailable = driver.available > 0;
+  qs('#btn-payout').disabled = !hasAvailable || !driver.payoutDestination;
+  qs('#payout-hint').hidden = !(hasAvailable && !driver.payoutDestination);
 }
 
 const ledgerGuard = createRequestGuard();
@@ -306,43 +351,60 @@ qs('#btn-settle').addEventListener('click', () => {
   });
 });
 
-// ── Post adjustment (#1813 S8–S9) ────────────────────
-qs('#btn-adjust').addEventListener('click', () => {
+// ── Record payout (spec §5/§6) ───────────────────────
+// The mirror of a settlement, in the opposite direction: Finance has already
+// sent the money, and this only writes it down. There is no request, no
+// approval and nothing for the driver to have initiated.
+qs('#btn-payout').addEventListener('click', () => {
   if (!selected) return;
+  const max = selected.available;
   modal.open({
-    title: t('balances.adjustTitle', { name: selected.name }),
-    description:
-      'A correction is posted as a new entry, never by editing an existing one. A positive amount credits the driver; a negative amount debits her.',
-    confirmLabel: t('balances.postAdjustment'),
+    title: t('balances.payoutTitle', { name: selected.name }),
+    description: t('balances.payoutDescription', { amount: formatEgp(max) }),
+    confirmLabel: t('balances.recordPayout'),
     fields: [
+      {
+        key: 'destination',
+        type: 'readonly',
+        label: t('balances.payoutDestination'),
+        value: formatPayoutDestination(selected.payoutDestination),
+      },
       {
         key: 'amount',
         type: 'number',
-        label: t('balances.adjustAmount'),
+        label: t('balances.payoutAmount'),
         required: true,
-        min: -100000,
-        max: 100000,
+        min: 0.01,
+        max,
         step: 0.01,
-        hint: t('balances.adjustHint'),
-        emptyError: t('balances.errAdjustEmpty'),
-        invalidError: 'Enter a valid amount',
-        rangeError: t('balances.errAdjustRange'),
-        validate: (value) => (Number(value) === 0 ? t('balances.errAdjustZero') : null),
+        emptyError: t('balances.errPayoutAmountEmpty'),
+        invalidError: t('balances.errPayoutAmountInvalid'),
+        rangeError: t('balances.errPayoutAmountRange', { max: formatEgp(max) }),
       },
       {
-        key: 'reason',
-        type: 'textarea',
-        label: t('balances.adjustReason'),
+        key: 'date',
+        type: 'date',
+        label: t('balances.payoutDate'),
         required: true,
-        minLength: 10,
-        maxLength: 500,
-        emptyError: t('balances.errReasonEmpty'),
-        lengthError: t('balances.errReasonLength'),
+        value: toDateInputValue(Date.now()),
+        max: toDateInputValue(Date.now()),
+        emptyError: t('balances.errPayoutDateEmpty'),
+        invalidError: t('balances.errPayoutDateInvalid'),
+        rangeError: t('balances.errPayoutDateFuture'),
+      },
+      {
+        key: 'reference',
+        type: 'text',
+        label: t('balances.payoutReference'),
+        required: true,
+        maxLength: 60,
+        emptyError: t('balances.errPayoutReferenceEmpty'),
+        lengthError: t('balances.errPayoutReferenceLength'),
       },
     ],
     onConfirm: async (values) => {
-      await mockApi.postAdjustment(selected.id, values);
-      shell.showToast(t('balances.adjustDone'), 'success');
+      await mockApi.recordPayout(selected.id, values);
+      shell.showToast(t('balances.payoutDone'), 'success');
       await Promise.all([load(), loadLedger()]);
     },
   });

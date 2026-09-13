@@ -27,38 +27,19 @@
         <div id="payments-body">
 
           <!-- ── Payment method ──────────────────────── -->
+          <!-- Cash is how a trip is paid for — not one of several options, so this is a
+               statement, not a selectable row. No radiogroup semantics. -->
           <section class="payments-section" aria-labelledby="method-heading">
             <h2 class="payments-section__title" id="method-heading" data-i18n="payments.methodTitle">طريقة الدفع</h2>
 
-            <div class="payment-method-list" role="radiogroup" data-i18n-aria-label="payments.methodTitle" aria-label="طريقة الدفع">
-
-              <!-- Cash — the only active, selected method in Phase 1 -->
-              <div class="payment-method-row payment-method-row--selected" role="radio" aria-checked="true" tabindex="0">
-                <span class="payment-method-row__icon" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-                </span>
-                <span class="payment-method-row__text">
-                  <span class="payment-method-row__label" data-i18n="payments.cash">نقداً</span>
-                  <span class="payment-method-row__hint" data-i18n="payments.cashHint">ادفعي نقداً للسائقة عند نهاية الرحلة</span>
-                </span>
-                <span class="badge badge--success payment-method-row__badge" data-i18n="payments.active">الطريقة الحالية</span>
-                <span class="payment-method-row__check" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </span>
-              </div>
-
-              <!-- Online payment — visibly and semantically unselectable, Phase 1 coming-soon -->
-              <div class="payment-method-row payment-method-row--disabled" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1">
-                <span class="payment-method-row__icon" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                </span>
-                <span class="payment-method-row__text">
-                  <span class="payment-method-row__label" data-i18n="payments.online">الدفع الإلكتروني</span>
-                  <span class="payment-method-row__hint" data-i18n="payments.onlineHint">قريباً — الدفع بالبطاقة</span>
-                </span>
-                <span class="badge badge--info payment-method-row__badge" data-i18n="payments.onlineComingSoon">قريباً</span>
-              </div>
-
+            <div class="payment-method-statement">
+              <span class="payment-method-statement__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+              </span>
+              <span class="payment-method-statement__text">
+                <span class="payment-method-statement__label" data-i18n="payments.cash">نقداً</span>
+                <span class="payment-method-statement__hint" data-i18n="payments.cashHint">ادفعي نقداً للسائقة عند نهاية الرحلة</span>
+              </span>
             </div>
           </section>
 
@@ -66,10 +47,10 @@
           <section class="payments-section" aria-labelledby="fees-heading">
             <h2 class="payments-section__title" id="fees-heading" data-i18n="payments.outstandingTitle">الرسوم المستحقة</h2>
 
-            <!-- Blocked notice — shown only when the rider is at/over the fee limit -->
-            <div class="fees-blocked-notice" id="fees-blocked-notice" hidden aria-hidden="true" role="status">
+            <!-- Full-recovery notice — her whole balance rides on the next trip. Never a block. -->
+            <div class="fees-full-recovery-notice" id="fees-full-recovery-notice" hidden aria-hidden="true" role="status">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <p class="fees-blocked-notice__msg" id="fees-blocked-notice-msg"></p>
+              <p class="fees-full-recovery-notice__msg" id="fees-full-recovery-notice-msg"></p>
             </div>
 
             <!-- Zero state -->

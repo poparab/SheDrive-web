@@ -280,43 +280,6 @@ body:not([data-state]) .state--in-ride { display: flex; }
   gap: var(--space-2);
 }
 
-/* ── Declared-child notice (#1588 S2) ────────────── */
-
-.trip-child-notice {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: rgba(var(--color-info-rgb), 0.08);
-  border: 1px solid rgba(var(--color-info-rgb), 0.25);
-  color: var(--color-text);
-}
-
-.trip-child-notice[hidden] { display: none; }
-
-.trip-child-notice__icon {
-  flex: 0 0 auto;
-  color: var(--color-info);
-  margin-block-start: var(--space-1);
-}
-
-.trip-child-notice__text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.trip-child-notice__title {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-}
-
-.trip-child-notice__body {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-}
-
 /* ── Gender-mismatch report modal (#1588 S4) ─────── */
 
 .verify-fail-modal { max-inline-size: 420px; }

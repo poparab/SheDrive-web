@@ -4,8 +4,9 @@
  * The rider side of the financial core ledger model (spec §2.2): a late
  * cancellation posts a debit; it is recovered as a cash surcharge on her next
  * trip, or written off here with a reason. Same shape as balances.js (the
- * driver side): a filterable list, a ledger drawer, and two actions — waive and
- * post an adjustment — each posting an immutable entry, never editing one.
+ * driver side): a filterable list, a ledger drawer, and a waive action that
+ * posts an immutable entry, never editing one. The post-adjustment action was
+ * cut deliberately (spec §10) to keep Phase 1 simple.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -36,7 +37,6 @@ const ENTRY_LABEL_KEYS = {
   cancellation_fee: 'riderBalances.entryCancellationFee',
   fee_collected: 'riderBalances.entryFeeCollected',
   fee_waived: 'riderBalances.entryFeeWaived',
-  adjustment: 'riderBalances.entryAdjustment',
 };
 
 // ── Filters ──────────────────────────────────────────
@@ -281,47 +281,6 @@ qs('#btn-waive').addEventListener('click', () => {
     onConfirm: async (values) => {
       await mockApi.waiveRiderFee(selected.id, values);
       shell.showToast(t('riderBalances.waiveDone'), 'success');
-      await Promise.all([load(), loadLedger()]);
-    },
-  });
-});
-
-// ── Post adjustment ──────────────────────────────────
-qs('#btn-adjust').addEventListener('click', () => {
-  if (!selected) return;
-  modal.open({
-    title: t('riderBalances.adjustTitle', { name: selected.name }),
-    description: t('riderBalances.adjustDescription'),
-    confirmLabel: t('riderBalances.postAdjustment'),
-    fields: [
-      {
-        key: 'amount',
-        type: 'number',
-        label: t('riderBalances.adjustAmount'),
-        required: true,
-        min: -100000,
-        max: 100000,
-        step: 0.01,
-        hint: t('riderBalances.adjustHint'),
-        emptyError: t('riderBalances.errAdjustEmpty'),
-        invalidError: t('riderBalances.errAdjustInvalid'),
-        rangeError: t('riderBalances.errAdjustRange'),
-        validate: (value) => (Number(value) === 0 ? t('riderBalances.errAdjustZero') : null),
-      },
-      {
-        key: 'reason',
-        type: 'textarea',
-        label: t('riderBalances.adjustReason'),
-        required: true,
-        minLength: 10,
-        maxLength: 500,
-        emptyError: t('riderBalances.errReasonEmpty'),
-        lengthError: t('riderBalances.errReasonLength'),
-      },
-    ],
-    onConfirm: async (values) => {
-      await mockApi.postRiderAdjustment(selected.id, values);
-      shell.showToast(t('riderBalances.adjustDone'), 'success');
       await Promise.all([load(), loadLedger()]);
     },
   });

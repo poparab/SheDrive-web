@@ -3,8 +3,9 @@
  * #1833: driver select (required) + date range, totals, cash-vs-digital split,
  * outstanding cash balance, per-trip rows at 20/page, empty state, CSV export.
  *
- * Recording a settlement, adjustments and the full ledger live on balances.html
- * (#1813); this screen links across to it and reports the resulting position.
+ * Recording a settlement, recording a payout and the full ledger live on
+ * balances.html (#1813); this screen links across to it and reports the
+ * resulting position.
  */
 
 import { adminAuth } from './admin-auth.js';

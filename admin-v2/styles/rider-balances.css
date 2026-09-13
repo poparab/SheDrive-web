@@ -1,5 +1,5 @@
 /*
- * rider-balances.css — rider fee balances & waive/adjust ledger (FIN-11)
+ * rider-balances.css — rider fee balances & waive ledger (FIN-11)
  * Every value comes from a token; see admin-tokens.css. The ledger drawer,
  * signed-amount styling and blocked/allowed badge tone are shared with the
  * driver side via balances.css — this file only carries what is specific here.

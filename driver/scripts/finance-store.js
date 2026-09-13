@@ -1,13 +1,17 @@
 /**
- * finance-store.js — driver balance ledger, mock (#TBD-A / API #1781, #TBD-C, #TBD-F)
+ * finance-store.js — driver balance ledger, mock (#TBD-A / API #1781, #TBD-F)
  *
  * One signed balance per driver, in EGP:
  *   negative → she owes the platform  (outstanding — cleared by a settlement)
- *   positive → the platform owes her  (available  — drawn on by a withdrawal)
+ *   positive → the platform owes her  (available  — what SheDrive owes her)
  *
  * The balance is always the sum of the ledger; nothing ever writes it directly.
- * Withdrawal requests reserve against the available balance and only post a
- * `withdrawal` entry when Finance marks them paid — same rule as the real API.
+ *
+ * A driver never requests a payout (spec §5). Finance transfers the money on
+ * its own cycle and then records the transfer in admin-v2, which posts a
+ * `payout` debit here. There is no request, no reservation, and nothing for
+ * her to initiate — she only ever reads her balance and sees the payout land
+ * in her statement, the same way she sees a settlement.
  *
  * §1 — custody decides the ledger entry, never the payment method:
  *   custody 'driver'   (Phase 1, cash)   → she holds the fare, so `trip_commission` (−)
@@ -21,7 +25,6 @@
  *   ?blocked      outstanding balance at the limit (go-online blocked)
  *   ?warn         outstanding balance in the warning band
  *   ?zero         zero balance, no transactions
- *   ?nowithdraw   withdrawals disabled platform-wide
  *   ?error        the balance request fails
  *   ?riderfee=N   (cash-collection.html only) rider fee recovered on this trip
  */
@@ -32,10 +35,6 @@ const STORAGE_KEY = 'shedrive.driverFinance';
 export const POLICY = {
   balanceLimit: 500,          // 0 disables the go-online block
   warnAtFraction: 0.8,        // warning band from 80% of the limit
-  withdrawalsEnabled: true,
-  minWithdrawal: 50,
-  maxWithdrawal: 2000,        // null = no cap
-  coolingOffDays: 7,
 };
 
 /** Ledger entry types and their direction. Mirrors spec §2.1. */
@@ -46,8 +45,7 @@ export const ENTRY_TYPES = {
   rider_cancellation_fee_share: { key: 'driver.txn.cancellationShare',  sign: +1 },
   rider_fee_recovery:           { key: 'driver.txn.riderFeeRecovery',   sign: -1 },
   settlement:                   { key: 'driver.txn.settlement',         sign: +1 },
-  withdrawal:                   { key: 'driver.txn.withdrawal',         sign: -1 },
-  adjustment:                   { key: 'driver.txn.adjustment',         sign: 0  },
+  payout:                       { key: 'driver.txn.payout',             sign: -1 },
 };
 
 /**
@@ -93,6 +91,9 @@ function seedEntries() {
     { id: 'e19', type: 'trip_commission',              amount: -80, at: '2026-06-05', tripId: 't-830', route: { ar: 'الإسكندرية ← القاهرة',     en: 'Alexandria → Cairo' } },
     { id: 'e20', type: 'settlement',                   amount: 200, at: '2026-05-30', ref: 'S-0987', channel: 'bank_deposit', reference: 'TRX-88213' },
     { id: 'e21', type: 'settlement',                   amount: 150, at: '2026-05-18', ref: 'S-0911', channel: 'field_agent', reference: 'AGT-4471' },
+    // A payout Finance already sent her — recorded on admin-v2/balances.html,
+    // never requested by her (spec §5).
+    { id: 'e22', type: 'payout',                       amount: -180, at: '2026-05-10', ref: 'PO-2201' },
   ];
 }
 
@@ -101,7 +102,7 @@ function load() {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* fall through to a fresh seed */ }
-  return { entries: seedEntries(), withdrawals: [] };
+  return { entries: seedEntries() };
 }
 
 function save(state) {
@@ -112,12 +113,16 @@ function save(state) {
 
 let state = load();
 
-/** Force the ledger to a target signed balance, for the demo switches. */
+/**
+ * Force the ledger to a target signed balance, for the demo switches. This is
+ * a test-harness artifact, not a ledger entry type the app exposes anywhere —
+ * the Phase 1 ledger has no correction mechanism (spec §10).
+ */
 function forceBalance(target) {
   const delta = round2(target - sumEntries(state.entries));
   if (delta === 0) return;
   state.entries = [
-    { id: 'demo', type: 'adjustment', amount: delta, at: '2026-06-23', ref: 'DEMO' },
+    { id: 'demo', type: 'demo_override', amount: delta, at: '2026-06-23', ref: 'DEMO' },
     ...state.entries,
   ];
 }
@@ -128,7 +133,7 @@ function sumEntries(entries) {
 
 // ── Demo switches ────────────────────────────────────
 if (params.has('zero')) {
-  state = { entries: [], withdrawals: [] };
+  state = { entries: [] };
 } else if (params.has('blocked')) {
   forceBalance(-POLICY.balanceLimit);
 } else if (params.has('warn')) {
@@ -138,7 +143,6 @@ if (params.has('zero')) {
 } else if (params.has('available')) {
   forceBalance(Math.abs(Number(params.get('available')) || 0));
 }
-if (params.has('nowithdraw')) POLICY.withdrawalsEnabled = false;
 
 export const shouldFailRequest = params.has('error');
 
@@ -155,32 +159,14 @@ export function getOutstanding() {
   return b < 0 ? round2(-b) : 0;
 }
 
-/** What the platform owes her, before reservations. Zero when she owes. */
+/** What SheDrive owes her. Zero when she owes. */
 export function getAvailable() {
   const b = getBalance();
   return b > 0 ? b : 0;
 }
 
-/** Sum of pending and approved withdrawals — held against the available balance. */
-export function getReserved() {
-  return round2(
-    state.withdrawals
-      .filter((w) => w.status === 'pending' || w.status === 'approved')
-      .reduce((total, w) => total + w.amount, 0),
-  );
-}
-
-/** What she can actually request right now. */
-export function getRequestable() {
-  return Math.max(0, round2(getAvailable() - getReserved()));
-}
-
 export function getEntries() {
   return state.entries.slice();
-}
-
-export function getWithdrawals() {
-  return state.withdrawals.slice();
 }
 
 export function getLastSettlement() {
@@ -207,7 +193,7 @@ export function getDemoRiderFee() {
 /**
  * Post the ledger entries a completed trip produces. This is the ONLY place that
  * branches on custody — everything downstream (balance, statement, gate,
- * settlement, withdrawals) just reads the entries it posts.
+ * settlement, payout) just reads the entries it posts.
  *
  *   custody 'driver'   → `trip_commission` (−commission): she holds the fare.
  *   custody 'platform' → `trip_earnings` (+net): the platform holds the fare.
@@ -250,91 +236,7 @@ export function isGoOnlineBlocked() {
   return getLimitState() === 'blocked';
 }
 
-// ── Withdrawals (#TBD-C) ─────────────────────────────
-
-/** The most recent request that starts the cooling-off clock. */
-function lastRequestAt() {
-  const dates = state.withdrawals.map((w) => new Date(w.requestedAt).getTime());
-  return dates.length ? Math.max(...dates) : null;
-}
-
-/** null when she may request now, otherwise the date she may request again. */
-export function getCooldownUntil() {
-  if (!POLICY.coolingOffDays) return null;
-  const last = lastRequestAt();
-  if (!last) return null;
-  const until = new Date(last + POLICY.coolingOffDays * 86400000);
-  return until.getTime() > Date.now() ? until : null;
-}
-
-/**
- * Why the withdrawal form cannot be shown, or null when it can.
- * 'disabled' | 'no-balance' | 'below-minimum' | 'cooldown'
- */
-export function getWithdrawalBlockReason() {
-  if (!POLICY.withdrawalsEnabled) return 'disabled';
-  const requestable = getRequestable();
-  if (requestable <= 0) return 'no-balance';
-  if (requestable < POLICY.minWithdrawal) return 'below-minimum';
-  if (getCooldownUntil()) return 'cooldown';
-  return null;
-}
-
-/** Upper bound for one request: the cap, or what is left unreserved. */
-export function getMaxRequestable() {
-  const requestable = getRequestable();
-  return POLICY.maxWithdrawal ? Math.min(POLICY.maxWithdrawal, requestable) : requestable;
-}
-
-/**
- * Validate an amount against policy and the unreserved balance.
- * Returns { ok: true } or { ok: false, key, vars } for the caller to translate.
- */
-export function validateAmount(raw) {
-  const trimmed = String(raw ?? '').trim();
-  if (!trimmed) return { ok: false, key: 'driver.withdraw.errEmpty' };
-  const amount = Number(trimmed);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { ok: false, key: 'driver.withdraw.errInvalid' };
-  }
-  if (amount < POLICY.minWithdrawal) {
-    return { ok: false, key: 'driver.withdraw.errMin', vars: { min: POLICY.minWithdrawal } };
-  }
-  const max = getMaxRequestable();
-  if (amount > max) {
-    return { ok: false, key: 'driver.withdraw.errMax', vars: { max } };
-  }
-  return { ok: true, amount: round2(amount) };
-}
-
-/** Create a pending request. Reserves the amount; posts no ledger entry. */
-export function requestWithdrawal(amount) {
-  const check = validateAmount(amount);
-  if (!check.ok) return check;
-  const request = {
-    id: `w-${Date.now()}`,
-    amount: check.amount,
-    status: 'pending',
-    requestedAt: new Date().toISOString().slice(0, 10),
-    decidedAt: null,
-    reason: null,
-  };
-  state.withdrawals = [request, ...state.withdrawals];
-  save(state);
-  return { ok: true, request };
-}
-
-/** Driver-side cancel — pending only. Releases the reservation. */
-export function cancelWithdrawal(id) {
-  const request = state.withdrawals.find((w) => w.id === id);
-  if (!request || request.status !== 'pending') return { ok: false };
-  request.status = 'cancelled';
-  request.decidedAt = new Date().toISOString().slice(0, 10);
-  save(state);
-  return { ok: true };
-}
-
 export function resetStore() {
-  state = { entries: seedEntries(), withdrawals: [] };
+  state = { entries: seedEntries() };
   save(state);
 }

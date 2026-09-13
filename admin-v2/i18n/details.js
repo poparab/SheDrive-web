@@ -379,6 +379,7 @@ export const en = {
     backToQueue: 'Back to the queue',
 
     statementHeading: "Reporting driver's statement",
+    noStatement: 'No statement was given. The trip snapshot below is the only evidence.',
     tripSnapshot: 'Trip snapshot',
     riderState: 'Reported rider',
     driverInfo: 'Reporting driver',
@@ -844,6 +845,7 @@ export const ar = {
     backToQueue: 'العودة لقائمة البلاغات',
 
     statementHeading: 'إفادة السائقة المُبلِّغة',
+    noStatement: 'لم تُقدَّم إفادة. بيانات الرحلة أدناه هي الدليل الوحيد.',
     tripSnapshot: 'بيانات الرحلة',
     riderState: 'الراكبة المُبلَّغ عنها',
     driverInfo: 'السائقة المُبلِّغة',

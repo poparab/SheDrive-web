@@ -72,32 +72,17 @@
           </div>
         </section>
 
-        <!-- Driver balance & withdrawal policy (#TBD-B) -->
+        <!-- Driver balance policy (#TBD-B) -->
         <section class="ad-section" aria-labelledby="balance-heading">
           <div class="ad-section__header">
             <div>
-              <h2 class="ad-section__title" id="balance-heading" data-i18n="policies.balanceHeading">Driver balance &amp; withdrawals</h2>
+              <h2 class="ad-section__title" id="balance-heading" data-i18n="policies.balanceHeading">Driver balance</h2>
               <p class="ad-section__hint" id="balance-meta"></p>
             </div>
           </div>
           <div class="ad-section__body">
             <form class="pricing__form" id="balance-form" novalidate>
               <div class="ad-form-error" id="balance-error" role="alert"></div>
-
-              <div class="pricing__form-row">
-                <div class="pricing__label-block">
-                  <label class="pricing__label" for="policy-withdrawalsEnabled" data-i18n="policies.balanceWithdrawals">Withdrawals</label>
-                  <span class="pricing__label-hint" data-i18n="policies.balanceWithdrawalsHint">
-                    When disabled, no driver is offered the withdrawal action in her app.
-                  </span>
-                </div>
-                <div class="field">
-                  <select class="input" id="policy-withdrawalsEnabled" name="withdrawalsEnabled">
-                    <option value="false" data-i18n="policies.balanceDisabled">Disabled</option>
-                    <option value="true" data-i18n="policies.balanceEnabled">Enabled</option>
-                  </select>
-                </div>
-              </div>
 
               <div id="balance-fields"></div>
               <p class="pricing__meta" id="balance-example"></p>
@@ -106,7 +91,7 @@
                   Reset
                 </button>
                 <button class="btn btn-primary btn--sm" type="submit" data-i18n="policies.saveBalance">
-                  Save balance &amp; withdrawal policy
+                  Save balance policy
                 </button>
               </div>
             </form>

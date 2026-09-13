@@ -32,8 +32,6 @@ import {
   ZONES_BY_ID,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
   PAYOUT_METHODS,
   SETTLEMENT_METHODS,
   makeZone,
@@ -71,8 +69,6 @@ applyMutations({
   makeZone,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
   recomputeBalances,
   RIDER_LEDGER_ENTRIES,
   RIDER_LEDGER_BY_RIDER,
@@ -173,16 +169,6 @@ function ledgerFor(driverId) {
   return (LEDGER_BY_DRIVER.get(String(driverId)) ?? []).slice();
 }
 
-/** Pending and approved withdrawals hold against the available balance. */
-function reservedFor(driverId) {
-  return round2(
-    allWithdrawals()
-      .filter((w) => w.driverId === String(driverId))
-      .filter((w) => w.status === 'pending' || w.status === 'approved')
-      .reduce((total, w) => total + w.amount, 0),
-  );
-}
-
 /** #TBD-F — a limit of 0 disables the gate entirely. */
 function isGoOnlineBlocked(driver) {
   const limit = GLOBAL_POLICIES.driverBalance.outstandingLimit;
@@ -270,19 +256,6 @@ function postRiderLedgerEntry(rider, type, amount, at, extra = {}) {
     outstanding: rider.outstanding,
   });
   return entry;
-}
-
-function allWithdrawals() {
-  return WITHDRAWALS.slice();
-}
-
-function withdrawalById(id) {
-  return WITHDRAWALS_BY_ID.get(String(id)) ?? null;
-}
-
-function applyWithdrawal(request, fields) {
-  Object.assign(request, fields);
-  patch('withdrawals', request.id, fields);
 }
 
 /** Build an audit entry without appending it twice — addAuditEntry does that. */
@@ -1258,12 +1231,12 @@ export const mockApi = {
     return respond({ ok: true });
   },
 
-  // ── Driver balance ledger (#TBD-A / #1813 / #TBD-E) ─
+  // ── Driver balance ledger (#TBD-A / #1813) ──────────
 
   /**
    * Enum options the settlement and payout forms bind to. These are config,
    * not list rows, so ?state=empty must not null them out — every screen that
-   * awaits this immediately before calling load() (balances.js, withdrawals.js,
+   * awaits this immediately before calling load() (balances.js,
    * rider-balances.js) would otherwise throw before its own ?state= handling
    * ever gets a chance to run.
    */
@@ -1273,7 +1246,7 @@ export const mockApi = {
       payoutMethods: PAYOUT_METHODS.slice(),
       policy: structuredClone(GLOBAL_POLICIES.driverBalance),
       // The rider-fee side of the same policy surface (spec §4) — used by
-      // rider-balances.html's waive/adjust forms and its recovery-mode pill.
+      // rider-balances.html's waive form and its recovery-mode pill.
       riderFeePolicy: structuredClone(GLOBAL_POLICIES.riderFee),
     };
     return respond(payload, { emptyValue: payload, latency: 120 });
@@ -1311,6 +1284,8 @@ export const mockApi = {
           lastSettlementAt: lastSettlement ? lastSettlement.at : null,
           // The go-online gate reads the live balance (#TBD-F).
           goOnlineBlocked: isGoOnlineBlocked(d),
+          // A payout cannot be recorded without one (spec §6).
+          payoutDestination: d.payoutDestination ?? null,
         };
       });
 
@@ -1332,8 +1307,8 @@ export const mockApi = {
         balance: driver.balance,
         outstanding: driver.outstanding,
         available: driver.available,
-        reserved: reservedFor(driverId),
         goOnlineBlocked: isGoOnlineBlocked(driver),
+        payoutDestination: driver.payoutDestination ?? null,
       },
       ...paginate(entries, page, pageSize),
     };
@@ -1398,31 +1373,66 @@ export const mockApi = {
   },
 
   /**
-   * #1813 Scenarios 8–9 — a manual correction. Positive credits the driver,
-   * negative debits her. Never overwrites an entry: it posts a reversing one.
+   * Financial core spec §5 — a driver never requests a payout. Finance
+   * transfers the money on its own cycle and this records that transfer
+   * after the fact, in the same place a settlement is recorded. Posts a
+   * `payout` debit; never edits the balance directly. Refused without a
+   * payout destination on file (spec §6), and refused for an amount above
+   * what SheDrive currently owes her.
    */
-  postAdjustment(driverId, { amount, reason } = {}) {
+  recordPayout(driverId, { amount, date, reference } = {}) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
-    const value = Number(amount);
-    if (!Number.isFinite(value) || value === 0) {
-      return Promise.reject(new MockApiError('Enter a non-zero amount.', 422));
-    }
-    if (!reason || String(reason).trim().length < 10) {
+    if (!driver.payoutDestination) {
       return Promise.reject(
-        new MockApiError('Reason must be between 10 and 500 characters.', 422),
+        new MockApiError('This driver has no payout destination on file.', 422),
       );
+    }
+    if (driver.available <= 0) {
+      return Promise.reject(new MockApiError('This driver has nothing available to pay out.', 409));
+    }
+
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return Promise.reject(new MockApiError('Enter a valid amount.', 422));
+    }
+    if (value > driver.available) {
+      return Promise.reject(
+        new MockApiError('Amount must not exceed the available balance.', 422),
+      );
+    }
+    if (!reference || !String(reference).trim()) {
+      return Promise.reject(new MockApiError('Enter a payout reference.', 422));
+    }
+
+    // Same today-or-earlier date rule as recordSettlement.
+    const now = Date.now();
+    let at = now;
+    if (date) {
+      const parsed = new Date(`${date}T12:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return Promise.reject(new MockApiError('Invalid date format.', 422));
+      }
+      const chosenDay = new Date(parsed).setHours(0, 0, 0, 0);
+      const today = new Date(now).setHours(0, 0, 0, 0);
+      if (chosenDay > today) {
+        return Promise.reject(new MockApiError('Date cannot be in the future.', 422));
+      }
+      at = chosenDay === today ? now : parsed.getTime();
     }
 
     const before = driver.balance;
-    const entry = postLedgerEntry(driver, 'adjustment', value, Date.now(), {
-      note: String(reason).trim(),
+    const entry = postLedgerEntry(driver, 'payout', -value, at, {
+      ref: String(reference).trim(),
+      destination: driver.payoutDestination,
+      note: 'Payout sent by Finance',
       actor: CURRENT_ADMIN.email,
     });
 
-    makeAuditEntry('adjustment', 'driver', driver.id, { balance: before }, { balance: driver.balance });
-    return respond({ ok: true, entry, balance: driver.balance, outstanding: driver.outstanding });
+    // before/after must be plain objects — see the note on recordSettlement.
+    makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
+    return respond({ ok: true, entry, balance: driver.balance, outstanding: driver.outstanding, available: driver.available });
   },
 
   // ── Rider fee ledger (financial core spec §2.2, FIN-11) ────
@@ -1504,200 +1514,24 @@ export const mockApi = {
       actor: CURRENT_ADMIN.email,
     });
 
-    makeAuditEntry('adjustment', 'rider', rider.id, { outstanding: before }, { outstanding: rider.outstanding });
+    makeAuditEntry('waive', 'rider', rider.id, { outstanding: before }, { outstanding: rider.outstanding });
     return respond({ ok: true, entry: posted, balance: rider.balance, outstanding: rider.outstanding });
   },
 
-  /**
-   * A manual correction to a rider's fee balance — same sign convention as the
-   * driver-side postAdjustment: the amount is added straight to her balance, so
-   * positive credits her (reduces what she owes), negative debits her (adds to
-   * what she owes).
-   */
-  postRiderAdjustment(riderId, { amount, reason } = {}) {
-    const rider = RIDERS_BY_ID.get(String(riderId));
-    if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
+  // ── Settlement export (financial core spec §5, §10) ───
+  // The settlement day-book screen was cut deliberately to keep Phase 1
+  // simple (spec §10) — a CSV export on balances.html is the one part of it
+  // worth keeping. This returns every settlement entry, unpaginated, for
+  // that export; it is not a list-screen endpoint.
 
-    const value = Number(amount);
-    if (!Number.isFinite(value) || value === 0) {
-      return Promise.reject(new MockApiError('Enter a non-zero amount.', 422));
-    }
-    if (!reason || String(reason).trim().length < 10) {
-      return Promise.reject(
-        new MockApiError('Reason must be between 10 and 500 characters.', 422),
-      );
-    }
-
-    const before = rider.outstanding;
-    const entry = postRiderLedgerEntry(rider, 'adjustment', value, Date.now(), {
-      note: String(reason).trim(),
-      actor: CURRENT_ADMIN.email,
-    });
-
-    makeAuditEntry('adjustment', 'rider', rider.id, { outstanding: before }, { outstanding: rider.outstanding });
-    return respond({ ok: true, entry, balance: rider.balance, outstanding: rider.outstanding });
-  },
-
-  // ── Settlement day book (financial core spec §5, FIN-12) ───
-
-  /**
-   * Every settlement recorded across every driver, for Finance to reconcile
-   * against the bank. Totals are computed over the whole filtered set (every
-   * matching settlement), not just the current page.
-   */
-  listSettlements({ from = '', to = '', method = 'all', adminId = 'all', page = 1, pageSize = 20, sort = null } = {}) {
-    const filtered = LEDGER_ENTRIES.filter(
-      (e) =>
-        e.type === 'settlement' &&
-        inDateRange(e.at, from, to) &&
-        (method === 'all' || e.method === method) &&
-        (adminId === 'all' || e.actor === adminId),
-    ).map((e) => {
-      const driver = DRIVERS_BY_ID.get(e.driverId);
-      return {
-        ...e,
-        driverName: driver ? driver.name : e.driverId,
-      };
-    });
-
-    const sorted = sortRows(filtered, sort, { key: 'at', dir: 'desc' });
-    const page1 = paginate(sorted, page, pageSize);
-
-    const byChannel = new Map();
-    const byAdmin = new Map();
-    let grandTotal = 0;
-    filtered.forEach((e) => {
-      grandTotal += e.amount;
-      const channel = byChannel.get(e.method) ?? { key: e.method, count: 0, amount: 0 };
-      channel.count += 1;
-      channel.amount = round2(channel.amount + e.amount);
-      byChannel.set(e.method, channel);
-
-      const admin = byAdmin.get(e.actor) ?? { key: e.actor, count: 0, amount: 0 };
-      admin.count += 1;
-      admin.amount = round2(admin.amount + e.amount);
-      byAdmin.set(e.actor, admin);
-    });
-
-    return respond(
-      {
-        ...page1,
-        totals: {
-          grandTotal: round2(grandTotal),
-          count: filtered.length,
-          byChannel: [...byChannel.values()].sort((a, b) => b.amount - a.amount),
-          byAdmin: [...byAdmin.values()].sort((a, b) => b.amount - a.amount),
-        },
-      },
-      {
-        emptyValue: {
-          ...emptyPage(pageSize),
-          totals: { grandTotal: 0, count: 0, byChannel: [], byAdmin: [] },
-        },
-      },
-    );
-  },
-
-  // ── Withdrawal requests (#TBD-E) ────────────────────
-
-  listWithdrawals({ status = 'pending', search = '', from = '', to = '', page = 1, pageSize = 20, sort = null } = {}) {
-    const term = search.trim().toLowerCase();
-
-    const rows = allWithdrawals()
-      .filter((w) => status === 'all' || w.status === status)
-      .filter((w) => inDateRange(w.requestedAt, from, to))
-      .filter((w) => {
-        if (!term) return true;
-        const driver = DRIVERS_BY_ID.get(w.driverId);
-        return w.driverName.toLowerCase().includes(term) || (driver?.phone ?? '').includes(term);
+  listSettlementEntries() {
+    const rows = LEDGER_ENTRIES.filter((e) => e.type === 'settlement')
+      .map((e) => {
+        const driver = DRIVERS_BY_ID.get(e.driverId);
+        return { ...e, driverName: driver ? driver.name : e.driverId };
       })
-      .map((w) => {
-        const driver = DRIVERS_BY_ID.get(w.driverId);
-        return {
-          ...w,
-          currentBalance: driver ? driver.balance : 0,
-          currentAvailable: driver ? driver.available : 0,
-          // #TBD-E Scenario 9 — her balance may have moved since she asked.
-          shortfall: driver ? round2(Math.max(0, w.amount - driver.available)) : w.amount,
-        };
-      });
-
-    const sorted = sortRows(rows, sort, { key: 'requestedAt', dir: 'desc' });
-    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
-  },
-
-  /**
-   * #TBD-E Scenarios 2–7 — approve, reject, or mark paid.
-   * Only mark-paid moves money: it posts the `withdrawal` debit to the ledger.
-   */
-  decideWithdrawal(id, action, { payoutMethod = '', payoutRef = '', reason = '' } = {}) {
-    const request = withdrawalById(id);
-    if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
-
-    const driver = DRIVERS_BY_ID.get(request.driverId);
-    const previous = request.status;
-
-    if (action === 'approve') {
-      if (previous !== 'pending') {
-        return Promise.reject(new MockApiError('Only a pending request can be approved.', 409));
-      }
-      // Spec §5 — a payout destination is required before a request can be
-      // approved, so it is on file by the time it reaches Mark paid.
-      if (!driver?.payoutDestination) {
-        return Promise.reject(
-          new MockApiError('This driver has no payout destination on file yet.', 422),
-        );
-      }
-      applyWithdrawal(request, { status: 'approved', decidedAt: Date.now(), decidedBy: CURRENT_ADMIN.email });
-    } else if (action === 'reject') {
-      if (previous !== 'pending') {
-        return Promise.reject(new MockApiError('Only a pending request can be rejected.', 409));
-      }
-      if (!reason || String(reason).trim().length < 10) {
-        return Promise.reject(
-          new MockApiError('Reason must be between 10 and 500 characters.', 422),
-        );
-      }
-      // Rejection releases the reservation and posts nothing to the ledger.
-      applyWithdrawal(request, {
-        status: 'rejected',
-        reason: String(reason).trim(),
-        decidedAt: Date.now(),
-        decidedBy: CURRENT_ADMIN.email,
-      });
-    } else if (action === 'pay') {
-      if (previous !== 'approved') {
-        return Promise.reject(new MockApiError('Approve the request before marking it paid.', 409));
-      }
-      if (!payoutMethod) {
-        return Promise.reject(new MockApiError('Select a payout method.', 422));
-      }
-      if (!driver || request.amount > driver.available) {
-        return Promise.reject(
-          new MockApiError('Her available balance no longer covers this request.', 409),
-        );
-      }
-      // This is the money-moving step — the only one that debits the ledger.
-      postLedgerEntry(driver, 'withdrawal', -request.amount, Date.now(), {
-        note: `Withdrawal ${request.id} paid by ${payoutMethod}`,
-        method: payoutMethod,
-        ref: payoutRef || null,
-        actor: CURRENT_ADMIN.email,
-      });
-      applyWithdrawal(request, {
-        status: 'paid',
-        payoutMethod,
-        payoutRef: payoutRef || null,
-        decidedAt: Date.now(),
-        decidedBy: CURRENT_ADMIN.email,
-      });
-    } else {
-      return Promise.reject(new MockApiError('Unknown action.', 400));
-    }
-
-    // before/after must be plain objects — see the note on recordSettlement.
-    makeAuditEntry('withdrawal', 'driver', request.driverId, { status: previous }, { status: request.status });
-    return respond({ ok: true, request: { ...request } });
+      .sort((a, b) => b.at - a.at);
+    return respond(rows, { emptyValue: [] });
   },
 
   // ── Reports (#1832, #1833) ──────────────────────────

@@ -185,7 +185,6 @@ cancelDialog?.addEventListener('sd-confirm', () => {
   sessionStorage.setItem('shedrive.pendingTrip', JSON.stringify({
     pickup: trip.pickup,
     destination: trip.destination,
-    childPassenger: trip.childPassenger,
     cancelled: true,
     cancellationFeeApplied: fee,
   }));

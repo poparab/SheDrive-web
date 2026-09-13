@@ -42,7 +42,8 @@
           <div class="balance-ledger__summary" id="ledger-summary"></div>
           <div class="balance-ledger__actions">
             <button type="button" class="btn btn--primary btn--sm" id="btn-settle" data-i18n="balances.recordSettlement">Record settlement</button>
-            <button type="button" class="btn btn--ghost btn--sm" id="btn-adjust" data-i18n="balances.postAdjustment">Post adjustment</button>
+            <button type="button" class="btn btn--primary btn--sm" id="btn-payout" data-i18n="balances.recordPayout">Record payout</button>
+            <span class="balance-ledger__hint" id="payout-hint" hidden data-i18n="balances.payoutNoDestinationHint">No payout destination on file.</span>
           </div>
           <ad-data-table id="ledger-table"></ad-data-table>
         </div>

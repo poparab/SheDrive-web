@@ -238,9 +238,33 @@ Two pre-existing bugs in this same file were also fixed while making this change
 because they are triggered by the pattern this work repeats:
 `getFinanceOptions()` had no `?state=empty` handling (returned `null`, which crashes
 any caller that dereferences it immediately — `rider-balances.js` does); and
-`recordSettlement`/`postAdjustment`/`decideWithdrawal` passed formatted strings as an
-audit entry's `before`/`after` where `audit-log.js` requires plain objects (`key in
-before` throws on a string), silently breaking the audit log for *any* settlement,
-driver adjustment or withdrawal decision, not just the new rider ones.
+`recordSettlement`/`postAdjustment` passed formatted strings as an audit entry's
+`before`/`after` where `audit-log.js` requires plain objects (`key in before` throws
+on a string), silently breaking the audit log for *any* settlement or driver
+adjustment, not just the new rider ones.
 
 Design: `docs/superpowers/specs/2026-09-08-financial-core-design.md`.
+
+## Intentional divergence from `admin/` — financial core simplification (2026-09-13)
+
+The spec above was rewritten on 2026-09-13 to cut three things deliberately, to keep
+Phase 1 simple. `admin/` (v1) never had any of this, so there is nothing to cut there.
+
+- **Driver-initiated payouts are gone.** There is no request, no approval queue, no
+  reservation, no minimum/maximum, no cooling-off period, and no driver-facing request
+  screen. `mock-api.js`'s `listWithdrawals`/`decideWithdrawal` and `driver/withdraw.html`
+  are deleted. In their place, `mock-api.js` gained `recordPayout` — Finance has already
+  sent the money, and this only writes it down, in the same place a settlement is
+  recorded (`balances.html`). The `withdrawal` ledger entry type was renamed `payout`.
+- **The settlement day book (`settlements.html`) is gone** — a report dressed as a
+  screen. `mock-api.js`'s `listSettlements` (with its by-channel/by-admin totals) was
+  replaced by a leaner `listSettlementEntries()` that feeds a CSV export button on
+  `balances.html` instead — the one part of the day book worth keeping.
+- **Post-adjustment is gone from both balance screens.** `mock-api.js`'s
+  `postAdjustment` (driver) and `postRiderAdjustment` (rider) are deleted, along with
+  the `adjustment` ledger entry type. `rider-balances.html` keeps `waiveRiderFee` — a
+  different action, and the only correction the rider ledger has. The driver ledger now
+  has **no correction mechanism at all** in Phase 1 (see the spec's own open item, §10).
+
+`nav.js`, `screens.js`, `_verify.html` and every EN/AR i18n key that existed only for
+the withdrawal queue, the day book or post-adjustment were removed with them.

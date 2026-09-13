@@ -1,9 +1,10 @@
 /**
  * balances.js — SheDrive admin driver balances & settlement (#1813)
  *
- * The balance is never edited. Recording a settlement or posting an adjustment
- * appends an immutable entry to the driver's ledger (#TBD-A) and the balance is
- * recomputed from it — which is also what unblocks her go-online (#TBD-F).
+ * The balance is never edited. Recording a settlement appends an immutable entry
+ * to the driver's ledger (#3991) and the balance is recomputed from it — which is
+ * also what unblocks her go-online (#3996). There is no adjustment action: nothing
+ * edits, deletes or reverses an entry.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -26,7 +27,7 @@ const modal = qs('#balance-modal');
 const query = { search: '', filter: 'owing', page: 1, pageSize: 20, sort: { key: 'outstanding', dir: 'desc' } };
 const ledgerQuery = { driverId: '', page: 1, pageSize: 20 };
 
-let options = { settlementMethods: [], payoutMethods: [], policy: {} };
+let options = { settlementMethods: [], policy: {} };
 let selected = null;
 
 const ENTRY_LABELS = {
@@ -35,8 +36,7 @@ const ENTRY_LABELS = {
   driver_cancellation_fee: 'Driver cancellation fee',
   rider_cancellation_fee_share: 'Rider cancellation fee share',
   settlement: 'Settlement received',
-  withdrawal: 'Withdrawal paid',
-  adjustment: 'Adjustment',
+  payout: 'Payout sent',
 };
 
 // ── Filters ──────────────────────────────────────────
@@ -202,7 +202,6 @@ function renderLedgerSummary(driver) {
     ['Balance', driver.balance >= 0 ? `+${formatEgp(driver.balance)}` : `−${formatEgp(Math.abs(driver.balance))}`],
     ['Outstanding', formatEgp(driver.outstanding)],
     ['Available', formatEgp(driver.available)],
-    ['Reserved for withdrawal', formatEgp(driver.reserved)],
   ];
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
@@ -291,48 +290,6 @@ qs('#btn-settle').addEventListener('click', () => {
     onConfirm: async (values) => {
       await mockApi.recordSettlement(selected.id, values);
       shell.showToast('Settlement recorded.', 'success');
-      await Promise.all([load(), loadLedger()]);
-    },
-  });
-});
-
-// ── Post adjustment (#1813 S8–S9) ────────────────────
-qs('#btn-adjust').addEventListener('click', () => {
-  if (!selected) return;
-  modal.open({
-    title: `Post adjustment — ${selected.name}`,
-    description:
-      'A correction is posted as a new entry, never by editing an existing one. A positive amount credits the driver; a negative amount debits her.',
-    confirmLabel: 'Post adjustment',
-    fields: [
-      {
-        key: 'amount',
-        type: 'number',
-        label: 'Adjustment amount (EGP)',
-        required: true,
-        min: -100000,
-        max: 100000,
-        step: 0.01,
-        hint: 'Positive credits the driver, negative debits her.',
-        emptyError: 'Enter an adjustment amount',
-        invalidError: 'Enter a valid amount',
-        rangeError: 'Amount must be between −100,000 and 100,000 and not zero',
-        validate: (value) => (Number(value) === 0 ? 'Amount cannot be zero' : null),
-      },
-      {
-        key: 'reason',
-        type: 'textarea',
-        label: 'Reason',
-        required: true,
-        minLength: 10,
-        maxLength: 500,
-        emptyError: 'Enter a reason for this adjustment',
-        lengthError: 'Reason must be between 10 and 500 characters',
-      },
-    ],
-    onConfirm: async (values) => {
-      await mockApi.postAdjustment(selected.id, values);
-      shell.showToast('Adjustment posted.', 'success');
       await Promise.all([load(), loadLedger()]);
     },
   });

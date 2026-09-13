@@ -79,7 +79,7 @@ const COMMISSION_FIELD = {
   rangeError: t('policies.commissionRange'),
 };
 
-/** #TBD-B — driver balance limit and withdrawal rules. */
+/** #TBD-B — driver balance limit. */
 const BALANCE_FIELDS = [
   {
     key: 'outstandingLimit',
@@ -92,42 +92,6 @@ const BALANCE_FIELDS = [
     emptyError: t('policies.limitEmpty'),
     invalidError: t('policies.amountInvalid'),
     rangeError: t('policies.limitRange'),
-  },
-  {
-    key: 'minWithdrawal',
-    label: t('policies.minLabel'),
-    unit: t('policies.unitEgp'),
-    hint: t('policies.minHint'),
-    integer: false,
-    min: 0.01,
-    max: 100000,
-    emptyError: t('policies.minEmpty'),
-    invalidError: t('policies.amountInvalid'),
-    rangeError: t('policies.minRange'),
-  },
-  {
-    key: 'maxWithdrawal',
-    label: t('policies.maxLabel'),
-    unit: t('policies.unitEgp'),
-    hint: t('policies.maxHint'),
-    integer: false,
-    min: 0.01,
-    max: 100000,
-    optional: true,
-    invalidError: t('policies.amountInvalid'),
-    rangeError: t('policies.maxRange'),
-  },
-  {
-    key: 'coolingOffDays',
-    label: t('policies.coolingLabel'),
-    unit: t('policies.unitDays'),
-    hint: t('policies.coolingHint'),
-    integer: true,
-    min: 0,
-    max: 30,
-    emptyError: t('policies.coolingEmpty'),
-    invalidError: t('policies.coolingInvalid'),
-    rangeError: t('policies.coolingRange'),
   },
 ];
 
@@ -294,11 +258,9 @@ qs('#cancel-form').addEventListener('submit', async (event) => {
   }
 });
 
-// ── Driver balance & withdrawals (#TBD-B) ─────────────
+// ── Driver balance (#TBD-B) ───────────────────────────
 
 let balanceControls = [];
-const withdrawalsToggle = qs('#policy-withdrawalsEnabled');
-withdrawalsToggle.addEventListener('change', () => updateBalanceExample());
 
 function balanceControl(key) {
   return balanceControls.find((c) => c.spec.key === key);
@@ -310,7 +272,6 @@ function renderBalanceSection() {
   balanceControls = BALANCE_FIELDS.map((spec) =>
     renderField(host, spec, policies.driverBalance[spec.key] ?? ''),
   );
-  withdrawalsToggle.value = String(Boolean(policies.driverBalance.withdrawalsEnabled));
   qs('#balance-meta').textContent = t('policies.lastChanged', {
     when: formatDateTime(policies.driverBalance.updatedAt),
     who: policies.driverBalance.updatedBy,
@@ -321,16 +282,13 @@ function renderBalanceSection() {
 
 function updateBalanceExample() {
   const limit = Number(balanceControl('outstandingLimit').input.value);
-  const enabled = withdrawalsToggle.value === 'true';
-  const gate =
+  qs('#balance-example').textContent =
     limit > 0
       ? t('policies.balanceExample', {
           warn: formatEgp(limit * 0.8),
           limit: formatEgp(limit),
         })
       : t('policies.balanceExampleOff');
-  qs('#balance-example').textContent =
-    `${gate} ${enabled ? t('policies.withdrawalsOpen') : t('policies.withdrawalsClosed')}`;
 }
 
 qs('#balance-form').addEventListener('submit', async (event) => {
@@ -341,22 +299,10 @@ qs('#balance-form').addEventListener('submit', async (event) => {
 
   if (!balanceControls.map(validate).every(Boolean)) return;
 
-  // The cap is meaningless below the floor (#TBD-B Scenario 6).
-  const min = Number(balanceControl('minWithdrawal').input.value);
-  const maxRaw = balanceControl('maxWithdrawal').input.value.trim();
-  if (maxRaw !== '' && Number(maxRaw) < min) {
-    showError(balanceControl('maxWithdrawal'), t('policies.maxBelowMin'));
-    return;
-  }
-
   try {
     await mockApi.savePolicies({
       driverBalance: {
         outstandingLimit: Number(balanceControl('outstandingLimit').input.value),
-        withdrawalsEnabled: withdrawalsToggle.value === 'true',
-        minWithdrawal: min,
-        maxWithdrawal: maxRaw === '' ? null : Number(maxRaw),
-        coolingOffDays: Number(balanceControl('coolingOffDays').input.value),
       },
     });
     policies = await mockApi.getPolicies();

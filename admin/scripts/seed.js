@@ -336,10 +336,6 @@ export const GLOBAL_POLICIES = {
   driverBalance: {
     // 0 disables the go-online block entirely (#TBD-F)
     outstandingLimit: 500,
-    withdrawalsEnabled: true,
-    minWithdrawal: 50,
-    maxWithdrawal: 2000,  // null = no cap
-    coolingOffDays: 7,
     updatedAt: NOW - 5 * DAY,
     updatedBy: ADMINS[0].email,
   },
@@ -810,10 +806,11 @@ export const AUDIT_ACTION_TYPES = [
 // ── Driver balance ledger (#TBD-A) ────────────────────
 // One signed balance per driver, in EGP. Negative means she owes the platform
 // (the Phase 1 cash norm: she keeps the fare, the commission is a debt);
-// positive means the platform owes her and she can withdraw it.
+// positive means the platform owes her and Finance sends her a payout.
 //
 // The balance is the sum of the ledger — nothing writes it directly. Every entry
-// is immutable; a mistake is corrected with a reversing `adjustment`.
+// is immutable. There is no correction mechanism: nothing edits, deletes or reverses
+// an entry (the post-adjustment action was cut on 2026-09-13).
 
 export const LEDGER_ENTRY_TYPES = [
   'trip_commission',
@@ -821,12 +818,13 @@ export const LEDGER_ENTRY_TYPES = [
   'driver_cancellation_fee',
   'rider_cancellation_fee_share',
   'settlement',
-  'withdrawal',
-  'adjustment',
+  'payout',
 ];
 
 export const SETTLEMENT_METHODS = ['Cash at office', 'Bank transfer', 'Deducted from payout'];
-export const PAYOUT_METHODS = ['Cash at office', 'Bank transfer', 'Mobile wallet'];
+
+/** How Finance recorded a past payout transfer — used only to seed realistic ledger notes. */
+const PAYOUT_METHODS = ['Cash at office', 'Bank transfer', 'Mobile wallet'];
 
 let ledgerSeq = 0;
 const ledgerId = () => `led-${String(++ledgerSeq).padStart(5, '0')}`;
@@ -897,21 +895,21 @@ for (const driver of DRIVERS) {
   ).reduce((total, e) => total + e.amount, 0);
 
   if (earned > 0) {
-    // Most drivers have been paid out in full; the rest still have something to
-    // withdraw, which is what gives the withdrawals queue anything to review.
-    let toDraw = round2(earned * (rand() < 0.55 ? 1 : between(0.2, 0.6)));
+    // Most drivers have been paid out in full; the rest still have a balance
+    // sitting in credit, waiting for Finance's next transfer cycle.
+    let toPay = round2(earned * (rand() < 0.55 ? 1 : between(0.2, 0.6)));
     const payouts = intBetween(1, 2);
-    for (let i = 0; i < payouts && toDraw > 0; i += 1) {
-      const slice = i === payouts - 1 ? toDraw : round2(toDraw * between(0.4, 0.6));
+    for (let i = 0; i < payouts && toPay > 0; i += 1) {
+      const slice = i === payouts - 1 ? toPay : round2(toPay * between(0.4, 0.6));
       LEDGER.push(
-        ledgerEntry(driver.id, 'withdrawal', -slice, NOW - intBetween(2, 50) * DAY, {
+        ledgerEntry(driver.id, 'payout', -slice, NOW - intBetween(2, 50) * DAY, {
           method: pick(PAYOUT_METHODS),
           ref: `P-${intBetween(10000, 99999)}`,
-          note: 'Withdrawal paid to driver',
+          note: 'Payout sent to driver',
           actor: pick(ADMINS).email,
         }),
       );
-      toDraw = round2(toDraw - slice);
+      toPay = round2(toPay - slice);
     }
   }
 
@@ -961,61 +959,6 @@ export function recomputeBalances() {
 }
 
 recomputeBalances();
-
-// ── Withdrawal requests (#TBD-C / #TBD-E) ─────────────
-// A request reserves against the available balance; the ledger is debited only
-// when Finance marks it paid.
-
-// Weighted so the review queue is never empty on a fresh load — pending and
-// approved are the states an operator actually works.
-const WITHDRAWAL_STATUSES = [
-  'pending', 'pending', 'pending',
-  'approved', 'approved',
-  'paid', 'paid',
-  'rejected',
-  'cancelled',
-];
-
-let withdrawalSeq = 0;
-
-const WITHDRAWAL_LIST = [];
-
-for (const driver of DRIVERS.filter((d) => d.available > 0)) {
-  const count = intBetween(0, 2);
-  // Live requests reserve against the available balance, so seeded ones must not
-  // together exceed it — the same rule the API enforces (#TBD-C Scenario 3).
-  let unreserved = driver.available;
-
-  for (let i = 0; i < count; i += 1) {
-    const status = pick(WITHDRAWAL_STATUSES);
-    const holdsReservation = status === 'pending' || status === 'approved';
-    const minimum = GLOBAL_POLICIES.driverBalance.minWithdrawal;
-    const ceiling = holdsReservation ? unreserved : driver.available;
-    if (ceiling < minimum) break;
-
-    const amount = round2(Math.min(ceiling, intBetween(minimum, 1200)));
-    if (holdsReservation) unreserved = round2(unreserved - amount);
-
-    const requestedAt = NOW - intBetween(1, 45) * DAY;
-    const decided = status !== 'pending';
-    WITHDRAWAL_LIST.push({
-      id: `wd-${String(++withdrawalSeq).padStart(4, '0')}`,
-      driverId: String(driver.id),
-      driverName: driver.name,
-      amount,
-      status,
-      requestedAt,
-      decidedAt: decided ? requestedAt + intBetween(1, 5) * DAY : null,
-      decidedBy: decided ? pick(ADMINS).email : null,
-      payoutMethod: status === 'paid' ? pick(PAYOUT_METHODS) : null,
-      payoutRef: status === 'paid' ? `P-${intBetween(10000, 99999)}` : null,
-      reason: status === 'rejected' ? 'Balance could not be verified against her settlement record.' : null,
-    });
-  }
-}
-
-export const WITHDRAWALS = WITHDRAWAL_LIST.sort((a, b) => b.requestedAt - a.requestedAt);
-export const WITHDRAWALS_BY_ID = new Map(WITHDRAWALS.map((w) => [w.id, w]));
 
 export const RIDERS_BY_ID = new Map(RIDERS.map((r) => [String(r.id), r]));
 export const DRIVERS_BY_ID = new Map(DRIVERS.map((d) => [String(d.id), d]));

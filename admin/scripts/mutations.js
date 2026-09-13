@@ -28,7 +28,6 @@ const EMPTY = {
   auditAdded: [],
   policies: null,
   ledgerAdded: [],      // driver balance ledger entries posted this session (#TBD-A)
-  withdrawals: {},      // id -> patched fields (status, payout, reason)
 };
 
 function read() {
@@ -136,8 +135,6 @@ export function applyMutations({
   makeZone,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
   recomputeBalances,
 }) {
   applyPatches(DRIVERS, state.drivers);
@@ -201,14 +198,6 @@ export function applyMutations({
     });
     LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
     LEDGER_BY_DRIVER.forEach((list) => list.sort((a, b) => b.at - a.at));
-  }
-
-  if (WITHDRAWALS_BY_ID) {
-    Object.entries(state.withdrawals).forEach(([id, fields]) => {
-      const request = WITHDRAWALS_BY_ID.get(String(id));
-      if (request) Object.assign(request, fields);
-    });
-    if (WITHDRAWALS) WITHDRAWALS.sort((a, b) => b.requestedAt - a.requestedAt);
   }
 
   if (typeof recomputeBalances === 'function') recomputeBalances();

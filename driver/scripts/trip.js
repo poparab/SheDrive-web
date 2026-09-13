@@ -4,7 +4,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate, applyTranslations, I18N_EVENT } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs, startWaitingCounter } from '../../shared/scripts/utils.js';
 
@@ -24,9 +24,6 @@ const previewParams = new URLSearchParams(location.search);
 const previewState  = previewParams.get('state');
 const previewCancel = previewParams.get('cancel');
 const PREVIEW_STATES = ['en-route', 'arrived', 'verify-rider', 'in-ride'];
-// `?child=1` forces the declared-child branch of the verify gate (#1588 S2) so the
-// exception can be deep-linked from the design story without seeding a trip.
-const previewChild = previewParams.get('child') === '1';
 const CANCEL_PREVIEWS = { free: 'en-route', fee: 'en-route', waiting: 'arrived', 'no-show': 'arrived' };
 
 const initialState = PREVIEW_STATES.includes(previewState)
@@ -129,42 +126,6 @@ function startWaiting() {
 }
 
 if (getState() === 'arrived' || getState() === 'verify-rider') startWaiting();
-
-// ── Declared child passenger (#1588 S2 / #1783) ───
-// A declared child may ride whatever their gender — the single exception to the
-// women-only rule. The gender-mismatch cancel is withdrawn, not merely disabled, so
-// the driver cannot report a child she was told to expect.
-const isChildPassenger = previewChild || !!tripData.childPassenger;
-
-function applyChildMode() {
-  const notice   = qs('#child-notice');
-  const prompt   = qs('#verify-prompt');
-  const failBtn  = qs('#verify-fail-btn');
-  const okBtn    = qs('#verify-ok-btn');
-  if (!notice) return;
-
-  notice.hidden = !isChildPassenger;
-  if (failBtn) failBtn.hidden = isChildPassenger;
-
-  // Swap the prompt and the confirm label so the driver is asked to verify a child
-  // boarding, not a female rider.
-  if (prompt) {
-    prompt.setAttribute(
-      'data-i18n',
-      isChildPassenger ? 'verifyRider.childPrompt' : 'driver.trip.arrived.prompt'
-    );
-  }
-  if (okBtn) {
-    okBtn.setAttribute(
-      'data-i18n',
-      isChildPassenger ? 'verifyRider.childConfirm' : 'verifyRider.confirmed'
-    );
-  }
-  applyTranslations();
-}
-
-applyChildMode();
-document.addEventListener(I18N_EVENT, applyChildMode);
 
 // ── Arrived button → branch verify / start ────────
 qs('#arrived-btn')?.addEventListener('click', () => {

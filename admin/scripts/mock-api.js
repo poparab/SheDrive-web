@@ -30,9 +30,6 @@ import {
   ZONES_BY_ID,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
-  PAYOUT_METHODS,
   SETTLEMENT_METHODS,
   makeZone,
   recomputeBalances,
@@ -63,8 +60,6 @@ applyMutations({
   makeZone,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
   recomputeBalances,
 });
 
@@ -162,16 +157,6 @@ function ledgerFor(driverId) {
   return (LEDGER_BY_DRIVER.get(String(driverId)) ?? []).slice();
 }
 
-/** Pending and approved withdrawals hold against the available balance. */
-function reservedFor(driverId) {
-  return round2(
-    allWithdrawals()
-      .filter((w) => w.driverId === String(driverId))
-      .filter((w) => w.status === 'pending' || w.status === 'approved')
-      .reduce((total, w) => total + w.amount, 0),
-  );
-}
-
 /** #TBD-F — a limit of 0 disables the gate entirely. */
 function isGoOnlineBlocked(driver) {
   const limit = GLOBAL_POLICIES.driverBalance.outstandingLimit;
@@ -210,19 +195,6 @@ function postLedgerEntry(driver, type, amount, at, extra = {}) {
     cashBalance: driver.cashBalance,
   });
   return entry;
-}
-
-function allWithdrawals() {
-  return WITHDRAWALS.slice();
-}
-
-function withdrawalById(id) {
-  return WITHDRAWALS_BY_ID.get(String(id)) ?? null;
-}
-
-function applyWithdrawal(request, fields) {
-  Object.assign(request, fields);
-  patch('withdrawals', request.id, fields);
 }
 
 /** Build an audit entry without appending it twice — addAuditEntry does that. */
@@ -1073,14 +1045,13 @@ export const mockApi = {
     return respond({ ok: true });
   },
 
-  // ── Driver balance ledger (#TBD-A / #1813 / #TBD-E) ─
+  // ── Driver balance ledger (#TBD-A / #1813) ──────────
 
-  /** Enum options the settlement and payout forms bind to. */
+  /** Enum options the settlement form binds to. */
   getFinanceOptions() {
     return respond(
       {
         settlementMethods: SETTLEMENT_METHODS.slice(),
-        payoutMethods: PAYOUT_METHODS.slice(),
         policy: structuredClone(GLOBAL_POLICIES.driverBalance),
       },
       { latency: 120 },
@@ -1140,7 +1111,6 @@ export const mockApi = {
         balance: driver.balance,
         outstanding: driver.outstanding,
         available: driver.available,
-        reserved: reservedFor(driverId),
         goOnlineBlocked: isGoOnlineBlocked(driver),
       },
       ...paginate(entries, page, pageSize),
@@ -1205,126 +1175,6 @@ export const mockApi = {
    * #1813 Scenarios 8–9 — a manual correction. Positive credits the driver,
    * negative debits her. Never overwrites an entry: it posts a reversing one.
    */
-  postAdjustment(driverId, { amount, reason } = {}) {
-    const driver = DRIVERS_BY_ID.get(String(driverId));
-    if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
-
-    const value = Number(amount);
-    if (!Number.isFinite(value) || value === 0) {
-      return Promise.reject(new MockApiError('Enter a non-zero amount.', 422));
-    }
-    if (!reason || String(reason).trim().length < 10) {
-      return Promise.reject(
-        new MockApiError('Reason must be between 10 and 500 characters.', 422),
-      );
-    }
-
-    const before = driver.balance;
-    const entry = postLedgerEntry(driver, 'adjustment', value, Date.now(), {
-      note: String(reason).trim(),
-      actor: CURRENT_ADMIN.email,
-    });
-
-    recordAuditEntry(
-      makeAuditEntry('adjustment', 'driver', driver.id, `${before} EGP`, `${driver.balance} EGP`),
-    );
-    return respond({ ok: true, entry, balance: driver.balance, outstanding: driver.outstanding });
-  },
-
-  // ── Withdrawal requests (#TBD-E) ────────────────────
-
-  listWithdrawals({ status = 'pending', search = '', from = '', to = '', page = 1, pageSize = 20, sort = null } = {}) {
-    const term = search.trim().toLowerCase();
-
-    const rows = allWithdrawals()
-      .filter((w) => status === 'all' || w.status === status)
-      .filter((w) => inDateRange(w.requestedAt, from, to))
-      .filter((w) => {
-        if (!term) return true;
-        const driver = DRIVERS_BY_ID.get(w.driverId);
-        return w.driverName.toLowerCase().includes(term) || (driver?.phone ?? '').includes(term);
-      })
-      .map((w) => {
-        const driver = DRIVERS_BY_ID.get(w.driverId);
-        return {
-          ...w,
-          currentBalance: driver ? driver.balance : 0,
-          currentAvailable: driver ? driver.available : 0,
-          // #TBD-E Scenario 9 — her balance may have moved since she asked.
-          shortfall: driver ? round2(Math.max(0, w.amount - driver.available)) : w.amount,
-        };
-      });
-
-    const sorted = sortRows(rows, sort, { key: 'requestedAt', dir: 'desc' });
-    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
-  },
-
-  /**
-   * #TBD-E Scenarios 2–7 — approve, reject, or mark paid.
-   * Only mark-paid moves money: it posts the `withdrawal` debit to the ledger.
-   */
-  decideWithdrawal(id, action, { payoutMethod = '', payoutRef = '', reason = '' } = {}) {
-    const request = withdrawalById(id);
-    if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
-
-    const driver = DRIVERS_BY_ID.get(request.driverId);
-    const previous = request.status;
-
-    if (action === 'approve') {
-      if (previous !== 'pending') {
-        return Promise.reject(new MockApiError('Only a pending request can be approved.', 409));
-      }
-      applyWithdrawal(request, { status: 'approved', decidedAt: Date.now(), decidedBy: CURRENT_ADMIN.email });
-    } else if (action === 'reject') {
-      if (previous !== 'pending') {
-        return Promise.reject(new MockApiError('Only a pending request can be rejected.', 409));
-      }
-      if (!reason || String(reason).trim().length < 10) {
-        return Promise.reject(
-          new MockApiError('Reason must be between 10 and 500 characters.', 422),
-        );
-      }
-      // Rejection releases the reservation and posts nothing to the ledger.
-      applyWithdrawal(request, {
-        status: 'rejected',
-        reason: String(reason).trim(),
-        decidedAt: Date.now(),
-        decidedBy: CURRENT_ADMIN.email,
-      });
-    } else if (action === 'pay') {
-      if (previous !== 'approved') {
-        return Promise.reject(new MockApiError('Approve the request before marking it paid.', 409));
-      }
-      if (!payoutMethod) {
-        return Promise.reject(new MockApiError('Select a payout method.', 422));
-      }
-      if (!driver || request.amount > driver.available) {
-        return Promise.reject(
-          new MockApiError('Her available balance no longer covers this request.', 409),
-        );
-      }
-      // This is the money-moving step — the only one that debits the ledger.
-      postLedgerEntry(driver, 'withdrawal', -request.amount, Date.now(), {
-        note: `Withdrawal ${request.id} paid by ${payoutMethod}`,
-        method: payoutMethod,
-        ref: payoutRef || null,
-        actor: CURRENT_ADMIN.email,
-      });
-      applyWithdrawal(request, {
-        status: 'paid',
-        payoutMethod,
-        payoutRef: payoutRef || null,
-        decidedAt: Date.now(),
-        decidedBy: CURRENT_ADMIN.email,
-      });
-    } else {
-      return Promise.reject(new MockApiError('Unknown action.', 400));
-    }
-
-    recordAuditEntry(makeAuditEntry('withdrawal', 'driver', request.driverId, previous, request.status));
-    return respond({ ok: true, request: { ...request } });
-  },
-
   // ── Reports (#1832, #1833) ──────────────────────────
 
   getRevenueSummary({ from = '', to = '', zoneId = 'all' } = {}) {

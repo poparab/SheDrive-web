@@ -1,8 +1,9 @@
 /**
  * payments.js — Rider payment method + outstanding fees (spec §7.1, #3992/#4004)
  *
- * Cash is the only selectable method in Phase 1; online payment is shown but
- * inert. Outstanding fees are read from fee-store.js — a fee is recovered as a
+ * Payment is cash-only — the method section is a static statement, not a
+ * selectable option, so there is no online-payment affordance to wire up.
+ * Outstanding fees are read from fee-store.js — a fee is recovered as a
  * cash surcharge on her next trip, so this screen only ever shows what is still
  * unpaid, oldest first.
  *
@@ -44,13 +45,13 @@ function showError(on) {
  * Above the recovery threshold her whole balance comes off the next ride at once, not
  * one fee at a time. This notice says so. It is never a block — she can always book.
  */
-function renderBlockedNotice() {
-  const notice = qs('#fees-blocked-notice');
+function renderFullRecoveryNotice() {
+  const notice = qs('#fees-full-recovery-notice');
   const full = getRecoveryState() === 'full';
   notice.hidden = !full;
   notice.setAttribute('aria-hidden', String(!full));
   if (!full) return;
-  qs('#fees-blocked-notice-msg').textContent = translate('fees.fullRecoveryNotice', {
+  qs('#fees-full-recovery-notice-msg').textContent = translate('fees.fullRecoveryNotice', {
     owed: getOutstandingTotal(),
     threshold: POLICY.recoveryThreshold,
   });
@@ -115,7 +116,7 @@ function renderFees() {
 
 function render() {
   if (failed) return;
-  renderBlockedNotice();
+  renderFullRecoveryNotice();
   renderFees();
 }
 

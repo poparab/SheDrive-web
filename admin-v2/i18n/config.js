@@ -145,40 +145,19 @@ export const en = {
 
   // ── Global pricing policies (#1759) ─────────────────
   policies: {
-    balanceHeading: 'Driver balance & withdrawals',
-    balanceWithdrawals: 'Withdrawals',
-    balanceWithdrawalsHint:
-      'When disabled, no driver is offered the withdrawal action in her app.',
-    balanceEnabled: 'Enabled',
-    balanceDisabled: 'Disabled',
-    saveBalance: 'Save balance & withdrawal policy',
-    balanceSaved: 'Driver balance and withdrawal policy saved.',
+    balanceHeading: 'Driver balance',
+    saveBalance: 'Save balance policy',
+    balanceSaved: 'Driver balance policy saved.',
     limitLabel: 'Outstanding balance limit',
     limitHint:
       'How much a driver may owe before she is stopped from going online. Set to 0 to disable the block.',
     limitEmpty: 'Enter the outstanding balance limit',
     limitRange: 'Must be between 0 and 100,000 EGP',
-    minLabel: 'Minimum withdrawal amount',
-    minHint: 'The smallest amount a driver may request in one withdrawal.',
-    minEmpty: 'Enter the minimum withdrawal amount',
-    minRange: 'Must be greater than 0 and at most 100,000 EGP',
-    maxLabel: 'Maximum withdrawal per request',
-    maxHint: 'Leave empty for no cap. Must not be less than the minimum.',
-    maxRange: 'Must be greater than 0 and at most 100,000 EGP',
-    maxBelowMin: 'Maximum must not be less than the minimum',
-    coolingLabel: 'Cooling-off period between requests',
-    coolingHint: 'How long a driver must wait before requesting again. 0 allows same-day repeats.',
-    coolingEmpty: 'Enter the cooling-off period',
-    coolingInvalid: 'Enter a whole number of days',
-    coolingRange: 'Must be between 0 and 30 days',
     unitEgp: 'EGP',
-    unitDays: 'days',
     balanceExample:
       'A driver is warned from {warn} and blocked from going online at {limit}.',
     balanceExampleOff:
       'The go-online balance block is disabled — a driver can work whatever she owes.',
-    withdrawalsOpen: 'Withdrawals are open to drivers in credit.',
-    withdrawalsClosed: 'Withdrawals are closed.',
     title: 'Global pricing policies',
     notice1: 'These policies apply across',
     notice2: 'all zones',
@@ -273,7 +252,7 @@ export const en = {
     settlementHeading: 'Settlement',
     settleHeading: 'Settlement',
     settleHint:
-      'Recording a settlement, posting an adjustment and reviewing the full transaction ' +
+      'Recording a settlement, recording a payout and reviewing the full transaction ' +
       'ledger are handled on the Driver balances screen, where the entry is posted and the ' +
       'balance is recomputed from it.',
     settleLink: 'Open driver balances',
@@ -338,23 +317,15 @@ export const en = {
     titleBalances: 'Driver balances & settlement',
     notesBalances:
       'The balance is the sum of an immutable ledger, never a stored figure. Recording a ' +
-      'settlement or posting an adjustment appends an entry and the balance is recomputed ' +
-      '— which is what unblocks a driver stopped by the go-online balance limit.',
-    titleWithdrawals: 'Withdrawal requests',
-    notesWithdrawals:
-      'Approve and reject are decisions; only "Mark paid" moves money and posts the ' +
-      'withdrawal debit to the ledger. A rejection releases the reservation and returns ' +
-      'the reason to the driver.',
+      'settlement or a payout appends an entry and the balance is recomputed — which is ' +
+      'what unblocks a driver stopped by the go-online balance limit. A driver never ' +
+      'requests a payout: Finance sends it first, and this only writes it down. The ' +
+      'ledger has no correction mechanism in Phase 1 — the post-adjustment action was cut.',
     titleRiderBalances: 'Rider balances',
     notesRiderBalances:
       'The rider side of the same ledger model: a late-cancellation fee is a debit, recovered ' +
-      'as a surcharge or waived with a reason. Waiving and adjusting both post an immutable ' +
-      'entry — never edit an existing one.',
-    titleSettlements: 'Settlement day book',
-    notesSettlements:
-      'A read-only report over the driver-balance ledger\'s settlement entries: every cash ' +
-      'handed in, totalled by channel and by admin, filterable by date and exportable as CSV ' +
-      '— the artefact Finance reconciles against the bank.',
+      'as a surcharge or waived with a reason. Waiving posts an immutable entry — never ' +
+      'edits an existing one.',
     pageTitle: 'SheDrive Admin — Mockup screen index',
     brandLabel: 'Admin portal — coded mockups',
     indexTitle: 'Mockup screen index',
@@ -630,36 +601,16 @@ export const ar = {
 
   // ── السياسات العالمية للأسعار ──────────────────────
   policies: {
-    balanceHeading: 'رصيد السائقة وطلبات السحب',
-    balanceWithdrawals: 'السحب',
-    balanceWithdrawalsHint: 'عند التعطيل لا يظهر خيار السحب لأي سائقة في تطبيقها.',
-    balanceEnabled: 'مفعّل',
-    balanceDisabled: 'معطّل',
-    saveBalance: 'حفظ سياسة الرصيد والسحب',
-    balanceSaved: 'تم حفظ سياسة رصيد السائقة والسحب.',
+    balanceHeading: 'رصيد السائقة',
+    saveBalance: 'حفظ سياسة الرصيد',
+    balanceSaved: 'تم حفظ سياسة رصيد السائقة.',
     limitLabel: 'حد الرصيد المستحق',
     limitHint: 'الحد الذي إذا بلغته مديونية السائقة مُنعت من الاتصال. اضبطه على 0 لتعطيل الحظر.',
     limitEmpty: 'أدخل حد الرصيد المستحق',
     limitRange: 'يجب أن تكون القيمة بين 0 و100,000 جنيه',
-    minLabel: 'الحد الأدنى لمبلغ السحب',
-    minHint: 'أقل مبلغ يمكن للسائقة طلبه في عملية سحب واحدة.',
-    minEmpty: 'أدخل الحد الأدنى لمبلغ السحب',
-    minRange: 'يجب أن يكون أكبر من 0 وألا يتجاوز 100,000 جنيه',
-    maxLabel: 'الحد الأقصى للسحب في الطلب الواحد',
-    maxHint: 'اتركه فارغاً لعدم وضع حد أقصى. ويجب ألا يقل عن الحد الأدنى.',
-    maxRange: 'يجب أن يكون أكبر من 0 وألا يتجاوز 100,000 جنيه',
-    maxBelowMin: 'يجب ألا يقل الحد الأقصى عن الحد الأدنى',
-    coolingLabel: 'فترة الانتظار بين الطلبات',
-    coolingHint: 'المدة التي تنتظرها السائقة قبل تقديم طلب جديد. القيمة 0 تسمح بالطلب في اليوم نفسه.',
-    coolingEmpty: 'أدخل فترة الانتظار بين الطلبات',
-    coolingInvalid: 'أدخل عدد أيام صحيح',
-    coolingRange: 'يجب أن تكون بين 0 و30 يوماً',
     unitEgp: 'جنيه',
-    unitDays: 'أيام',
     balanceExample: 'يتم تنبيه السائقة من {warn} وتُمنع من الاتصال عند {limit}.',
     balanceExampleOff: 'حظر الاتصال بسبب الرصيد معطّل — يمكن للسائقة العمل مهما بلغت مديونيتها.',
-    withdrawalsOpen: 'السحب متاح للسائقات اللاتي لهن رصيد دائن.',
-    withdrawalsClosed: 'السحب مغلق.',
     title: 'السياسات العالمية للأسعار',
     notice1: 'تنطبق هذه السياسات على',
     notice2: 'جميع المناطق',
@@ -753,7 +704,7 @@ export const ar = {
     settlementHeading: 'التسوية',
     settleHeading: 'التسوية',
     settleHint:
-      'تسجيل التسوية والتسويات اليدوية ومراجعة كشف الحساب الكامل تتم من شاشة أرصدة ' +
+      'تسجيل التسوية وتسجيل الدفعة ومراجعة كشف الحساب الكامل تتم من شاشة أرصدة ' +
       'السائقات، حيث يُقيَّد البند ويُعاد احتساب الرصيد منه.',
     settleLink: 'فتح أرصدة السائقات',
     colTripDate: 'تاريخ الرحلة',
@@ -817,22 +768,15 @@ export const ar = {
     titleBalances: 'أرصدة السائقات والتسويات',
     notesBalances:
       'الرصيد هو حاصل جمع كشف حساب غير قابل للتعديل، وليس رقماً مخزّناً. تسجيل التسوية ' +
-      'أو التسوية اليدوية يضيف قيداً ويُعاد احتساب الرصيد منه — وهو ما يرفع الحظر عن ' +
-      'السائقة الممنوعة من الاتصال بسبب حد الرصيد.',
-    titleWithdrawals: 'طلبات السحب',
-    notesWithdrawals:
-      'الموافقة والرفض قراران؛ أما "تم الصرف" فهو وحده ما يحرّك المال ويقيّد السحب ' +
-      'مديناً في كشف الحساب. والرفض يحرّر الحجز ويُعيد السبب إلى السائقة.',
+      'أو الدفعة يضيف قيداً ويُعاد احتساب الرصيد منه — وهو ما يرفع الحظر عن السائقة ' +
+      'الممنوعة من الاتصال بسبب حد الرصيد. والسائقة لا تطلب دفعة أبداً: إدارة المالية ' +
+      'ترسلها أولاً، وهذا التسجيل يوثّقها فقط. ولا توجد وسيلة تصحيح في المرحلة الأولى — ' +
+      'تم إلغاء إجراء التسوية اليدوية.',
     titleRiderBalances: 'أرصدة الراكبات',
     notesRiderBalances:
       'الوجه الآخر لنفس نموذج كشف الحساب: رسم الإلغاء المتأخر قيد مدين، يُسترد كرسم ' +
-      'إضافي أو يُشطب بذكر سبب. الشطب والتسوية اليدوية كلاهما يُقيَّد كحركة جديدة ثابتة ' +
-      '— ولا يُعدَّل على حركة قائمة أبدًا.',
-    titleSettlements: 'دفتر التسويات اليومي',
-    notesSettlements:
-      'تقرير للقراءة فقط فوق حركات التسوية في كشف حساب السائقات: كل مبلغ نقدي تم ' +
-      'استلامه، مجمّعاً حسب القناة وحسب المدير، قابل للتصفية بالتاريخ والتصدير كملف ' +
-      'CSV — وهو المستند الذي تُطابق عليه المالية حساب البنك.',
+      'إضافي أو يُشطب بذكر سبب. الشطب يُقيَّد كحركة جديدة ثابتة — ولا يُعدَّل على حركة ' +
+      'قائمة أبدًا.',
     pageTitle: 'إدارة شي درايف — دليل الشاشات',
     brandLabel: 'لوحة الإدارة — نماذج مبرمجة',
     indexTitle: 'دليل الشاشات',

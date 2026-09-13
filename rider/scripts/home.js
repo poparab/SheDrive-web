@@ -45,7 +45,6 @@ const pinCancelBtn     = qs('#pin-cancel-btn');
 const recentBlock      = qs('#search-recent-block');
 const suggestionsList  = qs('#search-suggestions-list');
 const noResultsEl      = qs('#search-no-results');
-const childToggleInput = qs('#child-toggle-input');
 const locationStatus   = qs('#location-status');
 
 // ── Restore pickup/destination after a cancelled trip (#1719/#1852) ──
@@ -68,7 +67,6 @@ let _pickupRestored = false;
     if (destinationInput) destinationInput.value = pending.destination;
     if (fareDestLabel) fareDestLabel.textContent = pending.destination;
   }
-  if (childToggleInput) childToggleInput.checked = !!pending.childPassenger;
 
   if (pending.pickup && pending.destination && !checkSameLocation()) {
     setState('fare');
@@ -331,15 +329,6 @@ fareRetryBtn?.addEventListener('click', () => {
   }
 });
 
-// ── Child-passenger declaration (#1790) — persisted with the pending trip ──
-childToggleInput?.addEventListener('change', () => {
-  const pending = JSON.parse(sessionStorage.getItem('shedrive.pendingTrip') || 'null');
-  if (pending) {
-    pending.childPassenger = !!childToggleInput.checked;
-    sessionStorage.setItem('shedrive.pendingTrip', JSON.stringify(pending));
-  }
-});
-
 // ── Operating hours (#1791) — Phase 1 is daytime-only ────
 const OPERATING_HOURS = { start: 6, end: 23 }; // 06:00–23:00 local time
 
@@ -410,6 +399,5 @@ function storePendingTrip(destination) {
   sessionStorage.setItem('shedrive.pendingTrip', JSON.stringify({
     pickup: pickupInput?.value || '',
     destination,
-    childPassenger: !!childToggleInput?.checked,
   }));
 }

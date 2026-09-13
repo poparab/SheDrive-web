@@ -1,5 +1,5 @@
 /*
- * balances.css — driver balances, ledger and withdrawal requests (#1813, #TBD-E)
+ * balances.css — driver balances, ledger, settlements and payouts (#1813)
  * Every value comes from a token; see admin-tokens.css.
  */
 
@@ -16,7 +16,7 @@
 
 .balance-ledger__summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--ad-space-3);
   margin-block-end: var(--ad-space-4);
 }
@@ -47,8 +47,17 @@
 
 .balance-ledger__actions {
   display: flex;
+  align-items: center;
   gap: var(--ad-space-2);
+  flex-wrap: wrap;
   margin-block-end: var(--ad-space-3);
+}
+
+.balance-ledger__hint {
+  font-size: var(--ad-fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-danger);
+  white-space: nowrap;
 }
 
 /* ── Signed amounts ───────────────────────────────── */
@@ -57,24 +66,6 @@
 .ledger-amount--credit { color: var(--color-success); }
 .ledger-amount--debit  { color: var(--color-danger); }
 
-/* ── Withdrawal decisions ─────────────────────────── */
-
-.withdrawal-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--ad-space-2);
-  flex-wrap: wrap;
-}
-
-.withdrawal-decided { font-size: var(--ad-fs-xs); color: var(--color-text-muted); }
-
-.withdrawal-shortfall {
-  font-size: var(--ad-fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-danger);
-  white-space: nowrap;
-}
-
 @media (max-width: 1100px) {
-  .balance-ledger__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .balance-ledger__summary { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 }

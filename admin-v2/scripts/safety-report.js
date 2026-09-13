@@ -47,7 +47,13 @@ async function load() {
   missing.hidden = true;
   body.hidden = false;
 
-  qs('#statement').textContent = report.statement;
+  // The driver's statement is optional (#1588 / #1687 S9). An empty one must read
+  // as a stated absence, not a blank panel — the admin then works from the trip
+  // snapshot alone and needs to know that is all there is.
+  const statementEl = qs('#statement');
+  const statement = (report.statement || '').trim();
+  statementEl.textContent = statement || t('safetyReport.noStatement');
+  statementEl.classList.toggle('detail__statement--empty', !statement);
 
   const trip = report.trip;
   qs('#trip-snapshot').items = trip

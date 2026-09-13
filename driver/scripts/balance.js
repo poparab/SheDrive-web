@@ -6,7 +6,7 @@
  * money — it states the direction in words and colours the statement rows instead.
  *
  * Demo switches are documented in finance-store.js (?owed, ?available, ?warn,
- * ?blocked, ?zero, ?nowithdraw, ?error).
+ * ?blocked, ?zero, ?error).
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -20,8 +20,6 @@ import {
   getLastSettlement,
   getLimitState,
   getOutstanding,
-  getReserved,
-  getRequestable,
   shouldFailRequest,
 } from './finance-store.js';
 
@@ -42,8 +40,6 @@ let failed = shouldFailRequest;
 function renderHeadline() {
   const balance = getBalance();
   const outstanding = getOutstanding();
-  const requestable = getRequestable();
-  const reserved = getReserved();
   const isZero = balance === 0;
 
   qs('#balance-card').hidden = isZero;
@@ -67,19 +63,6 @@ function renderHeadline() {
 
   qs('#balance-card').classList.toggle('balance-card--owed', owes);
   qs('#balance-card').classList.toggle('balance-card--available', !owes);
-
-  // Reserved against a pending withdrawal
-  const reservedRow = qs('#balance-reserved');
-  const hasReserved = reserved > 0;
-  reservedRow.hidden = !hasReserved;
-  reservedRow.setAttribute('aria-hidden', String(!hasReserved));
-  if (hasReserved) qs('#reserved-amount').textContent = String(reserved);
-
-  // Withdrawal is offered only when there is something left to draw on
-  const withdraw = qs('#balance-withdraw');
-  const canWithdraw = POLICY.withdrawalsEnabled && requestable > 0;
-  withdraw.hidden = !canWithdraw;
-  withdraw.setAttribute('aria-hidden', String(!canWithdraw));
 }
 
 // ── Balance-limit band ───────────────────────────────

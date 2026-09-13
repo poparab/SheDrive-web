@@ -29,7 +29,6 @@ const EMPTY = {
   auditAdded: [],
   policies: null,
   ledgerAdded: [],      // driver balance ledger entries posted this session (#TBD-A)
-  withdrawals: {},      // id -> patched fields (status, payout, reason)
   riderLedgerAdded: [], // rider fee ledger entries posted this session (financial core §2.2)
 };
 
@@ -125,7 +124,6 @@ export function hasMutations() {
     state.auditAdded.length > 0 ||
     state.policies !== null ||
     state.ledgerAdded.length > 0 ||
-    Object.keys(state.withdrawals).length > 0 ||
     state.riderLedgerAdded.length > 0
   );
 }
@@ -148,8 +146,6 @@ export function applyMutations({
   makeZone,
   LEDGER_ENTRIES,
   LEDGER_BY_DRIVER,
-  WITHDRAWALS,
-  WITHDRAWALS_BY_ID,
   recomputeBalances,
   RIDER_LEDGER_ENTRIES,
   RIDER_LEDGER_BY_RIDER,
@@ -223,8 +219,8 @@ export function applyMutations({
   }
 
   // Same replay-before-recompute rule for the rider fee ledger (financial core
-  // spec §2.2) — a waiver or adjustment made on one screen is already reflected
-  // in the balance shown on the next.
+  // spec §2.2) — a waiver made on one screen is already reflected in the
+  // balance shown on the next.
   if (RIDER_LEDGER_ENTRIES && state.riderLedgerAdded.length) {
     state.riderLedgerAdded.forEach((entry) => {
       if (RIDER_LEDGER_ENTRIES.some((e) => e.id === entry.id)) return;
@@ -235,14 +231,6 @@ export function applyMutations({
     });
     RIDER_LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
     RIDER_LEDGER_BY_RIDER.forEach((list) => list.sort((a, b) => b.at - a.at));
-  }
-
-  if (WITHDRAWALS_BY_ID) {
-    Object.entries(state.withdrawals).forEach(([id, fields]) => {
-      const request = WITHDRAWALS_BY_ID.get(String(id));
-      if (request) Object.assign(request, fields);
-    });
-    if (WITHDRAWALS) WITHDRAWALS.sort((a, b) => b.requestedAt - a.requestedAt);
   }
 
   if (typeof recomputeBalances === 'function') recomputeBalances();

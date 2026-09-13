@@ -78,7 +78,7 @@ const COMMISSION_FIELD = {
   rangeError: 'Commission must be greater than 0% and at most 50%',
 };
 
-/** #TBD-B — driver balance limit and withdrawal rules. */
+/** Driver balance limit — the go-online debt gate. */
 const BALANCE_FIELDS = [
   {
     key: 'outstandingLimit',
@@ -91,42 +91,6 @@ const BALANCE_FIELDS = [
     emptyError: 'Enter the outstanding balance limit',
     invalidError: 'Enter a valid amount',
     rangeError: 'Must be between 0 and 100,000 EGP',
-  },
-  {
-    key: 'minWithdrawal',
-    label: 'Minimum withdrawal amount',
-    unit: 'EGP',
-    hint: 'The smallest amount a driver may request in one withdrawal.',
-    integer: false,
-    min: 0.01,
-    max: 100000,
-    emptyError: 'Enter the minimum withdrawal amount',
-    invalidError: 'Enter a valid amount',
-    rangeError: 'Must be greater than 0 and at most 100,000 EGP',
-  },
-  {
-    key: 'maxWithdrawal',
-    label: 'Maximum withdrawal per request',
-    unit: 'EGP',
-    hint: 'Leave empty for no cap. Must not be less than the minimum.',
-    integer: false,
-    min: 0.01,
-    max: 100000,
-    optional: true,
-    invalidError: 'Enter a valid amount',
-    rangeError: 'Must be greater than 0 and at most 100,000 EGP',
-  },
-  {
-    key: 'coolingOffDays',
-    label: 'Cooling-off period between requests',
-    unit: 'days',
-    hint: 'How long a driver must wait before requesting again. 0 allows same-day repeats.',
-    integer: true,
-    min: 0,
-    max: 30,
-    emptyError: 'Enter the cooling-off period',
-    invalidError: 'Enter a whole number of days',
-    rangeError: 'Must be between 0 and 30 days',
   },
 ];
 
@@ -293,11 +257,9 @@ qs('#cancel-form').addEventListener('submit', async (event) => {
   }
 });
 
-// ── Driver balance & withdrawals (#TBD-B) ─────────────
+// ── Driver balance ────────────────────────────────────
 
 let balanceControls = [];
-const withdrawalsToggle = qs('#policy-withdrawalsEnabled');
-withdrawalsToggle.addEventListener('change', () => updateBalanceExample());
 
 function renderBalanceSection() {
   const host = qs('#balance-fields');
@@ -305,7 +267,6 @@ function renderBalanceSection() {
   balanceControls = BALANCE_FIELDS.map((spec) =>
     renderField(host, spec, policies.driverBalance[spec.key] ?? ''),
   );
-  withdrawalsToggle.value = String(Boolean(policies.driverBalance.withdrawalsEnabled));
   qs('#balance-meta').textContent =
     `Last changed ${formatDateTime(policies.driverBalance.updatedAt)} by ${policies.driverBalance.updatedBy}`;
   balanceControls.forEach((balanceControl) =>
@@ -317,11 +278,9 @@ function renderBalanceSection() {
 function updateBalanceExample() {
   const limit = Number(control('outstandingLimit').input.value);
   const example = qs('#balance-example');
-  const enabled = withdrawalsToggle.value === 'true';
-  const gate = limit > 0
+  example.textContent = limit > 0
     ? `A driver is warned from ${formatEgp(limit * 0.8)} and blocked from going online at ${formatEgp(limit)}.`
     : 'The go-online balance block is disabled — a driver can work whatever she owes.';
-  example.textContent = enabled ? `${gate} Withdrawals are open to drivers in credit.` : `${gate} Withdrawals are closed.`;
 }
 
 function control(key) {
@@ -336,27 +295,15 @@ qs('#balance-form').addEventListener('submit', async (event) => {
 
   if (!balanceControls.map(validate).every(Boolean)) return;
 
-  // The cap is meaningless below the floor (#TBD-B Scenario 6).
-  const min = Number(control('minWithdrawal').input.value);
-  const maxRaw = control('maxWithdrawal').input.value.trim();
-  if (maxRaw !== '' && Number(maxRaw) < min) {
-    showError(control('maxWithdrawal'), 'Maximum must not be less than the minimum');
-    return;
-  }
-
   try {
     await mockApi.savePolicies({
       driverBalance: {
         outstandingLimit: Number(control('outstandingLimit').input.value),
-        withdrawalsEnabled: withdrawalsToggle.value === 'true',
-        minWithdrawal: min,
-        maxWithdrawal: maxRaw === '' ? null : Number(maxRaw),
-        coolingOffDays: Number(control('coolingOffDays').input.value),
       },
     });
     policies = await mockApi.getPolicies();
     renderBalanceSection();
-    qs('ad-shell').showToast('Driver balance and withdrawal policy saved.', 'success');
+    qs('ad-shell').showToast('Driver balance policy saved.', 'success');
   } catch (error) {
     box.textContent = error.message;
     box.classList.add('is-visible');

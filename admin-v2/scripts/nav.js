@@ -59,22 +59,10 @@ export const NAV_SECTIONS = [
         icon: 'reports.svg',
       },
       {
-        key: 'withdrawals',
-        labelKey: 'nav.withdrawals',
-        href: 'withdrawals.html',
-        icon: 'reports.svg',
-      },
-      {
         key: 'rider-balances',
         labelKey: 'nav.riderBalances',
         href: 'rider-balances.html',
         icon: 'user-star.svg',
-      },
-      {
-        key: 'settlements',
-        labelKey: 'nav.settlements',
-        href: 'settlements.html',
-        icon: 'wallet.svg',
       },
     ],
   },

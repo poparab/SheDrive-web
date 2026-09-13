@@ -196,19 +196,6 @@
       <!-- ── Booking Bottom Sheet (default state) ──────── -->
       <sd-bottom-sheet id="ride-sheet" data-i18n-aria-label="aria.requestRideSheet">
 
-        <!-- Child-passenger declaration (per-trip, default off) — #1790. Persistent across
-             both the default and fare-estimate panels so it stays visible before requesting. -->
-        <label class="child-toggle" for="child-toggle-input">
-          <span class="child-toggle__control">
-            <input type="checkbox" id="child-toggle-input" class="child-toggle__checkbox" role="switch" />
-            <span class="child-toggle__track" aria-hidden="true"><span class="child-toggle__thumb"></span></span>
-          </span>
-          <span class="child-toggle__text">
-            <span class="child-toggle__label" data-i18n="home.child.label">هذه الرحلة لطفل (أقل من ١٢ سنة)</span>
-            <span class="child-toggle__hint" data-i18n="home.child.hint">الأطفال هم الاستثناء الوحيد من سياسة القيادة للنساء فقط</span>
-          </span>
-        </label>
-
         <!-- Default booking panel -->
         <div class="fare-default-panel">
           <div class="pickup-destination">
