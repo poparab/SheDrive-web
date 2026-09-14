@@ -129,8 +129,10 @@ export const en = {
     pageTitle: 'Gender-mismatch reports',
     heading: 'Report queue',
     hint:
-      'SheDrive is women-only. When a driver reports that the rider who arrived was not ' +
-      'female, the trip is expired and the rider is held in Pending review automatically. ' +
+      'SheDrive is women-only. On every rider\'s first trip the driver must always verify at ' +
+      'pickup that the rider is female — the step cannot be skipped. When a driver reports that ' +
+      'the rider who arrived was not female, the trip is expired and the rider is held in ' +
+      'Pending review automatically. ' +
       'Oldest first — open a report to review it and resolve.',
     statsLabel: 'Safety reports summary',
 
@@ -552,7 +554,8 @@ export const ar = {
     pageTitle: 'بلاغات عدم تطابق الجنس',
     heading: 'قائمة البلاغات',
     hint:
-      'شي درايف خدمة مخصّصة للنساء فقط. عندما تُبلّغ السائقة بأن الراكبة التي حضرت ليست ' +
+      'شي درايف خدمة مخصّصة للنساء فقط. في أول رحلة لكل راكبة، يجب على السائقة دائمًا التحقق ' +
+      'عند نقطة الالتقاء من أن الراكبة أنثى — ولا يمكن تخطي هذه الخطوة. عندما تُبلّغ السائقة بأن الراكبة التي حضرت ليست ' +
       'أنثى، تُنهى الرحلة وتوضع الراكبة قيد المراجعة تلقائيًا. الترتيب من الأقدم — افتحي ' +
       'البلاغ لمراجعته ومعالجته.',
     statsLabel: 'ملخص تقارير السلامة',
