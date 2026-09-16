@@ -31,6 +31,7 @@
 import { NAV_SECTIONS } from '../scripts/nav.js';
 import { adminAuth } from '../scripts/admin-auth.js';
 import { clearMutations } from '../scripts/mutations.js';
+import { mockApi } from '../scripts/mock-api.js';
 import { injectAdminStyles, ensureToastHost, assetUrl, iconUrl } from './ad-styles.js';
 import { initDesignChrome } from '../scripts/design-init.js';
 import {
@@ -53,6 +54,14 @@ import './ad-doc-viewer.js';
 import './ad-tabs.js';
 import './ad-form-modal.js';
 import './ad-map-panel.js';
+
+/** Live sidebar counters, keyed by a nav item's `count`. */
+const NAV_COUNTS = {
+  openSos: { read: () => mockApi.openSosCount(), labelKey: 'nav.sosOpenCount' },
+};
+
+/** Counts above this read as "99+" so a badge never widens the menu. */
+const NAV_COUNT_CAP = 99;
 
 class AdShell extends HTMLElement {
   connectedCallback() {
@@ -171,12 +180,19 @@ class AdShell extends HTMLElement {
         icon.setAttribute('aria-hidden', 'true');
 
         link.append(icon, document.createTextNode(t(item.labelKey)));
+        if (item.count && NAV_COUNTS[item.count]) {
+          const badge = document.createElement('span');
+          badge.className = 'ad-nav-count';
+          badge.dataset.navCount = item.count;
+          link.appendChild(badge);
+        }
         li.appendChild(link);
         list.appendChild(li);
       });
     });
 
     nav.appendChild(list);
+    this.refreshNavCounts(nav);
 
     const footer = document.createElement('div');
     footer.className = 'sidebar-footer';
@@ -204,6 +220,28 @@ class AdShell extends HTMLElement {
     nav.appendChild(footer);
 
     return nav;
+  }
+
+  /**
+   * Re-reads every sidebar counter. Screens that change a counted record (closing
+   * an SOS case) call `shell.refreshNavCounts()` so the menu is right without a
+   * reload. A zero count hides the badge: an empty queue needs no attention.
+   */
+  refreshNavCounts(root = this) {
+    root.querySelectorAll('[data-nav-count]').forEach((badge) => {
+      const counter = NAV_COUNTS[badge.dataset.navCount];
+      const n = counter.read();
+      badge.hidden = n === 0;
+      badge.title = t(counter.labelKey, { n });
+      // The digit alone reads as noise to a screen reader; name what it counts.
+      const digits = document.createElement('span');
+      digits.setAttribute('aria-hidden', 'true');
+      digits.textContent = n > NAV_COUNT_CAP ? `${NAV_COUNT_CAP}+` : String(n);
+      const spoken = document.createElement('span');
+      spoken.className = 'ad-visually-hidden';
+      spoken.textContent = t(counter.labelKey, { n });
+      badge.replaceChildren(digits, spoken);
+    });
   }
 
   buildTopbar() {

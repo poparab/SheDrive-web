@@ -94,6 +94,33 @@ body.admin-auth {
   line-height: 1.4;
 }
 
+/* Sidebar counter (open SOS cases). Pushed to the inline end of the menu link;
+   danger tone because every counted item is an unresolved emergency. */
+#main-menu li a .ad-nav-count {
+  margin-inline-start: auto;
+  min-inline-size: 1.5rem;
+  padding: 0 var(--space-2);
+  border-radius: 2rem;
+  background: var(--color-danger);
+  color: var(--color-surface);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  line-height: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#main-menu li a .ad-nav-count[hidden] {
+  display: none;
+}
+
+/* On the hover/active purple the red pill still reads; a white ring keeps its edge. */
+#main-menu li a:hover .ad-nav-count,
+#main-menu li a:focus .ad-nav-count,
+#main-menu li.active a .ad-nav-count {
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
 /* Breadcrumb in the topbar, in place of the kit's global search box. */
 .topbar-breadcrumb {
   align-items: center;

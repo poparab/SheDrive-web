@@ -399,6 +399,13 @@
   "register.driver.switchToRegister": "New driver? Create an account",
   "register.button.create": "Create Account",
 
+  "login.title.unified": "Welcome",
+  "login.subtitle.unified": "Enter your phone number to sign in or create an account",
+  "register.nameStep.title": "One last step",
+  "register.nameStep.subtitle": "Tell us your name to finish creating your account",
+  "register.nameStep.hint": "Your driver sees this name when she accepts your ride",
+  "register.nameStep.submit": "Continue",
+  "aria.nameStep": "Full name step",
   "login.error.phoneFormat": "Invalid phone number. Please enter a valid Egyptian mobile number",
   "login.error.notRegistered": "This number is not registered. Create a new account",
   "login.error.network": "Check your internet connection and try again",

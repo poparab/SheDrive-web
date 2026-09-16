@@ -257,6 +257,7 @@ function confirmClose(outcome) {
         note: values.note,
       });
       shell.showToast(t('sosCase.toastClosed'), 'success');
+      shell.refreshNavCounts();
       await load();
     },
   });

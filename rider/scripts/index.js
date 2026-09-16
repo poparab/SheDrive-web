@@ -1,11 +1,13 @@
 /**
  * index.js — Rider login + register screen controller
- * Handles login/register mode toggle, phone validation, OTP flow, error states.
+ * One flow for sign-in and sign-up: phone validation, OTP, and — for a number with
+ * no account — a full-name step after the code is verified.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { storage } from '../../shared/scripts/storage.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
 
 await initI18n();
@@ -16,56 +18,33 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
 
 qs('#login-form')?.addEventListener('submit', (e) => e.preventDefault());
 
-// ── Mode state ────────────────────────────────────────
-let mode = 'login'; // 'login' | 'register'
+// ── Flow state ────────────────────────────────────────
+// One flow for sign-in and sign-up: phone → OTP → (new number only) full name.
+// Whether the number already has an account is only revealed after the OTP is
+// verified, so the phone step never tells a stranger which numbers are registered.
 let attempts = 0;
 let isExpired = false;
 let expireTimer = null;
 
 const formTitle    = qs('#form-title');
 const formSubtitle = qs('#form-subtitle');
-const modeToggle   = qs('#mode-toggle');
-const nameField    = qs('#name-field');
 const nameInput    = qs('#name-input');
 const nameError    = qs('#name-error');
 
-function switchMode(newMode) {
-  mode = newMode;
-  attempts = 0;
-  isExpired = false;
-
-  // Show/hide register-only elements
-  const isRegister = mode === 'register';
-  nameField?.removeAttribute('hidden');
-  nameField?.toggleAttribute('hidden', !isRegister);
-
-  // Update title/subtitle
-  if (formTitle) {
-    formTitle.setAttribute('data-i18n', isRegister ? 'register.title.rider' : 'login.title.rider');
-    formTitle.textContent = translate(formTitle.getAttribute('data-i18n'));
-  }
-  if (formSubtitle) {
-    formSubtitle.setAttribute('data-i18n', isRegister ? 'register.subtitle.rider' : 'login.subtitle.rider');
-    formSubtitle.textContent = translate(formSubtitle.getAttribute('data-i18n'));
-  }
-
-  // Toggle mode-toggle links
-  qs('.auth-mode--login', modeToggle)?.toggleAttribute('hidden', isRegister);
-  qs('.auth-mode--register', modeToggle)?.toggleAttribute('hidden', !isRegister);
-
-  // Reset steps
-  showStep('phone');
-  clearPhoneError();
+function setHeading(titleKey, subtitleKey) {
+  formTitle?.setAttribute('data-i18n', titleKey);
+  formSubtitle?.setAttribute('data-i18n', subtitleKey);
+  if (formTitle) formTitle.textContent = translate(titleKey);
+  if (formSubtitle) formSubtitle.textContent = translate(subtitleKey);
 }
-
-modeToggle?.addEventListener('click', () => {
-  switchMode(mode === 'login' ? 'register' : 'login');
-});
 
 // ── Step navigation ───────────────────────────────────
 function showStep(step) {
-  qs('#step-phone')?.classList.toggle('login-step--hidden', step !== 'phone');
-  qs('#step-otp')?.classList.toggle('login-step--hidden', step !== 'otp');
+  ['phone', 'otp', 'name'].forEach((name) =>
+    qs(`#step-${name}`)?.classList.toggle('login-step--hidden', step !== name)
+  );
+  // The terms line only belongs where she is agreeing to continue, not on the name step.
+  qs('.login-terms')?.toggleAttribute('hidden', step === 'name');
 }
 
 // ── Phone validation ──────────────────────────────────
@@ -98,24 +77,8 @@ sendOtpBtn?.addEventListener('click', () => {
     return;
   }
 
-  // Mock: phone starting 0199 is "not registered" in login mode
-  if (mode === 'login' && digits.startsWith('0199')) {
-    showPhoneError('login.error.notRegistered');
-    const switchLink = document.createElement('button');
-    switchLink.type = 'button';
-    switchLink.className = 'btn btn--ghost btn--sm auth-switch-link';
-    switchLink.textContent = translate('register.switchToRegister');
-    switchLink.style.marginInlineStart = 'var(--space-2)';
-    switchLink.addEventListener('click', () => switchMode('register'));
-    if (phoneError && !phoneError.querySelector('.auth-switch-link')) {
-      phoneError.appendChild(switchLink);
-    }
-    return;
-  }
-
-  // Proceed to OTP step. A register-mode number that's already registered (0100) still
-  // gets an OTP sent and verified per #1545 scenario 2 — verifyOtp() auto-logs her in
-  // on success with no separate "conflict" error shown.
+  // Every valid number gets a code — registered or not. The account check waits
+  // until the OTP proves she owns the number.
   startOtpStep(digits);
 });
 
@@ -161,32 +124,15 @@ function clearOtpError() {
   otpInput?.removeAttribute('error');
 }
 
-// Register mode collects full name alongside OTP (#1545). Returns true if OK to proceed.
-function validateNameForSubmit() {
-  if (mode !== 'register') return true;
-  const nameVal = (nameInput?.value || '').trim();
-  if (!nameVal) {
-    if (nameError) { nameError.textContent = translate('register.name.error.empty'); nameError.hidden = false; }
-    nameInput?.focus();
-    return false;
-  }
-  if (!/^[\p{L}\s'-]+$/u.test(nameVal)) {
-    if (nameError) { nameError.textContent = translate('register.name.error.format'); nameError.hidden = false; }
-    nameInput?.focus();
-    return false;
-  }
-  if (nameVal.length < 2 || nameVal.length > 50) {
-    if (nameError) { nameError.textContent = translate('register.name.error.length'); nameError.hidden = false; }
-    nameInput?.focus();
-    return false;
-  }
-  if (nameError) nameError.hidden = true;
-  return true;
+// Mock account registry. A prefix, not a list, so any number a reviewer types still
+// demos one of the two paths: 0100… is an existing rider, anything else is new and
+// continues to the name step. (The old 0199 mock was unreachable — 0199 fails the
+// Egyptian operator-prefix check on the phone step.)
+function isNewRider(digits) {
+  return !digits.startsWith('0100');
 }
 
 function verifyOtp(value) {
-  if (!validateNameForSubmit()) return;
-
   if (isExpired) {
     showOtpError('login.error.expired');
     otpInput?.setAttribute('error', 'true');
@@ -195,6 +141,10 @@ function verifyOtp(value) {
 
   if (value === '123456') {
     clearTimeout(expireTimer);
+    if (isNewRider(currentPhone)) {
+      startNameStep();
+      return;
+    }
     auth.login('rider', currentPhone);
     window.location.assign('./home.html');
     return;
@@ -247,7 +197,64 @@ resendBtn?.addEventListener('click', () => {
   }, 90_000);
 });
 
-// ── Skip if already authenticated ─────────────────────
-if (auth.getSession()) {
+// ── Name step (new riders only) ───────────────────────
+function startNameStep() {
+  setHeading('register.nameStep.title', 'register.nameStep.subtitle');
+  showStep('name');
+  if (nameError) nameError.hidden = true;
+  nameInput?.focus();
+}
+
+function showNameError(key) {
+  if (nameError) {
+    nameError.textContent = translate(key);
+    nameError.hidden = false;
+  }
+  nameInput?.setAttribute('aria-invalid', 'true');
+  nameInput?.focus();
+}
+
+function validateName(value) {
+  if (!value) return 'register.name.error.empty';
+  if (!/^[\p{L}\s'-]+$/u.test(value)) return 'register.name.error.format';
+  if (value.length < 2 || value.length > 50) return 'register.name.error.length';
+  return null;
+}
+
+function submitName() {
+  const value = (nameInput?.value || '').trim().replace(/\s+/g, ' ');
+  const errorKey = validateName(value);
+  if (errorKey) {
+    showNameError(errorKey);
+    return;
+  }
+  // The account is only created once she has a name — leaving here means no account.
+  storage.set('shedrive.profile', { ...(storage.get('shedrive.profile') || {}), name: value });
+  auth.login('rider', currentPhone);
+  window.location.assign('./home.html');
+}
+
+nameInput?.addEventListener('input', () => {
+  if (nameError) nameError.hidden = true;
+  nameInput.removeAttribute('aria-invalid');
+});
+nameInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitName();
+  }
+});
+qs('#save-name-btn')?.addEventListener('click', submitName);
+
+// ── Design review deep links ──────────────────────────
+// ?state=otp opens the code step; ?state=name opens the new-rider name step.
+const previewState = new URLSearchParams(window.location.search).get('state');
+if (previewState === 'otp') {
+  startOtpStep('01012345678');
+} else if (previewState === 'name') {
+  currentPhone = '01112345678';
+  startNameStep();
+} else if (auth.getSession()) {
+  // ── Skip if already authenticated ───────────────────
   window.location.replace('./home.html');
 }

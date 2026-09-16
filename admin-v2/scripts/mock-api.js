@@ -998,6 +998,15 @@ export const mockApi = {
     return respond(paginate(ordered, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
+  /**
+   * Open SOS cases, read synchronously for the sidebar count. It ignores
+   * `?state=`: an empty or erroring queue preview must not hide a live emergency
+   * from the menu on every other screen.
+   */
+  openSosCount() {
+    return SOS_CASES.filter((sosCase) => sosCase.status === 'open').length;
+  },
+
   getSosCase(id) {
     const sosCase = SOS_CASES_BY_ID.get(String(id)) ?? null;
     if (!sosCase) return respond(null, { emptyValue: null });

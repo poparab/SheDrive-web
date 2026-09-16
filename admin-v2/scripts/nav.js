@@ -3,7 +3,8 @@
  * The single source of truth for the sidebar. `key` is what a screen passes to
  * <ad-shell active="...">; `icon` is a file name inside vendor/icons/, taken
  * from the delivered design kit's sidebar; `labelKey` is an i18n key from
- * i18n/core.js, so the sidebar reads in whichever language is active.
+ * i18n/core.js, so the sidebar reads in whichever language is active. `count`
+ * is optional and names a counter in ad-shell's NAV_COUNTS.
  */
 
 export const NAV_SECTIONS = [
@@ -13,7 +14,8 @@ export const NAV_SECTIONS = [
       { key: 'dashboard', labelKey: 'nav.dashboard', href: 'dashboard.html', icon: 'Dashboard-2.svg' },
       { key: 'trips', labelKey: 'nav.trips', href: 'trips.html', icon: 'trips.svg' },
       // SOS sits above Safety reports: a live emergency outranks women-only triage.
-      { key: 'sos', labelKey: 'nav.sos', href: 'sos-requests.html', icon: 'warning-sign.svg' },
+      // `count` names a live counter ad-shell renders beside the label (open cases).
+      { key: 'sos', labelKey: 'nav.sos', href: 'sos-requests.html', icon: 'warning-sign.svg', count: 'openSos' },
       { key: 'safety', labelKey: 'nav.safety', href: 'safety-reports.html', icon: 'shield.svg' },
     ],
   },

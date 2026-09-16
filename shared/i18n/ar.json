@@ -399,6 +399,13 @@
   "register.driver.switchToRegister": "سائقة جديدة؟ أنشئي حساباً",
   "register.button.create": "إنشاء الحساب",
 
+  "login.title.unified": "أهلاً بكِ",
+  "login.subtitle.unified": "أدخلي رقم هاتفك لتسجيل الدخول أو إنشاء حساب جديد",
+  "register.nameStep.title": "خطوة أخيرة",
+  "register.nameStep.subtitle": "أخبرينا باسمكِ لإكمال إنشاء حسابك",
+  "register.nameStep.hint": "يظهر اسمكِ للسائقة عند قبول رحلتك",
+  "register.nameStep.submit": "متابعة",
+  "aria.nameStep": "خطوة الاسم",
   "login.error.phoneFormat": "رقم الهاتف غير صحيح. أدخلي رقماً مصرياً صحيحاً",
   "login.error.notRegistered": "هذا الرقم غير مسجّل. أنشئي حساباً جديداً",
   "login.error.network": "تحققي من اتصالك بالإنترنت وحاولي مرة أخرى",
