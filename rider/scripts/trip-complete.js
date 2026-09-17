@@ -33,8 +33,9 @@ qs('#trip-pickup').textContent = data.trip?.pickup || '—';
 qs('#trip-destination').textContent = data.trip?.destination || '—';
 
 // ── Outstanding fee recovered on this trip (spec §3, #3999) ──
-// The oldest outstanding fee is recovered on her next completed trip. `?fee=N`
-// forces a demo amount without needing to have seeded one on payments.html first.
+// Her entire outstanding balance is recovered on her next completed trip, every
+// time. `?fee=N` forces a demo amount without needing to have seeded one on
+// payments.html first.
 const feeOverride = new URLSearchParams(location.search).get('fee');
 let recoveredFee = null;
 
@@ -42,7 +43,7 @@ if (feeOverride) {
   const amount = Math.abs(Number(feeOverride)) || 0;
   if (amount > 0) recoveredFee = { amount };
 } else {
-  // One fee below the recovery threshold, her whole balance above it (spec §3, #4002).
+  // Her whole outstanding balance, however many fees make it up (spec §3, #4002).
   const amount = getRecoveryAmount();
   if (amount > 0) {
     const cleared = recoverDueFees(data.trip?.id || null);

@@ -9,7 +9,7 @@ import { MapService } from '../../shared/scripts/map.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
 import { storage } from '../../shared/scripts/storage.js';
-import { getRecoveryState, getOutstandingTotal, getRecoveryAmount } from './fee-store.js';
+import { getOutstandingTotal, getRecoveryAmount } from './fee-store.js';
 
 // ── Auth guard ───────────────────────────────────────
 auth.requireAuth();
@@ -345,16 +345,14 @@ checkOperatingHours();
 
 // ── Outstanding rider fee (spec §7.1, #3995/#3998) ─────
 // She is NEVER blocked from booking — a block would deadlock, because taking a ride is
-// the only way a cash rider can clear a fee. Instead the recovery escalates: below the
-// threshold a dismissible banner names her oldest fee; at or above it a non-dismissible
-// banner names her WHOLE balance, because the amount added to this ride is much larger
-// and she has to see it before she confirms. Driven by fee-store.js's own query-string
-// switches (?fees=N, ?full, ?zero, ?error), so no extra state is needed here.
+// the only way a cash rider can clear a fee. Her entire outstanding balance is recovered
+// on her next completed trip, every time, so a single dismissible banner states the
+// full amount owed. Driven by fee-store.js's own query-string switches
+// (?fees=N, ?zero, ?error), so no extra state is needed here.
 const FEE_BANNER_DISMISSED_KEY = 'shedrive.feeBannerDismissed';
 
 function checkFeeStatus() {
   const banner = qs('#fee-banner');
-  const dismissBtn = qs('#fee-banner-dismiss');
   const owed = getOutstandingTotal();
 
   // Booking is always available. Nothing here ever hides the ride sheet.
@@ -365,21 +363,13 @@ function checkFeeStatus() {
     return;
   }
 
-  const full = getRecoveryState() === 'full';
   const dismissed = sessionStorage.getItem(FEE_BANNER_DISMISSED_KEY) === '1';
-
-  // The full-recovery banner cannot be dismissed — she must see the larger amount.
-  if (!full && dismissed) {
+  if (dismissed) {
     banner?.setAttribute('hidden', '');
     return;
   }
 
-  qs('#fee-banner-msg').textContent = full
-    ? translate('fees.homeBannerFull', { amount: getRecoveryAmount() })
-    : translate('fees.homeBanner', { amount: getRecoveryAmount() });
-
-  banner?.classList.toggle('fee-banner--full', full);
-  if (dismissBtn) dismissBtn.hidden = full;
+  qs('#fee-banner-msg').textContent = translate('fees.homeBanner', { amount: getRecoveryAmount() });
   banner?.removeAttribute('hidden');
 }
 checkFeeStatus();

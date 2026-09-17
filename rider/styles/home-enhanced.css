@@ -516,21 +516,5 @@
   color: var(--color-text-muted);
 }
 
-/* ── Full-recovery weight — her whole balance comes off the next ride (spec §3) ──
-   Not a block: booking stays available. Heavier border and text weight only, so the
-   larger amount registers before she confirms. */
-
-.fee-banner--full {
-  border-color: var(--color-warning);
-  background: rgba(var(--color-warning-rgb), 0.08);
-}
-
-.fee-banner--full .fee-banner__text {
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-.fee-banner__dismiss[hidden] { display: none; }
-
 /* Author `display: block` on sd-bottom-sheet otherwise beats the UA [hidden] rule. */
 #ride-sheet[hidden] { display: none; }

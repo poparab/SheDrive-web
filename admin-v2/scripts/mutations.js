@@ -219,7 +219,7 @@ export function applyMutations({
   }
 
   // Same replay-before-recompute rule for the rider fee ledger (financial core
-  // spec §2.2) — a waiver made on one screen is already reflected in the
+  // spec §2.2) — an entry posted on one screen is already reflected in the
   // balance shown on the next.
   if (RIDER_LEDGER_ENTRIES && state.riderLedgerAdded.length) {
     state.riderLedgerAdded.forEach((entry) => {

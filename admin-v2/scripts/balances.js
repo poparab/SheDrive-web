@@ -44,16 +44,6 @@ const ENTRY_LABEL_KEYS = {
   payout: 'balances.entryPayout',
 };
 
-/** "{type} · {number}" for the payout modal's read-only destination field. */
-function formatPayoutDestination(destination) {
-  if (!destination) return t('balances.payoutNoDestination');
-  const typeLabel =
-    destination.type === 'bank_transfer'
-      ? t('balances.payoutDestBankTransfer')
-      : t('balances.payoutDestMobileWallet');
-  return `${typeLabel} · ${destination.number}`;
-}
-
 // ── Filters ──────────────────────────────────────────
 filters.fields = [
   { type: 'search', key: 'search', label: t('common.name'), placeholder: t('common.search') },
@@ -269,11 +259,9 @@ function renderLedgerSummary(driver) {
   // Settling is only meaningful when there is something outstanding (#1813 S7).
   qs('#btn-settle').disabled = driver.outstanding <= 0;
 
-  // A payout needs both money owed and a destination on file (spec §5/§6) —
-  // the missing-destination case has to stay visibly refused, not hidden.
-  const hasAvailable = driver.available > 0;
-  qs('#btn-payout').disabled = !hasAvailable || !driver.payoutDestination;
-  qs('#payout-hint').hidden = !(hasAvailable && !driver.payoutDestination);
+  // A payout only needs money owed — the platform holds no payout destination
+  // and getting the money to her is a manual, off-platform process (spec §5).
+  qs('#btn-payout').disabled = !(driver.available > 0);
 }
 
 const ledgerGuard = createRequestGuard();
@@ -363,12 +351,6 @@ qs('#btn-payout').addEventListener('click', () => {
     description: t('balances.payoutDescription', { amount: formatEgp(max) }),
     confirmLabel: t('balances.recordPayout'),
     fields: [
-      {
-        key: 'destination',
-        type: 'readonly',
-        label: t('balances.payoutDestination'),
-        value: formatPayoutDestination(selected.payoutDestination),
-      },
       {
         key: 'amount',
         type: 'number',

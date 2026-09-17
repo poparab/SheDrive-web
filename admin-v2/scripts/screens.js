@@ -373,7 +373,7 @@ export const SCREENS = [
     icon: 'user-star.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[0, '[Admin] Super admin reviews rider outstanding fees and waives them (FIN-11 — awaiting an ADO id)']],
+    stories: [[0, '[Admin] Super admin reviews rider outstanding fees and their recovery (FIN-11 — awaiting an ADO id)']],
     states: LIST_STATES,
     notes: t('screens.notesRiderBalances'),
   },

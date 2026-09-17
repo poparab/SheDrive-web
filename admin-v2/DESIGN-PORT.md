@@ -227,8 +227,8 @@ ledger model. `admin/` (v1) has none of this — its driver-balance ledger stops
 
 | File | What was added |
 |---|---|
-| `scripts/seed.js` | `custody` on every trip; `payoutDestination` on drivers; the rider fee ledger (`RIDER_LEDGER_ENTRIES`, `RIDER_LEDGER_BY_RIDER`, `recomputeRiderBalances`); `GLOBAL_POLICIES.riderFee` and `driverBalance.warningBandPct`/`coolingOffDays`; `nextSettlementReceipt()`; a 4th/5th settlement channel |
-| `scripts/mock-api.js` | `listRiderBalances`, `getRiderLedger`, `waiveRiderFee`, `postRiderAdjustment`, `listSettlements`; `getFinanceOptions` now also returns `riderFeePolicy` |
+| `scripts/seed.js` | `custody` on every trip; the rider fee ledger (`RIDER_LEDGER_ENTRIES`, `RIDER_LEDGER_BY_RIDER`, `recomputeRiderBalances`); `GLOBAL_POLICIES.riderFee` and `driverBalance.warningBandPct`/`coolingOffDays`; `nextSettlementReceipt()`; a 4th/5th settlement channel |
+| `scripts/mock-api.js` | `listRiderBalances`, `getRiderLedger`, `postRiderAdjustment`, `listSettlements`; `getFinanceOptions` now also returns `riderFeePolicy`. The platform holds no payout destination and there is no waive — recording a payout or a rider fee is never gated on either. |
 | `scripts/mutations.js` | a `riderLedgerAdded` patch collection, replayed onto the rider ledger the same way `ledgerAdded` replays onto the driver one |
 | `scripts/nav.js` | `rider-balances` and `settlements` entries, in Money & config |
 | `i18n/core.js`, `lists.js`, `config.js` | EN + AR strings (`riderBalances.*`, `settlements.*`, `nav.riderBalances`, `nav.settlements`, `screens.titleRiderBalances`/`titleSettlements`) |
@@ -262,9 +262,11 @@ Phase 1 simple. `admin/` (v1) never had any of this, so there is nothing to cut 
   `balances.html` instead — the one part of the day book worth keeping.
 - **Post-adjustment is gone from both balance screens.** `mock-api.js`'s
   `postAdjustment` (driver) and `postRiderAdjustment` (rider) are deleted, along with
-  the `adjustment` ledger entry type. `rider-balances.html` keeps `waiveRiderFee` — a
-  different action, and the only correction the rider ledger has. The driver ledger now
-  has **no correction mechanism at all** in Phase 1 (see the spec's own open item, §10).
+  the `adjustment` ledger entry type. **There is no waive either** — a rider's fee is
+  only ever cleared by paying it, so `waiveRiderFee` and `rider-balances.html`'s waive
+  action are gone too; the screen is read-only aside from the link into rider
+  suspension. Neither ledger has **any correction mechanism** in Phase 1 (see the
+  spec's own open item, §10).
 
 `nav.js`, `screens.js`, `_verify.html` and every EN/AR i18n key that existed only for
 the withdrawal queue, the day book or post-adjustment were removed with them.

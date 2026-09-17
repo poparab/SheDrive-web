@@ -53,13 +53,6 @@
   margin-block-end: var(--ad-space-3);
 }
 
-.balance-ledger__hint {
-  font-size: var(--ad-fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-danger);
-  white-space: nowrap;
-}
-
 /* ── Signed amounts ───────────────────────────────── */
 
 .ledger-amount { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }

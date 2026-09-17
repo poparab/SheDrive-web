@@ -217,16 +217,6 @@ function riderLedgerFor(riderId) {
 }
 
 /**
- * Spec §3/§4 — at or above the threshold her whole balance is recovered on the next
- * ride rather than one fee at a time. A threshold of 0 disables the escalation.
- * This is NOT a booking gate: a rider is never blocked on account of what she owes.
- */
-function isFullRecovery(rider) {
-  const threshold = GLOBAL_POLICIES.riderFee.recoveryThreshold;
-  return Boolean(threshold) && rider.outstanding >= threshold;
-}
-
-/**
  * Post an immutable rider ledger entry and recompute her position — the only
  * way a rider balance ever changes (spec §2.3).
  */
@@ -1254,8 +1244,7 @@ export const mockApi = {
       settlementMethods: SETTLEMENT_METHODS.slice(),
       payoutMethods: PAYOUT_METHODS.slice(),
       policy: structuredClone(GLOBAL_POLICIES.driverBalance),
-      // The rider-fee side of the same policy surface (spec §4) — used by
-      // rider-balances.html's waive form and its recovery-mode pill.
+      // The rider-fee side of the same policy surface (spec §4).
       riderFeePolicy: structuredClone(GLOBAL_POLICIES.riderFee),
     };
     return respond(payload, { emptyValue: payload, latency: 120 });
@@ -1293,8 +1282,6 @@ export const mockApi = {
           lastSettlementAt: lastSettlement ? lastSettlement.at : null,
           // The go-online gate reads the live balance (#TBD-F).
           goOnlineBlocked: isGoOnlineBlocked(d),
-          // A payout cannot be recorded without one (spec §6).
-          payoutDestination: d.payoutDestination ?? null,
         };
       });
 
@@ -1317,7 +1304,6 @@ export const mockApi = {
         outstanding: driver.outstanding,
         available: driver.available,
         goOnlineBlocked: isGoOnlineBlocked(driver),
-        payoutDestination: driver.payoutDestination ?? null,
       },
       ...paginate(entries, page, pageSize),
     };
@@ -1385,19 +1371,15 @@ export const mockApi = {
    * Financial core spec §5 — a driver never requests a payout. Finance
    * transfers the money on its own cycle and this records that transfer
    * after the fact, in the same place a settlement is recorded. Posts a
-   * `payout` debit; never edits the balance directly. Refused without a
-   * payout destination on file (spec §6), and refused for an amount above
-   * what SheDrive currently owes her.
+   * `payout` debit; never edits the balance directly. The platform holds no
+   * payout destination — getting the money to her is a manual, off-platform
+   * process, so recording is only refused for an amount above what SheDrive
+   * currently owes her.
    */
   recordPayout(driverId, { amount, date, reference } = {}) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
-    if (!driver.payoutDestination) {
-      return Promise.reject(
-        new MockApiError('This driver has no payout destination on file.', 422),
-      );
-    }
     if (driver.available <= 0) {
       return Promise.reject(new MockApiError('This driver has nothing available to pay out.', 409));
     }
@@ -1434,7 +1416,6 @@ export const mockApi = {
     const before = driver.balance;
     const entry = postLedgerEntry(driver, 'payout', -value, at, {
       ref: String(reference).trim(),
-      destination: driver.payoutDestination,
       note: 'Payout sent by Finance',
       actor: CURRENT_ADMIN.email,
     });
@@ -1466,8 +1447,6 @@ export const mockApi = {
           balance: r.balance ?? 0,
           outstanding: r.outstanding ?? 0,
           lastFeeAt: lastFee ? lastFee.at : null,
-          // The booking gate reads the live balance (spec §4).
-          fullRecovery: isFullRecovery(r),
         };
       });
 
@@ -1488,43 +1467,10 @@ export const mockApi = {
         status: rider.status,
         balance: rider.balance ?? 0,
         outstanding: rider.outstanding ?? 0,
-        fullRecovery: isFullRecovery(rider),
       },
       ...paginate(entries, page, pageSize),
     };
     return respond(payload, { emptyValue: { ...payload, ...emptyPage(pageSize) } });
-  },
-
-  /**
-   * Write off a rider's outstanding fee with a required reason. Posts a
-   * `fee_waived` credit for the full outstanding amount — never edits the
-   * original `cancellation_fee` entry (spec §2.3: entries are immutable).
-   */
-  waiveRiderFee(riderId, { entryId, reason } = {}) {
-    const rider = RIDERS_BY_ID.get(String(riderId));
-    if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
-    if (!(rider.outstanding > 0)) {
-      return Promise.reject(new MockApiError('This rider has no outstanding fee to waive.', 409));
-    }
-    if (!reason || String(reason).trim().length < 10) {
-      return Promise.reject(
-        new MockApiError('Reason must be between 10 and 500 characters.', 422),
-      );
-    }
-    const entry = entryId ? riderLedgerFor(riderId).find((e) => e.id === entryId) : null;
-    if (entryId && !entry) {
-      return Promise.reject(new MockApiError('Fee entry not found.', 404));
-    }
-
-    const before = rider.outstanding;
-    const posted = postRiderLedgerEntry(rider, 'fee_waived', rider.outstanding, Date.now(), {
-      tripId: entry?.tripId ?? null,
-      note: String(reason).trim(),
-      actor: CURRENT_ADMIN.email,
-    });
-
-    makeAuditEntry('waive', 'rider', rider.id, { outstanding: before }, { outstanding: rider.outstanding });
-    return respond({ ok: true, entry: posted, balance: rider.balance, outstanding: rider.outstanding });
   },
 
   // ── Settlement export (financial core spec §5, §10) ───

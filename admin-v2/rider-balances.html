@@ -17,16 +17,15 @@
     >
       <section class="ad-section">
         <p class="ad-section__hint" data-i18n="riderBalances.lead">
-          A rider who cancels after the grace period owes a fee, recovered as a surcharge
-          on her next cash trip. Waive it with a reason — that posts an immutable entry,
-          never edits an existing one.
+          A rider who cancels after the grace period owes a fee. It is recovered in full as
+          a surcharge on her next cash trip — nobody writes it off. Persistent abuse is a
+          human decision, handled from her profile.
         </p>
       </section>
 
       <div class="ad-stats">
         <ad-stat-card id="card-owing" label="Riders owing a fee" data-i18n-label="riderBalances.cardOwing" value="—"></ad-stat-card>
         <ad-stat-card id="card-outstanding" label="Total outstanding" data-i18n-label="riderBalances.cardOutstanding" value="—"></ad-stat-card>
-        <ad-stat-card id="card-blocked" label="Riders at full recovery" data-i18n-label="riderBalances.cardFullRecovery" value="—"></ad-stat-card>
       </div>
 
       <ad-filter-bar id="rider-balance-filters"></ad-filter-bar>
@@ -40,13 +39,11 @@
         <div class="ad-section__body">
           <div class="balance-ledger__summary" id="ledger-summary"></div>
           <div class="balance-ledger__actions">
-            <button type="button" class="btn btn--primary btn--sm" id="btn-waive" data-i18n="riderBalances.waiveFee">Waive fee</button>
+            <a class="btn btn--ghost btn--sm" id="btn-view-profile" href="rider-profile.html" data-i18n="riderBalances.viewProfile">View profile</a>
           </div>
           <ad-data-table id="ledger-table"></ad-data-table>
         </div>
       </section>
-
-      <ad-form-modal id="rider-balance-modal"></ad-form-modal>
     </ad-shell>
     <script type="module" src="scripts/rider-balances.js"></script>
   </body>

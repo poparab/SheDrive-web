@@ -7,7 +7,7 @@
  * cash surcharge on her next trip, so this screen only ever shows what is still
  * unpaid, oldest first.
  *
- * Demo switches are documented in fee-store.js (?fees=N, ?blocked, ?zero, ?error).
+ * Demo switches are documented in fee-store.js (?fees=N, ?zero, ?error).
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -15,9 +15,6 @@ import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scrip
 import { qs } from '../../shared/scripts/utils.js';
 import {
   FEE_TYPES,
-  POLICY,
-  getRecoveryState,
-  getRecoveryAmount,
   getOutstandingFees,
   getOutstandingTotal,
   shouldFailRequest,
@@ -42,19 +39,18 @@ function showError(on) {
 }
 
 /**
- * Above the recovery threshold her whole balance comes off the next ride at once, not
- * one fee at a time. This notice says so. It is never a block — she can always book.
+ * Her entire outstanding balance comes off her next ride, every time — never one fee
+ * at a time, never a threshold. This notice says so. It is never a block — she can
+ * always book.
  */
-function renderFullRecoveryNotice() {
-  const notice = qs('#fees-full-recovery-notice');
-  const full = getRecoveryState() === 'full';
-  notice.hidden = !full;
-  notice.setAttribute('aria-hidden', String(!full));
-  if (!full) return;
-  qs('#fees-full-recovery-notice-msg').textContent = translate('fees.fullRecoveryNotice', {
-    owed: getOutstandingTotal(),
-    threshold: POLICY.recoveryThreshold,
-  });
+function renderRecoveryNotice() {
+  const notice = qs('#fees-recovery-notice');
+  const owed = getOutstandingTotal();
+  const hasOwed = owed > 0;
+  notice.hidden = !hasOwed;
+  notice.setAttribute('aria-hidden', String(!hasOwed));
+  if (!hasOwed) return;
+  qs('#fees-recovery-notice-msg').textContent = translate('fees.recoveryNotice', { owed });
 }
 
 function renderFees() {
@@ -116,7 +112,7 @@ function renderFees() {
 
 function render() {
   if (failed) return;
-  renderFullRecoveryNotice();
+  renderRecoveryNotice();
   renderFees();
 }
 

@@ -246,7 +246,6 @@ export const en = {
     cardCommission: 'Commission deducted',
     cardNet: 'Net earnings',
     cardBalance: 'Outstanding cash balance',
-    balanceMeta: 'Cash held by the driver, owed to the platform',
     rowsHeading: 'Per-trip breakdown',
     splitHeading: 'Cash vs digital',
     settlementHeading: 'Settlement',
@@ -324,8 +323,8 @@ export const en = {
     titleRiderBalances: 'Rider balances',
     notesRiderBalances:
       'The rider side of the same ledger model: a late-cancellation fee is a debit, recovered ' +
-      'as a surcharge or waived with a reason. Waiving posts an immutable entry — never ' +
-      'edits an existing one.',
+      'in full as a surcharge on her next cash trip. Nobody writes it off — persistent abuse ' +
+      'is a human decision, handled from her profile.',
     pageTitle: 'SheDrive Admin — Mockup screen index',
     brandLabel: 'Admin portal — coded mockups',
     indexTitle: 'Mockup screen index',
@@ -698,7 +697,6 @@ export const ar = {
     cardCommission: 'العمولة المخصومة',
     cardNet: 'صافي الأرباح',
     cardBalance: 'الرصيد النقدي المستحق',
-    balanceMeta: 'مبالغ نقدية بحوزة السائقة ومستحقة للمنصة',
     rowsHeading: 'التفصيل لكل رحلة',
     splitHeading: 'نقدي مقابل إلكتروني',
     settlementHeading: 'التسوية',
@@ -774,9 +772,9 @@ export const ar = {
       'تم إلغاء إجراء التسوية اليدوية.',
     titleRiderBalances: 'أرصدة الراكبات',
     notesRiderBalances:
-      'الوجه الآخر لنفس نموذج كشف الحساب: رسم الإلغاء المتأخر قيد مدين، يُسترد كرسم ' +
-      'إضافي أو يُشطب بذكر سبب. الشطب يُقيَّد كحركة جديدة ثابتة — ولا يُعدَّل على حركة ' +
-      'قائمة أبدًا.',
+      'الوجه الآخر لنفس نموذج كشف الحساب: رسم الإلغاء المتأخر قيد مدين، يُسترد بالكامل ' +
+      'كرسم إضافي على رحلتها النقدية التالية. لا يُشطب أبدًا — إساءة الاستخدام المتكررة ' +
+      'قرار بشري، يُدار من صفحة ملفها الشخصي.',
     pageTitle: 'إدارة شي درايف — دليل الشاشات',
     brandLabel: 'لوحة الإدارة — نماذج مبرمجة',
     indexTitle: 'دليل الشاشات',

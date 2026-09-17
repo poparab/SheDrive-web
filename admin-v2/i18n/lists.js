@@ -374,11 +374,6 @@ export const en = {
     payoutDescription:
       'SheDrive owes her {amount}. Recording a payout writes down a transfer Finance has ' +
       'already sent — there is nothing to approve.',
-    payoutDestination: 'Destination on file',
-    payoutNoDestination: 'No payout destination on file',
-    payoutDestBankTransfer: 'Bank transfer',
-    payoutDestMobileWallet: 'Mobile wallet',
-    payoutNoDestinationHint: 'No payout destination on file.',
     payoutAmount: 'Payout amount (EGP)',
     payoutDate: 'Payout date',
     payoutReference: 'Reference',
@@ -396,21 +391,15 @@ export const en = {
   riderBalances: {
     heading: 'Rider balances',
     lead:
-      'A rider who cancels after the grace period owes a fee, recovered as a surcharge on ' +
-      'her next cash trip. Waive it with a reason — that posts an immutable entry, never ' +
-      'edits an existing one.',
+      'A rider who cancels after the grace period owes a fee. It is recovered in full as ' +
+      'a surcharge on her next cash trip — nobody writes it off. Persistent abuse is a ' +
+      'human decision, handled from her profile.',
     cardOwing: 'Riders owing a fee',
     cardOutstanding: 'Total outstanding',
-    cardFullRecovery: 'Riders at full recovery',
-    thresholdMeta: 'Threshold {limit}',
-    thresholdDisabled: 'Escalation off',
     filterBalance: 'Balance',
     owing: 'Owing a fee',
     colOutstanding: 'Outstanding (EGP)',
     colLastFee: 'Last fee',
-    colRecovery: 'Next ride recovers',
-    fullRecovery: 'Whole balance',
-    singleFee: 'Oldest fee',
     ledger: 'Ledger',
     ledgerFor: 'Ledger — {name}',
     emptyHeading: 'No riders match',
@@ -418,27 +407,16 @@ export const en = {
     ledgerEmptyHeading: 'No transactions',
     ledgerEmptyMessage: 'This rider has no fee movements yet.',
     statOutstanding: 'Outstanding',
-    statRecovery: 'Next ride recovers',
     colDate: 'Date',
     colType: 'Type',
     colAmount: 'Amount (EGP)',
     colSource: 'Trip',
     colNote: 'Note',
-    waiveFee: 'Waive fee',
+    viewProfile: 'View profile',
     close: 'Close',
-    waiveTitle: 'Waive fee — {name}',
-    waiveDescription:
-      'She owes {amount}. Waiving posts a credit for the full amount and requires a reason.',
-    waiveReason: 'Reason',
-    waiveDone: 'Fee waived.',
-    errReasonEmpty: 'Enter a reason',
-    errReasonLength: 'Reason must be between 10 and 500 characters',
     csvName: 'shedrive-rider-balances',
-    csvFullYes: 'Whole balance',
-    csvFullNo: 'Oldest fee',
     entryCancellationFee: 'Cancellation fee',
     entryFeeCollected: 'Fee collected',
-    entryFeeWaived: 'Fee waived',
   },
 
 };
@@ -732,7 +710,7 @@ export const ar = {
     cardOwed: 'سائقات لهن مستحقات',
     cardBlocked: 'محظورات من الاتصال',
     limitMeta: 'الحد {limit}',
-    thresholdDisabled: 'التصعيد موقوف',
+    limitDisabled: 'الحد معطّل',
     filterBalance: 'الرصيد',
     owing: 'مدينة للمنصة',
     owed: 'لها مستحقات',
@@ -795,11 +773,6 @@ export const ar = {
     payoutDescription:
       'شي درايف مدينة لها بـ {amount}. تسجيل الدفعة يوثّق تحويلاً أرسلته إدارة ' +
       'المالية فعلياً — لا شيء بحاجة إلى موافقة.',
-    payoutDestination: 'وجهة الدفع المسجّلة',
-    payoutNoDestination: 'لا توجد وجهة دفع مسجّلة',
-    payoutDestBankTransfer: 'تحويل بنكي',
-    payoutDestMobileWallet: 'محفظة إلكترونية',
-    payoutNoDestinationHint: 'لا توجد وجهة دفع مسجّلة لهذه السائقة.',
     payoutAmount: 'مبلغ الدفعة (جم)',
     payoutDate: 'تاريخ الدفعة',
     payoutReference: 'المرجع',
@@ -817,21 +790,15 @@ export const ar = {
   riderBalances: {
     heading: 'أرصدة الراكبات',
     lead:
-      'الراكبة التي تُلغي بعد فترة السماح مدينة برسوم، تُسترد كرسم إضافي على رحلتها ' +
-      'النقدية التالية. اشطبي الرسم بذكر سبب — يُقيَّد ذلك كحركة جديدة ثابتة، ولا ' +
-      'يُعدَّل على حركة قائمة أبدًا.',
+      'الراكبة التي تُلغي بعد فترة السماح مدينة برسوم. يُسترد بالكامل كرسم إضافي على ' +
+      'رحلتها النقدية التالية — لا يُشطب أبدًا. إساءة الاستخدام المتكررة قرار بشري، ' +
+      'يُدار من صفحة ملفها الشخصي.',
     cardOwing: 'راكبات مدينات برسوم',
     cardOutstanding: 'إجمالي المستحق',
-    cardFullRecovery: 'راكبات عند التحصيل الكامل',
-    thresholdMeta: 'حد التصعيد {limit}',
-    thresholdDisabled: 'التصعيد موقوف',
     filterBalance: 'الرصيد',
     owing: 'مدينة برسوم',
     colOutstanding: 'المستحق (جم)',
     colLastFee: 'آخر رسم',
-    colRecovery: 'تحصيل الرحلة القادمة',
-    fullRecovery: 'الرصيد كامل',
-    singleFee: 'أقدم رسم',
     ledger: 'كشف الحساب',
     ledgerFor: 'كشف الحساب — {name}',
     emptyHeading: 'لا توجد راكبات مطابقة',
@@ -839,26 +806,16 @@ export const ar = {
     ledgerEmptyHeading: 'لا توجد حركات',
     ledgerEmptyMessage: 'لا توجد حركات رسوم لهذه الراكبة بعد.',
     statOutstanding: 'المستحق',
-    statRecovery: 'تحصيل الرحلة القادمة',
     colDate: 'التاريخ',
     colType: 'النوع',
     colAmount: 'المبلغ (جم)',
     colSource: 'الرحلة',
     colNote: 'ملاحظة',
-    waiveFee: 'شطب الرسم',
+    viewProfile: 'عرض الملف الشخصي',
     close: 'إغلاق',
-    waiveTitle: 'شطب الرسم — {name}',
-    waiveDescription: 'مستحق عليها {amount}. الشطب يُقيَّد كإضافة بكامل المبلغ، ويتطلب ذكر سبب.',
-    waiveReason: 'السبب',
-    waiveDone: 'تم شطب الرسم.',
-    errReasonEmpty: 'أدخلي السبب',
-    errReasonLength: 'يجب أن يكون السبب بين 10 و500 حرف',
     csvName: 'shedrive-rider-balances',
-    csvFullYes: 'الرصيد كامل',
-    csvFullNo: 'أقدم رسم',
     entryCancellationFee: 'رسم إلغاء',
     entryFeeCollected: 'رسم مُحصَّل',
-    entryFeeWaived: 'رسم مشطوب',
   },
 
 };

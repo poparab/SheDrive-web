@@ -93,22 +93,22 @@
 
 /* ── Outstanding fees ──────────────────────────────── */
 
-.fees-full-recovery-notice {
+.fees-recovery-notice {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
-  background: rgba(var(--color-danger-rgb), 0.1);
-  border: 1px solid var(--color-danger);
+  background: rgba(var(--color-warning-rgb), 0.1);
+  border: 1px solid var(--color-warning);
   color: var(--color-text);
 }
 
-.fees-full-recovery-notice[hidden] { display: none; }
+.fees-recovery-notice[hidden] { display: none; }
 
-.fees-full-recovery-notice svg { flex: none; color: var(--color-danger); margin-block-start: 2px; }
+.fees-recovery-notice svg { flex: none; color: var(--color-warning); margin-block-start: 2px; }
 
-.fees-full-recovery-notice__msg {
+.fees-recovery-notice__msg {
   font-size: var(--fs-sm);
   line-height: var(--leading-relaxed);
 }

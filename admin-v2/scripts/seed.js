@@ -153,26 +153,6 @@ function plate() {
   return `${pick(PLATE_LETTERS)} ${intBetween(100, 999)}`;
 }
 
-// ── Payout destination (financial core spec §6) ───────
-// Required before a payout can be recorded. Deliberately absent for a handful
-// of drivers so the refused-without-a-destination case is demonstrable.
-
-const PAYOUT_DESTINATION_TYPES = ['bank_transfer', 'mobile_wallet'];
-
-function payoutDestinationFor(driverName) {
-  const type = pick(PAYOUT_DESTINATION_TYPES);
-  const number =
-    type === 'bank_transfer'
-      ? `EG${intBetween(10, 99)}${String(intBetween(100000000000, 999999999999))}`
-      : `01${pick(['0', '1', '2', '5'])}${String(intBetween(10000000, 99999999))}`;
-  return {
-    type,
-    number,
-    holderName: driverName,
-    updatedAt: NOW - intBetween(5, 200) * DAY,
-  };
-}
-
 function vehicle() {
   const brand = pick(VEHICLE_MAKES);
   return {
@@ -361,12 +341,11 @@ export const GLOBAL_POLICIES = {
     updatedAt: NOW - 5 * DAY,
     updatedBy: ADMINS[0].email,
   },
-  // Financial core spec §4 — the rider side of the same fee-recovery model.
+  // Financial core spec §4 — the rider side of the same fee-recovery model. Her
+  // entire outstanding balance is always recovered on her next ride, in one payment —
+  // no threshold, no drip. It never blocks booking — a block would deadlock, since
+  // taking a ride is the only way a cash rider can pay.
   riderFee: {
-    // At or above this, her WHOLE outstanding balance is recovered on the next ride
-    // instead of one fee at a time. 0 disables the escalation. It never blocks booking —
-    // a block would deadlock, since taking a ride is the only way a cash rider can pay.
-    recoveryThreshold: 60,
     // The rest is the platform's — posted as `rider_cancellation_fee_share` on the
     // driver ledger when the fee is charged, per spec §3.
     driverSharePct: 75,
@@ -454,9 +433,6 @@ export const DRIVERS = Array.from({ length: DRIVER_COUNT }, (_, i) => {
   const id = nextId();
   const licenceExpiry = NOW + intBetween(-40, 900) * DAY;
   const driverName = i === 2 ? 'Mariam Abdelrahman El-Sayed Mohamed Farouk' : fullName(i + 5);
-  // Deliberately absent for roughly 1 in 9 drivers — spec §6/§5: a payout
-  // cannot be recorded without one, so this is what makes that refusal demonstrable.
-  const hasPayoutDestination = i % 9 !== 3;
 
   return {
     id,
@@ -489,8 +465,6 @@ export const DRIVERS = Array.from({ length: DRIVER_COUNT }, (_, i) => {
     online,
     position: online ? jitter(homeArea) : null,
     cashBalance: isApproved ? round2(between(0, 1400)) : 0,
-    // Financial core spec §6 — required before a payout can be recorded.
-    payoutDestination: hasPayoutDestination ? payoutDestinationFor(driverName) : null,
   };
 });
 
@@ -929,7 +903,7 @@ export const AUDIT_ACTOR_OPTIONS = [...new Set(AUDIT_ENTRIES.map((e) => e.actor)
 
 export const AUDIT_ACTION_TYPES = [
   'approve', 'reject', 'suspend', 'reinstate', 'cancel', 'reassign',
-  'refund', 'settlement', 'payout', 'waive', 'gender-mismatch resolution',
+  'refund', 'settlement', 'payout', 'gender-mismatch resolution',
   'sos case closed', 'admin-account change',
 ];
 
@@ -963,8 +937,8 @@ export const SETTLEMENT_METHODS = [
   'Field agent',
 ];
 // The channel a past payout was sent through — kept only for the historical
-// seed data below; a recorded payout itself reads its destination from the
-// driver's payoutDestination (spec §6), not from a picked method.
+// seed data below; the platform holds no payout destination (spec §5), so
+// this is purely descriptive of how Finance already moved the money.
 export const PAYOUT_METHODS = ['Cash at office', 'Bank transfer', 'Mobile wallet'];
 
 let ledgerSeq = 0;
@@ -1039,17 +1013,15 @@ for (const driver of DRIVERS) {
 
   // Past payouts — digital earnings do not sit on the ledger forever; Finance
   // sends them out on its own cycle and then records the transfer here, which
-  // is what keeps most drivers at or below zero on cash. A payout can only be
-  // recorded against a destination on file (spec §6), so this never posts one
-  // for a driver who lacks one — that gap has to survive into the ledger too.
+  // is what keeps most drivers at or below zero on cash.
   const earned = LEDGER.filter(
     (e) => e.driverId === String(driver.id) && e.type === 'trip_earnings',
   ).reduce((total, e) => total + e.amount, 0);
 
-  if (earned > 0 && driver.payoutDestination) {
+  if (earned > 0) {
     // Most drivers have been paid out in full; the rest still carry an
     // available balance, which is what gives balances.html's "we owe" filter
-    // and the refused-without-a-destination case anything to show.
+    // something to show.
     let toDraw = round2(earned * (rand() < 0.55 ? 1 : between(0.2, 0.6)));
     const payouts = intBetween(1, 2);
     for (let i = 0; i < payouts && toDraw > 0; i += 1) {
@@ -1058,7 +1030,6 @@ for (const driver of DRIVERS) {
         ledgerEntry(driver.id, 'payout', -slice, NOW - intBetween(2, 50) * DAY, {
           method: pick(PAYOUT_METHODS),
           ref: `P-${intBetween(10000, 99999)}`,
-          destination: driver.payoutDestination,
           note: 'Payout sent by Finance',
           actor: pick(ADMINS).email,
         }),
@@ -1090,7 +1061,7 @@ for (const driver of DRIVERS) {
 // Built here, before LEDGER_ENTRIES/LEDGER_BY_DRIVER are finalised, so the
 // driver-side entries this generates are already included in her balance.
 
-export const RIDER_LEDGER_ENTRY_TYPES = ['cancellation_fee', 'fee_collected', 'fee_waived'];
+export const RIDER_LEDGER_ENTRY_TYPES = ['cancellation_fee', 'fee_collected'];
 
 let riderLedgerSeq = 0;
 const riderLedgerId = () => `rled-${String(++riderLedgerSeq).padStart(5, '0')}`;
@@ -1114,8 +1085,8 @@ const zoneByIdForFees = new Map(ZONES.map((z) => [String(z.id), z]));
 const driverByIdForFees = new Map(DRIVERS.map((d) => [String(d.id), d]));
 
 RIDERS.filter((r) => r.tripsCompleted >= 1).forEach((rider) => {
-  // Roughly 1 in 5 eligible riders gets a late-cancellation fee this seed — a
-  // realistic minority, never a majority (spec §2.2).
+  // Roughly 1 in 5 eligible riders gets at least one late-cancellation fee this
+  // seed — a realistic minority, never a majority (spec §2.2).
   if (rand() >= 0.2) return;
 
   const riderTrips = TRIPS.filter(
@@ -1123,162 +1094,77 @@ RIDERS.filter((r) => r.tripsCompleted >= 1).forEach((rider) => {
   ).sort((a, b) => a.createdAt - b.createdAt);
   if (!riderTrips.length) return;
 
-  const anchor = pick(riderTrips);
-  const zone = zoneByIdForFees.get(String(anchor.zoneId));
-  const fee = round2(zone?.rateCard?.cancellationFee ?? 20);
-  const cancelledAt = anchor.createdAt - HOUR;
-
-  RIDER_LEDGER.push(
-    riderLedgerEntry(rider.id, 'cancellation_fee', -fee, cancelledAt, {
-      tripId: anchor.id,
-      note: `Late cancellation after the grace period — trip ${anchor.id}`,
-    }),
-  );
-
-  // The driver's share of that same fee, posted on her ledger at the same
-  // moment (spec §3 step 1) — independent of whether the fee is ever recovered.
-  const anchorDriver = anchor.driverId ? driverByIdForFees.get(String(anchor.driverId)) : null;
-  if (anchorDriver) {
-    LEDGER.push(
-      ledgerEntry(
-        anchorDriver.id,
-        'rider_cancellation_fee_share',
-        round2((fee * GLOBAL_POLICIES.riderFee.driverSharePct) / 100),
-        cancelledAt,
-        {
-          tripId: anchor.id,
-          riderId: String(rider.id),
-          note: `Driver share of ${rider.name}'s cancellation fee`,
-        },
-      ),
-    );
+  // Most riders who get a fee at all get exactly one; a minority rack up two or
+  // three before their next cash trip, since recovery clears her WHOLE balance at
+  // once regardless of how many fees make it up (spec §3) — several-at-once is
+  // the normal case, not a special state to demonstrate.
+  const anchorCount = rand() < 0.7 ? 1 : rand() < 0.7 ? 2 : 3;
+  const anchors = [];
+  const pool = riderTrips.slice();
+  for (let i = 0; i < anchorCount && pool.length; i += 1) {
+    const idx = Math.floor(rand() * pool.length);
+    anchors.push(pool.splice(idx, 1)[0]);
   }
+  anchors.sort((a, b) => a.createdAt - b.createdAt);
 
-  // About two-thirds are recovered on her next cash trip; the rest stay
-  // outstanding, which is what gives rider-balances.html real rows to show.
-  const recoveryTrip = riderTrips.find((t) => t.createdAt > anchor.createdAt && t.custody === 'driver');
-  if (recoveryTrip && rand() < 0.65) {
+  anchors.forEach((anchor) => {
+    const zone = zoneByIdForFees.get(String(anchor.zoneId));
+    const fee = round2(zone?.rateCard?.cancellationFee ?? 20);
+    const cancelledAt = anchor.createdAt - HOUR;
+
     RIDER_LEDGER.push(
-      riderLedgerEntry(rider.id, 'fee_collected', fee, recoveryTrip.createdAt, {
-        tripId: recoveryTrip.id,
-        note: `Recovered as a surcharge on trip ${recoveryTrip.id}`,
+      riderLedgerEntry(rider.id, 'cancellation_fee', -fee, cancelledAt, {
+        tripId: anchor.id,
+        note: `Late cancellation after the grace period — trip ${anchor.id}`,
       }),
     );
 
-    const recoveryDriver = recoveryTrip.driverId ? driverByIdForFees.get(String(recoveryTrip.driverId)) : null;
-    if (recoveryDriver) {
-      // The platform already holds its share via the surcharge, so this never
-      // touches commission — it only reduces what the driver is owed, because
-      // she collected the cash but must still hand the fee itself back.
+    // The driver's share of that same fee, posted on her ledger at the same
+    // moment (spec §3 step 1) — independent of whether the fee is ever recovered.
+    const anchorDriver = anchor.driverId ? driverByIdForFees.get(String(anchor.driverId)) : null;
+    if (anchorDriver) {
       LEDGER.push(
-        ledgerEntry(recoveryDriver.id, 'rider_fee_recovery', -fee, recoveryTrip.createdAt, {
+        ledgerEntry(
+          anchorDriver.id,
+          'rider_cancellation_fee_share',
+          round2((fee * GLOBAL_POLICIES.riderFee.driverSharePct) / 100),
+          cancelledAt,
+          {
+            tripId: anchor.id,
+            riderId: String(rider.id),
+            note: `Driver share of ${rider.name}'s cancellation fee`,
+          },
+        ),
+      );
+    }
+
+    // About two-thirds are recovered on her next cash trip; the rest stay
+    // outstanding, which is what gives rider-balances.html real rows to show.
+    const recoveryTrip = riderTrips.find((t) => t.createdAt > anchor.createdAt && t.custody === 'driver');
+    if (recoveryTrip && rand() < 0.65) {
+      RIDER_LEDGER.push(
+        riderLedgerEntry(rider.id, 'fee_collected', fee, recoveryTrip.createdAt, {
           tripId: recoveryTrip.id,
-          riderId: String(rider.id),
-          note: `Collected ${rider.name}'s outstanding fee in cash on trip ${recoveryTrip.id}`,
-        }),
-      );
-    }
-  }
-});
-
-// Two deliberate repeat offenders, so the **full-recovery** state is demonstrable.
-// Above the recovery threshold a rider's whole outstanding balance comes off her next
-// ride at once instead of one fee at a time (spec §3). Without a rider who is actually
-// over the threshold, that state can never be seen on rider-balances.html or reviewed
-// by a designer. She is never blocked from booking — only her recovery escalates.
-(() => {
-  const threshold = GLOBAL_POLICIES.riderFee.recoveryThreshold;
-  if (!threshold) return;
-
-  const alreadyOwing = new Set(
-    RIDER_LEDGER.filter((e) => e.type === 'cancellation_fee').map((e) => String(e.riderId)),
-  );
-  // Pick the busiest eligible riders — a repeat offender needs enough distinct trips
-  // to hang several separate late cancellations off, one fee per trip.
-  const tripCountByRider = TRIPS.reduce((map, t) => {
-    if (['cancelled', 'completed'].includes(t.status)) {
-      map.set(String(t.riderId), (map.get(String(t.riderId)) ?? 0) + 1);
-    }
-    return map;
-  }, new Map());
-
-  const candidates = RIDERS.filter((r) => !alreadyOwing.has(String(r.id)))
-    .sort((a, b) => (tripCountByRider.get(String(b.id)) ?? 0) - (tripCountByRider.get(String(a.id)) ?? 0))
-    .slice(0, 2);
-
-  candidates.forEach((rider) => {
-    // A cancellation fee belongs to a *cancelled* trip, so draw from those first and
-    // fall back to completed ones only to make up the numbers.
-    const riderTrips = TRIPS.filter(
-      (t) => String(t.riderId) === String(rider.id) && ['cancelled', 'completed'].includes(t.status),
-    ).sort((a, b) => (a.status === b.status ? a.createdAt - b.createdAt : a.status === 'cancelled' ? -1 : 1));
-    if (riderTrips.length < 3) return;
-
-    let owed = 0;
-    riderTrips.slice(0, 10).forEach((trip) => {
-      if (owed >= threshold + 5) return;
-      const zone = zoneByIdForFees.get(String(trip.zoneId));
-      const fee = round2(zone?.rateCard?.cancellationFee ?? 20);
-      const cancelledAt = trip.createdAt - HOUR;
-      owed = round2(owed + fee);
-
-      RIDER_LEDGER.push(
-        riderLedgerEntry(rider.id, 'cancellation_fee', -fee, cancelledAt, {
-          tripId: trip.id,
-          note: `Late cancellation after the grace period — trip ${trip.id}`,
+          note: `Recovered as a surcharge on trip ${recoveryTrip.id}`,
         }),
       );
 
-      const feeDriver = trip.driverId ? driverByIdForFees.get(String(trip.driverId)) : null;
-      if (feeDriver) {
+      const recoveryDriver = recoveryTrip.driverId ? driverByIdForFees.get(String(recoveryTrip.driverId)) : null;
+      if (recoveryDriver) {
+        // The platform already holds its share via the surcharge, so this never
+        // touches commission — it only reduces what the driver is owed, because
+        // she collected the cash but must still hand the fee itself back.
         LEDGER.push(
-          ledgerEntry(
-            feeDriver.id,
-            'rider_cancellation_fee_share',
-            round2((fee * GLOBAL_POLICIES.riderFee.driverSharePct) / 100),
-            cancelledAt,
-            {
-              tripId: trip.id,
-              riderId: String(rider.id),
-              note: `Driver share of ${rider.name}'s cancellation fee`,
-            },
-          ),
-        );
-      }
-    });
-
-    // Guarantee the state exists. How many trips a seeded rider happens to have is
-    // random, so without this top-up the full-recovery state can silently vanish from
-    // the demo data on a reshuffle — and a state nobody can see is a state nobody
-    // reviews. One more fee on her most recent trip puts her clearly over.
-    if (owed > 0 && owed <= threshold) {
-      const lastTrip = riderTrips[riderTrips.length - 1];
-      const topUp = round2(threshold - owed + 5);
-      RIDER_LEDGER.push(
-        riderLedgerEntry(rider.id, 'cancellation_fee', -topUp, lastTrip.createdAt - HOUR, {
-          tripId: lastTrip.id,
-          note: `Late cancellation after the grace period — trip ${lastTrip.id}`,
-        }),
-      );
-      const lastDriver = lastTrip.driverId ? driverByIdForFees.get(String(lastTrip.driverId)) : null;
-      if (lastDriver) {
-        LEDGER.push(
-          ledgerEntry(
-            lastDriver.id,
-            'rider_cancellation_fee_share',
-            round2((topUp * GLOBAL_POLICIES.riderFee.driverSharePct) / 100),
-            lastTrip.createdAt - HOUR,
-            {
-              tripId: lastTrip.id,
-              riderId: String(rider.id),
-              note: `Driver share of ${rider.name}'s cancellation fee`,
-            },
-          ),
+          ledgerEntry(recoveryDriver.id, 'rider_fee_recovery', -fee, recoveryTrip.createdAt, {
+            tripId: recoveryTrip.id,
+            riderId: String(rider.id),
+            note: `Collected ${rider.name}'s outstanding fee in cash on trip ${recoveryTrip.id}`,
+          }),
         );
       }
     }
   });
-})();
+});
 
 export const RIDER_LEDGER_ENTRIES = RIDER_LEDGER.sort((a, b) => b.at - a.at);
 

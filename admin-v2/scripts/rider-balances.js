@@ -2,11 +2,11 @@
  * rider-balances.js — SheDrive admin rider fee balances (FIN-11)
  *
  * The rider side of the financial core ledger model (spec §2.2): a late
- * cancellation posts a debit; it is recovered as a cash surcharge on her next
- * trip, or written off here with a reason. Same shape as balances.js (the
- * driver side): a filterable list, a ledger drawer, and a waive action that
- * posts an immutable entry, never editing one. The post-adjustment action was
- * cut deliberately (spec §10) to keep Phase 1 simple.
+ * cancellation posts a debit, recovered in full as a cash surcharge on her
+ * next trip. Nobody writes it off — there is no waive here or anywhere. This
+ * screen is read-only: a filterable list, a ledger drawer, and a link into
+ * the existing rider-suspension flow for persistent abuse, which is the only
+ * human decision that touches a rider's account (spec §3, §7.3).
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -20,23 +20,19 @@ if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
-const shell = qs('ad-shell');
 const filters = qs('#rider-balance-filters');
 const table = qs('#rider-balance-table');
 const ledgerPanel = qs('#ledger-panel');
 const ledgerTable = qs('#ledger-table');
-const modal = qs('#rider-balance-modal');
 
 const query = { search: '', filter: 'owing', page: 1, pageSize: 20, sort: { key: 'outstanding', dir: 'desc' } };
 const ledgerQuery = { riderId: '', page: 1, pageSize: 20 };
 
-let riderFeePolicy = {};
 let selected = null;
 
 const ENTRY_LABEL_KEYS = {
   cancellation_fee: 'riderBalances.entryCancellationFee',
   fee_collected: 'riderBalances.entryFeeCollected',
-  fee_waived: 'riderBalances.entryFeeWaived',
 };
 
 // ── Filters ──────────────────────────────────────────
@@ -67,14 +63,12 @@ filters.actions = [
           t('common.phone'),
           t('riderBalances.colOutstanding'),
           t('riderBalances.colLastFee'),
-          t('riderBalances.colRecovery'),
         ],
         all.rows.map((r) => [
           r.name,
           r.phone,
           r.outstanding.toFixed(2),
           r.lastFeeAt ? formatDate(r.lastFeeAt) : '',
-          r.fullRecovery ? t('riderBalances.csvFullYes') : t('riderBalances.csvFullNo'),
         ]),
       );
     },
@@ -115,16 +109,6 @@ table.columns = [
     label: t('riderBalances.colLastFee'),
     sortable: true,
     render: (row) => (row.lastFeeAt ? formatDate(row.lastFeeAt) : null),
-  },
-  {
-    key: 'fullRecovery',
-    label: t('riderBalances.colRecovery'),
-    render: (row) => {
-      const pill = document.createElement('span');
-      pill.className = `badge ${row.fullRecovery ? 'badge--warning' : 'badge--neutral'}`;
-      pill.textContent = row.fullRecovery ? t('riderBalances.fullRecovery') : t('riderBalances.singleFee');
-      return pill;
-    },
   },
   {
     key: 'ledger',
@@ -212,6 +196,7 @@ async function openLedger(row) {
   ledgerQuery.page = 1;
   ledgerPanel.hidden = false;
   qs('#ledger-title').textContent = t('riderBalances.ledgerFor', { name: row.name });
+  qs('#btn-view-profile').href = `rider-profile.html?id=${encodeURIComponent(row.id)}`;
   ledgerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   await loadLedger();
 }
@@ -219,10 +204,7 @@ async function openLedger(row) {
 function renderLedgerSummary(rider) {
   const summary = qs('#ledger-summary');
   summary.textContent = '';
-  const pairs = [
-    [t('riderBalances.statOutstanding'), formatEgp(rider.outstanding)],
-    [t('riderBalances.statRecovery'), rider.fullRecovery ? t('riderBalances.fullRecovery') : t('riderBalances.singleFee')],
-  ];
+  const pairs = [[t('riderBalances.statOutstanding'), formatEgp(rider.outstanding)]];
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
     cell.className = 'balance-ledger__stat';
@@ -235,9 +217,6 @@ function renderLedgerSummary(rider) {
     cell.append(l, v);
     summary.appendChild(cell);
   });
-
-  // Waiving is only meaningful when there is something outstanding.
-  qs('#btn-waive').disabled = rider.outstanding <= 0;
 }
 
 const ledgerGuard = createRequestGuard();
@@ -258,44 +237,12 @@ async function loadLedger() {
   }
 }
 
-// ── Waive fee ─────────────────────────────────────────
-qs('#btn-waive').addEventListener('click', () => {
-  if (!selected) return;
-  modal.open({
-    title: t('riderBalances.waiveTitle', { name: selected.name }),
-    description: t('riderBalances.waiveDescription', { amount: formatEgp(selected.outstanding) }),
-    confirmLabel: t('riderBalances.waiveFee'),
-    danger: true,
-    fields: [
-      {
-        key: 'reason',
-        type: 'textarea',
-        label: t('riderBalances.waiveReason'),
-        required: true,
-        minLength: 10,
-        maxLength: 500,
-        emptyError: t('riderBalances.errReasonEmpty'),
-        lengthError: t('riderBalances.errReasonLength'),
-      },
-    ],
-    onConfirm: async (values) => {
-      await mockApi.waiveRiderFee(selected.id, values);
-      shell.showToast(t('riderBalances.waiveDone'), 'success');
-      await Promise.all([load(), loadLedger()]);
-    },
-  });
-});
-
 // ── Summary cards ────────────────────────────────────
 async function loadStats() {
   const all = await mockApi.listRiderBalances({ filter: 'all', page: 1, pageSize: 1000 });
   const owing = all.rows.filter((r) => r.outstanding > 0);
   qs('#card-owing').value = String(owing.length);
   qs('#card-outstanding').value = formatEgp(owing.reduce((sum, r) => sum + r.outstanding, 0));
-  qs('#card-blocked').value = String(all.rows.filter((r) => r.fullRecovery).length);
-  qs('#card-blocked').meta = riderFeePolicy.recoveryThreshold
-    ? t('riderBalances.thresholdMeta', { limit: formatEgp(riderFeePolicy.recoveryThreshold) })
-    : t('riderBalances.thresholdDisabled');
 }
 
 // ── Load ─────────────────────────────────────────────
@@ -315,12 +262,4 @@ async function load() {
   }
 }
 
-// The policy fetch is a nice-to-have (the limit shown on the stat card); it
-// must never block the grid itself from loading or reporting ?state=error.
-try {
-  const options = await mockApi.getFinanceOptions();
-  riderFeePolicy = options?.riderFeePolicy ?? {};
-} catch {
-  riderFeePolicy = {};
-}
 load();
