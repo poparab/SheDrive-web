@@ -1,0 +1,266 @@
+/* saved-places.css — rider saved places (#1724) */
+
+.places-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.places-topbar__title-text {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.places-content {
+  padding: var(--space-5) var(--space-4) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.places-intro {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── List ─────────────────────────────────────────────────────────────── */
+
+.places-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.place-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.place-card__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  inline-size: var(--space-10);
+  block-size: var(--space-10);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-alt);
+  color: var(--color-primary-600);
+}
+
+.place-card__icon--work {
+  color: var(--color-info);
+}
+
+.place-card__icon--custom {
+  color: var(--color-accent-500);
+}
+
+.place-card__text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.place-card__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.place-card__address {
+  font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.place-card__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.place-card__action {
+  color: var(--color-text-muted);
+}
+
+.place-card__action--danger {
+  color: var(--color-danger);
+}
+
+/* ── Empty, limit and error states ────────────────────────────────────── */
+
+.places-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-9) var(--space-4);
+  text-align: center;
+}
+
+.places-empty__icon {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.places-empty__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.places-empty__hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.places-limit {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+}
+
+.places-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-9) var(--space-4);
+  text-align: center;
+}
+
+.places-error__msg {
+  margin: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+}
+
+/* ── Sheets ───────────────────────────────────────────────────────────── */
+
+/* sd-bottom-sheet mounts open (it is a docked sheet on the home screen). Here both
+   sheets are modal, so they stay off-screen until something opens them. */
+.saved-places-page .sd-bottom-sheet {
+  max-block-size: 90vh;
+  overflow-y: auto;
+  transition: transform var(--transition-base);
+}
+
+.saved-places-page .sd-bottom-sheet.modal-out {
+  transform: translateY(100%);
+  visibility: hidden;
+}
+
+.saved-places-page .sd-bottom-sheet.modal-in {
+  transform: none;
+  visibility: visible;
+}
+
+/* ── Add / edit sheet ─────────────────────────────────────────────────── */
+
+.place-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4) var(--space-6);
+}
+
+.place-form__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.place-labels {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.place-label-chip {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.place-label-chip.is-active {
+  color: var(--color-primary-700);
+  border-color: var(--color-primary-500);
+  background: rgba(var(--color-primary-500-rgb), 0.08);
+}
+
+.place-label-chip__icon {
+  display: inline-flex;
+}
+
+.place-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+/* ── Confirm sheet ────────────────────────────────────────────────────── */
+
+.confirm-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4) var(--space-6);
+  text-align: center;
+}
+
+.confirm-box__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.confirm-box__msg {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
+.confirm-box__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}

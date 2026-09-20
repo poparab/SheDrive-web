@@ -816,7 +816,7 @@ export const LEDGER_ENTRY_TYPES = [
   'trip_commission',
   'trip_earnings',
   'driver_cancellation_fee',
-  'rider_cancellation_fee_share',
+  'rider_cancellation_fee_credit',
   'settlement',
   'payout',
 ];
@@ -865,7 +865,7 @@ for (const driver of DRIVERS) {
     }
   });
 
-  // A late driver cancellation or two, and the odd rider-cancellation share.
+  // A late driver cancellation or two, and the odd rider-cancellation credit.
   if (trips.length > 4 && rand() < 0.45) {
     const trip = pick(trips);
     LEDGER.push(
@@ -881,9 +881,9 @@ for (const driver of DRIVERS) {
   if (trips.length > 4 && rand() < 0.35) {
     const trip = pick(trips);
     LEDGER.push(
-      ledgerEntry(driver.id, 'rider_cancellation_fee_share', intBetween(10, 18), trip.createdAt + HOUR, {
+      ledgerEntry(driver.id, 'rider_cancellation_fee_credit', intBetween(10, 18), trip.createdAt + HOUR, {
         tripId: trip.id,
-        note: 'Driver share of a rider cancellation fee',
+        note: 'Rider cancellation fee credited to driver — the whole fee, no split',
       }),
     );
   }

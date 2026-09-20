@@ -22,6 +22,8 @@
  * Usage:
  *   bar.fields = [
  *     { type: 'search', key: 'search', label: 'Search', placeholder: 'Name or phone', grow: true },
+ *     { type: 'combobox', key: 'driverId', label: 'Driver', placeholder: 'Name or phone',
+ *       options: [{ value: '7', label: 'Amira Kamal', meta: '01001234567' }] },
  *     { type: 'select', key: 'status', label: 'Status', value: 'all',
  *       options: [{ value: 'all', label: 'All' }, { value: 'active', label: 'Active' }] },
  *     { type: 'daterange', key: 'date', label: 'Submission date',
@@ -31,7 +33,8 @@
  *   bar.value;                       // { search: '', status: 'all', from: '', to: '' }
  *
  * Events: 'change' (bubbles) → detail is the full value object.
- * Search inputs are debounced by 300 ms; selects and dates fire immediately.
+ * Search inputs are debounced by 300 ms; selects, comboboxes and dates fire
+ * immediately.
  * A range whose end date precedes its start date is rejected with a
  * `.field__error` message and no 'change' event.
  *
@@ -45,6 +48,7 @@
  */
 
 import { t } from '../scripts/admin-i18n.js';
+import './ad-combobox.js';
 
 const DEBOUNCE_MS = 300;
 
@@ -187,6 +191,8 @@ class AdFilterBar extends HTMLElement {
 
     if (field.type === 'select') {
       wrap.appendChild(this.buildSelect(field, inputId));
+    } else if (field.type === 'combobox') {
+      wrap.appendChild(this.buildCombobox(field, inputId));
     } else if (field.type === 'daterange') {
       this.buildDateRange(field, inputId, wrap);
     } else {
@@ -213,6 +219,28 @@ class AdFilterBar extends HTMLElement {
     });
     this._inputs.set(field.key, select);
     return select;
+  }
+
+  /**
+   * A searchable person picker. Used wherever an admin has to find one driver
+   * or rider among hundreds — she types a name or a phone number rather than
+   * scrolling a flat <select> of names (#4382).
+   */
+  buildCombobox(field, inputId) {
+    const box = document.createElement('ad-combobox');
+    box.id = inputId;
+    box.name = field.key;
+    box.placeholder = field.placeholder ?? t('combobox.placeholder');
+    box.options = field.options ?? [];
+    box.value = this._state[field.key] ?? '';
+    box.addEventListener('change', (event) => {
+      // The combobox's own detail must not escape as the bar's filter payload.
+      event.stopPropagation();
+      this._state[field.key] = event.detail.value;
+      this.emitChange();
+    });
+    this._inputs.set(field.key, box);
+    return box;
   }
 
   buildTextInput(field, inputId) {

@@ -47,6 +47,7 @@ import './ad-status-pill.js';
 import './ad-stat-card.js';
 import './ad-data-table.js';
 import './ad-filter-bar.js';
+import './ad-combobox.js';
 import './ad-detail-section.js';
 import './ad-empty-state.js';
 import './ad-timeline.js';

@@ -17,6 +17,8 @@ import { createRequestGuard } from './request-guard.js';
 import { formatDate, formatDateTime, formatEgp, toDateInputValue, downloadCsv } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { assetUrl } from '../components/ad-styles.js';
+import { bindLightbox } from './design-init.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -29,17 +31,58 @@ const ledgerPanel = qs('#ledger-panel');
 const ledgerTable = qs('#ledger-table');
 const modal = qs('#balance-modal');
 
-const query = { search: '', filter: 'owing', page: 1, pageSize: 20, sort: { key: 'outstanding', dir: 'desc' } };
+const query = { search: '', filter: 'owing', page: 1, pageSize: 20, sort: { key: 'balance', dir: 'asc' } };
 const ledgerQuery = { driverId: '', page: 1, pageSize: 20 };
 
 let options = { settlementMethods: [], payoutMethods: [], policy: {} };
 let selected = null;
 
+/**
+ * One signed balance in EGP, rendered with its sign: negative means she owes
+ * the platform, positive means the platform owes her. There is no second
+ * number — "outstanding" and "available" are just the two signs of this one.
+ */
+function signedEgp(balance) {
+  if (!balance) return formatEgp(0);
+  return balance > 0 ? `+${formatEgp(balance)}` : `−${formatEgp(Math.abs(balance))}`;
+}
+
+/** What she owes the platform: the magnitude of a negative balance, else 0. */
+function amountOwed(driver) {
+  return driver.balance < 0 ? Math.abs(driver.balance) : 0;
+}
+
+/** What the platform owes her: the magnitude of a positive balance, else 0. */
+function amountOwedToHer(driver) {
+  return driver.balance > 0 ? driver.balance : 0;
+}
+
+/**
+ * The receipt photo or transfer slip attached to a money movement (#3982).
+ * Seeded entries carry a placeholder path; one recorded in this session carries
+ * the data URL of the image the admin picked. Both open in the kit's lightbox.
+ */
+function proofLink(proof) {
+  const href = proof.dataUrl ?? assetUrl(proof.src ?? '');
+  if (!href) return null;
+  const link = document.createElement('a');
+  link.className = 'photo-trigger ledger-proof';
+  link.href = href;
+  link.title = t('balances.proofAlt');
+  const thumb = document.createElement('img');
+  thumb.src = href;
+  thumb.alt = t('balances.proofAlt');
+  const label = document.createElement('span');
+  label.textContent = t('balances.proofView');
+  link.append(thumb, label);
+  return link;
+}
+
 const ENTRY_LABEL_KEYS = {
   trip_commission: 'balances.entryTripCommission',
   trip_earnings: 'balances.entryTripEarnings',
   driver_cancellation_fee: 'balances.entryDriverCancellationFee',
-  rider_cancellation_fee_share: 'balances.entryRiderCancellationFeeShare',
+  rider_cancellation_fee_credit: 'balances.entryRiderCancellationFeeCredit',
   settlement: 'balances.entrySettlement',
   payout: 'balances.entryPayout',
 };
@@ -71,15 +114,13 @@ filters.actions = [
         `${t('balances.csvName')}-${toDateInputValue(Date.now())}.csv`,
         [
           t('common.name'),
-          t('balances.colOutstanding'),
-          t('balances.colAvailable'),
+          t('balances.colBalance'),
           t('balances.colLastSettlement'),
           t('balances.colGoOnline'),
         ],
         all.rows.map((r) => [
           r.name,
-          r.outstanding.toFixed(2),
-          r.available.toFixed(2),
+          r.balance.toFixed(2),
           r.lastSettlementAt ? formatDate(r.lastSettlementAt) : '',
           r.goOnlineBlocked ? t('balances.csvBlockedYes') : t('balances.csvBlockedNo'),
         ]),
@@ -131,18 +172,13 @@ table.sort = query.sort;
 table.columns = [
   { key: 'name', label: t('common.name'), sortable: true, render: (row) => row.name },
   {
-    key: 'outstanding',
-    label: t('balances.colOutstanding'),
+    // One signed balance, never two columns: negative means she owes the
+    // platform, positive means the platform owes her (#1813).
+    key: 'balance',
+    label: t('balances.colBalance'),
     sortable: true,
     numeric: true,
-    render: (row) => (row.outstanding > 0 ? formatEgp(row.outstanding) : null),
-  },
-  {
-    key: 'available',
-    label: t('balances.colAvailable'),
-    sortable: true,
-    numeric: true,
-    render: (row) => (row.available > 0 ? formatEgp(row.available) : null),
+    render: (row) => signedEgp(row.balance),
   },
   {
     key: 'lastSettlementAt',
@@ -206,7 +242,14 @@ ledgerTable.columns = [
     },
   },
   { key: 'source', label: t('balances.colSource'), render: (row) => row.tripId ?? row.ref ?? null },
-  { key: 'note', label: t('balances.colNote'), render: (row) => row.note ?? null },
+  {
+    // The note column was dropped (#4381) — the entry type already names the
+    // cause of every row. What replaces it is the proof image attached when
+    // the settlement or payout was recorded (#3982).
+    key: 'proof',
+    label: t('balances.colProof'),
+    render: (row) => (row.proof ? proofLink(row.proof) : null),
+  },
 ];
 ledgerTable.emptyState = {
   icon: '☐',
@@ -238,11 +281,7 @@ async function openLedger(row) {
 function renderLedgerSummary(driver) {
   const summary = qs('#ledger-summary');
   summary.textContent = '';
-  const pairs = [
-    [t('balances.statBalance'), driver.balance >= 0 ? `+${formatEgp(driver.balance)}` : `−${formatEgp(Math.abs(driver.balance))}`],
-    [t('balances.statOutstanding'), formatEgp(driver.outstanding)],
-    [t('balances.statAvailable'), formatEgp(driver.available)],
-  ];
+  const pairs = [[t('balances.statBalance'), signedEgp(driver.balance)]];
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
     cell.className = 'balance-ledger__stat';
@@ -256,12 +295,12 @@ function renderLedgerSummary(driver) {
     summary.appendChild(cell);
   });
 
-  // Settling is only meaningful when there is something outstanding (#1813 S7).
-  qs('#btn-settle').disabled = driver.outstanding <= 0;
+  // Settling is only meaningful when the balance is negative (#1813 S7).
+  qs('#btn-settle').disabled = driver.balance >= 0;
 
   // A payout only needs money owed — the platform holds no payout destination
   // and getting the money to her is a manual, off-platform process (spec §5).
-  qs('#btn-payout').disabled = !(driver.available > 0);
+  qs('#btn-payout').disabled = !(driver.balance > 0);
 }
 
 const ledgerGuard = createRequestGuard();
@@ -276,6 +315,7 @@ async function loadLedger() {
     renderLedgerSummary(result.driver);
     selected = { ...selected, ...result.driver };
     ledgerTable.setData(result);
+    bindLightbox(ledgerTable);
   } catch (error) {
     if (!isCurrent()) return;
     ledgerTable.setError(error.message, loadLedger);
@@ -285,7 +325,7 @@ async function loadLedger() {
 // ── Record settlement (#1813 S3–S7) ──────────────────
 qs('#btn-settle').addEventListener('click', () => {
   if (!selected) return;
-  const max = selected.outstanding;
+  const max = amountOwed(selected);
   modal.open({
     title: t('balances.settleTitle', { name: selected.name }),
     description: t('balances.settleDescription', { amount: formatEgp(max) }),
@@ -294,14 +334,15 @@ qs('#btn-settle').addEventListener('click', () => {
       {
         key: 'amount',
         type: 'number',
-        label: t('balances.settleAmount'),
+        // Deliberately uncapped (#3982, 2026-09-17): a driver may hand back
+        // more than she owes, and the surplus becomes an available balance.
         required: true,
+        label: t('balances.settleAmount'),
         min: 0.01,
-        max,
         step: 0.01,
         emptyError: t('balances.errAmountEmpty'),
         invalidError: t('balances.errAmountInvalid'),
-        rangeError: t('balances.errAmountRange', { max: formatEgp(max) }),
+        rangeError: t('balances.errAmountRange'),
       },
       {
         key: 'date',
@@ -330,10 +371,25 @@ qs('#btn-settle').addEventListener('click', () => {
         maxLength: 500,
         lengthError: t('balances.errNoteLength'),
       },
+      {
+        key: 'proof',
+        type: 'image',
+        label: t('balances.settleProof'),
+        hint: t('balances.settleProofHint'),
+      },
     ],
     onConfirm: async (values) => {
+      const paid = Number(values.amount);
       await mockApi.recordSettlement(selected.id, values);
-      shell.showToast(t('balances.settleDone'), 'success');
+      // She may pay more than she owed; say so, because her row flips from
+      // outstanding to available the moment the entry posts.
+      const surplus = paid > max ? paid - max : 0;
+      shell.showToast(
+        surplus
+          ? t('balances.settleDoneSurplus', { amount: formatEgp(surplus) })
+          : t('balances.settleDone'),
+        'success',
+      );
       await Promise.all([load(), loadLedger()]);
     },
   });
@@ -345,7 +401,7 @@ qs('#btn-settle').addEventListener('click', () => {
 // approval and nothing for the driver to have initiated.
 qs('#btn-payout').addEventListener('click', () => {
   if (!selected) return;
-  const max = selected.available;
+  const max = amountOwedToHer(selected);
   modal.open({
     title: t('balances.payoutTitle', { name: selected.name }),
     description: t('balances.payoutDescription', { amount: formatEgp(max) }),
@@ -383,6 +439,12 @@ qs('#btn-payout').addEventListener('click', () => {
         emptyError: t('balances.errPayoutReferenceEmpty'),
         lengthError: t('balances.errPayoutReferenceLength'),
       },
+      {
+        key: 'proof',
+        type: 'image',
+        label: t('balances.payoutProof'),
+        hint: t('balances.payoutProofHint'),
+      },
     ],
     onConfirm: async (values) => {
       await mockApi.recordPayout(selected.id, values);
@@ -395,10 +457,12 @@ qs('#btn-payout').addEventListener('click', () => {
 // ── Summary cards ────────────────────────────────────
 async function loadStats() {
   const all = await mockApi.listDriverBalances({ filter: 'all', page: 1, pageSize: 1000 });
-  const owing = all.rows.filter((r) => r.outstanding > 0);
+  // The cards are fleet aggregates over the one signed balance, not a second
+  // per-driver number: negative balances are what the fleet owes the platform.
+  const owing = all.rows.filter((r) => r.balance < 0);
   qs('#card-owing').value = String(owing.length);
-  qs('#card-outstanding').value = formatEgp(owing.reduce((sum, r) => sum + r.outstanding, 0));
-  qs('#card-owed').value = String(all.rows.filter((r) => r.available > 0).length);
+  qs('#card-outstanding').value = formatEgp(owing.reduce((sum, r) => sum + Math.abs(r.balance), 0));
+  qs('#card-owed').value = String(all.rows.filter((r) => r.balance > 0).length);
   qs('#card-blocked').value = String(all.rows.filter((r) => r.goOnlineBlocked).length);
   qs('#card-blocked').meta = options.policy.outstandingLimit
     ? t('balances.limitMeta', { limit: formatEgp(options.policy.outstandingLimit) })

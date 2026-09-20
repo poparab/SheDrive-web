@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Placeholder settlement receipt photo">
+  <rect width="400" height="300" fill="#f8f7fb"/>
+  <rect x="96" y="14" width="208" height="272" rx="6" fill="#ffffff" stroke="#e5e2ee" stroke-width="2"/>
+  <rect x="96" y="14" width="208" height="40" rx="6" fill="#6b2bd9"/>
+  <text x="200" y="40" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#ffffff">RECEIPT — SAMPLE</text>
+  <g fill="#c9c3dd">
+    <rect x="118" y="76" width="164" height="8" rx="4"/>
+    <rect x="118" y="96" width="120" height="8" rx="4"/>
+    <rect x="118" y="126" width="164" height="8" rx="4"/>
+    <rect x="118" y="146" width="140" height="8" rx="4"/>
+    <rect x="118" y="166" width="96" height="8" rx="4"/>
+  </g>
+  <rect x="118" y="196" width="164" height="1" fill="#e5e2ee"/>
+  <text x="118" y="222" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#2f2b3a">TOTAL</text>
+  <text x="282" y="222" text-anchor="end" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#2f2b3a">EGP ———</text>
+  <g fill="#c9c3dd">
+    <rect x="118" y="244" width="70" height="7" rx="3.5"/>
+    <rect x="212" y="244" width="70" height="7" rx="3.5"/>
+  </g>
+  <text x="200" y="276" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#6b6580">Placeholder image — not a real receipt</text>
+</svg>

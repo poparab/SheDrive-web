@@ -13,7 +13,7 @@
       active="reconciliation"
       page-title-key="reconciliation.title"
       breadcrumb-keys="nav.money > nav.reconciliation"
-      screen-styles="styles/detail.css, styles/list.css, styles/pricing.css"
+      screen-styles="styles/detail.css, styles/list.css, styles/pricing.css, styles/reconciliation.css"
     >
       <section class="ad-section" aria-labelledby="filters-heading">
         <div class="ad-section__header">
@@ -38,12 +38,13 @@
       </div>
 
       <div id="report" hidden>
-        <div class="ad-stats">
+        <!-- Period totals only. The outstanding cash balance is a live figure the
+             date range does not change, so it sits in the Cash vs digital panel. -->
+        <div class="ad-stats" id="report-cards">
           <ad-stat-card id="card-trips" label="Completed trips" data-i18n-label="reports.cardTrips" value="—"></ad-stat-card>
           <ad-stat-card id="card-gross" label="Gross fares" data-i18n-label="reports.cardGross" value="—"></ad-stat-card>
           <ad-stat-card id="card-commission" label="Commission deducted" data-i18n-label="reconciliation.cardCommission" value="—"></ad-stat-card>
           <ad-stat-card id="card-net" label="Net earnings" data-i18n-label="reconciliation.cardNet" value="—"></ad-stat-card>
-          <ad-stat-card id="card-balance" label="Outstanding cash balance" data-i18n-label="reconciliation.cardBalance" value="—"></ad-stat-card>
         </div>
 
         <div class="ad-split" style="margin-block-start: var(--admin-gutter)">

@@ -34,7 +34,7 @@ const ENTRY_LABELS = {
   trip_commission: 'Trip commission',
   trip_earnings: 'Trip earnings',
   driver_cancellation_fee: 'Driver cancellation fee',
-  rider_cancellation_fee_share: 'Rider cancellation fee share',
+  rider_cancellation_fee_credit: 'Rider cancellation fee credit',
   settlement: 'Settlement received',
   payout: 'Payout sent',
 };

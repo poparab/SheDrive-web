@@ -172,7 +172,9 @@ function ledgerFor(driverId) {
 /** #TBD-F — a limit of 0 disables the gate entirely. */
 function isGoOnlineBlocked(driver) {
   const limit = GLOBAL_POLICIES.driverBalance.outstandingLimit;
-  return Boolean(limit) && driver.outstanding >= limit;
+  // One signed balance: only a negative one is a debt, and the limit compares
+  // against how far below zero she is (#1813).
+  return Boolean(limit) && driver.balance < 0 && Math.abs(driver.balance) >= limit;
 }
 
 /**
@@ -564,11 +566,15 @@ export const mockApi = {
     return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
-  /** Approved and suspended drivers only — the #1833 report's driver picker. */
+  /**
+   * Approved and suspended drivers only — the #1833 report's driver picker.
+   * The phone rides along because the picker is searchable on name *or* phone
+   * (#4382): a driver calling about her money gives her number, not a spelling.
+   */
   listSettleableDrivers() {
     const rows = DRIVERS.filter((d) =>
       ['approved', 'suspended', 'pending_suspension'].includes(d.status),
-    ).map((d) => ({ id: d.id, name: d.name, status: d.status }));
+    ).map((d) => ({ id: d.id, name: d.name, phone: d.phone, status: d.status }));
     return respond(rows, { emptyValue: [], latency: 160 });
   },
 
@@ -786,6 +792,7 @@ export const mockApi = {
     ).map((driver) => ({
       id: driver.id,
       name: driver.name,
+      phone: driver.phone,
       vehicle: `${driver.vehicle.make} ${driver.vehicle.model} · ${driver.vehicle.plate}`,
       homeArea: driver.homeArea,
       rating: driver.avgRating,
@@ -1220,12 +1227,6 @@ export const mockApi = {
         updatedBy: CURRENT_ADMIN.email,
       });
     }
-    if (next.riderFee) {
-      Object.assign(GLOBAL_POLICIES.riderFee, next.riderFee, {
-        updatedAt: Date.now(),
-        updatedBy: CURRENT_ADMIN.email,
-      });
-    }
     recordPolicies(structuredClone(GLOBAL_POLICIES));
     return respond({ ok: true });
   },
@@ -1244,8 +1245,6 @@ export const mockApi = {
       settlementMethods: SETTLEMENT_METHODS.slice(),
       payoutMethods: PAYOUT_METHODS.slice(),
       policy: structuredClone(GLOBAL_POLICIES.driverBalance),
-      // The rider-fee side of the same policy surface (spec §4).
-      riderFeePolicy: structuredClone(GLOBAL_POLICIES.riderFee),
     };
     return respond(payload, { emptyValue: payload, latency: 120 });
   },
@@ -1262,8 +1261,8 @@ export const mockApi = {
       ['approved', 'suspended', 'pending_suspension'].includes(d.status),
     )
       .filter((d) => {
-        if (filter === 'owing') return d.outstanding > 0;
-        if (filter === 'owed') return d.available > 0;
+        if (filter === 'owing') return d.balance < 0;
+        if (filter === 'owed') return d.balance > 0;
         if (filter === 'settled') return d.balance === 0;
         return true;
       })
@@ -1276,16 +1275,16 @@ export const mockApi = {
           name: d.name,
           phone: d.phone,
           status: d.status,
+          // One signed balance per driver, never a pair (#1813).
           balance: d.balance,
-          outstanding: d.outstanding,
-          available: d.available,
           lastSettlementAt: lastSettlement ? lastSettlement.at : null,
           // The go-online gate reads the live balance (#TBD-F).
           goOnlineBlocked: isGoOnlineBlocked(d),
         };
       });
 
-    const sorted = sortRows(rows, sort, { key: 'outstanding', dir: 'desc' });
+    // Most negative first — the drivers who owe the platform most.
+    const sorted = sortRows(rows, sort, { key: 'balance', dir: 'asc' });
     return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
@@ -1301,8 +1300,6 @@ export const mockApi = {
         name: driver.name,
         status: driver.status,
         balance: driver.balance,
-        outstanding: driver.outstanding,
-        available: driver.available,
         goOnlineBlocked: isGoOnlineBlocked(driver),
       },
       ...paginate(entries, page, pageSize),
@@ -1314,7 +1311,7 @@ export const mockApi = {
    * #1813 Scenarios 3–7 — record cash received from a driver.
    * Posts a `settlement` credit; never edits the balance directly.
    */
-  recordSettlement(driverId, { amount, date, method, note = '' } = {}) {
+  recordSettlement(driverId, { amount, date, method, note = '', proof = null } = {}) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
@@ -1322,14 +1319,12 @@ export const mockApi = {
     if (!Number.isFinite(value) || value <= 0) {
       return Promise.reject(new MockApiError('Enter a valid amount.', 422));
     }
-    if (driver.outstanding <= 0) {
+    if (driver.balance >= 0) {
       return Promise.reject(new MockApiError('This driver has nothing outstanding to settle.', 409));
     }
-    if (value > driver.outstanding) {
-      return Promise.reject(
-        new MockApiError('Amount must not exceed the outstanding balance.', 422),
-      );
-    }
+    // A driver may hand back MORE than she owes (#3982, 2026-09-17). The surplus
+    // is not refused at the counter — it crosses zero and becomes an available
+    // balance, which Finance later pays out like any other available balance.
     if (!method) return Promise.reject(new MockApiError('Select a settlement method.', 422));
 
     // A settlement dated today is valid at any hour, so the future check compares
@@ -1357,6 +1352,7 @@ export const mockApi = {
       method,
       ref: nextSettlementReceipt(),
       note: note || 'Cash received from driver',
+      proof: proof ?? null,
       actor: CURRENT_ADMIN.email,
     });
 
@@ -1364,7 +1360,7 @@ export const mockApi = {
     // `key in before`, which throws if before/after are formatted strings.
     // makeAuditEntry already persists the entry; no separate recordAuditEntry call.
     makeAuditEntry('settlement', 'driver', driver.id, { balance: before }, { balance: driver.balance });
-    return respond({ ok: true, entry, balance: driver.balance, outstanding: driver.outstanding });
+    return respond({ ok: true, entry, balance: driver.balance });
   },
 
   /**
@@ -1376,11 +1372,11 @@ export const mockApi = {
    * process, so recording is only refused for an amount above what SheDrive
    * currently owes her.
    */
-  recordPayout(driverId, { amount, date, reference } = {}) {
+  recordPayout(driverId, { amount, date, reference, proof = null } = {}) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
-    if (driver.available <= 0) {
+    if (driver.balance <= 0) {
       return Promise.reject(new MockApiError('This driver has nothing available to pay out.', 409));
     }
 
@@ -1388,9 +1384,9 @@ export const mockApi = {
     if (!Number.isFinite(value) || value <= 0) {
       return Promise.reject(new MockApiError('Enter a valid amount.', 422));
     }
-    if (value > driver.available) {
+    if (value > driver.balance) {
       return Promise.reject(
-        new MockApiError('Amount must not exceed the available balance.', 422),
+        new MockApiError('Amount must not exceed what the platform owes the driver.', 422),
       );
     }
     if (!reference || !String(reference).trim()) {
@@ -1417,12 +1413,13 @@ export const mockApi = {
     const entry = postLedgerEntry(driver, 'payout', -value, at, {
       ref: String(reference).trim(),
       note: 'Payout sent by Finance',
+      proof: proof ?? null,
       actor: CURRENT_ADMIN.email,
     });
 
     // before/after must be plain objects — see the note on recordSettlement.
     makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
-    return respond({ ok: true, entry, balance: driver.balance, outstanding: driver.outstanding, available: driver.available });
+    return respond({ ok: true, entry, balance: driver.balance });
   },
 
   // ── Rider fee ledger (financial core spec §2.2, FIN-11) ────

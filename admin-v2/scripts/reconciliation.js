@@ -30,19 +30,23 @@ let latest = null;
 
 const drivers = await mockApi.listSettleableDrivers();
 
+// #4382: one searchable picker, matched on name *or* phone, replacing the
+// kit's free-text box beside a name-only dropdown. An admin answering a
+// payment query has the driver's number in front of her, not her spelling.
 filters.fields = [
   {
-    type: 'select',
+    type: 'combobox',
     key: 'driverId',
     label: t('reconciliation.driver'),
+    placeholder: t('reconciliation.driverPlaceholder'),
     value: '',
-    options: [
-      { value: '', label: t('reconciliation.selectDriver') },
-      ...drivers.map((d) => ({
-        value: String(d.id),
-        label: d.status === 'approved' ? d.name : `${d.name} (${d.status})`,
-      })),
-    ],
+    grow: true,
+    options: drivers.map((d) => ({
+      value: String(d.id),
+      label: d.name,
+      meta: d.phone,
+      note: d.status === 'approved' ? '' : t(`status.${d.status}`),
+    })),
   },
   { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: 'to' },
 ];
@@ -55,9 +59,16 @@ filters.actions = [
       if (!latest) return;
       downloadCsv(
         `shedrive-settlement-${latest.driver.name.replace(/\s+/g, '-').toLowerCase()}-${toDateInputValue(Date.now())}.csv`,
-        [t('reconciliation.colTripDate'), t('reconciliation.colFare'), t('reconciliation.colCommission'), t('reconciliation.colNet')],
+        [
+          t('reconciliation.colTripDate'),
+          t('reconciliation.colPaymentMethod'),
+          t('reconciliation.colFare'),
+          t('reconciliation.colCommission'),
+          t('reconciliation.colNet'),
+        ],
         latest.rows.map((trip) => [
           formatDate(trip.createdAt),
+          t(`status.${trip.paymentMethod ?? 'cash'}`),
           trip.fare.total.toFixed(2),
           trip.fare.commission.toFixed(2),
           trip.fare.netEarnings.toFixed(2),
@@ -83,6 +94,18 @@ table.columns = [
     label: t('reconciliation.colTripDate'),
     className: 'ad-table__nowrap',
     render: (trip) => formatDate(trip.createdAt),
+  },
+  {
+    // How the fare was taken decides who is holding the money, and so whether
+    // the net on this row is cash she already has or a payout still owed.
+    key: 'paymentMethod',
+    label: t('reconciliation.colPaymentMethod'),
+    className: 'ad-table__nowrap',
+    render: (trip) => {
+      const pill = document.createElement('ad-status-pill');
+      pill.status = trip.paymentMethod ?? 'cash';
+      return pill;
+    },
   },
   { key: 'fare', label: t('reconciliation.colFare'), numeric: true, render: (trip) => formatEgp(trip.fare.total) },
   {
@@ -152,8 +175,6 @@ async function load() {
     qs('#card-gross').value = formatEgp(totals.grossFares);
     qs('#card-commission').value = formatEgp(totals.commission);
     qs('#card-net').value = formatEgp(totals.netEarnings);
-    qs('#card-balance').value = formatEgp(totals.outstandingCashBalance);
-    qs('#card-balance').meta = t('reconciliation.balanceMeta');
 
     const split = qs('#split-rows');
     split.textContent = '';

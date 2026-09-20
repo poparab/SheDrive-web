@@ -199,9 +199,6 @@ export function applyMutations({
     if (state.policies.driverBalance) {
       Object.assign(GLOBAL_POLICIES.driverBalance, state.policies.driverBalance);
     }
-    if (state.policies.riderFee) {
-      Object.assign(GLOBAL_POLICIES.riderFee, state.policies.riderFee);
-    }
   }
 
   // Ledger entries replay before balances are recomputed, so a settlement made

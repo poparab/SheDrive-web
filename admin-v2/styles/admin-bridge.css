@@ -374,6 +374,31 @@ textarea.input {
   line-height: 1.5;
 }
 
+/* Picked-image preview inside <ad-form-modal> (type: 'image', #3982). */
+.ad-image-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-radius);
+  background: var(--color-surface-alt);
+}
+
+.ad-image-preview img {
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.ad-image-preview figcaption {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+
 .ad-form-error {
   margin-block-end: var(--space-3);
   padding: var(--space-3) var(--space-4);

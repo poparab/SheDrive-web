@@ -41,6 +41,17 @@ export const en = {
   },
 
   /**
+   * <ad-combobox> — the searchable name-or-phone person picker (#4382).
+   * Option labels and the per-screen placeholder come from the screen.
+   */
+  combobox: {
+    placeholder: 'Search by name or phone…',
+    clear: 'Clear selection',
+    noMatches: 'No match for that name or phone',
+    resultCount: '{count} matches',
+  },
+
+  /**
    * <ad-form-modal> built-in validation fallbacks. English wording is frozen —
    * it is quoted in the ADO story acceptance criteria.
    */
@@ -52,6 +63,8 @@ export const en = {
     minLength: 'Must be at least {min} characters',
     min: 'Must be at least {min}',
     max: 'Must be at most {max}',
+    imageType: 'Attach a JPG or PNG image',
+    imageSize: 'Image must be {max} MB or smaller',
   },
 
   /** <ad-map-panel> overlays, toolbar and boundary-draw errors. */
@@ -94,6 +107,13 @@ export const ar = {
     saveFailed: 'تعذّر الحفظ. حاول مرة أخرى.',
   },
 
+  combobox: {
+    placeholder: 'ابحث بالاسم أو رقم الهاتف…',
+    clear: 'مسح الاختيار',
+    noMatches: 'لا يوجد تطابق لهذا الاسم أو الرقم',
+    resultCount: '{count} نتيجة',
+  },
+
   validation: {
     required: '{label} مطلوب',
     invalid: 'أدخل {label} صحيحًا',
@@ -102,6 +122,8 @@ export const ar = {
     minLength: 'يجب ألا يقل عن {min} حرفًا',
     min: 'يجب ألا يقل عن {min}',
     max: 'يجب ألا يزيد عن {max}',
+    imageType: 'أرفق صورة بصيغة JPG أو PNG',
+    imageSize: 'يجب ألا يزيد حجم الصورة عن {max} ميجابايت',
   },
 
   map: {

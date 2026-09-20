@@ -1,0 +1,14 @@
+/*
+ * reconciliation.css — per-driver earnings & settlement (#1833)
+ * Every value comes from a token; see admin-tokens.css.
+ */
+
+/*
+ * The four period totals should stay on one row on a standard ops display.
+ * Left to auto-fit they break 3 + 1 at 1280 px.
+ */
+@media (min-width: 1280px) {
+  #report-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

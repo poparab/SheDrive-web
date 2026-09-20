@@ -367,13 +367,17 @@ qs('#reassign-trip').addEventListener('click', async () => {
     fields: [
       {
         key: 'driverId',
-        type: 'select',
+        // #4382: searchable on name or phone — dispatch is reassigning a live
+        // trip and is usually already on the phone to the driver she wants.
+        type: 'combobox',
         label: t('tripDetail.newDriverLabel'),
         required: true,
         placeholder: t('tripDetail.newDriverPlaceholder'),
         options: candidates.map((d) => ({
           value: String(d.id),
-          label: `${d.name} — ${d.vehicle}${d.rating ? ` · ${d.rating}★` : ''} · ${d.homeArea}`,
+          label: d.name,
+          meta: d.phone,
+          note: `${d.vehicle}${d.rating ? ` · ${d.rating}★` : ''} · ${d.homeArea}`,
         })),
         emptyError: t('tripDetail.newDriverEmpty'),
       },

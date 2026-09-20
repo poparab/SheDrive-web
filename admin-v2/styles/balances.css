@@ -62,3 +62,30 @@
 @media (max-width: 1100px) {
   .balance-ledger__summary { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 }
+
+/* ── Proof thumbnail (#3982) ──────────────────────── */
+/* Replaces the dropped Note column (#4381): the receipt photo or transfer
+   slip attached when the settlement or payout was recorded. */
+
+.ledger-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ad-space-2, var(--space-2));
+  font-size: var(--ad-fs-sm, var(--fs-sm));
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.ledger-proof:hover,
+.ledger-proof:focus-visible {
+  text-decoration: underline;
+}
+
+.ledger-proof img {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}

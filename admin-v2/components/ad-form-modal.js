@@ -70,7 +70,7 @@
  *
  * Config keys: title, description, confirmLabel, cancelLabel, danger, tone,
  * icon, confirmVariant, cancelVariant, hideCancel, fields, onConfirm, onClose.
- * Field spec keys: type (text|email|password|number|textarea|select|date|readonly),
+ * Field spec keys: type (text|email|password|number|textarea|select|combobox|date|readonly|image),
  * required, requiredWhen(values), emptyError, pattern, invalidError, min, max,
  * step, rangeError, maxLength, minLength, lengthError, hint, placeholder,
  * options, value, rows, autocomplete, ltr (the value is Latin data — an id,
@@ -86,6 +86,12 @@
 
 import { loadBootstrap } from '../scripts/design-init.js';
 import { t } from '../scripts/admin-i18n.js';
+import './ad-combobox.js';
+
+// Defaults for `type: 'image'` fields (#3982): a photo of a receipt or a
+// transfer confirmation, not a document library.
+const IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const IMAGE_MAX_MB = 5;
 
 const TONES = new Set(['warning', 'success', 'danger', 'info', 'primary']);
 
@@ -351,6 +357,8 @@ class AdFormModal extends HTMLElement {
     this._fieldHost.textContent = '';
     this._controls = new Map();
     this._errorNodes = new Map();
+    this._previews = new Map();
+    this._images = new Map();
 
     (this._config.fields ?? []).forEach((field) => {
       const wrap = document.createElement('div');
@@ -364,7 +372,16 @@ class AdFormModal extends HTMLElement {
       wrap.appendChild(label);
 
       let control;
-      if (field.type === 'select') {
+      if (field.type === 'combobox') {
+        // A searchable person picker (#4382): the admin types a name or a
+        // phone number instead of scrolling a flat list. It exposes `value`,
+        // `focus()` and a bubbling 'change', so everything below — validation,
+        // error styling, value collection — drives it like a native control.
+        control = document.createElement('ad-combobox');
+        control.placeholder = field.placeholder ?? t('combobox.placeholder');
+        control.options = field.options ?? [];
+        control.value = field.value ?? '';
+      } else if (field.type === 'select') {
         control = document.createElement('select');
         control.className = 'form-select';
         const placeholder = document.createElement('option');
@@ -389,6 +406,16 @@ class AdFormModal extends HTMLElement {
         control.className = 'form-control';
         control.readOnly = true;
         control.value = field.value ?? '';
+      } else if (field.type === 'image') {
+        // Proof of a money movement that already happened (#3982): a photo of
+        // the receipt, bank slip or wallet confirmation. The picked file never
+        // leaves the browser here — the mock API stores the data URL on the
+        // ledger entry, exactly where the real upload will land.
+        control = document.createElement('input');
+        control.className = 'form-control';
+        control.type = 'file';
+        control.accept = (field.accept ?? IMAGE_TYPES).join(',');
+        control.addEventListener('change', () => this.readImage(field, control));
       } else {
         control = document.createElement('input');
         control.className = 'form-control';
@@ -408,6 +435,18 @@ class AdFormModal extends HTMLElement {
       if (field.ltr) control.classList.add('ad-ltr');
       if (field.autocomplete) control.autocomplete = field.autocomplete;
       wrap.appendChild(control);
+
+      if (field.type === 'image') {
+        const preview = document.createElement('figure');
+        preview.className = 'ad-image-preview';
+        preview.hidden = true;
+        const img = document.createElement('img');
+        img.alt = '';
+        const caption = document.createElement('figcaption');
+        preview.append(img, caption);
+        wrap.appendChild(preview);
+        this._previews.set(field.key, preview);
+      }
 
       if (field.hint) {
         const hint = document.createElement('span');
@@ -434,11 +473,58 @@ class AdFormModal extends HTMLElement {
     this._form.hidden = (this._config.fields ?? []).length === 0 && !this._summary.textContent;
   }
 
+  /**
+   * Validate and read one picked image. Format and size are checked here, the
+   * moment the admin picks the file, rather than on confirm — she should not
+   * fill the rest of the form before learning the photo is too big.
+   */
+  readImage(field, control) {
+    const key = field.key;
+    this._images.delete(key);
+    const preview = this._previews.get(key);
+    if (preview) preview.hidden = true;
+
+    const file = control.files?.[0];
+    if (!file) return;
+
+    const accept = field.accept ?? IMAGE_TYPES;
+    if (!accept.includes(file.type)) {
+      control.value = '';
+      this.showFieldError(key, field.invalidError ?? t('validation.imageType'));
+      return;
+    }
+
+    const maxBytes = (field.maxSizeMb ?? IMAGE_MAX_MB) * 1024 * 1024;
+    if (file.size > maxBytes) {
+      control.value = '';
+      this.showFieldError(
+        key,
+        field.rangeError ?? t('validation.imageSize', { max: field.maxSizeMb ?? IMAGE_MAX_MB }),
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this._images.set(key, { name: file.name, size: file.size, type: file.type, dataUrl: String(reader.result) });
+      if (preview) {
+        preview.querySelector('img').src = String(reader.result);
+        preview.querySelector('figcaption').textContent = file.name;
+        preview.hidden = false;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   get values() {
     const values = {};
     (this._config?.fields ?? []).forEach((field) => {
       const control = this._controls?.get(field.key);
       if (!control) return;
+      if (field.type === 'image') {
+        values[field.key] = this._images?.get(field.key) ?? null;
+        return;
+      }
       values[field.key] =
         field.type === 'number' ? control.value.trim() : String(control.value ?? '').trim();
     });
@@ -492,6 +578,9 @@ class AdFormModal extends HTMLElement {
       }
 
       if (!raw) return;
+
+      // A picked image is already validated (format and size) at pick time.
+      if (field.type === 'image') return;
 
       if (field.pattern && !new RegExp(field.pattern).test(raw)) {
         this.showFieldError(

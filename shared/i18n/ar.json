@@ -1,40 +1,32 @@
 {
   "app.name": "شي درايف",
-
   "login.title.rider": "أهلاً بعودتك",
   "login.title.driver": "أهلاً بعودتك",
   "login.subtitle.rider": "سجّلي دخولك لطلب رحلتك",
   "login.subtitle.driver": "سجّلي دخولك لبدء القيادة",
   "login.tagline.rider": "رحلتك الموثوقة، بقيادة نسائية",
   "login.tagline.driver": "قودي بشروطك، في صحبة آمنة",
-
   "login.phone.label": "رقم الهاتف",
   "login.phone.placeholder": "01X XXXX XXXX",
   "login.countryCode.label": "رمز الدولة",
-
   "login.otp.label": "رمز التحقق",
   "login.otp.hint": "أدخلي الرمز المكوّن من 6 أرقام المُرسَل إلى هاتفك",
-
   "login.button.sendOtp": "إرسال الرمز",
   "login.button.verify": "تحقق ومتابعة",
   "login.button.sending": "جارٍ الإرسال…",
   "login.button.verifying": "جارٍ التحقق…",
   "login.button.resend": "إعادة إرسال الرمز",
-
   "login.terms": "بالمتابعة فأنتِ توافقين على",
   "login.terms.link": "الشروط والأحكام",
   "login.privacy.link": "سياسة الخصوصية",
   "login.terms.and": "و",
-
   "login.error.phone": "يرجى إدخال رقم هاتف مصري مكوّن من 11 رقماً",
   "login.error.otp": "يرجى إدخال جميع أرقام رمز التحقق الستة",
   "login.error.invalid": "رمز التحقق غير صحيح. يرجى المحاولة مجدداً.",
-
   "home.searchPlaceholder": "إلى أين؟",
   "home.requestRide": "طلب رحلة",
   "home.gettingLocation": "جارٍ تحديد موقعك…",
   "home.menu": "القائمة",
-
   "driver.online": "متصلة",
   "driver.offline": "غير متصلة",
   "driver.goOnline": "الاتصال",
@@ -44,14 +36,12 @@
   "driver.status.waiting": "في انتظار الرحلات…",
   "driver.status.offline": "أنتِ غير متصلة",
   "driver.currency": "جنيه",
-
   "nav.menu": "القائمة",
   "nav.profile": "الملف الشخصي",
   "nav.home": "الرئيسية",
   "nav.rides": "الرحلات",
   "nav.earnings": "الأرباح",
   "nav.settings": "الإعدادات",
-
   "common.language": "اللغة",
   "common.loading": "جارٍ التحميل…",
   "common.error": "حدث خطأ ما",
@@ -60,18 +50,12 @@
   "common.cancel": "إلغاء",
   "common.confirm": "تأكيد",
   "common.back": "رجوع",
-
   "splash.tagline": "رحلتك الموثوقة، بقيادة نسائية",
   "splash.safety": "أعلى معايير الأمان في مصر",
-
-
   "home.pickup.label": "نقطة الانطلاق",
   "home.pickup.current": "موقعي الحالي",
   "home.destination.label": "الوجهة",
   "home.destination.placeholder": "إلى أين؟",
-  "home.requestRide": "طلب رحلة",
-  "home.gettingLocation": "جارٍ تحديد موقعك…",
-
   "matching.title": "جارٍ البحث…",
   "matching.subtitle": "نبحث عن سائقة موثوقة قريبة منكِ",
   "matching.safety": "نوافق فقط على السائقات الحاصلات على شارة السلامة الكاملة",
@@ -79,7 +63,6 @@
   "matching.cancel": "إلغاء الطلب",
   "matching.from": "من",
   "matching.to": "إلى",
-
   "trip.title": "رحلتك الآن",
   "trip.eta": "الوصول خلال",
   "trip.minutes": "دقيقة",
@@ -99,9 +82,7 @@
   "trip.distance": "المسافة",
   "trip.badge.verified": "سائقة موثقة",
   "trip.demoEnd": "محاكاة انتهاء الرحلة (تجريبي)",
-
   "matching.cancelAriaLabel": "إلغاء والعودة",
-
   "aria.menu": "القائمة",
   "aria.profile": "الملف الشخصي",
   "aria.back": "رجوع",
@@ -141,7 +122,6 @@
   "aria.trip.safetyBadges": "شارات السلامة",
   "aria.trip.details": "تفاصيل الرحلة",
   "aria.complete.tags": "علامات التقييم",
-
   "menu.profile": "الملف الشخصي",
   "menu.rides": "رحلاتي",
   "menu.payments": "وسائل الدفع",
@@ -153,7 +133,6 @@
   "menu.verifiedBadge": "راكبة موثقة",
   "menu.comingSoon": "قريباً…",
   "menu.greeting": "أهلاً بكِ",
-
   "emergency.title": "تم إخطار جهات اتصال الطوارئ",
   "emergency.subtitle": "تتم مشاركة موقعك المباشر معهم الآن. ابقي هادئة.",
   "emergency.callPolice": "الشرطة",
@@ -207,23 +186,22 @@
   "complete.submit": "إرسال التقييم",
   "complete.skip": "تخطّي",
   "complete.thanks": "شكراً لتقييمك",
-
   "onboarding.progressAria": "خطوات التسجيل",
   "onboarding.step1.title": "المعلومات الشخصية",
-  "onboarding.step1.subtitle": "أدخلي بياناتك الأساسية",
-  "onboarding.step2.title": "بطاقة الهوية الوطنية",
-  "onboarding.step2.subtitle": "ارفعي صورة واضحة للوجهتين",
-  "onboarding.step3.title": "صورة سيلفي",
-  "onboarding.step3.subtitle": "التقطي صورة واضحة لوجهك في إضاءة جيدة",
-  "onboarding.step4.title": "مستندات السيارة",
-  "onboarding.step4.subtitle": "ارفعي رخصة السيارة ووثيقة التأمين",
+  "onboarding.step1.subtitle": "أدخلي بياناتك الشخصية",
+  "onboarding.step2.title": "بيانات السيارة",
+  "onboarding.step2.subtitle": "أدخلي معلومات السيارة التي ستستخدمينها",
+  "onboarding.step3.title": "صورة السيارة",
+  "onboarding.step3.subtitle": "التقطي صورة للسيارة تظهر فيها اللوحة بوضوح",
+  "onboarding.step4.title": "المستندات",
+  "onboarding.step4.subtitle": "ارفعي الوجهين الأمامي والخلفي لرخصة القيادة وتسجيل السيارة",
   "onboarding.fullName.label": "الاسم بالكامل",
   "onboarding.fullName.placeholder": "الاسم كما في البطاقة",
   "onboarding.dob.label": "تاريخ الميلاد",
-  "onboarding.idFront.label": "الوجه الأمامي",
-  "onboarding.idFront.aria": "رفع صورة بطاقة الهوية - الوجه الأمامي",
-  "onboarding.idBack.label": "الوجه الخلفي",
-  "onboarding.idBack.aria": "رفع صورة بطاقة الهوية - الوجه الخلفي",
+  "onboarding.idFront.label": "بطاقة الهوية — الوجه الأمامي",
+  "onboarding.idFront.aria": "رفع الوجه الأمامي لبطاقة الهوية",
+  "onboarding.idBack.label": "بطاقة الهوية — الوجه الخلفي",
+  "onboarding.idBack.aria": "رفع الوجه الخلفي لبطاقة الهوية",
   "onboarding.selfie.cta": "التقاط / رفع صورة",
   "onboarding.selfie.aria": "التقاط صورة سيلفي",
   "onboarding.selfie.tip1": "وجهك مرئي بالكامل",
@@ -249,9 +227,7 @@
   "onboarding.error.selfie": "يرجى رفع صورة سيلفي",
   "onboarding.error.vehicleReg": "يرجى رفع رخصة السيارة",
   "onboarding.error.insurance": "يرجى رفع وثيقة التأمين",
-
   "profile.myEarnings": "أرباحي",
-
   "zones.maadi": "المعادي",
   "zones.maadi.desc": "جنوب القاهرة",
   "zones.nasrCity": "مدينة نصر",
@@ -259,10 +235,8 @@
   "zones.newCairo": "القاهرة الجديدة",
   "zones.newCairo.desc": "شرق القاهرة الكبرى",
   "zones.active": "نشط",
-
   "driver.simulateRequest": "محاكاة طلب",
   "driver.simulateRequestAria": "محاكاة طلب رحلة واردة (تجريبي)",
-
   "request.sheetAria": "طلب رحلة واردة",
   "request.title": "طلب رحلة جديد",
   "request.subtitle": "اقبلي أو ارفضي قبل انتهاء الوقت",
@@ -276,7 +250,6 @@
   "request.acceptAria": "قبول هذه الرحلة",
   "request.declineAria": "رفض هذه الرحلة",
   "request.autoDeclined": "انتهى الوقت — تم الرفض تلقائياً",
-
   "trip.driver.status": "الرحلة جارية",
   "trip.driver.riderCardAria": "معلومات الراكبة",
   "trip.driver.callAria": "اتصال بالراكبة",
@@ -287,7 +260,6 @@
   "trip.driver.emergencyTitle": "تم إخطار جهات اتصال الطوارئ",
   "trip.driver.emergencyBody": "تتم مشاركة موقعك المباشر معهم الآن.",
   "trip.driver.emergencyLine": "طوارئ الشرطة:",
-
   "earnings.title": "أرباحي",
   "earnings.summaryAria": "ملخص الأرباح",
   "earnings.totalLabel": "إجمالي اليوم",
@@ -302,19 +274,16 @@
   "earnings.baseFare": "التكلفة الأساسية",
   "earnings.distanceFare": "المسافة",
   "earnings.timeFare": "عنصر الوقت",
-
   "home.search.placeholder": "ابحثي عن وجهة…",
   "home.search.recent": "البحث السابق",
   "home.search.currentLoc": "موقعي الحالي",
   "home.search.noResults": "لا توجد نتائج",
   "home.search.back": "رجوع",
-
   "home.fare.estimated": "تقدير السعر",
   "home.fare.egp": "ج.م.",
   "home.fare.distance": "المسافة",
   "home.fare.duration": "المدة",
   "home.fare.change": "تغيير الوجهة",
-
   "matching.confirmed.title": "تم العثور على سائقة!",
   "matching.confirmed.sub": "سائقتك في الطريق إليكِ",
   "matching.confirmed.badge": "موثقة",
@@ -323,17 +292,14 @@
   "matching.noDriver.body": "جميع السائقات القريبات مشغولات. حاولي مجدداً بعد دقائق.",
   "matching.noDriver.retry": "حاولي مجدداً",
   "matching.noDriver.home": "العودة للرئيسية",
-
   "trip.arrived.title": "وصلت سائقتك!",
   "trip.arrived.body": "توجهي إلى نقطة الالتقاء",
-
   "history.title": "رحلاتي",
   "history.empty": "لا توجد رحلات بعد",
   "history.emptyBody": "ابحثي عن وجهتك الأولى",
   "history.bookRide": "احجزي رحلة",
   "history.completed": "مكتملة",
   "history.loading": "جارٍ التحميل…",
-
   "tripDetail.title": "تفاصيل الرحلة",
   "tripDetail.date": "التاريخ والوقت",
   "tripDetail.fareBreakdown": "تفاصيل السعر",
@@ -343,13 +309,11 @@
   "tripDetail.total": "الإجمالي",
   "tripDetail.yourRating": "تقييمك",
   "tripDetail.ref": "رقم الرحلة",
-
   "aria.history": "قائمة الرحلات",
   "aria.tripDetail": "تفاصيل الرحلة",
   "aria.history.tripCard": "بطاقة الرحلة",
   "aria.search.back": "رجوع إلى الخريطة",
   "aria.search.clear": "مسح البحث",
-
   "driver.decision.approved.title": "تمت الموافقة على طلبكِ!",
   "driver.decision.approved.body": "مرحباً بكِ في SheDrive. أنتِ الآن جاهزة للعمل.",
   "driver.decision.rejected.title": "لم نتمكن من قبول طلبكِ",
@@ -359,32 +323,26 @@
   "driver.decision.start": "ابدئي العمل",
   "driver.decision.contact": "تواصل مع الدعم",
   "driver.decision.pending.title": "طلبكِ قيد المراجعة",
-
   "driver.trip.enRoute.status": "في الطريق إلى الراكبة",
   "driver.trip.enRoute.eta": "الوصول خلال",
   "driver.trip.enRoute.arrived": "وصلت!",
   "driver.trip.arrived.status": "انتظار الراكبة",
   "driver.trip.arrived.prompt": "أكّدي هوية الراكبة وابدئي الرحلة",
   "driver.trip.arrived.start": "ابدئي الرحلة",
-
   "driver.cash.title": "اجمعي التكلفة النقدية",
   "driver.cash.subtitle": "أبلغي الراكبة بالمبلغ المطلوب",
   "driver.cash.collected": "تم الاستلام — ابدئي رحلة جديدة",
-
   "driver.history.title": "سجل الرحلات",
   "driver.history.empty": "لا توجد رحلات بعد",
   "driver.history.emptyBody": "ابدئي رحلتك الأولى",
   "driver.history.completed": "مكتملة",
   "driver.history.loading": "جارٍ التحميل...",
-
   "driver.tripDetail.title": "تفاصيل الرحلة",
   "driver.tripDetail.riderRating": "تقييم الراكبة لكِ",
-
   "aria.driver.decision": "نتيجة طلب الانضمام",
   "aria.driver.cashCollection": "تحصيل التكلفة النقدية",
   "aria.driver.history": "سجل رحلات السائقة",
   "aria.driver.tripDetail": "تفاصيل رحلة سابقة",
-
   "register.title.rider": "إنشاء حساب",
   "register.subtitle.rider": "سجّلي حساباً جديداً للبدء",
   "register.title.driver": "إنشاء حساب سائقة",
@@ -398,7 +356,6 @@
   "register.switchToRegister": "حساب جديد؟ أنشئي حساباً",
   "register.driver.switchToRegister": "سائقة جديدة؟ أنشئي حساباً",
   "register.button.create": "إنشاء الحساب",
-
   "login.title.unified": "أهلاً بكِ",
   "login.subtitle.unified": "أدخلي رقم هاتفك لتسجيل الدخول أو إنشاء حساب جديد",
   "register.nameStep.title": "خطوة أخيرة",
@@ -413,13 +370,11 @@
   "login.error.wrongOtp": "رمز التحقق غير صحيح",
   "login.error.tooManyAttempts": "تم إبطال الرمز بعد 3 محاولات. اطلبي رمزاً جديداً",
   "login.resend.cooldown": "إعادة الإرسال في {{n}} ثانية",
-
   "cancel.tripTitle": "هل تريدين إلغاء الرحلة؟",
   "cancel.tripBody": "سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة",
   "cancel.tripBodyFee": "سيتم إلغاء طلبك، وستُطبَّق رسوم إلغاء لأن سائقتك قد وصلت أو أمضت وقتاً طويلاً في الطريق إليكِ",
   "cancel.confirmBtn": "نعم، إلغاء الرحلة",
   "cancel.cancelBtn": "تراجع",
-
   "verifyRider.title": "التحقق من هوية الراكبة",
   "verifyRider.prompt": "هل الشخص الذي يقترب منكِ أنثى؟",
   "verifyRider.riderName": "اسم الراكبة",
@@ -439,7 +394,6 @@
   "driver.trip.cancelledToast": "تم إلغاء الرحلة",
   "driver.trip.callToast": "جارٍ الاتصال…",
   "driver.trip.msgToast": "الرسائل غير متاحة حالياً",
-
   "profile.title": "ملفي الشخصي",
   "profile.phone.label": "رقم الهاتف",
   "profile.name.label": "الاسم الكامل",
@@ -456,7 +410,6 @@
   "profile.phone.readonly": "رقم الهاتف لا يمكن تغييره",
   "profile.myTrips": "رحلاتي",
   "profile.payments": "وسائل الدفع",
-
   "payment.title": "وسيلة الدفع",
   "payment.subtitle": "اختاري وسيلة الدفع المفضّلة",
   "payment.cash.label": "نقداً",
@@ -482,27 +435,22 @@
   "payment.networkError.title": "خطأ في الاتصال",
   "payment.networkError.body": "تحققي من اتصالك وأعيدي المحاولة",
   "payment.retry": "إعادة المحاولة",
-
   "schedule.title": "جدولة رحلة",
   "schedule.comingSoon": "هذه الميزة قريباً",
   "schedule.body": "ستتمكنين قريباً من حجز رحلاتك مسبقاً",
   "schedule.back": "رجوع",
-
   "payments.title": "وسائل الدفع",
   "payments.comingSoon": "الدفع نقداً في المرحلة الأولى",
   "payments.body": "الدفع نقداً للسائقة عند انتهاء الرحلة. سنضيف الدفع بالبطاقة قريباً",
   "payments.back": "رجوع",
-
   "settings.title": "الإعدادات",
   "settings.comingSoon": "هذه الميزة قريباً",
   "settings.body": "ستتمكنين قريباً من إدارة إعدادات حسابك وتفضيلاتك",
   "settings.back": "رجوع",
-
   "help.title": "المساعدة والدعم",
   "help.comingSoon": "هذه الميزة قريباً",
   "help.body": "ستتوفر قريباً الأسئلة الشائعة وطرق التواصل مع الدعم",
   "help.back": "رجوع",
-
   "complete.starsError": "يرجى اختيار عدد النجوم قبل الإرسال",
   "complete.fareBreakdown": "تفاصيل السعر",
   "complete.baseFare": "التكلفة الأساسية",
@@ -512,12 +460,10 @@
   "complete.paymentCard": "بطاقة بنكية",
   "complete.cashNote": "ادفعي نقداً للسائقة",
   "complete.tagSafeDriver": "سائق آمن",
-
   "tripDetail.rateTripTitle": "قيّمي هذه الرحلة",
   "tripDetail.rateTripSubmit": "إرسال التقييم",
   "tripDetail.noRating": "لم تقيّمي هذه الرحلة",
   "tripDetail.ratingSubmitted": "تم إرسال تقييمك",
-
   "home.gps.denied": "فشل الحصول على موقعك. يرجى تفعيل خدمة الموقع",
   "home.gps.settings": "فتح الإعدادات",
   "home.pin.confirm": "تأكيد الموقع",
@@ -533,10 +479,8 @@
   "home.dest.required": "اختاري وجهتكِ",
   "home.hours.closed": "الخدمة مغلقة حالياً",
   "home.hours.next": "تفتح في تمام الساعة ٦:٠٠ صباحاً",
-
   "matching.cancelTitle": "إلغاء الطلب؟",
   "matching.cancelBody": "سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة",
-
   "trip.waitingTitle": "وصلت سائقتك!",
   "trip.waitingCounter": "وقت الانتظار",
   "trip.cancelBtn": "إلغاء الرحلة",
@@ -544,7 +488,6 @@
   "trip.cancelBody": "سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة",
   "trip.pushBanner": "سائقتك في الطريق!",
   "trip.arrivedBanner": "وصلت سائقتك! توجهي إلى نقطة الانطلاق",
-
   "driver.trip.navBtn": "فتح الملاحة",
   "driver.trip.navMaps": "خرائط Google",
   "driver.trip.navWaze": "Waze",
@@ -576,18 +519,14 @@
   "driver.balance.commission": "العمولة",
   "driver.balance.tripsAria": "الرحلات المساهمة في الرصيد",
   "driver.balance.error": "تعذّر تحميل الرصيد. تحقّقي من اتصالك.",
-
   "driver.cash.netEarnings": "صافي أرباحك",
   "driver.cash.netNote": "بعد خصم عمولة المنصة",
   "driver.cash.egp": "ج.م.",
-
   "earnings.totalTrips": "إجمالي الرحلات",
   "earnings.avgRating": "متوسط التقييم",
   "earnings.acceptanceRate": "معدل القبول",
   "earnings.netPerTrip": "صافي الرحلة",
-  "earnings.cancellationFee": "رسوم الإلغاء (حصتك)",
   "earnings.net": "صافي",
-
   "driver.request.urgency": "الوقت ينفد!",
   "driver.request.expired": "انتهى الوقت",
   "driver.request.expiredBody": "انتهى وقت القبول. تم تحويل الرحلة",
@@ -595,10 +534,8 @@
   "driver.request.conflict": "انتهى الطلب",
   "driver.request.conflictBody": "لم يتم تسجيل استجابتك. انتهى وقت الطلب",
   "driver.request.pushBanner": "طلب رحلة جديد!",
-
   "driver.tripDetail.noRating": "لم يتم التقييم",
   "driver.tripDetail.netEarnings": "صافي الأرباح",
-
   "driverProfile.title": "ملفي الشخصي",
   "driverProfile.save": "حفظ التغييرات",
   "driverProfile.saved": "تم حفظ التغييرات",
@@ -615,31 +552,17 @@
   "driverProfile.links.label": "الروابط السريعة",
   "driverProfile.section.personal": "البيانات الشخصية",
   "driverProfile.lang.networkError": "فشل حفظ اللغة. تحققي من الاتصال",
-
-
   "driver.home.gps.denied": "الرجاء تفعيل خدمة الموقع للعمل عبر التطبيق",
   "driver.home.gps.settings": "فتح الإعدادات",
   "driver.home.gps.lost": "تعذّر تحديد موقعك",
-
-  "onboarding.step1.title": "المعلومات الشخصية",
-  "onboarding.step1.subtitle": "أدخلي بياناتك الشخصية",
-  "onboarding.step2.title": "بيانات السيارة",
-  "onboarding.step2.subtitle": "أدخلي معلومات السيارة التي ستستخدمينها",
-  "onboarding.step3.title": "صورة السيارة",
-  "onboarding.step3.subtitle": "التقطي صورة للسيارة تظهر فيها اللوحة بوضوح",
-  "onboarding.step4.title": "المستندات",
-  "onboarding.step4.subtitle": "ارفعي الوجهين الأمامي والخلفي لرخصة القيادة وتسجيل السيارة",
   "onboarding.step4b.title": "الصورة الشخصية",
   "onboarding.step4b.subtitle": "التقطي صورة سيلفي واضحة تُظهر وجهكِ بالكامل",
-
   "onboarding.nid.label": "رقم بطاقة الهوية الوطنية (14 رقماً)",
   "onboarding.nid.placeholder": "أدخلي 14 رقماً",
   "onboarding.nid.error.empty": "أدخلي رقم الهوية الوطنية",
   "onboarding.nid.error.format": "رقم الهوية يجب أن يكون 14 رقماً",
-
   "onboarding.dob.error.format": "صيغة التاريخ غير صحيحة",
   "onboarding.dob.error.age": "يجب أن يكون عمركِ 18 عاماً على الأقل",
-
   "onboarding.vehicle.make.label": "الماركة (الشركة المصنّعة)",
   "onboarding.vehicle.make.placeholder": "مثل: تويوتا",
   "onboarding.vehicle.make.error": "أدخلي ماركة السيارة",
@@ -662,13 +585,11 @@
   "onboarding.vehicle.type.suv": "SUV",
   "onboarding.vehicle.type.minivan": "ميني فان",
   "onboarding.vehicle.type.error": "اختاري نوع السيارة",
-
   "onboarding.vehiclePhoto.cta": "التقاط / رفع صورة للسيارة",
   "onboarding.vehiclePhoto.hint": "تأكدي من ظهور اللوحة بوضوح",
   "onboarding.vehiclePhoto.error.empty": "يرجى التقاط صورة للسيارة",
   "onboarding.vehiclePhoto.error.type": "يرجى رفع صورة صالحة (JPEG أو PNG)",
   "onboarding.vehiclePhoto.error.size": "حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت",
-
   "onboarding.docs.licenceFront.label": "رخصة القيادة — الواجهة الأمامية",
   "onboarding.docs.licenceBack.label": "رخصة القيادة — الواجهة الخلفية",
   "onboarding.docs.regFront.label": "تسجيل السيارة — الواجهة الأمامية",
@@ -677,14 +598,12 @@
   "onboarding.docs.error.type": "يرجى رفع صورة أو ملف PDF",
   "onboarding.docs.error.size": "حجم الملف كبير جداً، الحد الأقصى 10 ميجابايت",
   "onboarding.docs.networkError": "حدث خطأ، يرجى المحاولة مرة أخرى",
-
   "onboarding.selfieProfile.cta": "التقاط سيلفي",
   "onboarding.selfieProfile.gallery": "اختياري من المعرض",
   "onboarding.selfieProfile.submitApp": "إرسال الطلب",
   "onboarding.selfieProfile.error.empty": "يرجى التقاط صورة شخصية",
   "onboarding.selfieProfile.error.type": "يرجى رفع صورة صالحة (JPEG أو PNG)",
   "onboarding.selfieProfile.error.size": "حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت",
-
   "onboarding.rejected.title": "لم تتم الموافقة على طلبكِ",
   "onboarding.rejected.body": "للأسف لم نتمكن من قبول طلبك في الوقت الحالي. السبب:",
   "onboarding.rejected.reason": "يرجى التواصل مع فريق الدعم",
@@ -692,10 +611,8 @@
   "onboarding.rejected.reasonPlaceholder": "المستند المرفوع غير واضح — يرجى إعادة رفع رخصة القيادة",
   "onboarding.rejected.retry": "يمكنك تصحيح المشكلة وإعادة تقديم طلبك.",
   "onboarding.rejected.retryCta": "إعادة التقديم",
-
   "onboarding.step5.title": "صورة شخصية",
   "onboarding.step5.subtitle": "التقطي صورة واضحة لوجهك لملفك الشخصي",
-
   "onboarding.error.age": "يجب أن يكون عمرك 18 عامًا على الأقل",
   "onboarding.error.nid": "رقم الهوية يجب أن يكون 14 رقمًا",
   "onboarding.error.make": "أدخلي ماركة السيارة",
@@ -712,10 +629,6 @@
   "onboarding.error.consent": "يجب الموافقة على إجراء فحص الخلفية",
   "onboarding.idCapture.title": "بطاقة الهوية الوطنية",
   "onboarding.idCapture.subtitle": "ارفعي صورة واضحة لوجهي البطاقة",
-  "onboarding.idFront.label": "بطاقة الهوية — الوجه الأمامي",
-  "onboarding.idFront.aria": "رفع الوجه الأمامي لبطاقة الهوية",
-  "onboarding.idBack.label": "بطاقة الهوية — الوجه الخلفي",
-  "onboarding.idBack.aria": "رفع الوجه الخلفي لبطاقة الهوية",
   "onboarding.error.idAll": "يرجى رفع وجهي البطاقة",
   "onboarding.vehicle.make.select": "اختاري الماركة",
   "onboarding.vehicle.make.other": "أخرى",
@@ -725,7 +638,6 @@
   "onboarding.vehicle.model.other": "أخرى",
   "onboarding.vehicle.model.otherPlaceholder": "اكتبي اسم الموديل",
   "onboarding.vehicle.model.otherAria": "اسم الموديل",
-
   "onboarding.vehiclePhoto.aria": "صورة السيارة",
   "onboarding.licenceFront.label": "رخصة القيادة — الوجه الأمامي",
   "onboarding.licenceFront.aria": "رفع الوجه الأمامي لرخصة القيادة",
@@ -748,7 +660,6 @@
   "onboarding.regExpiry.error.empty": "أدخلي تاريخ انتهاء رخصة تسيير السيارة",
   "onboarding.regExpiry.error.format": "صيغة التاريخ غير صحيحة",
   "onboarding.regExpiry.error.expired": "رخصة تسيير السيارة منتهية الصلاحية",
-
   "onboarding.vehicle.color.placeholder": "اختاري اللون",
   "onboarding.vehicle.color.white": "أبيض",
   "onboarding.vehicle.color.black": "أسود",
@@ -758,8 +669,6 @@
   "onboarding.vehicle.color.blue": "أزرق",
   "onboarding.vehicle.color.other": "أخرى",
   "onboarding.vehicle.type.placeholder": "اختاري النوع",
-  "onboarding.vehicle.type.minivan": "ميني فان",
-
   "sos.title": "جهات اتصال الطوارئ",
   "sos.intro": "عند الضغط على زر الطوارئ أثناء رحلتك، سنُرسل تنبيهاً إلى جهات الاتصال هذه ونشارك موقعك المباشر معهم.",
   "sos.liveLocationNote": "تتم مشاركة موقعك المباشر مع جهات اتصالك فقط — لا يوجد طرف ثالث.",
@@ -788,8 +697,6 @@
   "sos.errorName": "يرجى إدخال الاسم",
   "sos.errorPhone": "يرجى إدخال رقم هاتف صحيح",
   "sos.back": "رجوع إلى الشاشة الرئيسية",
-
-
   "accountReview.body": "لا يمكنك طلب رحلات جديدة في الوقت الحالي. تلقّينا بلاغًا يتعلق بسياسة القيادة للنساء فقط، ويقوم فريق السلامة بمراجعته الآن.",
   "accountReview.contactSupport": "تواصلي مع الدعم",
   "accountReview.note": "سنُخطرك بمجرد اتخاذ قرار. لا يُحتسب أي رسوم على الرحلة الملغاة.",
@@ -838,7 +745,7 @@
   "driver.settle.title": "تسوية الرصيد",
   "driver.settle.zero": "لا يوجد عليكِ أي مبلغ لتسويته حالياً.",
   "driver.txn.cancellationFee": "رسوم إلغاء",
-  "driver.txn.cancellationShare": "حصتك من رسوم الإلغاء",
+  "driver.txn.cancellationCredit": "رسوم إلغاء راكبة مقيّدة لكِ",
   "driver.txn.riderFeeRecovery": "تحصيل رسوم راكبة سابقة",
   "driver.txn.settlement": "تسوية مستلمة",
   "driver.txn.tripCommission": "عمولة رحلة",
@@ -876,5 +783,35 @@
   "verifyRider.failSubmit": "تأكيد وإرسال البلاغ",
   "verifyRider.statementHint": "يُعرض نصّك على فريق السلامة عند مراجعة البلاغ.",
   "verifyRider.statementLabel": "ماذا حدث؟ (اختياري)",
-  "verifyRider.statementPlaceholder": "صِفي ما حدث عند نقطة الانطلاق"
+  "verifyRider.statementPlaceholder": "صِفي ما حدث عند نقطة الانطلاق",
+  "common.save": "حفظ",
+  "profile.savedPlaces": "الأماكن المحفوظة",
+  "savedPlaces.title": "الأماكن المحفوظة",
+  "savedPlaces.intro": "احفظي الأماكن التي تذهبين إليها كثيراً لتطلبي رحلة إليها بضغطة واحدة.",
+  "savedPlaces.add": "إضافة مكان",
+  "savedPlaces.addTitle": "إضافة مكان",
+  "savedPlaces.editTitle": "تعديل المكان",
+  "savedPlaces.labelField": "التسمية",
+  "savedPlaces.home": "المنزل",
+  "savedPlaces.work": "العمل",
+  "savedPlaces.custom": "أخرى",
+  "savedPlaces.customLabel": "اسم المكان",
+  "savedPlaces.customLabelPlaceholder": "النادي، بيت ماما…",
+  "savedPlaces.addressField": "العنوان",
+  "savedPlaces.addressPlaceholder": "ابحثي عن العنوان",
+  "savedPlaces.addressHint": "نفس البحث المستخدم في طلب الرحلة.",
+  "savedPlaces.emptyTitle": "لا توجد أماكن محفوظة بعد",
+  "savedPlaces.emptyHint": "ابدئي بحفظ المنزل أو العمل.",
+  "savedPlaces.limitReached": "وصلتِ إلى الحد الأقصى (١٠ أماكن). احذفي مكاناً لإضافة آخر.",
+  "savedPlaces.errorMsg": "تعذّر تحميل الأماكن المحفوظة. تحقّقي من اتصالك.",
+  "savedPlaces.edit": "تعديل",
+  "savedPlaces.delete": "حذف",
+  "savedPlaces.deleteTitle": "حذف المكان؟",
+  "savedPlaces.deleteMsg": "سيتم حذف «{{place}}» من أماكنك المحفوظة.",
+  "savedPlaces.replaceTitle": "استبدال المكان؟",
+  "savedPlaces.replaceMsg": "لديكِ بالفعل «{{place}}» محفوظ. سيحلّ العنوان الجديد محله.",
+  "savedPlaces.saved": "تم حفظ المكان",
+  "savedPlaces.deleted": "تم حذف المكان",
+  "savedPlaces.error.label": "سمي هذا المكان",
+  "savedPlaces.error.address": "اختاري عنواناً"
 }

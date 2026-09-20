@@ -21,6 +21,11 @@
   --admin-fs-label: var(--fs-xs);
   --admin-col-min: 7rem;
 
+  /* Searchable person picker (ad-combobox) */
+  --admin-combobox-min-w: 16rem;
+  --admin-combobox-max-h: 18rem;
+  --admin-combobox-z: 30;
+
   /* ── Shell surfaces ───────────────────────────────── */
   --admin-page-bg: var(--color-surface-alt);
   --admin-nav-bg: var(--color-text);

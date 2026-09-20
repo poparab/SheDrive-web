@@ -345,13 +345,10 @@ export const GLOBAL_POLICIES = {
   // entire outstanding balance is always recovered on her next ride, in one payment —
   // no threshold, no drip. It never blocks booking — a block would deadlock, since
   // taking a ride is the only way a cash rider can pay.
-  riderFee: {
-    // The rest is the platform's — posted as `rider_cancellation_fee_share` on the
-    // driver ledger when the fee is charged, per spec §3.
-    driverSharePct: 75,
-    updatedAt: NOW - 12 * DAY,
-    updatedBy: ADMINS[0].email,
-  },
+  //
+  // There is nothing to configure here: the whole fee goes to the driver, no split,
+  // no percentage (spec §3). Kept as a comment, not a policy object, so a future
+  // reader doesn't go looking for a setting that was deliberately removed.
 };
 
 // ── Riders ────────────────────────────────────────────
@@ -923,15 +920,17 @@ export const LEDGER_ENTRY_TYPES = [
   'trip_commission',
   'trip_earnings',
   'driver_cancellation_fee',
-  'rider_cancellation_fee_share',
+  'rider_cancellation_fee_credit',
   'rider_fee_recovery',
   'settlement',
   'payout',
 ];
 
 // Settlement channels — a configurable list, not hard-coded per screen (spec §5).
+// "Cash at office" was removed on 2026-09-17 (#3982): SheDrive has no cash
+// office, so it was never a real channel — and it was the only channel where
+// the reference defaulted to the generated receipt number.
 export const SETTLEMENT_METHODS = [
-  'Cash at office',
   'Bank transfer',
   'Mobile wallet',
   'Field agent',
@@ -939,7 +938,7 @@ export const SETTLEMENT_METHODS = [
 // The channel a past payout was sent through — kept only for the historical
 // seed data below; the platform holds no payout destination (spec §5), so
 // this is purely descriptive of how Finance already moved the money.
-export const PAYOUT_METHODS = ['Cash at office', 'Bank transfer', 'Mobile wallet'];
+export const PAYOUT_METHODS = ['Bank transfer', 'Mobile wallet'];
 
 let ledgerSeq = 0;
 const ledgerId = () => `led-${String(++ledgerSeq).padStart(5, '0')}`;
@@ -988,7 +987,7 @@ for (const driver of DRIVERS) {
     }
   });
 
-  // A late driver cancellation or two, and the odd rider-cancellation share.
+  // A late driver cancellation or two, and the odd rider-cancellation credit.
   if (trips.length > 4 && rand() < 0.45) {
     const trip = pick(trips);
     LEDGER.push(
@@ -1004,9 +1003,9 @@ for (const driver of DRIVERS) {
   if (trips.length > 4 && rand() < 0.35) {
     const trip = pick(trips);
     LEDGER.push(
-      ledgerEntry(driver.id, 'rider_cancellation_fee_share', intBetween(10, 18), trip.createdAt + HOUR, {
+      ledgerEntry(driver.id, 'rider_cancellation_fee_credit', intBetween(10, 18), trip.createdAt + HOUR, {
         tripId: trip.id,
-        note: 'Driver share of a rider cancellation fee',
+        note: 'Rider cancellation fee credited to driver — the whole fee, no split',
       }),
     );
   }
@@ -1031,6 +1030,7 @@ for (const driver of DRIVERS) {
           method: pick(PAYOUT_METHODS),
           ref: `P-${intBetween(10000, 99999)}`,
           note: 'Payout sent by Finance',
+          proof: rand() < 0.65 ? { name: 'transfer-slip.jpg', src: 'assets/settlement-receipt.svg' } : null,
           actor: pick(ADMINS).email,
         }),
       );
@@ -1046,6 +1046,7 @@ for (const driver of DRIVERS) {
         method: pick(SETTLEMENT_METHODS),
         ref: nextSettlementReceipt(),
         note: 'Cash received from driver',
+        proof: rand() < 0.65 ? { name: 'receipt.jpg', src: 'assets/settlement-receipt.svg' } : null,
         actor: pick(ADMINS).email,
       }),
     );
@@ -1054,9 +1055,10 @@ for (const driver of DRIVERS) {
 
 // ── Rider fee ledger (financial core spec §2.2, §3) ───
 // One signed balance per rider, in EGP — zero for almost every rider, almost
-// always. A late cancellation posts a debit here and (via the driver's share)
-// on the driver ledger at the same moment; when the fee is recovered as a cash
-// surcharge on her next trip, the SAME event posts a credit here and a matching
+// always. A late cancellation posts a debit here and (via the driver's credit —
+// the full fee, no split, spec §3) on the driver ledger at the same moment; when
+// the fee is recovered as a cash surcharge on her next trip, the SAME event
+// posts a credit here and a matching
 // `rider_fee_recovery` debit on the driver ledger — the worked example in §3.
 // Built here, before LEDGER_ENTRIES/LEDGER_BY_DRIVER are finalised, so the
 // driver-side entries this generates are already included in her balance.
@@ -1119,20 +1121,21 @@ RIDERS.filter((r) => r.tripsCompleted >= 1).forEach((rider) => {
       }),
     );
 
-    // The driver's share of that same fee, posted on her ledger at the same
-    // moment (spec §3 step 1) — independent of whether the fee is ever recovered.
+    // The whole fee, credited to the driver on her ledger at the same moment
+    // (spec §3 step 1) — no split, no percentage — independent of whether the
+    // fee is ever recovered from the rider.
     const anchorDriver = anchor.driverId ? driverByIdForFees.get(String(anchor.driverId)) : null;
     if (anchorDriver) {
       LEDGER.push(
         ledgerEntry(
           anchorDriver.id,
-          'rider_cancellation_fee_share',
-          round2((fee * GLOBAL_POLICIES.riderFee.driverSharePct) / 100),
+          'rider_cancellation_fee_credit',
+          fee,
           cancelledAt,
           {
             tripId: anchor.id,
             riderId: String(rider.id),
-            note: `Driver share of ${rider.name}'s cancellation fee`,
+            note: `${rider.name}'s cancellation fee credited to driver`,
           },
         ),
       );
