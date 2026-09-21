@@ -56,10 +56,12 @@ const totalToCollect = grossNum + riderFee;
 
 if (fareEl) fareEl.textContent = String(totalToCollect);
 // Net = gross × 0.8 (20% platform commission; commission % never shown). The
-// recovered fee is never hers, so it never enters the net figure.
+// recovered fee never enters the net figure — commission is on the fare alone (#4000).
 if (netEl)  netEl.textContent  = String(Math.round(grossNum * 0.8));
-if (fromEl) fromEl.textContent = trip.pickup?.ar ?? 'المعادي';
-if (toEl)   toEl.textContent   = trip.dest?.ar   ?? 'مدينة نصر';
+// The route follows the active language — the trip carries both.
+const lang = document.documentElement.lang === 'en' ? 'en' : 'ar';
+if (fromEl) fromEl.textContent = trip.pickup?.[lang] ?? trip.pickup?.ar ?? '';
+if (toEl)   toEl.textContent   = trip.dest?.[lang]   ?? trip.dest?.ar   ?? '';
 
 if (riderFee > 0 && breakdown) {
   breakdown.hidden = false;

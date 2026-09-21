@@ -15,6 +15,14 @@
   gap: var(--space-1);
   max-width: 22rem;
   font-size: var(--admin-fs-label);
+  /* The kit's grid cells are nowrap; a long reason would otherwise push the whole
+     table wider than its container. */
+  white-space: normal;
+}
+
+.audit__diff-before,
+.audit__diff-after {
+  overflow-wrap: anywhere;
 }
 
 .audit__diff-row {

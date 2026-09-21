@@ -63,7 +63,9 @@ body.emergency-page {
   overflow-y: auto !important;
 }
 
-a:not(.link):not(.item-link):not(.tab-link) {
+/* .btn is excluded: this selector outranks .btn--primary, so without it every
+   <a class="btn btn--primary"> lost its white label and read dark-on-purple. */
+a:not(.link):not(.item-link):not(.tab-link):not(.btn) {
   color: inherit;
 }
 
@@ -122,3 +124,19 @@ a:not(.link):not(.item-link):not(.tab-link) {
 .speed-dial {
   display: none !important;
 }
+
+/* ── Badges ───────────────────────────────────────────
+   Framework7's .badge loads after components.css and paints every badge with its
+   own --f7-badge-* variables (iOS grey, white text), overriding .badge--* colours.
+   Point those variables at SheDrive's colours so F7's rule paints ours instead. */
+.badge {
+  --f7-badge-bg-color: rgba(var(--color-text-muted-rgb), 0.12);
+  --f7-badge-text-color: var(--color-text-muted);
+  block-size: auto;
+  min-inline-size: 0;
+}
+.badge--success { --f7-badge-bg-color: rgba(var(--color-success-rgb), 0.12); --f7-badge-text-color: var(--color-success-strong); }
+.badge--warning { --f7-badge-bg-color: rgba(var(--color-warning-rgb), 0.12); --f7-badge-text-color: var(--color-warning-strong); }
+.badge--danger  { --f7-badge-bg-color: rgba(var(--color-danger-rgb), 0.12);  --f7-badge-text-color: var(--color-danger-strong); }
+.badge--info    { --f7-badge-bg-color: rgba(var(--color-info-rgb), 0.12);    --f7-badge-text-color: var(--color-info-strong); }
+.badge--brand   { --f7-badge-bg-color: rgba(var(--color-primary-600-rgb), 0.12); --f7-badge-text-color: var(--color-primary-700); }

@@ -15,11 +15,19 @@
   inline-size: 100%;
 }
 
+/* The sections sit inside #balance-content, not directly in .balance-main,
+   so the gap has to live here or every block touches the next. */
+.balance-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 /* ── Outstanding card ─────────────────────────────── */
 
 .balance-card {
   background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700, var(--color-primary-600)));
-  color: var(--color-on-primary, #fff);
+  color: var(--color-on-primary);
   border-radius: var(--radius-2xl);
   padding: var(--space-6);
   text-align: center;
@@ -66,7 +74,7 @@
 
 .balance-zero__msg { font-size: var(--fs-base); color: var(--color-text); }
 
-/* ── Last settlement ──────────────────────────────── */
+/* ── Way to settle ────────────────────────────────── */
 
 .balance-actions {
   display: flex;
@@ -86,6 +94,8 @@
 [dir="rtl"] .balance-actions__chevron {
   transform: scaleX(-1);
 }
+
+/* ── Last settlement ──────────────────────────────── */
 
 .balance-settlement {
   display: flex;

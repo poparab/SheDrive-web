@@ -44,6 +44,14 @@ body.admin-auth {
  * margin, so #content has to keep the matching padding or the header overflows
  * the viewport. admin.css's .ad-main rule does not set it; state it here.
  */
+/* The kit's sticky topbar carries `margin: 0 -10px`, so it overhangs #content by 10px
+ * on each side. On any screen long enough to show a vertical scrollbar that overhang
+ * becomes a 10px horizontal scroll (audit-log at 1280 px). `overflow-x: clip` trims it
+ * without creating a scroll container, so the topbar stays sticky. */
+#content.ad-main {
+  overflow-x: clip;
+}
+
 #content.ad-main {
   padding-inline: 0.625rem;
 }

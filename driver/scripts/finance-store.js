@@ -165,8 +165,10 @@ export function getAvailable() {
   return b > 0 ? b : 0;
 }
 
+/** The statement rows. The demo balance-forcing row is a harness artifact with no
+ * cause she could read, so it never reaches the screen — the balance still counts it. */
 export function getEntries() {
-  return state.entries.slice();
+  return state.entries.filter((e) => e.type !== 'demo_override');
 }
 
 export function getLastSettlement() {

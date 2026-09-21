@@ -78,6 +78,20 @@
             </span>
           </div>
 
+          <!-- ── Working Zones button (second row, beside earnings) ── -->
+          <div class="driver-zones-btn-wrap">
+            <button
+              type="button"
+              class="btn btn--secondary driver-zones-btn"
+              id="working-zones-btn"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+              </svg>
+              <span data-i18n="driver.workingZones">مناطق العمل</span>
+            </button>
+          </div>
+
           <!-- Language switcher (kept in topbar for driver; profile page has full settings) -->
           <nav class="lang-switcher" aria-label="Language / اللغة">
             <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
@@ -85,15 +99,16 @@
             <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
           </nav>
         </div>
-      </header>
 
-      <!-- ── Balance-limit warning band (#TBD-G / API #TBD-F) ── -->
-      <div class="balance-warn" id="balance-warn" hidden aria-hidden="true" role="status">
-        <svg class="balance-warn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <p class="balance-warn__msg" id="balance-warn-msg"></p>
-      </div>
+        <!-- ── Balance-limit band (#3980): flows under the rows, never pinned over them ── -->
+        <div class="balance-warn" id="balance-warn" hidden aria-hidden="true" role="status">
+          <svg class="balance-warn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <p class="balance-warn__msg" id="balance-warn-msg"></p>
+          <a href="./settle.html" class="btn btn--sm balance-warn__action" id="balance-warn-action" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
+        </div>
+      </header>
 
       <!-- ── Go-online blocked sheet (#TBD-G) ── -->
       <div class="balance-block" id="balance-block" hidden aria-hidden="true">
@@ -112,20 +127,6 @@
         </div>
       </div>
 
-      <!-- ── Working Zones button (floating) ── -->
-      <div class="driver-zones-btn-wrap">
-        <button
-          type="button"
-          class="btn btn--secondary driver-zones-btn"
-          id="working-zones-btn"
-          data-i18n="driver.workingZones"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-          </svg>
-          <span>مناطق العمل</span>
-        </button>
-      </div>
 
       <!-- ── Bottom status bar ── -->
       <footer class="driver-statusbar" role="contentinfo">

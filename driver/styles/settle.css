@@ -15,11 +15,18 @@
   inline-size: 100%;
 }
 
+/* The sections sit inside #settle-content, so the gap has to live here. */
+.settle-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 /* ── What she owes ────────────────────────────────── */
 
 .settle-card {
   background: linear-gradient(135deg, var(--color-danger), var(--color-primary-700, var(--color-primary-600)));
-  color: var(--color-on-primary, #fff);
+  color: var(--color-on-primary);
   border-radius: var(--radius-2xl);
   padding: var(--space-6);
   text-align: center;

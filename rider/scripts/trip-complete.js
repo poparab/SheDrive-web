@@ -21,11 +21,17 @@ qsa('[data-lang-btn]').forEach(btn =>
 
 // ── Load trip data from sessionStorage ──
 const raw = sessionStorage.getItem('shedrive.activeTrip');
+// Demo fallback when the page is opened directly (no trip handed over): the
+// place names follow the active language like the rest of the screen.
+const isEn = document.documentElement.lang === 'en';
 const data = raw
   ? JSON.parse(raw)
   : {
       driver: { name: 'نورا أحمد' },
-      trip: { pickup: 'موقعي الحالي', destination: 'مدينة نصر' },
+      trip: {
+        pickup: translate('home.pickup.current'),
+        destination: isEn ? 'Nasr City' : 'مدينة نصر',
+      },
     };
 
 qs('#driver-name').textContent = data.driver?.name || '—';
@@ -61,8 +67,8 @@ function renderRecoveredFee() {
     return;
   }
 
-  const currency = translate('home.fare.egp');
-  const baseTotal = 35; // base + distance + time fare rows above (mock trip pricing)
+  const currency = translate('complete.currency');
+  const baseTotal = 65; // base + distance + time rows above — the same trip the driver collects for
   const total = baseTotal + recoveredFee.amount;
 
   if (feeRow) {

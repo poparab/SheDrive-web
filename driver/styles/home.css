@@ -1,28 +1,77 @@
 
-/* ── Balance-limit warning band (#TBD-G) ──────────── */
+/* ── Top bar (#3980) ─────────────────────────────────
+   Two deliberate rows at phone width — status + language, then earnings + zones —
+   with the balance band flowing underneath. Nothing is pinned to a guessed pixel
+   offset, so nothing can slide under anything else. */
+
+.driver-home-page .driver-topbar__inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "toggle lang"
+    "chip   zones";
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.driver-home-page #online-toggle   { grid-area: toggle; }
+.driver-home-page .lang-switcher   { grid-area: lang; justify-self: end; }
+.driver-home-page #earnings-chip   { grid-area: chip; justify-self: start; box-shadow: var(--shadow-md); }
+.driver-home-page .driver-zones-btn-wrap {
+  grid-area: zones;
+  position: static;
+}
+
+/* Floating over the map, the language switch needs its own surface to be legible. */
+.driver-home-page .lang-switcher {
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 768px) {
+  .driver-home-page .driver-topbar__inner {
+    grid-template-columns: auto 1fr auto auto;
+    grid-template-areas: "toggle chip zones lang";
+  }
+}
+
+/* ── Balance-limit band (#3980) ───────────────────── */
 
 .balance-warn {
-  position: absolute;
-  inset-inline: var(--space-4);
-  inset-block-start: calc(var(--space-4) + 56px);
-  z-index: 5;
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-lg);
   background: rgba(var(--color-warning-rgb), 0.96);
   color: var(--color-text);
-  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.12));
+  box-shadow: var(--shadow-md);
 }
 
-.balance-warn__icon { flex: none; margin-block-start: 1px; }
-.balance-warn__msg { font-size: var(--fs-xs); line-height: var(--leading-relaxed); }
+.balance-warn__icon { flex: none; }
+.balance-warn__msg {
+  flex: 1 1 12rem;
+  font-size: var(--fs-xs);
+  line-height: var(--leading-relaxed);
+}
+
+/* The way out is on the band itself — she never has to guess where to settle. */
+.balance-warn__action {
+  flex: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
 
 .balance-warn--blocked {
   background: rgba(var(--color-danger-rgb), 0.96);
-  color: var(--color-on-primary, #fff);
+  color: var(--color-on-primary);
 }
+
+.balance-warn--blocked .balance-warn__action { color: var(--color-danger); }
 
 /* ── Go-online blocked sheet (#TBD-G) ─────────────── */
 

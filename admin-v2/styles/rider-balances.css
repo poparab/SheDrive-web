@@ -34,3 +34,12 @@
 .balance-ledger__stat-value {
   overflow-wrap: anywhere;
 }
+
+/* The kit's grid cells are nowrap, so one long name (?state=long) stretched the Name
+   column to ~800 px and pushed the grid wider than its card. Let names wrap, as the
+   list.css name cell does on the other grid screens. */
+#rider-balance-table td:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-inline-size: 12rem;
+}

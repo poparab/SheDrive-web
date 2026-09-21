@@ -32,7 +32,7 @@
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </a>
-        <span data-i18n="driver.balance.title">الرصيد المستحق للمنصة</span>
+        <span data-i18n="driver.balance.title">الرصيد وكشف الحساب</span>
       </sd-app-header>
 
       <main class="balance-main">
@@ -43,7 +43,7 @@
           <button type="button" class="btn btn--ghost" id="balance-retry" data-i18n="driver.balance.retry">إعادة المحاولة</button>
         </div>
 
-        <div id="balance-content">
+        <div class="balance-content" id="balance-content">
 
           <!-- ── Balance headline: owed or available (#1788 S1, S2) ── -->
           <div class="balance-card" id="balance-card" role="region" data-i18n-aria-label="driver.balance.title" aria-label="الرصيد">
@@ -52,9 +52,7 @@
               <span id="balance-amount">120</span>
               <span class="balance-card__currency" data-i18n="driver.currency">جنيه</span>
             </p>
-            <p class="balance-card__explain" id="balance-explain" data-i18n="driver.balance.explain">
-              في الرحلات النقدية تحتفظين بالأجرة كاملة وتدينين للمنصة بعمولتها فقط. تُسوّى هذه المبالغ دورياً مع فريق المالية.
-            </p>
+            <p class="balance-card__explain" id="balance-explain" data-i18n="driver.balance.explain">هذا ما عليكِ لشي درايف، ومعظمه عمولة رحلاتك النقدية. سدّديه بإحدى طرق التسوية.</p>
           </div>
 
           <!-- ── Zero-balance state (#1788 S10) ── -->

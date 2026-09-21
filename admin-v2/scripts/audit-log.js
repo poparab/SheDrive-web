@@ -111,7 +111,11 @@ function renderTarget(entry) {
 function renderDiff(entry) {
   const before = entry.before ?? {};
   const after = entry.after ?? {};
-  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+  // A field is shown only if it has a value on at least one side — an approval with no
+  // reason must not print "Reason: undefined".
+  const has = (obj, key) => obj[key] !== undefined && obj[key] !== null && obj[key] !== '';
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter((key) => has(before, key) || has(after, key));
 
   if (!keys.length) {
     const dash = document.createElement('span');
@@ -132,7 +136,7 @@ function renderDiff(entry) {
     label.textContent = `${enumLabel('field', key)}:`;
     row.appendChild(label);
 
-    if (key in before) {
+    if (has(before, key)) {
       const beforeEl = document.createElement('span');
       beforeEl.className = 'audit__diff-before ad-ltr';
       beforeEl.textContent = String(before[key]);
@@ -145,7 +149,7 @@ function renderDiff(entry) {
       row.appendChild(arrow);
     }
 
-    if (key in after) {
+    if (has(after, key)) {
       const afterEl = document.createElement('span');
       afterEl.className = 'audit__diff-after ad-ltr';
       afterEl.textContent = String(after[key]);

@@ -272,11 +272,14 @@
 }
 
 /* Location loading overlay */
+/* Centred with inline margins, not left:50% + translateX(-50%) — that pair pushes it
+   off-screen in RTL, where inset-inline-start is the right edge. */
 .location-status {
   position: fixed;
-  inset-block-start: 80px;
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
+  inset-block-start: 45%;
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: max-content;
   z-index: var(--z-nav);
   display: flex;
   align-items: center;

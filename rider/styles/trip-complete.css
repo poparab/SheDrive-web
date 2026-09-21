@@ -349,8 +349,9 @@
 }
 
 /* Outstanding fee recovered on this trip — never folded silently into the fare (spec §3) */
+/* Stated plainly, not as a penalty — no red, no alert styling. */
 .fare-row--fee {
-  color: var(--color-danger);
+  color: var(--color-text);
   font-weight: var(--fw-medium);
 }
 

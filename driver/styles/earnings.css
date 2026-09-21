@@ -268,9 +268,10 @@
 }
 
 .trip-item__fare {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  color: var(--color-success);
+  /* the dark variant — the light one is unreadable on the badge's green tint */
+  color: var(--color-success-strong);
 }
 
 .trip-item__chevron {
@@ -341,6 +342,14 @@
 
 /* ── Balance-owed entry link (#1788) ─────────────── */
 
+/* A bordered row with a chevron, like the other tappable rows — as a bare ghost
+   button it read as a section heading. */
 .earnings-balance-link {
   margin-block-start: var(--space-3);
+  justify-content: space-between;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primary-600);
 }
+
+[dir="rtl"] .earnings-balance-link__chevron { transform: scaleX(-1); }

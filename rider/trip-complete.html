@@ -63,7 +63,7 @@
             <span class="stat-chip__label" data-i18n="complete.duration">المدة</span>
           </div>
           <div class="stat-chip" role="listitem">
-            <span class="stat-chip__value">47 <span data-i18n="complete.currency">جنيه</span></span>
+            <span class="stat-chip__value">65 <span data-i18n="complete.currency">جنيه</span></span>
             <span class="stat-chip__label" data-i18n="complete.fare">التكلفة</span>
           </div>
         </div>
@@ -84,17 +84,17 @@
         <!-- Fare breakdown -->
         <section class="fare-breakdown" aria-label="تفاصيل التكلفة">
           <h3 class="fare-breakdown__title" data-i18n="complete.fareBreakdown">تفاصيل التكلفة</h3>
-          <div class="fare-row"><span data-i18n="complete.baseFare">التكلفة الأساسية</span><span>15 ج.م.</span></div>
-          <div class="fare-row"><span data-i18n="complete.distanceFare">رسوم المسافة</span><span>12 ج.م.</span></div>
-          <div class="fare-row"><span data-i18n="complete.timeFare">رسوم الوقت</span><span>8 ج.م.</span></div>
+          <div class="fare-row"><span data-i18n="complete.baseFare">التكلفة الأساسية</span><span>20 <span data-i18n="complete.currency">جنيه</span></span></div>
+          <div class="fare-row"><span data-i18n="complete.distanceFare">رسوم المسافة</span><span>30 <span data-i18n="complete.currency">جنيه</span></span></div>
+          <div class="fare-row"><span data-i18n="complete.timeFare">رسوم الوقت</span><span>15 <span data-i18n="complete.currency">جنيه</span></span></div>
           <!-- Outstanding fee recovered on this trip — never folded into the fare (spec §3) -->
           <div class="fare-row fare-row--fee" id="fare-fee-row" hidden>
-            <span data-i18n="fees.recoveredLine">رسوم مستحقة سابقاً</span>
+            <span data-i18n="fees.recoveredLine">رسوم مستحقة من رحلة سابقة</span>
             <span id="fare-fee-amount"></span>
           </div>
-          <div class="fare-row fare-row--total"><span data-i18n="complete.totalFare">الإجمالي</span><span id="fare-total-amount">35 ج.م.</span></div>
+          <div class="fare-row fare-row--total"><span data-i18n="complete.totalFare">الإجمالي</span><span id="fare-total-amount">65 <span data-i18n="complete.currency">جنيه</span></span></div>
         </section>
-        <p class="fare-fee-note" id="fare-fee-note" hidden data-i18n="fees.recoveredNote">أُضيفت هذه الرسوم من رحلة إلغاء سابقة</p>
+        <p class="fare-fee-note" id="fare-fee-note" hidden data-i18n="fees.recoveredNote">رسوم كانت مستحقة عليكِ من رحلة سابقة ألغيتِها متأخرة.</p>
 
         <section class="star-rating" aria-labelledby="rating-heading">
           <h2 id="rating-heading" class="sr-only" data-i18n="complete.rateTitle">قيّمي سائقتك</h2>

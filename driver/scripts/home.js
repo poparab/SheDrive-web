@@ -74,13 +74,14 @@ function renderBalanceWarn() {
   if (!show) return;
 
   balanceWarn.classList.toggle('balance-warn--blocked', state === 'blocked');
-  qs('#balance-warn-msg').textContent =
-    state === 'blocked'
-      ? translate('driver.balance.limitBlock')
-      : translate('driver.balance.limitWarn', {
-          owed: getOutstanding(),
-          limit: POLICY.balanceLimit,
-        });
+  // Amount, limit and the way to settle always travel together (#3980).
+  const amounts = { owed: getOutstanding(), limit: POLICY.balanceLimit };
+  qs('#balance-warn-msg').textContent = translate(
+    state === 'blocked' ? 'driver.home.blocked.band' : 'driver.balance.limitWarn',
+    amounts,
+  );
+  // Carry the demo state across so settle.html shows the same balance.
+  qs('#balance-warn-action').href = `./settle.html${location.search}`;
 }
 
 function openBalanceBlock() {
