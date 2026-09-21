@@ -75,6 +75,16 @@
             <p class="balance-band__msg" id="balance-band-msg"></p>
           </div>
 
+          <!-- ── Way to settle (#3979). Primary only while she owes; the history link is always
+               there so settle.html is reachable from every state. Never a withdraw action. ── -->
+          <div class="balance-actions" id="balance-actions">
+            <a href="./settle.html" class="btn btn--primary btn--full" id="balance-settle" hidden aria-hidden="true" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
+            <a href="./settle.html#settle-history" class="btn btn--ghost btn--full balance-actions__link" id="balance-history">
+              <span data-i18n="driver.settle.historyTitle">سجل التسويات</span>
+              <svg class="balance-actions__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
           <!-- ── Last settlement (#1788 S6) ── -->
           <div class="balance-settlement" id="balance-settlement" hidden aria-hidden="true">
             <span class="balance-settlement__label" data-i18n="driver.balance.lastSettlement">آخر تسوية</span>

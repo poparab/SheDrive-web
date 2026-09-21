@@ -96,6 +96,19 @@ function renderSettlement() {
   qs('#settlement-date').textContent = last.date.replace(/-/g, '/');
 }
 
+// ── Way to settle (#3979) ────────────────────────────
+// Settling is the primary action only while she owes; the history link shows in every
+// state so she can always reach settle.html. Both carry the demo query string across,
+// so settle.html shows the same balance she just tapped from.
+function renderActions() {
+  const owes = getBalance() < 0;
+  const settle = qs('#balance-settle');
+  settle.hidden = !owes;
+  settle.setAttribute('aria-hidden', String(!owes));
+  settle.href = `./settle.html${location.search}`;
+  qs('#balance-history').href = `./settle.html${location.search}#settle-history`;
+}
+
 // ── Statement ────────────────────────────────────────
 function renderStatement() {
   const list = qs('#statement-list');
@@ -154,6 +167,7 @@ function render() {
   if (failed) return;
   renderHeadline();
   renderBand();
+  renderActions();
   renderSettlement();
   renderStatement();
 }

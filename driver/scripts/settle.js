@@ -21,6 +21,10 @@ import {
 auth.requireAuth();
 await initI18n();
 
+// Back to the balance screen with the same demo state she came from (#3979 ↔ #3977).
+const backLink = document.querySelector('sd-app-header a[href="./balance.html"]');
+if (backLink) backLink.href = `./balance.html${location.search}`;
+
 document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );

@@ -68,6 +68,25 @@
 
 /* ── Last settlement ──────────────────────────────── */
 
+.balance-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The history link sits right above the last-settlement row, so it must not read as a
+   section heading — bordered, with a chevron, like the other tappable rows. */
+.balance-actions__link {
+  justify-content: space-between;
+  border: 1px solid var(--color-border);
+  color: var(--color-primary-600);
+}
+
+/* Chevrons point "forward": right in LTR, left in RTL. */
+[dir="rtl"] .balance-actions__chevron {
+  transform: scaleX(-1);
+}
+
 .balance-settlement {
   display: flex;
   align-items: center;
