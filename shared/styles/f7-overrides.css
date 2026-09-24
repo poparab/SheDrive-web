@@ -140,3 +140,69 @@ a:not(.link):not(.item-link):not(.tab-link):not(.btn) {
 .badge--danger  { --f7-badge-bg-color: rgba(var(--color-danger-rgb), 0.12);  --f7-badge-text-color: var(--color-danger-strong); }
 .badge--info    { --f7-badge-bg-color: rgba(var(--color-info-rgb), 0.12);    --f7-badge-text-color: var(--color-info-strong); }
 .badge--brand   { --f7-badge-bg-color: rgba(var(--color-primary-600-rgb), 0.12); --f7-badge-text-color: var(--color-primary-700); }
+
+/* ── Toggle ───────────────────────────────────────────
+   Framework7's .toggle is the switch for settings rows. Two fixes on top of it:
+   F7 hides the checkbox with display:none, so a keyboard can never reach it —
+   keep it in the tab order as an invisible overlay; and F7 ships its RTL rules in
+   a separate bundle, so mirror the knob here for Arabic. */
+.toggle {
+  --f7-toggle-active-color: var(--color-primary-600);
+  --f7-toggle-inactive-border-color: var(--color-border);
+  --f7-toggle-inactive-bg-color: var(--color-surface-alt);
+  flex: 0 0 auto;
+}
+.toggle input[type='checkbox'] {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.toggle input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+.toggle input[type='checkbox']:focus-visible + .toggle-icon {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+[dir='rtl'] .toggle .toggle-icon::after {
+  left: auto;
+  right: 2px;
+}
+[dir='rtl'] .toggle .toggle-icon::before {
+  left: auto;
+  right: 2px;
+}
+html[dir='rtl'].ios .toggle input[type='checkbox']:checked + .toggle-icon::after {
+  transform: translateX(calc(var(--f7-toggle-height) - var(--f7-toggle-width)));
+}
+
+/* ── Toast ────────────────────────────────────────────
+   Framework7 ships its own absolutely-positioned .toast (full width, max 568px,
+   its own background) and loads after components.css, so it wins on equal
+   specificity. SheDrive toasts stack inside .toast-container: put them back in
+   flow, size them to their text, and paint F7's background with our tones. */
+.toast {
+  --f7-toast-bg-color: var(--color-text);
+  --f7-toast-text-color: var(--color-surface);
+}
+.toast--success { --f7-toast-bg-color: var(--color-success); }
+.toast--danger  { --f7-toast-bg-color: var(--color-danger); }
+.toast--warning { --f7-toast-bg-color: var(--color-warning); --f7-toast-text-color: var(--color-text); }
+
+.toast-container > .toast {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  inline-size: auto;
+  max-inline-size: var(--toast-max-inline-size);
+  margin: 0;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}

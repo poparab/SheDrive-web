@@ -10,12 +10,16 @@ import { qs, qsa } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
 import { storage } from '../../shared/scripts/storage.js';
 import { getOutstandingTotal, getRecoveryAmount } from './fee-store.js';
+import { unreadCount } from '../../shared/scripts/notifications.js';
 
 // ── Auth guard ───────────────────────────────────────
 auth.requireAuth();
 
 // ── i18n ─────────────────────────────────────────────
 await initI18n();
+
+// Unread badge on the bell — the inbox marks items read as she opens them.
+qs('#notif-bell')?.setAttribute('count', String(unreadCount('rider')));
 
 // ── Language switcher ────────────────────────────────
 qsa('[data-lang-btn]').forEach((btn) =>

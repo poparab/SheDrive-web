@@ -1,0 +1,96 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — الإشعارات" />
+    <title>SheDrive — الإشعارات</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body class="app-shell notifications-page">
+    <sd-page body-class="app-shell notifications-page" screen-styles="/rider/styles/rider.css, /shared/styles/notifications.css, /rider/styles/notifications.css" drawer>
+      <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="notif-topbar__title-text" data-i18n="notifications.title">الإشعارات</span>
+        <a data-slot="end" href="./notification-settings.html" class="btn btn--icon btn--ghost notif-topbar__settings" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </a>
+      </sd-app-header>
+
+      <main class="notif-content" id="main-content" data-i18n-aria-label="notifications.title" aria-label="الإشعارات">
+
+        <!-- ── Error state (?state=error) ───────────────────────── -->
+        <div class="notif-error" id="notif-error" hidden aria-hidden="true">
+          <p class="notif-error__msg" data-i18n="notifications.error">تعذّر تحميل الإشعارات. تحقّقي من اتصالك.</p>
+          <button type="button" class="btn btn--ghost" id="notif-retry" data-i18n="common.retry">حاولي مجدداً</button>
+        </div>
+
+        <!-- ── Loading state (?state=loading) ───────────────────── -->
+        <div class="notif-loading" id="notif-loading" hidden aria-hidden="true" role="status" data-i18n-aria-label="notifications.loading" aria-label="جارٍ تحميل الإشعارات">
+          <div class="notif-skeleton"><span class="notif-skeleton__dot"></span><span class="notif-skeleton__lines"><span class="notif-skeleton__line"></span><span class="notif-skeleton__line"></span><span class="notif-skeleton__line notif-skeleton__line--short"></span></span></div>
+          <div class="notif-skeleton"><span class="notif-skeleton__dot"></span><span class="notif-skeleton__lines"><span class="notif-skeleton__line"></span><span class="notif-skeleton__line"></span><span class="notif-skeleton__line notif-skeleton__line--short"></span></span></div>
+          <div class="notif-skeleton"><span class="notif-skeleton__dot"></span><span class="notif-skeleton__lines"><span class="notif-skeleton__line"></span><span class="notif-skeleton__line"></span><span class="notif-skeleton__line notif-skeleton__line--short"></span></span></div>
+        </div>
+
+        <div id="notif-body" class="notif-content__body">
+
+          <!-- ── Push turned off at the OS (?state=push-off) ──────── -->
+          <div class="notif-banner" id="notif-push-banner" role="status" hidden aria-hidden="true">
+            <span class="notif-banner__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.9 17.9 0 0 1 18 8"/><path d="M6.26 6.26A5.9 5.9 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </span>
+            <span class="notif-banner__text">
+              <p class="notif-banner__title" data-i18n="notifications.pushOff.title">الإشعارات متوقفة</p>
+              <p class="notif-banner__body" data-i18n="notifications.pushOff.body.rider">لن يصلكِ تنبيه عند وصول السائقة أو انتهاء الرحلة.</p>
+            </span>
+            <button type="button" class="btn btn--primary btn--sm notif-banner__action" id="notif-push-enable" data-i18n="notifications.pushOff.action">تفعيل</button>
+          </div>
+
+          <!-- ── Filter + mark all ────────────────────────────────── -->
+          <div class="notif-toolbar" role="group" data-i18n-aria-label="notifications.filter.label" aria-label="تصفية الإشعارات">
+            <button type="button" class="notif-filter is-active" data-notif-filter="all" aria-pressed="true">
+              <span data-i18n="notifications.filter.all">الكل</span>
+            </button>
+            <button type="button" class="notif-filter" data-notif-filter="unread" aria-pressed="false">
+              <span data-i18n="notifications.filter.unread">غير المقروءة</span>
+              <span class="notif-filter__count" id="notif-unread-count" hidden></span>
+            </button>
+            <button type="button" class="btn btn--ghost btn--sm notif-mark-all" id="notif-mark-all" data-i18n="notifications.markAllRead">تحديد الكل كمقروء</button>
+          </div>
+
+          <!-- ── Empty state (?state=empty, or Unread with nothing unread) ── -->
+          <div class="notif-empty" id="notif-empty" hidden aria-hidden="true">
+            <div class="notif-empty__icon" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <p class="notif-empty__title" id="notif-empty-title" data-i18n="notifications.empty.title">لا توجد إشعارات بعد</p>
+            <p class="notif-empty__hint" id="notif-empty-hint" data-i18n="notifications.empty.hint.rider">ستظهر هنا تحديثات رحلاتكِ وتنبيهات الأمان.</p>
+          </div>
+
+          <!-- ── The feed, grouped Today / Yesterday / Earlier ────── -->
+          <div class="notif-list" id="notif-list"></div>
+        </div>
+      </main>
+
+      <!-- ── First-run permission explainer (?state=prime) ─────────── -->
+      <div class="notif-prime-scrim" id="notif-prime-scrim" hidden aria-hidden="true"></div>
+      <sd-bottom-sheet id="notif-prime-sheet" height="auto" role="dialog" aria-modal="true" aria-labelledby="notif-prime-title">
+        <div class="notif-prime">
+          <div class="notif-prime__icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <h2 class="notif-prime__title" id="notif-prime-title" data-i18n="notifications.prime.title.rider">لا تفوّتي وصول سائقتكِ</h2>
+          <p class="notif-prime__body" data-i18n="notifications.prime.body.rider">سنُعلمكِ عند قبول رحلتكِ ووصول السائقة وانتهاء الرحلة، وبأي تنبيه أمان.</p>
+          <div class="notif-prime__actions">
+            <sd-button variant="primary" full type="button" id="notif-prime-allow" data-i18n="notifications.prime.allow">السماح بالإشعارات</sd-button>
+            <sd-button variant="ghost" full type="button" id="notif-prime-later" data-i18n="notifications.prime.later">ليس الآن</sd-button>
+          </div>
+        </div>
+      </sd-bottom-sheet>
+    </sd-page>
+
+    <script type="module" src="scripts/notifications.js"></script>
+  </body>
+</html>

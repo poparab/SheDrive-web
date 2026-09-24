@@ -9,12 +9,16 @@ import { MapService } from '../../shared/scripts/map.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { POLICY, getLimitState, getOutstanding } from './finance-store.js';
 import { storage } from '../../shared/scripts/storage.js';
+import { unreadCount } from '../../shared/scripts/notifications.js';
 
 // ── Auth guard ───────────────────────────────────────
 auth.requireAuth();
 
 // ── i18n ─────────────────────────────────────────────
 await initI18n();
+
+// Unread badge on the bell — the inbox marks items read as she opens them.
+qs('#notif-bell')?.setAttribute('count', String(unreadCount('driver')));
 
 // ── Language switcher ────────────────────────────────
 document.querySelectorAll('[data-lang-btn]').forEach((btn) => {

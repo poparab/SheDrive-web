@@ -1,0 +1,119 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — إعدادات الإشعارات" />
+    <title>SheDrive Driver — إعدادات الإشعارات</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body class="app-shell notifications-page">
+    <sd-page body-class="app-shell notifications-page" screen-styles="styles/driver.css, ../shared/styles/notifications.css, styles/notification-settings.css">
+      <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="notif-topbar__title-text" data-i18n="notifications.settings.title">إعدادات الإشعارات</span>
+      </sd-app-header>
+
+      <main class="notif-settings" id="main-content" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
+
+        <!-- ── OS permission status ─────────────────────────────────── -->
+        <section class="notif-settings__section" aria-labelledby="notif-push-label">
+          <div class="notif-settings__card notif-push">
+            <p class="notif-push__label" id="notif-push-label" data-i18n="notifications.settings.push.label">إشعارات الهاتف</p>
+            <span class="badge badge--success" id="notif-push-status" data-i18n="notifications.settings.push.on">مفعّلة</span>
+            <p class="notif-push__hint" data-i18n="notifications.settings.push.hint">تتحكّمين في السماح بالإشعارات من إعدادات هاتفكِ.</p>
+            <button type="button" class="btn btn--primary btn--sm btn--full" id="notif-push-open" hidden aria-hidden="true" data-i18n="notifications.settings.push.open">فتح إعدادات الهاتف</button>
+          </div>
+        </section>
+
+        <!-- ── What she receives ─────────────────────────────────────── -->
+        <section class="notif-settings__section notif-settings__types" aria-labelledby="notif-types-heading">
+          <h2 class="notif-settings__heading" id="notif-types-heading" data-i18n="notifications.settings.sectionTypes">ما يصلكِ</h2>
+          <div class="notif-settings__card">
+
+                        <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-trip-title" data-i18n="notifications.pref.driver.trip.title">الرحلات</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.trip.desc">طلبات الرحلات الجديدة وتقييمات الراكبات.</span>
+                <span class="notif-pref__locked" data-i18n="notifications.pref.locked">مفعّلة دائماً</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="trip" aria-labelledby="pref-trip-title" checked disabled />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+
+            <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-safety-title" data-i18n="notifications.pref.driver.safety.title">الأمان والطوارئ</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.safety.desc">تنبيهات الاستغاثة وتحديثات جهات اتصال الطوارئ.</span>
+                <span class="notif-pref__locked" data-i18n="notifications.pref.locked">مفعّلة دائماً</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="safety" aria-labelledby="pref-safety-title" checked disabled />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+
+            <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-account-title" data-i18n="notifications.pref.driver.account.title">المستندات والحساب</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.account.desc">قرار طلب الانضمام وقرب انتهاء صلاحية المستندات.</span>
+                <span class="notif-pref__locked" data-i18n="notifications.pref.locked">مفعّلة دائماً</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="account" aria-labelledby="pref-account-title" checked disabled />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+
+            <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-earnings-title" data-i18n="notifications.pref.driver.earnings.title">الأرباح والرصيد</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.earnings.desc">التسويات والاقتراب من حد الرصيد.</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="earnings" aria-labelledby="pref-earnings-title" checked />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+
+            <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-offers-title" data-i18n="notifications.pref.driver.offers.title">إعلانات شي درايف</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.offers.desc">مناطق عمل جديدة وتغييرات في ساعات الخدمة.</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="offers" aria-labelledby="pref-offers-title" checked />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+          </div>
+
+          <p class="notif-settings__note" data-i18n="notifications.settings.lockedNote.driver">لا يمكن إيقاف الرحلات والأمان والمستندات لأنها ضرورية لاستقبال الرحلات والحفاظ على أمانكِ.</p>
+          <p class="notif-settings__note" data-i18n="notifications.settings.inboxNote">ما توقفينه لن يصلكِ كإشعار على الهاتف، لكنه سيظل موجوداً في صندوق الإشعارات.</p>
+        </section>
+        <!-- ── Sound ──────────────────────────────────────────────────── -->
+        <section class="notif-settings__section" aria-labelledby="notif-sound-heading">
+          <h2 class="notif-settings__heading" id="notif-sound-heading" data-i18n="notifications.settings.sectionSound">الصوت</h2>
+          <div class="notif-settings__card">
+            <div class="notif-pref">
+              <span class="notif-pref__text">
+                <span class="notif-pref__title" id="pref-requestSound-title" data-i18n="notifications.pref.driver.requestSound.title">صوت طلب الرحلة</span>
+                <span class="notif-pref__desc" data-i18n="notifications.pref.driver.requestSound.desc">تشغيل نغمة مميزة عند وصول طلب جديد، حتى في الوضع الصامت.</span>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" role="switch" data-pref="requestSound" aria-labelledby="pref-requestSound-title" checked />
+                <span class="toggle-icon"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/notification-settings.js"></script>
+  </body>
+</html>

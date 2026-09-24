@@ -6,6 +6,7 @@ import './sd-rating-stars.js';
 import './sd-toast-host.js';
 import './sd-otp-input.js';
 import './sd-confirm-dialog.js';
+import './sd-notification-bell.js';
 import { Drawer } from '../scripts/drawer.js';
 import { applyTranslations, isI18nReady } from '../scripts/i18n.js';
 
