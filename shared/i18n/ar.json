@@ -927,7 +927,7 @@
   "deleteAccount.kept.trips.why": "يُلزمنا القانون بالاحتفاظ بها للأغراض الضريبية والمحاسبية.",
   "deleteAccount.kept.safety": "بلاغات الأمان وحالات الاستغاثة",
   "deleteAccount.kept.safety.why": "لحماية الراكبات والسائقات الأخريات.",
-  "deleteAccount.kept.body": "تُفصل هذه السجلات عن اسمكِ، وتُحذف حين تنتهي المدة التي يفرضها القانون.",
+  "deleteAccount.kept.body": "نحتفظ فقط بما يفرضه القانون أو تحتاجه قضية أمان مفتوحة، ونحذفه عند انتهاء تلك المدة.",
   "deleteAccount.driver.kept.trips": "سجلات الرحلات والأرباح والتسويات",
   "deleteAccount.driver.kept.documents": "بطاقتكِ الشخصية ورخصتكِ ومستندات السيارة",
   "deleteAccount.driver.kept.documents.why": "يُلزمنا القانون بالاحتفاظ بها لمدة محددة بعد آخر رحلة.",

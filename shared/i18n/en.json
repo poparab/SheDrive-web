@@ -927,7 +927,7 @@
   "deleteAccount.kept.trips.why": "The law requires us to keep them for tax and accounting.",
   "deleteAccount.kept.safety": "Safety reports and SOS cases",
   "deleteAccount.kept.safety.why": "To protect other riders and drivers.",
-  "deleteAccount.kept.body": "These records are separated from your name, and deleted once the period the law requires has passed.",
+  "deleteAccount.kept.body": "We keep only what the law or an open safety case needs, and delete it when that period ends.",
   "deleteAccount.driver.kept.trips": "Trip, earnings and settlement records",
   "deleteAccount.driver.kept.documents": "Your national ID, licence and vehicle documents",
   "deleteAccount.driver.kept.documents.why": "The law requires us to keep them for a set period after your last trip.",
