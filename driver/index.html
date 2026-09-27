@@ -24,7 +24,7 @@
   </head>
 
   <body class="app-shell login-page login-page--driver">
-    <sd-page body-class="app-shell login-page login-page--driver" screen-styles="styles/driver.css">
+    <sd-page body-class="app-shell login-page login-page--driver" screen-styles="styles/driver.css, ../shared/styles/account-deletion.css">
       <div class="login-layout">
 
         <!-- ── Brand panel ── -->
@@ -162,6 +162,15 @@
                   </button>
                   <span class="resend-countdown" id="resend-countdown" aria-live="polite" aria-atomic="true" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
                 </div>
+              </section>
+
+              <!-- Restore: a number whose account is inside its 30-day deletion window -->
+              <section class="login-step login-step--hidden" id="step-restore" data-i18n-aria-label="deleteAccount.restore.title" aria-label="حسابكِ في انتظار الحذف">
+                <div class="del-card del-card--window">
+                  <p class="del-card__body" data-deletion-date="deleteAccount.restore.body">سيُحذف حسابكِ نهائياً في —. استعيديه لتواصلي استخدام شي درايف كما كان.</p>
+                </div>
+                <button type="button" class="btn btn--primary btn--full" id="restore-btn" data-i18n="deleteAccount.restore.action">استعادة حسابي</button>
+                <button type="button" class="btn btn--ghost btn--full" id="restore-decline-btn" data-i18n="deleteAccount.restore.decline">متابعة الحذف</button>
               </section>
 
             </form>

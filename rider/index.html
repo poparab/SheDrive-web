@@ -26,7 +26,7 @@
   </head>
 
   <body class="app-shell login-page">
-    <sd-page body-class="app-shell login-page" screen-styles="styles/rider.css, styles/splash.css">
+    <sd-page body-class="app-shell login-page" screen-styles="styles/rider.css, styles/splash.css, ../shared/styles/account-deletion.css">
       <div class="splash-overlay" id="splash-overlay" aria-hidden="true">
         <div class="splash-ring" aria-hidden="true"></div>
         <div class="splash-ring" aria-hidden="true"></div>
@@ -176,6 +176,15 @@
               <button type="button" class="btn btn--primary btn--full" id="save-name-btn" data-i18n="register.nameStep.submit">
                 متابعة
               </button>
+            </section>
+
+            <!-- Restore: a number whose account is inside its 30-day deletion window -->
+            <section class="login-step login-step--hidden" id="step-restore" data-i18n-aria-label="deleteAccount.restore.title" aria-label="حسابكِ في انتظار الحذف">
+              <div class="del-card del-card--window">
+                <p class="del-card__body" data-deletion-date="deleteAccount.restore.body">سيُحذف حسابكِ نهائياً في —. استعيديه لتواصلي استخدام شي درايف كما كان.</p>
+              </div>
+              <button type="button" class="btn btn--primary btn--full" id="restore-btn" data-i18n="deleteAccount.restore.action">استعادة حسابي</button>
+              <button type="button" class="btn btn--ghost btn--full" id="restore-decline-btn" data-i18n="deleteAccount.restore.decline">متابعة الحذف</button>
             </section>
 
           </form>

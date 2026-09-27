@@ -1,0 +1,158 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — حذف الحساب" />
+    <title>SheDrive — حذف الحساب</title>
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+  <body class="app-shell delete-account-page">
+    <sd-page body-class="app-shell delete-account-page" screen-styles="/rider/styles/rider.css, /shared/styles/account-deletion.css, /rider/styles/delete-account.css">
+      <sd-app-header bar-class="del-topbar" inner-class="del-topbar__inner" title-class="del-topbar__title" hide-lang-toggle>
+        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </sd-button>
+        <span class="del-topbar__title-text" data-i18n="deleteAccount.title">حذف الحساب</span>
+      </sd-app-header>
+
+      <main class="del-content" id="main-content">
+
+        <!-- ── Step 1: review what happens ─────────────────────────────── -->
+        <section class="del-step" data-del-step="review" aria-labelledby="del-review-title">
+          <div class="del-hero">
+            <span class="del-hero__icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </span>
+            <h1 class="del-hero__title" id="del-review-title" data-i18n="deleteAccount.review.title">حذف حسابكِ في شي درايف؟</h1>
+            <p class="del-hero__body" data-i18n="deleteAccount.review.body">سيُغلق حسابكِ فوراً ويُحذف نهائياً بعد 30 يوماً. اقرئي ما سيحدث قبل المتابعة.</p>
+          </div>
+
+          <div class="del-notice" id="del-notice-fee" role="note" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p data-i18n="deleteAccount.rider.feeNotice">عليكِ رسوم إلغاء مستحقة بقيمة 25 ج.م. لا تمنعكِ من حذف الحساب، لكنها تبقى مسجّلة في سجلاتنا المالية.</p>
+          </div>
+
+          <div class="del-card del-card--delete">
+            <h2 class="del-card__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span data-i18n="deleteAccount.deleted.title">ما سيُحذف</span>
+            </h2>
+            <ul class="del-list">
+              <li data-i18n="deleteAccount.rider.deleted.profile">اسمكِ وصورتكِ وبريدكِ الإلكتروني</li>
+              <li data-i18n="deleteAccount.rider.deleted.places">أماكنكِ المحفوظة</li>
+              <li data-i18n="deleteAccount.rider.deleted.contacts">جهات اتصال الطوارئ</li>
+              <li data-i18n="deleteAccount.rider.deleted.prefs">الإشعارات وتفضيلاتها</li>
+              <li data-i18n="deleteAccount.deleted.signin">إمكانية الدخول برقم هاتفكِ</li>
+            </ul>
+          </div>
+
+          <div class="del-card del-card--keep">
+            <h2 class="del-card__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span data-i18n="deleteAccount.kept.title">ما نحتفظ به، ولماذا</span>
+            </h2>
+            <ul class="del-list">
+              <li>
+                <span data-i18n="deleteAccount.kept.trips">سجلات الرحلات والمدفوعات</span>
+                <span class="del-list__why" data-i18n="deleteAccount.kept.trips.why">يُلزمنا القانون بالاحتفاظ بها للأغراض الضريبية والمحاسبية.</span>
+              </li>
+              <li>
+                <span data-i18n="deleteAccount.kept.safety">بلاغات الأمان وحالات الاستغاثة</span>
+                <span class="del-list__why" data-i18n="deleteAccount.kept.safety.why">لحماية الراكبات والسائقات الأخريات.</span>
+              </li>
+            </ul>
+            <p class="del-card__body" data-i18n="deleteAccount.kept.body">تُفصل هذه السجلات عن اسمكِ، وتُحذف حين تنتهي المدة التي يفرضها القانون.</p>
+          </div>
+
+          <div class="del-card del-card--window">
+            <h2 class="del-card__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-i18n="deleteAccount.window.title">30 يوماً لتغيير رأيكِ</span>
+            </h2>
+            <p class="del-card__body" data-i18n="deleteAccount.window.body">سيُغلق حسابكِ وتُسجَّل خروجكِ فوراً. إذا سجّلتِ الدخول خلال 30 يوماً يمكنكِ استعادته كما هو. بعد ذلك لا يمكن التراجع.</p>
+          </div>
+
+          <fieldset class="del-reasons">
+            <legend>
+              <span data-i18n="deleteAccount.reason.title">لماذا تغادرين؟</span>
+              <span class="del-reasons__hint" data-i18n="deleteAccount.reason.optional">(اختياري)</span>
+            </legend>
+            <label class="del-choice"><input type="radio" name="del-reason" value="not-needed" /><span data-i18n="deleteAccount.reason.notNeeded">لم أعد أحتاج التطبيق</span></label>
+            <label class="del-choice"><input type="radio" name="del-reason" value="privacy" /><span data-i18n="deleteAccount.reason.privacy">مخاوف تتعلق بالخصوصية</span></label>
+            <label class="del-choice"><input type="radio" name="del-reason" value="experience" /><span data-i18n="deleteAccount.reason.experience">تجربة سيئة</span></label>
+            <label class="del-choice"><input type="radio" name="del-reason" value="other-account" /><span data-i18n="deleteAccount.reason.otherAccount">لديّ حساب آخر</span></label>
+            <label class="del-choice"><input type="radio" name="del-reason" value="other" /><span data-i18n="deleteAccount.reason.other">سبب آخر</span></label>
+          </fieldset>
+
+          <label class="del-ack">
+            <input type="checkbox" id="del-ack" />
+            <span data-i18n="deleteAccount.ack">أفهم أن حسابي سيُحذف نهائياً بعد 30 يوماً ولا يمكن استعادته بعدها.</span>
+          </label>
+
+          <div class="del-actions">
+            <button type="button" class="btn btn--danger btn--full" id="del-continue" disabled data-i18n="deleteAccount.continue">متابعة</button>
+            <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+          </div>
+        </section>
+
+        <!-- ── Blocked: something must finish first ────────────────────── -->
+        <section class="del-step" data-del-step="blocked" hidden>
+          <div class="del-hero" id="del-blocked-trip" hidden>
+            <span class="del-hero__icon del-hero__icon--warning" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="6" rx="2"/><path d="M5 11l2-5h10l2 5"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>
+            </span>
+            <h1 class="del-hero__title" data-i18n="deleteAccount.blocked.trip.title">أنهي رحلتكِ أولاً</h1>
+            <p class="del-hero__body" data-i18n="deleteAccount.blocked.trip.body">لا يمكن حذف الحساب أثناء رحلة جارية. يمكنكِ المتابعة بعد انتهائها أو إلغائها.</p>
+            <a class="btn btn--primary btn--full" href="./active-trip.html" data-i18n="deleteAccount.blocked.trip.action">العودة إلى رحلتي</a>
+          </div>
+          <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="common.back">رجوع</button>
+        </section>
+
+        <!-- ── Step 2: confirm it's her ────────────────────────────────── -->
+        <section class="del-step" data-del-step="verify" hidden aria-labelledby="del-verify-title">
+          <div class="del-hero">
+            <h1 class="del-hero__title" id="del-verify-title" data-i18n="deleteAccount.verify.title">تأكيد هويتكِ</h1>
+            <p class="del-hero__body">
+              <span data-i18n="deleteAccount.verify.body">أرسلنا رمزاً مكوّناً من 6 أرقام إلى</span>
+              <span class="del-otp__phone" id="del-verify-phone"></span>
+            </p>
+          </div>
+
+          <div class="del-otp">
+            <sd-otp-input id="del-otp" length="6"></sd-otp-input>
+            <span id="del-otp-error" class="field__error" role="alert" aria-live="polite" hidden></span>
+          </div>
+
+          <div class="del-resend">
+            <button type="button" class="btn btn--ghost btn--sm" id="del-resend" data-i18n="login.button.resend">إعادة إرسال الرمز</button>
+            <span id="del-resend-countdown" aria-live="polite" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
+          </div>
+
+          <div class="del-actions">
+            <button type="button" class="btn btn--danger btn--full" id="del-confirm" data-i18n="deleteAccount.confirm">حذف حسابي</button>
+            <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+          </div>
+        </section>
+
+        <!-- ── Step 3: scheduled ───────────────────────────────────────── -->
+        <section class="del-step" data-del-step="done" hidden aria-labelledby="del-done-title">
+          <div class="del-hero">
+            <span class="del-hero__icon del-hero__icon--success" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <h1 class="del-hero__title" id="del-done-title" tabindex="-1" data-i18n="deleteAccount.done.title">تم استلام طلبكِ</h1>
+            <p class="del-hero__body" data-deletion-date="deleteAccount.done.body">سيُحذف حسابكِ نهائياً في —.</p>
+          </div>
+          <div class="del-card del-card--window">
+            <p class="del-card__body" data-deletion-date="deleteAccount.done.restore">سجّلي الدخول برقم هاتفكِ قبل — لاستعادة حسابكِ.</p>
+            <p class="del-card__body" data-i18n="deleteAccount.done.sms">أرسلنا رسالة نصية لتأكيد الطلب.</p>
+          </div>
+          <a class="btn btn--primary btn--full" href="./index.html" data-i18n="deleteAccount.done.action">تم</a>
+        </section>
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/delete-account.js"></script>
+  </body>
+</html>

@@ -9,6 +9,7 @@ import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { storage } from '../../shared/scripts/storage.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
+import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion } from '../../shared/scripts/account-deletion.js';
 
 await initI18n();
 
@@ -40,11 +41,12 @@ function setHeading(titleKey, subtitleKey) {
 
 // ── Step navigation ───────────────────────────────────
 function showStep(step) {
-  ['phone', 'otp', 'name'].forEach((name) =>
+  ['phone', 'otp', 'name', 'restore'].forEach((name) =>
     qs(`#step-${name}`)?.classList.toggle('login-step--hidden', step !== name)
   );
-  // The terms line only belongs where she is agreeing to continue, not on the name step.
-  qs('.login-terms')?.toggleAttribute('hidden', step === 'name');
+  // The terms line only belongs where she is agreeing to continue, not on the name
+  // or restore steps.
+  qs('.login-terms')?.toggleAttribute('hidden', step === 'name' || step === 'restore');
 }
 
 // ── Phone validation ──────────────────────────────────
@@ -141,6 +143,13 @@ function verifyOtp(value) {
 
   if (value === '123456') {
     clearTimeout(expireTimer);
+    // An account inside its 30-day deletion window still exists — offer it back
+    // before anything else, including the new-rider name step.
+    const pending = getPendingDeletion('rider');
+    if (pending) {
+      startRestoreStep(pending);
+      return;
+    }
     if (isNewRider(currentPhone)) {
       startNameStep();
       return;
@@ -246,11 +255,30 @@ nameInput?.addEventListener('keydown', (e) => {
 });
 qs('#save-name-btn')?.addEventListener('click', submitName);
 
+// ── Restore step (account inside its deletion window) ─
+function startRestoreStep(entry) {
+  setHeading('deleteAccount.restore.title', 'deleteAccount.restore.subtitle');
+  bindDeletionDate(entry);
+  showStep('restore');
+}
+
+qs('#restore-btn')?.addEventListener('click', () => {
+  cancelDeletion('rider');
+  auth.login('rider', currentPhone);
+  window.location.assign('./home.html');
+});
+// Declining changes nothing: no session, and the deletion keeps its date.
+qs('#restore-decline-btn')?.addEventListener('click', () => window.location.replace('./index.html'));
+
 // ── Design review deep links ──────────────────────────
-// ?state=otp opens the code step; ?state=name opens the new-rider name step.
+// ?state=otp opens the code step; ?state=name opens the new-rider name step;
+// ?state=restore opens the restore step for an account awaiting deletion.
 const previewState = new URLSearchParams(window.location.search).get('state');
 if (previewState === 'otp') {
   startOtpStep('01012345678');
+} else if (previewState === 'restore') {
+  currentPhone = '01001234567';
+  startRestoreStep(previewDeletion());
 } else if (previewState === 'name') {
   currentPhone = '01112345678';
   startNameStep();

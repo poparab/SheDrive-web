@@ -8,9 +8,13 @@ import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
+import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion } from '../../shared/scripts/account-deletion.js';
 
-// Skip login if already authenticated
-if (auth.getSession()) window.location.replace('./home.html');
+// ?state=restore opens the restore step for an account awaiting deletion.
+const previewState = new URLSearchParams(window.location.search).get('state');
+
+// Skip login if already authenticated (not while a design-review state is open)
+if (auth.getSession() && !previewState) window.location.replace('./home.html');
 
 await initI18n();
 
@@ -61,8 +65,11 @@ modeToggle?.addEventListener('click', () => {
 
 // ── Step navigation ────────────────────────────────────
 function showStep(step) {
-  qs('#step-phone')?.classList.toggle('login-step--hidden', step !== 'phone');
-  qs('#step-otp')?.classList.toggle('login-step--hidden', step !== 'otp');
+  ['phone', 'otp', 'restore'].forEach((name) =>
+    qs(`#step-${name}`)?.classList.toggle('login-step--hidden', step !== name)
+  );
+  modeToggle?.toggleAttribute('hidden', step === 'restore');
+  qs('.login-terms')?.toggleAttribute('hidden', step === 'restore');
 }
 
 // ── Phone validation ───────────────────────────────────
@@ -204,6 +211,12 @@ function verifyOtp(value) {
 
   if (value === '123456') {
     clearTimeout(expireTimer);
+    // An account inside its 30-day deletion window is offered back first.
+    const pending = getPendingDeletion('driver');
+    if (pending) {
+      startRestoreStep(pending);
+      return;
+    }
     auth.login('driver', currentPhone);
     routeAfterLogin(currentPhone);
     return;
@@ -250,3 +263,30 @@ resendBtn?.addEventListener('click', () => {
     if (verifyBtn) verifyBtn.disabled = true;
   }, 90_000);
 });
+
+// ── Restore step (account inside its deletion window) ──
+function startRestoreStep(entry) {
+  if (formTitle) {
+    formTitle.setAttribute('data-i18n', 'deleteAccount.restore.title');
+    formTitle.textContent = translate('deleteAccount.restore.title');
+  }
+  if (formSubtitle) {
+    formSubtitle.setAttribute('data-i18n', 'deleteAccount.restore.subtitle');
+    formSubtitle.textContent = translate('deleteAccount.restore.subtitle');
+  }
+  bindDeletionDate(entry);
+  showStep('restore');
+}
+
+qs('#restore-btn')?.addEventListener('click', () => {
+  cancelDeletion('driver');
+  auth.login('driver', currentPhone);
+  routeAfterLogin(currentPhone);
+});
+// Declining changes nothing: no session, and the deletion keeps its date.
+qs('#restore-decline-btn')?.addEventListener('click', () => window.location.replace('./index.html'));
+
+if (previewState === 'restore') {
+  currentPhone = '01098765432';
+  startRestoreStep(previewDeletion());
+}
