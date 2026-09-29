@@ -4,7 +4,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, getLanguage, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { getRecoveryAmount, recoverDueFees } from './fee-store.js';
 
@@ -34,7 +34,32 @@ const data = raw
       },
     };
 
-qs('#driver-name').textContent = data.driver?.name || '—';
+// Driver name and vehicle follow the active language when the trip carries both.
+function renderTrip() {
+  const en = getLanguage() === 'en';
+  const d = data.driver || {};
+  qs('#driver-name').textContent = (en && d.nameEn) || d.name || '—';
+  const avatar = qs('.driver-card__avatar');
+  if (avatar) avatar.textContent = (qs('#driver-name').textContent || '').trim().charAt(0) || avatar.textContent;
+  const vehicleEl = qs('#driver-vehicle');
+  if (vehicleEl) {
+    const vehicle = (en && d.vehicleEn) || d.vehicle || '';
+    const parts = [];
+    if (vehicle) parts.push(document.createTextNode(vehicle));
+    if (d.plate) {
+      // The plate never breaks across lines.
+      const plate = document.createElement('span');
+      plate.className = 'driver-card__plate';
+      plate.dir = 'auto';
+      plate.textContent = d.plate;
+      if (parts.length) parts.push(document.createTextNode(' • '));
+      parts.push(plate);
+    }
+    vehicleEl.replaceChildren(...parts);
+    vehicleEl.hidden = parts.length === 0;
+  }
+}
+renderTrip();
 qs('#trip-pickup').textContent = data.trip?.pickup || '—';
 qs('#trip-destination').textContent = data.trip?.destination || '—';
 
@@ -80,6 +105,12 @@ function renderRecoveredFee() {
 }
 renderRecoveredFee();
 
+// Text built here does not survive applyTranslations(); rebuild it on a language switch.
+document.addEventListener(I18N_EVENT, () => {
+  renderTrip();
+  renderRecoveredFee();
+});
+
 // ── Star rating ──
 let currentRating = 0;
 const ratingStars = qs('#rating-stars');
@@ -87,6 +118,7 @@ const tagsSection = qs('#complete-tags');
 
 ratingStars?.addEventListener('change', (event) => {
   currentRating = event.detail?.value ?? 0;
+  if (currentRating > 0) qs('#stars-error')?.setAttribute('hidden', '');
 
   if (currentRating >= 4) {
     tagsSection?.classList.add('is-visible');
@@ -100,7 +132,10 @@ ratingStars?.addEventListener('change', (event) => {
 
 // ── Tag chips (multi-select from the 3 predefined tags only — #1565) ──
 qsa('.tag-chip').forEach(chip =>
-  chip.addEventListener('click', () => chip.classList.toggle('is-selected'))
+  chip.addEventListener('click', () => {
+    const selected = chip.classList.toggle('is-selected');
+    chip.setAttribute('aria-pressed', String(selected));
+  })
 );
 
 // ── Submit: validate stars, send rating + tags, navigate home ──
@@ -118,8 +153,15 @@ qs('#submit-btn').addEventListener('click', () => {
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.setItem('shedrive.completedRating', '1');
   sessionStorage.setItem('shedrive.lastRating', JSON.stringify({ stars: currentRating, tags }));
-  showToast(translate('complete.thanks'), 'success');
-  setTimeout(() => window.location.replace('./home.html'), 800);
+  // Figma "Rating Submitted": a full-screen confirmation, then home.
+  const success = qs('#rating-success');
+  if (success) {
+    success.hidden = false;
+    setTimeout(() => window.location.replace('./home.html'), 1400);
+  } else {
+    showToast(translate('complete.thanks'), 'success');
+    setTimeout(() => window.location.replace('./home.html'), 800);
+  }
 });
 
 // ── Skip: navigate home without toast ──

@@ -1,40 +1,330 @@
+/* home.css — Driver home (Figma "Driver - Home", "Waiting New Request", "… - Slide Up")
+   Map fills the screen; round floating header buttons over a purple fade; one bottom
+   sheet holds status, earnings and the availability CTA. The sheet caps its height
+   and scrolls internally, so nothing is ever clipped at 360 × 740. */
 
-/* ── Top bar (#3980) ─────────────────────────────────
-   Two deliberate rows at phone width — status + language, then earnings + zones —
-   with the balance band flowing underneath. Nothing is pinned to a guessed pixel
-   offset, so nothing can slide under anything else. */
-
-.driver-home-page .driver-topbar__inner {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "toggle lang"
-    "chip   zones";
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
+/* Height of the floating header row (padding + round button) — the expanded sheet
+   stops just under it. */
+.driver-home-page {
+  --driver-top-row: calc(var(--icon-btn-size) + var(--space-3) * 2);
 }
 
-.driver-home-page #online-toggle   { grid-area: toggle; }
-.driver-home-page .lang-switcher   { grid-area: lang; justify-self: end; }
-.driver-home-page #earnings-chip   { grid-area: chip; justify-self: start; box-shadow: var(--shadow-md); }
-.driver-home-page .driver-zones-btn-wrap {
-  grid-area: zones;
-  position: static;
+/* ── Top stack: header + banners ─────────────────── */
+
+.driver-top {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--page-gutter) 0;
+  pointer-events: none;
 }
 
-/* Floating over the map, the language switch needs its own surface to be legible. */
-.driver-home-page .lang-switcher {
+.driver-top > * {
+  pointer-events: auto;
+}
+
+/* Figma: the map fades into brand purple behind the status bar and header. */
+.driver-top::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: calc(var(--driver-top-row) + var(--space-12));
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--color-primary-700-rgb), 0.85) 0%,
+    rgba(var(--color-primary-700-rgb), 0.35) 55%,
+    rgba(var(--color-primary-700-rgb), 0) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+.driver-top > sd-app-header {
+  pointer-events: none;
+}
+
+.driver-home-page .driver-home-topbar {
+  position: relative;
+  block-size: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.driver-home-page .driver-home-topbar__inner {
+  position: relative;
+  block-size: auto;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.driver-home-page .driver-home-topbar__inner > *,
+.driver-home-page .sd-app-header__actions > * {
+  pointer-events: auto;
+}
+
+.driver-home-page .sd-app-header__title {
+  pointer-events: none;
+}
+
+/* Floating over the map, the language switch needs its own round white surface. */
+.driver-home-page .driver-top .lang-switcher {
   background: var(--color-surface);
   border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-3);
+  min-block-size: var(--icon-btn-size);
+  padding-inline: var(--space-3);
+  box-shadow: var(--shadow-float);
+}
+
+/* GPS banners flow under the header instead of being pinned over it. */
+.driver-home-page .driver-gps-banner {
+  position: static;
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-lg);
+  background: var(--color-warning-bg);
   box-shadow: var(--shadow-md);
 }
 
-@media (min-width: 768px) {
-  .driver-home-page .driver-topbar__inner {
-    grid-template-columns: auto 1fr auto auto;
-    grid-template-areas: "toggle chip zones lang";
-  }
+.driver-home-page .driver-gps-banner[hidden],
+.driver-home-page .driver-gps-lost[hidden] {
+  display: none;
+}
+
+.driver-home-page .driver-gps-banner .btn {
+  inline-size: auto;
+  color: var(--color-warning-strong);
+  border-color: var(--color-warning-strong);
+}
+
+.driver-home-page .driver-gps-lost {
+  position: static;
+  transform: none;
+  align-self: center;
+}
+
+/* ── Location loading chip — rides in the sheet's float row, never under a banner ── */
+
+.driver-home-page .location-status {
+  position: static;
+  inset: auto;
+  margin-inline: 0;
+  padding: var(--space-2) var(--space-4);
+  min-block-size: var(--control-height-sm);
+  box-shadow: var(--shadow-float);
+}
+
+.driver-home-page .location-status .spinner {
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  border-color: var(--color-primary-200);
+  border-block-start-color: var(--color-primary-600);
+}
+
+/* ── Bottom sheet ────────────────────────────────── */
+
+.driver-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  max-block-size: 60dvh;
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sheet);
+  transition: max-block-size var(--transition-slow);
+}
+
+.driver-sheet.is-expanded {
+  max-block-size: calc(100dvh - var(--driver-top-row));
+}
+
+/* Map controls ride on the sheet's top edge */
+.driver-sheet__float {
+  position: absolute;
+  inset-inline: var(--page-gutter);
+  inset-block-end: calc(100% + var(--space-3));
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.driver-sheet__float > * {
+  pointer-events: auto;
+}
+
+.driver-sheet.is-expanded .driver-sheet__float {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.driver-home-page .driver-zones-btn {
+  inline-size: auto;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-primary-700);
+}
+
+/* Grab handle — a real button so the slide-up state is keyboard reachable */
+.driver-sheet__handle {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  inline-size: 100%;
+  padding-block: var(--space-3) var(--space-2);
+  background: transparent;
+  border: none;
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  cursor: grab;
+  touch-action: none;
+}
+
+.driver-sheet__handle:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: calc(var(--space-1) * -1);
+}
+
+/* Scrollable content */
+.driver-sheet__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--page-gutter) var(--space-4);
+}
+
+.driver-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  touch-action: none;
+}
+
+.driver-sheet__status {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
+}
+
+.driver-sheet__status--online {
+  color: var(--color-text-strong);
+}
+
+/* Status pill (display only — the CTA below is the control) */
+.driver-home-page .driver-status-pill {
+  flex: none;
+  cursor: default;
+  padding-inline: var(--space-4);
+}
+
+/* Earnings card — Figma "Today's Earnings" violet money card */
+.driver-home-page .driver-earnings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-5) var(--space-6);
+  background: var(--gradient-violet);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-brand);
+}
+
+.driver-earnings__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+.driver-earnings__value {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+}
+
+.driver-earnings__value strong {
+  font-size: var(--fs-5xl);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+/* Pinned sheet footer */
+.driver-sheet__footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--page-gutter) max(var(--space-4), env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.driver-online-btn .driver-online-btn__icon--off { display: none; }
+.driver-online-btn.is-online .driver-online-btn__icon--on { display: none; }
+.driver-online-btn.is-online .driver-online-btn__icon--off { display: inline-block; }
+
+/* Simulate Request — demo control, deliberately looks like one. It lives in the
+   sheet's flow now, so it can never be clipped off the start edge in RTL. */
+.driver-home-page .simulate-request-btn {
+  position: static;
+  inline-size: auto;
+  max-inline-size: 100%;
+  box-shadow: none;
+  background: transparent;
+  border: 1px dashed var(--color-primary-400);
+  color: var(--color-primary-600);
+  font-size: var(--fs-xs);
+}
+
+/* ── Working zones modal ─────────────────────────── */
+
+.driver-home-page .modal-backdrop[hidden] {
+  display: none;
+}
+
+.driver-home-page .zones-modal {
+  max-block-size: 85dvh;
+  overflow-y: auto;
+  padding-block-start: var(--space-3);
+}
+
+.zones-modal__handle {
+  display: block;
+  margin-block-end: var(--space-4);
+}
+
+.driver-home-page .zones-modal .modal__title {
+  margin-block-end: 0;
+}
+
+/* Framework7 stretches every <button> to 100% — keep the close button round. */
+.driver-home-page .zones-modal .modal__header .btn--icon {
+  flex: none;
+  inline-size: auto;
 }
 
 /* ── Balance-limit band (#3980) ───────────────────── */
@@ -44,13 +334,14 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-3);
-  margin-block-start: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-lg);
   background: rgba(var(--color-warning-rgb), 0.96);
   color: var(--color-text);
   box-shadow: var(--shadow-md);
 }
+
+.balance-warn[hidden] { display: none; }
 
 .balance-warn__icon { flex: none; }
 .balance-warn__msg {
@@ -75,12 +366,13 @@
 
 /* ── Go-online blocked sheet (#TBD-G) ─────────────── */
 
-.balance-block { position: fixed; inset: 0; z-index: 60; }
+.balance-block { position: fixed; inset: 0; z-index: var(--z-modal); }
+.balance-block[hidden] { display: none; }
 
 .balance-block__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--color-overlay);
 }
 
 .balance-block__sheet {
@@ -91,19 +383,33 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-6) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+  max-block-size: 90dvh;
+  overflow-y: auto;
+  padding: var(--space-3) var(--page-gutter) max(var(--space-6), env(safe-area-inset-bottom));
   background: var(--color-surface);
   border-start-start-radius: var(--radius-2xl);
   border-start-end-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sheet);
   text-align: center;
 }
 
-.balance-block__icon { color: var(--color-danger); }
+.balance-block__sheet > .sheet-handle { margin-block-end: var(--space-2); }
+
+.balance-block__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 2);
+  block-size: calc(var(--icon-tile-size-lg) * 2);
+  border-radius: var(--radius-full);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
 
 .balance-block__title {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
 }
 
 .balance-block__body {

@@ -6,11 +6,8 @@
     <meta name="description" content="SheDrive — تطبيق الراكبة" />
     <title>SheDrive — تسجيل الدخول</title>
 
-    <!-- CSS — explicit links so the page renders when opened directly (file://).
-         On a server sd-page deduplicates these and won't inject them twice. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- CSS — explicit links so the splash paints before sd-page's module runs.
+         Fonts are injected by sd-page. -->
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -30,89 +27,111 @@
       <div class="splash-overlay" id="splash-overlay" aria-hidden="true">
         <div class="splash-ring" aria-hidden="true"></div>
         <div class="splash-ring" aria-hidden="true"></div>
-        <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" class="splash-overlay__logo" width="160" />
+        <!-- Brand lockup: white tile with the purple monogram over the white logotype.
+             The logotype is the brand mark, never translated. -->
+        <div class="brand-lockup brand-lockup--lg splash-overlay__logo">
+          <span class="brand-lockup__tile">
+            <svg viewBox="64 56 144 144" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M 82 88 C 82 72, 100 64, 116 70 C 132 76, 138 90, 128 100 C 118 110, 98 112, 94 124 C 90 136, 98 152, 116 156 C 134 160, 150 150, 150 136" />
+              <line x1="158" y1="72" x2="158" y2="184" />
+              <path d="M 158 72 C 178 72, 196 88, 196 128 C 196 168, 178 184, 158 184" />
+            </svg>
+          </span>
+          <svg class="brand-lockup__word" viewBox="0 0 300 64" aria-hidden="true"><text x="150" y="50" text-anchor="middle" textLength="290" lengthAdjust="spacingAndGlyphs">SheDrive</text></svg>
+        </div>
         <p class="splash-overlay__tagline" data-i18n="splash.tagline">رحلتك الموثوقة، بقيادة نسائية</p>
         <p class="splash-overlay__safety" data-i18n="splash.safety">أعلى معايير الأمان في مصر</p>
       </div>
 
       <div class="login-layout">
-        <aside class="login-brand" aria-hidden="true">
-          <div class="login-brand__inner">
-            <img
-              src="../shared/assets/logos/shedrive-logo.svg"
-              alt="SheDrive"
-              class="login-brand__logo"
-              width="200"
-            />
-            <p class="login-brand__tagline" data-i18n="login.tagline.rider">
-              رحلتك الموثوقة، بقيادة نسائية
-            </p>
-
-            <div class="login-brand__deco login-brand__deco--1" aria-hidden="true"></div>
-            <div class="login-brand__deco login-brand__deco--2" aria-hidden="true"></div>
-          </div>
-        </aside>
-
-        <main class="login-form-panel">
+        <!-- Figma Login / OTP / Name: the purple band carries the language control, the
+             logo and the step heading; the white panel below holds the form. -->
+        <div class="sd-hero login-hero">
           <sd-app-header
-            bar-class="login-form-panel__header"
-            inner-class="login-form-panel__header-inner"
-            title-class="login-form-panel__header-spacer"
+            bar-class="login-hero__bar"
+            inner-class="login-hero__bar-inner"
+            title-class="login-hero__bar-spacer"
           ></sd-app-header>
 
-          <div class="login-form-panel__body">
-          <header class="login-form__header">
+          <div class="login-hero__brand">
+            <div class="brand-lockup" aria-hidden="true">
+              <span class="brand-lockup__tile">
+                <svg viewBox="64 56 144 144" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M 82 88 C 82 72, 100 64, 116 70 C 132 76, 138 90, 128 100 C 118 110, 98 112, 94 124 C 90 136, 98 152, 116 156 C 134 160, 150 150, 150 136" />
+                  <line x1="158" y1="72" x2="158" y2="184" />
+                  <path d="M 158 72 C 178 72, 196 88, 196 128 C 196 168, 178 184, 158 184" />
+                </svg>
+              </span>
+              <svg class="brand-lockup__word" viewBox="0 0 300 64"><text x="150" y="50" text-anchor="middle" textLength="290" lengthAdjust="spacingAndGlyphs">SheDrive</text></svg>
+            </div>
+          </div>
+
+          <header class="login-hero__text">
             <!-- One entry for sign-in and sign-up: the number decides after OTP whether
                  she is new, so there is no login/register toggle to get wrong. -->
-            <h1 class="login-form__title" id="form-title" data-i18n="login.title.unified">أهلاً بكِ</h1>
-            <p class="login-form__subtitle" id="form-subtitle" data-i18n="login.subtitle.unified">
+            <h1 class="login-hero__title" id="form-title" data-i18n="login.title.unified">أهلاً بكِ</h1>
+            <p class="login-hero__subtitle" id="form-subtitle" data-i18n="login.subtitle.unified">
               أدخلي رقم هاتفك لتسجيل الدخول أو إنشاء حساب جديد
             </p>
           </header>
+        </div>
 
+        <main class="sd-panel login-panel">
           <form class="login-form" id="login-form" novalidate>
 
             <!-- Step 1: Phone number -->
-            <section class="login-step" id="step-phone" aria-label="Phone number step">
+            <section class="login-step" id="step-phone" data-i18n-aria-label="login.phone.label" aria-label="رقم الهاتف">
 
               <div class="field">
-                <label class="field__label" for="phone-input" data-i18n="login.phone.label">
+                <label class="field__label login-panel__title" for="phone-input" data-i18n="login.phone.label">
                   رقم الهاتف
                 </label>
 
-                <div class="input-group" role="group" data-i18n-aria-label="aria.phoneGroup">
+                <div class="input-group login-phone" role="group" data-i18n-aria-label="aria.phoneGroup" aria-label="رقم الهاتف">
                   <button
                     type="button"
-                    class="input-group__prefix"
+                    class="input-group__prefix login-phone__country"
                     id="country-code-btn"
-                    style="display: inline-flex; flex: 0 0 auto; inline-size: max-content;"
                     data-i18n-aria-label="aria.countryCode"
                     aria-label="كود مصر +20"
                     aria-haspopup="listbox"
                     aria-expanded="false"
                   >
-                    <span class="country-flag" aria-hidden="true">🇪🇬</span>
-                    <span>+20</span>
-                    <svg class="icon icon--chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="login-phone__flag" viewBox="0 0 30 20" aria-hidden="true">
+                      <!-- Egyptian flag artwork (an illustration, not a UI colour) -->
+                      <clipPath id="eg-flag-clip"><rect width="30" height="20" rx="3" /></clipPath>
+                      <g clip-path="url(#eg-flag-clip)">
+                        <rect width="30" height="6.67" fill="#ce1126" />
+                        <rect y="6.67" width="30" height="6.67" fill="#ffffff" />
+                        <rect y="13.33" width="30" height="6.67" fill="#000000" />
+                        <circle cx="15" cy="10" r="1.8" fill="#c09300" />
+                      </g>
+                    </svg>
+                    <span class="login-phone__code">+20</span>
+                    <svg class="icon icon--chevron-down" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <polyline points="6 9 12 15 18 9"/>
                     </svg>
                   </button>
 
-                  <input
-                    type="tel"
-                    id="phone-input"
-                    name="phone"
-                    class="input"
-                    inputmode="numeric"
-                    pattern="[0-9]{11}"
-                    maxlength="11"
-                    autocomplete="tel-national"
-                    data-i18n-placeholder="login.phone.placeholder"
-                    style="flex: 1 1 auto; min-inline-size: 0;"
-                    placeholder="01X XXXX XXXX"
-                    aria-describedby="phone-error"
-                    aria-required="true"
-                  />
+                  <span class="login-phone__field">
+                    <svg class="login-phone__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/>
+                    </svg>
+                    <input
+                      type="tel"
+                      id="phone-input"
+                      name="phone"
+                      class="input"
+                      inputmode="numeric"
+                      pattern="[0-9]{11}"
+                      maxlength="11"
+                      autocomplete="tel-national"
+                      data-i18n-placeholder="login.phone.placeholder"
+                      placeholder="01X XXXX XXXX"
+                      aria-describedby="phone-error"
+                      aria-required="true"
+                    />
+                  </span>
                 </div>
 
                 <span id="phone-error" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden data-i18n="login.error.phone">
@@ -126,16 +145,17 @@
             </section>
 
             <!-- Step 2: OTP (hidden until OTP sent) -->
-            <section class="login-step login-step--hidden" id="step-otp" aria-label="Verification code step">
+            <section class="login-step login-step--hidden" id="step-otp" data-i18n-aria-label="login.otp.label" aria-label="رمز التحقق">
 
-              <div class="field otp-panel">
-                <label class="field__label otp-panel__title" data-i18n="login.otp.label">رمز التحقق</label>
-                <p class="field__hint otp-panel__hint" id="otp-hint" data-i18n="login.otp.hint">
+              <div class="login-panel__head">
+                <h2 class="login-panel__title" data-i18n="login.otp.label">رمز التحقق</h2>
+                <p class="login-panel__hint" id="otp-hint" data-i18n="login.otp.hint">
                   أدخلي الرمز المكوّن من 6 أرقام المُرسَل إلى هاتفك
                 </p>
+              </div>
 
+              <div class="field login-otp">
                 <sd-otp-input id="otp-input" length="6"></sd-otp-input>
-
                 <span id="otp-error-msg" class="field__error" role="alert" aria-live="polite" aria-atomic="true" hidden></span>
               </div>
 
@@ -143,8 +163,10 @@
                 تحقق ومتابعة
               </button>
 
+              <!-- Figma: an underlined "Resend code" link; while the cooldown runs only
+                   the muted countdown shows in its place. -->
               <div class="resend-row">
-                <button type="button" class="btn btn--ghost btn--sm" id="resend-btn" data-i18n="login.button.resend">
+                <button type="button" class="btn btn--link" id="resend-btn" data-i18n="login.button.resend">
                   إعادة إرسال الرمز
                 </button>
                 <span class="resend-countdown" id="resend-countdown" aria-live="polite" aria-atomic="true" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
@@ -153,23 +175,30 @@
 
             <!-- Step 3: Full name — only for a number with no account, after the OTP is verified -->
             <section class="login-step login-step--hidden" id="step-name" data-i18n-aria-label="aria.nameStep" aria-label="خطوة الاسم">
-              <div class="field">
-                <label class="field__label" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
-                <input
-                  type="text"
-                  id="name-input"
-                  name="fullname"
-                  class="input"
-                  autocomplete="name"
-                  maxlength="50"
-                  data-i18n-placeholder="register.name.placeholder"
-                  placeholder="الاسم كما هو رسمياً"
-                  aria-describedby="name-hint name-error"
-                  aria-required="true"
-                />
-                <p class="field__hint" id="name-hint" data-i18n="register.nameStep.hint">
-                  يظهر اسمكِ للسائقة عند قبول رحلتك
-                </p>
+              <div class="field login-name">
+                <div class="login-panel__head">
+                  <label class="field__label login-panel__title" for="name-input" data-i18n="register.name.label">الاسم الكامل</label>
+                  <p class="login-panel__hint" id="name-hint" data-i18n="register.nameStep.hint">
+                    يظهر اسمكِ للسائقة عند قبول رحلتك
+                  </p>
+                </div>
+                <span class="login-name__field">
+                  <svg class="login-name__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6z"/>
+                  </svg>
+                  <input
+                    type="text"
+                    id="name-input"
+                    name="fullname"
+                    class="input"
+                    autocomplete="name"
+                    maxlength="50"
+                    data-i18n-placeholder="register.name.placeholder"
+                    placeholder="الاسم كما هو رسمياً"
+                    aria-describedby="name-hint name-error"
+                    aria-required="true"
+                  />
+                </span>
                 <span id="name-error" class="field__error" role="alert" aria-live="polite" hidden></span>
               </div>
 
@@ -180,11 +209,14 @@
 
             <!-- Restore: a number whose account is inside its 30-day deletion window -->
             <section class="login-step login-step--hidden" id="step-restore" data-i18n-aria-label="deleteAccount.restore.title" aria-label="حسابكِ في انتظار الحذف">
-              <div class="del-card">
+              <div class="del-card login-restore__card">
+                <span class="icon-tile icon-tile--lg icon-tile--round icon-tile--warning" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+                </span>
                 <p class="del-card__body" data-deletion-date="deleteAccount.restore.body">سيُحذف حسابكِ نهائياً في —. استعيديه لتواصلي استخدام شي درايف كما كان.</p>
               </div>
               <button type="button" class="btn btn--primary btn--full" id="restore-btn" data-i18n="deleteAccount.restore.action">استعادة حسابي</button>
-              <button type="button" class="btn btn--ghost btn--full" id="restore-decline-btn" data-i18n="deleteAccount.restore.decline">متابعة الحذف</button>
+              <button type="button" class="btn btn--link login-restore__decline" id="restore-decline-btn" data-i18n="deleteAccount.restore.decline">متابعة الحذف</button>
             </section>
 
           </form>
@@ -196,7 +228,6 @@
             <span data-i18n="login.terms.and">و</span>
             <a href="#" data-i18n="login.privacy.link">سياسة الخصوصية</a>
           </p>
-          </div>
         </main>
       </div>
     </sd-page>

@@ -1,57 +1,81 @@
 /*
  * settle.css — Driver settlement screen (spec §5, §7.2)
- * All values use tokens from tokens.css.
+ * No Figma frame: follows the driver kit — purple hero, white panel, violet money
+ * card, lavender rows with round icon tiles. All values use tokens.
  */
 
-.settle-page { background: var(--color-surface-alt); min-block-size: 100dvh; }
+/* ── Hero ─────────────────────────────────────────── */
 
-.settle-main {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--space-4);
-  max-inline-size: 560px;
-  margin-inline: auto;
-  inline-size: 100%;
+[dir='rtl'] .settle-back__icon {
+  transform: scaleX(-1);
 }
 
-/* The sections sit inside #settle-content, so the gap has to live here. */
+.settle-hero__title {
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Panel ────────────────────────────────────────── */
+
+.settle-main {
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+.settle-main p {
+  margin: 0;
+}
+
 .settle-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
+}
+
+.settle-section__title {
+  margin-block-end: var(--space-3);
 }
 
 /* ── What she owes ────────────────────────────────── */
 
 .settle-card {
-  background: linear-gradient(135deg, var(--color-danger), var(--color-primary-700, var(--color-primary-600)));
-  color: var(--color-on-primary);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-6);
-  text-align: center;
-  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.12));
+  margin: 0;
+  padding: var(--space-6) var(--space-5);
+  box-shadow: var(--shadow-brand);
+  border-block-end: 4px solid var(--color-accent-400);
 }
 
-.settle-card__label { font-size: var(--fs-sm); opacity: 0.9; }
+.settle-card__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
 
 .settle-card__amount {
-  font-size: var(--fs-4xl, 2.5rem);
-  font-weight: var(--fw-bold);
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
-  margin-block: var(--space-2);
+  margin-block: var(--space-2) var(--space-3);
+  line-height: 1.1;
 }
 
-.settle-card__currency { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.settle-card__value {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+}
+
+.settle-card__currency {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+}
 
 .settle-card__explain {
   font-size: var(--fs-sm);
   line-height: var(--leading-relaxed);
-  opacity: 0.92;
-  margin-block-start: var(--space-2);
+  color: rgba(var(--color-surface-rgb), 0.9);
 }
 
 /* ── Nothing to settle ─────────────────────────────── */
@@ -62,20 +86,16 @@
   align-items: center;
   gap: var(--space-3);
   text-align: center;
-  padding-block: var(--space-8);
-  color: var(--color-text-muted);
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
 }
 
-.settle-zero__icon { color: var(--color-success); }
-.settle-zero__msg { font-size: var(--fs-base); color: var(--color-text); }
-
-/* ── Section headings ──────────────────────────────── */
-
-.settle-section__title {
+.settle-zero__msg {
   font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-medium);
   color: var(--color-text);
-  margin-block-end: var(--space-2);
 }
 
 /* ── Channels ──────────────────────────────────────── */
@@ -83,40 +103,53 @@
 .settle-channel {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  background: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  margin-block-end: var(--space-2);
 }
 
-.settle-channel__name { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--color-text); }
-.settle-channel__note { font-size: var(--fs-xs); color: var(--color-text-muted); }
+.settle-channel .icon-tile {
+  background: var(--color-surface);
+}
+
+.settle-channel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.settle-channel__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.settle-channel__note {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+}
 
 /* ── Office ────────────────────────────────────────── */
 
 .settle-office__card {
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
   padding: var(--space-4);
 }
 
 .settle-office__row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
   font-size: var(--fs-sm);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
 }
-
-.settle-office__row svg { flex: none; color: var(--color-primary-600); margin-block-start: 2px; }
 
 /* ── History ───────────────────────────────────────── */
 
@@ -124,11 +157,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  background: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  margin-block-end: var(--space-2);
 }
 
 .settle-row__top {
@@ -138,19 +170,24 @@
   gap: var(--space-3);
 }
 
-.settle-row__amount { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--color-success); }
+.settle-row__amount {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-success-strong);
+}
 
 .settle-row__receipt {
-  background: rgba(var(--color-primary-rgb, var(--color-primary-600-rgb)), 0.12);
-  color: var(--color-primary-600);
+  background: var(--color-primary-200);
+  color: var(--color-primary-700);
 }
 
 .settle-row__meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
 }
 
 .settle-history__empty {
@@ -166,9 +203,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
   text-align: center;
-  padding-block: var(--space-8);
+  padding-block: var(--space-10);
 }
 
-.settle-error__msg { font-size: var(--fs-base); color: var(--color-text); }
+.settle-error__msg {
+  font-size: var(--fs-base);
+  color: var(--color-text);
+}
+
+.settle-error__retry {
+  min-inline-size: 50%;
+}

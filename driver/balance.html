@@ -8,7 +8,6 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -26,30 +25,35 @@
   <body class="app-shell balance-page">
     <sd-page body-class="app-shell balance-page" screen-styles="styles/driver.css, styles/balance.css">
 
-      <sd-app-header>
-        <a href="./earnings.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </a>
-        <span data-i18n="driver.balance.title">الرصيد وكشف الحساب</span>
-      </sd-app-header>
+      <div class="sd-hero balance-hero">
+        <sd-app-header>
+          <a href="./earnings.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
+            <svg class="balance-back__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </a>
+          <span class="balance-hero__title" data-i18n="driver.balance.title">الرصيد وكشف الحساب</span>
+        </sd-app-header>
+      </div>
 
-      <main class="balance-main">
+      <main class="sd-panel balance-main">
 
         <!-- ── Error state (#1788 S12) ── -->
         <div class="balance-error" id="balance-error" hidden aria-hidden="true">
+          <span class="icon-tile icon-tile--xl icon-tile--round icon-tile--warning" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
           <p class="balance-error__msg" data-i18n="driver.balance.error">تعذّر تحميل الرصيد. تحقّقي من اتصالك.</p>
-          <button type="button" class="btn btn--ghost" id="balance-retry" data-i18n="driver.balance.retry">إعادة المحاولة</button>
+          <button type="button" class="btn btn--secondary balance-error__retry" id="balance-retry" data-i18n="driver.balance.retry">إعادة المحاولة</button>
         </div>
 
         <div class="balance-content" id="balance-content">
 
           <!-- ── Balance headline: owed or available (#1788 S1, S2) ── -->
-          <div class="balance-card" id="balance-card" role="region" data-i18n-aria-label="driver.balance.title" aria-label="الرصيد">
+          <div class="card card--violet balance-card" id="balance-card" role="region" data-i18n-aria-label="driver.balance.title" aria-label="الرصيد">
             <p class="balance-card__label" id="balance-headline" data-i18n="driver.balance.owedHeadline">مستحق عليكِ</p>
             <p class="balance-card__amount">
-              <span id="balance-amount">120</span>
+              <span class="balance-card__value" id="balance-amount">120</span>
               <span class="balance-card__currency" data-i18n="driver.currency">جنيه</span>
             </p>
             <p class="balance-card__explain" id="balance-explain" data-i18n="driver.balance.explain">هذا ما عليكِ لشي درايف، ومعظمه عمولة رحلاتك النقدية. سدّديه بإحدى طرق التسوية.</p>
@@ -57,11 +61,11 @@
 
           <!-- ── Zero-balance state (#1788 S10) ── -->
           <div class="balance-zero" id="balance-zero" hidden aria-hidden="true">
-            <div class="balance-zero__icon" aria-hidden="true">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <span class="icon-tile icon-tile--xl icon-tile--round icon-tile--success" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-            </div>
+            </span>
             <p class="balance-zero__msg" data-i18n="driver.balance.zero">لا يوجد رصيد مستحق عليكِ حالياً.</p>
           </div>
 
@@ -77,29 +81,31 @@
                there so settle.html is reachable from every state. Never a withdraw action. ── -->
           <div class="balance-actions" id="balance-actions">
             <a href="./settle.html" class="btn btn--primary btn--full" id="balance-settle" hidden aria-hidden="true" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
-            <a href="./settle.html#settle-history" class="btn btn--ghost btn--full balance-actions__link" id="balance-history">
-              <span data-i18n="driver.settle.historyTitle">سجل التسويات</span>
-              <svg class="balance-actions__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            <a href="./settle.html#settle-history" class="list-row list-row--card balance-row" id="balance-history">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><polyline points="12 7 12 12 15 14"/></svg>
+              </span>
+              <span class="list-row__body">
+                <span class="list-row__title" data-i18n="driver.settle.historyTitle">سجل التسويات</span>
+                <!-- Last settlement (#1788 S6) -->
+                <span class="list-row__subtitle balance-settlement" id="balance-settlement" hidden aria-hidden="true">
+                  <span data-i18n="driver.balance.lastSettlement">آخر تسوية</span><span aria-hidden="true">:</span>
+                  <bdi id="settlement-amount">300</bdi>
+                  <span data-i18n="driver.currency">جنيه</span>
+                  <span aria-hidden="true">·</span>
+                  <bdi id="settlement-date">2026/06/15</bdi>
+                </span>
+              </span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
-          </div>
-
-          <!-- ── Last settlement (#1788 S6) ── -->
-          <div class="balance-settlement" id="balance-settlement" hidden aria-hidden="true">
-            <span class="balance-settlement__label" data-i18n="driver.balance.lastSettlement">آخر تسوية</span>
-            <span class="balance-settlement__value">
-              <span id="settlement-amount">300</span>
-              <span data-i18n="driver.currency">جنيه</span>
-              <span aria-hidden="true">·</span>
-              <span id="settlement-date">2026/06/15</span>
-            </span>
           </div>
 
           <!-- ── Statement (#1788 S3, S7) ── -->
           <section class="balance-statement" data-i18n-aria-label="driver.balance.statementAria" aria-label="كشف حساب المعاملات">
-            <h2 class="balance-statement__title" data-i18n="driver.balance.statement">كشف الحساب</h2>
-            <div id="statement-list"><!-- rendered by JS --></div>
+            <h2 class="section-title balance-statement__title" data-i18n="driver.balance.statement">كشف الحساب</h2>
+            <div class="balance-statement__list" id="statement-list"><!-- rendered by JS --></div>
             <p class="balance-statement__empty" id="statement-empty" hidden aria-hidden="true" data-i18n="driver.balance.empty">لا توجد معاملات بعد.</p>
-            <button type="button" class="btn btn--ghost btn--full" id="statement-more" hidden aria-hidden="true" data-i18n="driver.balance.loadMore">عرض المزيد</button>
+            <button type="button" class="btn btn--secondary btn--full balance-statement__more" id="statement-more" hidden aria-hidden="true" data-i18n="driver.balance.loadMore">عرض المزيد</button>
           </section>
 
         </div>

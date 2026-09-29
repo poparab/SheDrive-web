@@ -16,14 +16,14 @@
   font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
   line-height: 1;
-  border-radius: var(--radius-full);
-  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
   text-decoration: none;
   cursor: pointer;
   transition: background var(--transition-base), box-shadow var(--transition-base),
-    transform var(--transition-fast), opacity var(--transition-fast);
-  min-block-size: 48px;
-  min-inline-size: 44px;
+    transform var(--transition-fast), opacity var(--transition-fast), filter var(--transition-fast);
+  min-block-size: var(--control-height);
+  min-inline-size: var(--icon-btn-size);
   white-space: nowrap;
   user-select: none;
 }
@@ -38,26 +38,31 @@
   transform: none;
 }
 
-/* Primary */
+/* Primary — Figma CTA: tall, 10px radius, purple → magenta gradient, no halo.
+   Disabled keeps full opacity and swaps to the soft lavender → pink gradient. */
 .btn--primary {
-  background: var(--gradient-brand);
-  color: var(--color-surface);
-  box-shadow: var(--shadow-brand);
+  background: var(--cta-bg);
+  color: var(--color-on-primary);
+  font-weight: var(--fw-semibold);
 }
 .btn--primary:hover:not(:disabled) {
-  box-shadow: 0 14px 36px rgba(107, 43, 217, 0.35);
+  filter: brightness(1.06);
+  box-shadow: var(--shadow-brand);
+}
+.btn--primary:disabled {
+  background: var(--cta-bg-disabled);
+  color: rgba(var(--color-surface-rgb), 0.92);
+  opacity: 1;
 }
 
-/* Secondary */
+/* Secondary — outlined purple (Figma "Add Emergency Contact", "Balance & Statement") */
 .btn--secondary {
   background: var(--color-surface);
   color: var(--color-primary-600);
-  border-color: var(--color-border);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary-600);
 }
 .btn--secondary:hover:not(:disabled) {
-  border-color: var(--color-primary-500);
-  box-shadow: var(--shadow-md);
+  background: var(--color-primary-50);
 }
 
 /* Ghost */
@@ -66,13 +71,28 @@
   color: var(--color-primary-600);
 }
 .btn--ghost:hover:not(:disabled) {
-  background: rgba(107, 43, 217, 0.08);
+  background: var(--color-primary-100);
+}
+
+/* Link — underlined text action under a CTA (Figma "Cancel Request", "Skip for Now",
+   "Resend code", "Decline") */
+.btn--link {
+  background: transparent;
+  color: var(--color-primary-700);
+  font-weight: var(--fw-medium);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+}
+.btn--link:hover:not(:disabled) {
+  color: var(--color-primary-600);
 }
 
 /* Danger */
 .btn--danger {
   background: var(--color-danger);
-  color: var(--color-surface);
+  color: var(--color-on-primary);
 }
 
 /* Sizes */
@@ -80,13 +100,14 @@
   padding-block: var(--space-2);
   padding-inline: var(--space-4);
   font-size: var(--fs-sm);
-  min-block-size: 36px;
+  min-block-size: var(--control-height-sm);
+  border-radius: var(--radius-full);
 }
 .btn--lg {
   padding-block: var(--space-4);
   padding-inline: var(--space-8);
   font-size: var(--fs-lg);
-  min-block-size: 56px;
+  min-block-size: var(--control-height);
 }
 .btn--full {
   inline-size: 100%;
@@ -94,10 +115,23 @@
 
 /* Icon-only */
 .btn--icon {
-  padding: var(--space-3);
+  padding: var(--space-2);
   border-radius: var(--radius-full);
-  min-inline-size: 44px;
-  min-block-size: 44px;
+  min-inline-size: var(--icon-btn-size);
+  min-block-size: var(--icon-btn-size);
+}
+
+/* Floating — round white button with a soft purple shadow, used over maps and heroes
+   (Figma menu, bell, locate-me). Combine with .btn--icon, or use alone. */
+.btn--float {
+  background: var(--color-surface);
+  color: var(--color-primary-600);
+  border-color: transparent;
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius-full);
+}
+.btn--float:hover:not(:disabled) {
+  background: var(--color-primary-50);
 }
 
 /* ── Form field ─────────────────────────────────────── */
@@ -110,7 +144,7 @@
 
 .field__label {
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
 }
 
@@ -126,38 +160,49 @@
 }
 
 /* ── Input ──────────────────────────────────────────── */
+/* Figma: lavender fill, thin lavender border, 10px radius; focus = purple border. */
 
 .input {
-  block-size: 52px;
+  block-size: var(--control-height);
   inline-size: 100%;
   padding-inline: var(--space-4);
   font-size: var(--fs-base);
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background var(--transition-fast);
   outline: none;
 }
 
+textarea.input {
+  block-size: auto;
+  min-block-size: calc(var(--control-height) * 1.6);
+  padding-block: var(--space-3);
+  line-height: var(--leading-normal);
+  resize: vertical;
+}
+
 .input::placeholder {
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 }
 
 .input:hover {
-  border-color: var(--color-primary-500);
+  border-color: var(--color-border-strong);
 }
 
 .input:focus {
   border-color: var(--color-primary-600);
-  box-shadow: 0 0 0 3px rgba(107, 43, 217, 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
 .input--error {
   border-color: var(--color-danger);
+  background: rgba(var(--color-danger-rgb), 0.04);
 }
 .input--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb), 0.14);
 }
 
 /* Phone input group */
@@ -165,14 +210,15 @@
   display: flex;
   align-items: stretch;
   gap: 0;
-  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .input-group:focus-within {
   border-color: var(--color-primary-600);
-  box-shadow: 0 0 0 3px rgba(107, 43, 217, 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
 .input-group__prefix {
@@ -181,21 +227,22 @@
   flex: 0 0 auto;
   padding-inline: var(--space-3);
   inline-size: auto;
-  background: var(--color-surface-alt);
-  color: var(--color-text-muted);
-  font-size: var(--fs-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--fs-base);
   font-weight: var(--fw-medium);
-  border-inline-end: 1.5px solid var(--color-border);
+  border-inline-end: 1px solid var(--color-border);
   white-space: nowrap;
   gap: var(--space-1);
   cursor: pointer;
-  min-block-size: 52px;
+  min-block-size: var(--control-height);
 }
 
 .input-group .input {
   border: none;
   border-radius: 0;
-  block-size: 52px;
+  background: transparent;
+  block-size: var(--control-height);
   flex: 1;
   min-inline-size: 0;
 }
@@ -203,81 +250,91 @@
   box-shadow: none;
 }
 
-/* OTP boxes */
+/* OTP boxes — Figma: six separate square lavender boxes, no surrounding panel */
 .otp-group {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--space-2);
-  inline-size: min(100%, calc(var(--space-12) * 7));
+  gap: var(--space-3);
+  inline-size: 100%;
   margin-inline: auto;
-  padding: var(--space-2);
-  border: 1px solid rgba(var(--color-primary-600-rgb), 0.08);
-  border-radius: var(--radius-xl);
-  background: linear-gradient(
-    180deg,
-    rgba(var(--color-primary-600-rgb), 0.05) 0%,
-    rgba(var(--color-surface-alt-rgb), 0.96) 100%
-  );
-  box-shadow: inset 0 1px 0 rgba(var(--color-surface-rgb), 0.92);
 }
 
 .otp-box {
   inline-size: 100%;
   min-inline-size: 0;
-  block-size: var(--space-12);
+  block-size: var(--control-height);
   text-align: center;
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   line-height: 1;
-  border: 1.5px solid rgba(var(--color-border-rgb), 0.9);
-  border-radius: var(--radius-lg);
-  background: rgba(var(--color-surface-rgb), 0.96);
-  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  color: var(--color-text-strong);
   outline: none;
   caret-color: var(--color-primary-600);
-  box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.04), inset 0 1px 0 rgba(var(--color-surface-rgb), 0.96);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
-    transform var(--transition-fast), background var(--transition-fast);
+    background var(--transition-fast);
 }
 
 .otp-box:hover {
-  border-color: rgba(var(--color-primary-600-rgb), 0.28);
+  border-color: var(--color-border-strong);
 }
 
 .otp-box:focus {
-  transform: translateY(calc(var(--space-1) * -1));
   border-color: var(--color-primary-600);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 var(--space-1) rgba(var(--color-primary-600-rgb), 0.12), 0 var(--space-2)
-    var(--space-4) rgba(var(--color-primary-600-rgb), 0.16);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
 .otp-box.otp-box--filled {
-  color: var(--color-primary-700);
-  border-color: rgba(var(--color-primary-600-rgb), 0.28);
-  background: rgba(var(--color-primary-600-rgb), 0.08);
-  box-shadow: 0 var(--space-1) var(--space-3) rgba(var(--color-primary-600-rgb), 0.12);
+  border-color: var(--color-primary-400);
+  background: var(--color-surface);
 }
 
 /* ── Card ───────────────────────────────────────────── */
+/* Figma: very light lavender fill, thin lavender border, 16px radius, no shadow.
+   On a lavender page (--color-surface-alt) use .card--plain (white). */
 
 .card {
-  background: var(--color-surface);
+  background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  color: var(--color-text);
+}
+
+.card--plain {
+  background: var(--color-surface);
+}
+
+.card--tint {
+  background: var(--color-surface-tint);
+}
+
+/* Pink card (Figma "Emergency Contacts" row, destination field, fee cards) */
+.card--accent {
+  background: var(--color-accent-100);
+  border-color: var(--color-accent-200);
 }
 
 .card--elevated {
+  background: var(--color-surface);
   box-shadow: var(--shadow-md);
-  border: none;
+  border-color: transparent;
 }
 
 .card--brand {
   background: var(--gradient-brand);
-  color: var(--color-surface);
+  color: var(--color-on-primary);
   border: none;
+}
+
+/* Driver money card (Figma "Today's Earnings", "Estimated Fare") */
+.card--violet {
+  background: var(--gradient-violet);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius-xl);
 }
 
 .card__header {
@@ -289,6 +346,7 @@
 .card__title {
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
 
 .card__body {
@@ -302,6 +360,7 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   padding-block: var(--space-1);
   padding-inline: var(--space-3);
   font-size: var(--fs-xs);
@@ -311,28 +370,32 @@
 }
 
 .badge--neutral {
-  background: rgba(var(--color-text-muted-rgb), 0.12);
+  background: var(--color-primary-100);
   color: var(--color-text-muted);
 }
 .badge--success {
-  background: rgba(var(--color-success-rgb), 0.12);
+  background: var(--color-success-bg);
   color: var(--color-success-strong);
 }
 .badge--warning {
-  background: rgba(var(--color-warning-rgb), 0.12);
+  background: var(--color-warning-bg);
   color: var(--color-warning-strong);
 }
 .badge--danger {
-  background: rgba(var(--color-danger-rgb), 0.12);
-  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 .badge--info {
   background: rgba(var(--color-info-rgb), 0.12);
   color: var(--color-info-strong);
 }
 .badge--brand {
-  background: rgba(var(--color-primary-600-rgb), 0.12);
+  background: var(--color-primary-200);
   color: var(--color-primary-700);
+}
+.badge--accent {
+  background: var(--color-accent-100);
+  color: var(--color-accent-700);
 }
 
 /* ── Toast ──────────────────────────────────────────── */
@@ -340,9 +403,12 @@
 .toast-container {
   position: fixed;
   inset-block-end: var(--space-6);
-  inset-inline-end: var(--space-4);
+  /* Anchor both inline edges: with only the end edge set, the start edge falls
+     back to the host's static position, which in RTL collapses the width to 0. */
+  inset-inline: var(--space-4);
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: var(--space-3);
   z-index: var(--z-toast);
   pointer-events: none;
@@ -353,7 +419,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-5);
-  background: var(--color-text);
+  background: var(--color-text-strong);
   color: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -361,11 +427,11 @@
   font-weight: var(--fw-medium);
   pointer-events: all;
   animation: toast-in 200ms ease forwards;
-  max-inline-size: 320px;
+  max-inline-size: var(--toast-max-inline-size);
 }
 
 .toast--success {
-  background: var(--color-success);
+  background: var(--color-success-strong);
 }
 .toast--danger {
   background: var(--color-danger);
@@ -406,13 +472,13 @@
 
 .modal {
   background: var(--color-surface);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: var(--space-6);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  padding: var(--space-6) var(--page-gutter);
   inline-size: 100%;
   max-inline-size: 540px;
   transform: translateY(100%);
   transition: transform var(--transition-slow);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sheet);
 }
 
 .modal-backdrop.is-open .modal {
@@ -420,9 +486,9 @@
 }
 
 .modal__handle {
-  inline-size: 40px;
-  block-size: 4px;
-  background: var(--color-border);
+  inline-size: var(--sheet-handle-width);
+  block-size: var(--sheet-handle-height);
+  background: var(--color-border-strong);
   border-radius: var(--radius-full);
   margin-inline: auto;
   margin-block-end: var(--space-5);
@@ -431,6 +497,7 @@
 .modal__title {
   font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
   margin-block-end: var(--space-4);
 }
 
@@ -445,8 +512,8 @@
 /* ── Avatar ─────────────────────────────────────────── */
 
 .avatar {
-  inline-size: 40px;
-  block-size: 40px;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
   border-radius: var(--radius-full);
   background: var(--gradient-brand);
   display: flex;
@@ -463,7 +530,7 @@
 .spinner {
   inline-size: 20px;
   block-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(var(--color-surface-rgb), 0.3);
   border-block-start-color: var(--color-surface);
   border-radius: var(--radius-full);
   animation: spin 0.6s linear infinite;
@@ -476,26 +543,27 @@
 }
 
 /* ── Toggle pill (online/offline) ───────────────────── */
+/* Figma: lavender pill, lavender dot, purple label; online = green dot. */
 
 .toggle-pill {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  background: var(--color-surface);
+  gap: var(--space-2);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-4);
-  box-shadow: var(--shadow-md);
   cursor: pointer;
-  transition: background var(--transition-base);
+  transition: background var(--transition-base), border-color var(--transition-base);
   user-select: none;
-  min-block-size: 48px;
+  min-block-size: var(--control-height-sm);
 }
 
 .toggle-pill__dot {
-  inline-size: 10px;
-  block-size: 10px;
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
   border-radius: var(--radius-full);
-  background: var(--color-text-muted);
+  background: var(--color-primary-300);
   transition: background var(--transition-base);
   flex-shrink: 0;
 }
@@ -503,22 +571,25 @@
 .toggle-pill__label {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
+  color: var(--color-primary-600);
   transition: color var(--transition-base);
 }
 
 .toggle-pill--online {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--color-success-bg);
+  border-color: rgba(var(--color-success-rgb), 0.3);
 }
 .toggle-pill--online .toggle-pill__dot {
   background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.25);
 }
 .toggle-pill--online .toggle-pill__label {
-  color: #065f46;
+  color: var(--color-success-strong);
 }
 
 /* ── Chip ───────────────────────────────────────────── */
+/* Default: white floating pill (Figma map labels such as "Current Location").
+   .chip--outline: Figma "Quick Feedback" chip — outlined purple pill, filled when selected. */
 
 .chip {
   display: inline-flex;
@@ -527,12 +598,27 @@
   padding-block: var(--space-2);
   padding-inline: var(--space-4);
   background: var(--color-surface);
+  color: var(--color-text);
   border-radius: var(--radius-full);
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-float);
+  min-block-size: var(--control-height-sm);
+}
+
+.chip--outline {
+  color: var(--color-primary-600);
   font-weight: var(--fw-medium);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border);
-  min-block-size: 40px;
+  border-color: var(--color-primary-600);
+  box-shadow: none;
+}
+
+.chip--outline.is-active,
+.chip--outline[aria-pressed='true'],
+.chip--outline[aria-checked='true'] {
+  background: var(--color-primary-600);
+  color: var(--color-on-primary);
 }
 
 /* ── Push banner ────────────────────────────────────── */
@@ -546,7 +632,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-5);
-  background: var(--color-text);
+  background: var(--color-text-strong);
   color: var(--color-surface);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
@@ -554,7 +640,7 @@
 }
 
 .push-banner--success {
-  background: var(--color-success);
+  background: var(--color-success-strong);
 }
 
 .push-banner--info {
@@ -567,29 +653,35 @@
 }
 
 /* ── Language switcher ──────────────────────────────── */
+/* A small white floating pill (AR | EN) — reads on maps, heroes and white pages. */
 
 .lang-switcher {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  padding-inline: var(--space-1);
+  min-block-size: var(--icon-btn-size);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
 }
 
 .lang-switcher__btn {
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  color: var(--color-text-subtle);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   transition: color var(--transition-fast), background var(--transition-fast);
-  min-block-size: 28px;
-  min-inline-size: 32px;
+  min-block-size: var(--space-8);
+  min-inline-size: var(--space-8);
 }
 
 .lang-switcher__btn:hover {
-  background: rgba(107, 43, 217, 0.08);
+  background: var(--color-primary-100);
   color: var(--color-primary-600);
 }
 
@@ -601,4 +693,429 @@
 .lang-switcher__sep {
   color: var(--color-border);
   user-select: none;
+}
+
+/* ════════════════════════════════════════════════════
+   Figma kit primitives (2026-09). Presentational only — compose them in
+   screen markup. All sizes and colours come from tokens.css.
+   ════════════════════════════════════════════════════ */
+
+/* ── Section label / section head ───────────────────── */
+/* Uppercase group label (Figma "ACCOUNT", "SETTINGS", "SAVED PLACES"). */
+.section-label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: var(--leading-tight);
+}
+
+/* Sentence-case section heading (Figma "Payment Methods", "Fee History"). */
+.section-title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+/* Title on the start edge, a badge or "Manage >" link on the end edge. */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+.section-head__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-subtle);
+  text-decoration: none;
+}
+
+/* ── Icon tile ──────────────────────────────────────── */
+/* Figma: icon in a lavender rounded square (menu rows) or circle (card rows). */
+.icon-tile {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--icon-tile-size);
+  block-size: var(--icon-tile-size);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-200);
+  color: var(--color-primary-600);
+}
+.icon-tile--lg {
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+}
+.icon-tile--xl {
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-3));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-3));
+}
+.icon-tile--round {
+  border-radius: var(--radius-full);
+}
+/* Filled gradient circle with a white icon (Figma saved places, payment method) */
+.icon-tile--solid {
+  background: linear-gradient(160deg, var(--color-primary-600) 0%, var(--color-accent-600) 100%);
+  color: var(--color-on-primary);
+}
+/* White circle (inside a lavender stat tile) */
+.icon-tile--white {
+  background: var(--color-surface);
+}
+.icon-tile--accent {
+  background: var(--color-accent-300);
+  color: var(--color-accent-700);
+}
+.icon-tile--success {
+  background: var(--color-success-bg);
+  color: var(--color-success-strong);
+}
+.icon-tile--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+/* ── List row ───────────────────────────────────────── */
+/* Figma menu row: icon tile + label + chevron on a light lavender card.
+   <a class="list-row">
+     <span class="icon-tile">svg</span>
+     <span class="list-row__body">
+       <span class="list-row__title">Payment Method</span>
+       <span class="list-row__subtitle">Cash</span>
+     </span>
+     <svg class="list-row__chevron">…</svg>
+   </a> */
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--menu-row-height);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--fs-base);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+a.list-row {
+  color: var(--color-text);
+}
+.list-row:hover {
+  background: var(--color-primary-100);
+}
+/* Bordered card row with a round icon (Figma profile "Payment Method") */
+.list-row--card {
+  padding: var(--space-4);
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.list-row--card .icon-tile {
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+}
+.list-row--accent {
+  background: var(--color-accent-100);
+  border-color: var(--color-accent-200);
+}
+.list-row--accent .icon-tile {
+  background: var(--color-accent-300);
+  color: var(--color-accent-700);
+}
+.list-row--accent .list-row__title {
+  color: var(--color-accent-700);
+}
+.list-row--accent .list-row__subtitle {
+  color: var(--color-accent-600);
+}
+.list-row__body {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.list-row__title {
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  line-height: var(--leading-tight);
+}
+.list-row--card .list-row__title {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-lg);
+}
+.list-row__subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-row__meta {
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+.list-row__chevron {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+[dir='rtl'] .list-row__chevron {
+  transform: scaleX(-1);
+}
+.list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ── Callout ────────────────────────────────────────── */
+/* Figma "How it Works" / "Instant Booking Shortcut" info box. */
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-600);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
+}
+.callout__title {
+  font-weight: var(--fw-semibold);
+  margin-block-end: var(--space-1);
+}
+.callout > svg {
+  flex-shrink: 0;
+}
+
+/* ── Stat tile ──────────────────────────────────────── */
+/* Figma driver "6h 30m / Online Time" tiles. Put an .icon-tile.icon-tile--round.icon-tile--white on top. */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.stat-tile__value {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+.stat-tile__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+/* ── Segmented control ──────────────────────────────── */
+/* Figma "Today | This Week | This Month". The active segment gets .is-active or
+   aria-selected / aria-pressed="true". */
+.sd-segmented {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-primary-100);
+  border: 3px solid rgba(var(--color-surface-rgb), 0.6);
+  border-radius: var(--radius-full);
+}
+.sd-segmented__btn {
+  flex: 1;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.sd-segmented__btn.is-active,
+.sd-segmented__btn[aria-selected='true'],
+.sd-segmented__btn[aria-pressed='true'] {
+  background: var(--cta-bg);
+  color: var(--color-on-primary);
+}
+
+/* ── Route (pickup → destination) ───────────────────── */
+/* Figma trip cards: purple dot for pickup, magenta dot for destination, joined
+   by a thin lavender line.
+   <ol class="route">
+     <li class="route__stop route__stop--pickup"><span class="route__place">…</span><span class="route__label">Pickup</span></li>
+     <li class="route__stop route__stop--destination">…</li>
+   </ol> */
+.route {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+.route__stop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-inline-start: var(--space-6);
+}
+.route__stop::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: var(--space-1);
+  inset-block-start: 0.4em;
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+}
+.route__stop--destination::before {
+  background: var(--color-accent-600);
+}
+.route__stop:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--space-1) + var(--space-2) - 1px);
+  inset-block-start: calc(0.4em + var(--space-4));
+  inset-block-end: calc(var(--space-1) * -1);
+  inline-size: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+.route__place {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+}
+.route__stop--destination .route__place {
+  color: var(--color-accent-700);
+}
+.route__label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+}
+.route__stop--destination .route__label {
+  color: var(--color-accent-600);
+}
+
+/* ── Hero header + content panel ────────────────────── */
+/* Figma list and detail screens: a purple gradient band holds the header (round
+   white menu button, centred white title) and the white content panel overlaps
+   it with a large top radius.
+   <div class="sd-hero"><sd-app-header …>…</sd-app-header></div>
+   <main class="sd-panel">…</main> */
+.sd-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--gradient-hero);
+  color: var(--color-on-primary);
+  padding-block-end: calc(var(--radius-2xl) + var(--space-3));
+}
+/* Soft decorative discs, as in the kit */
+.sd-hero::before,
+.sd-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: var(--radius-full);
+  background: rgba(var(--color-surface-rgb), 0.06);
+  pointer-events: none;
+}
+.sd-hero::before {
+  inline-size: 70%;
+  aspect-ratio: 1;
+  inset-block-start: -35%;
+  inset-inline-end: -20%;
+}
+.sd-hero::after {
+  inline-size: 55%;
+  aspect-ratio: 1;
+  inset-block-end: -30%;
+  inset-inline-start: -15%;
+}
+.sd-hero__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-on-primary);
+  line-height: var(--leading-tight);
+}
+.sd-hero__subtitle {
+  color: rgba(var(--color-surface-rgb), 0.85);
+  font-size: var(--fs-sm);
+}
+.sd-hero .sd-segmented {
+  margin-inline: var(--page-gutter);
+}
+.sd-panel {
+  position: relative;
+  z-index: var(--z-above);
+  margin-block-start: calc(var(--radius-2xl) * -1);
+  padding: var(--space-6) var(--page-gutter) var(--space-8);
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  color: var(--color-text);
+}
+
+/* ── Sheet handle ───────────────────────────────────── */
+.sheet-handle {
+  inline-size: var(--sheet-handle-width);
+  block-size: var(--sheet-handle-height);
+  margin-inline: auto;
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+}
+
+/* ── Checkbox (Figma square lavender tick box) ──────── */
+.sd-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-tint);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+}
+.sd-checkbox:checked {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+}
+.sd-checkbox:checked::after {
+  content: '';
+  inline-size: 30%;
+  block-size: 55%;
+  border: solid var(--color-on-primary);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-10%) rotate(45deg);
 }

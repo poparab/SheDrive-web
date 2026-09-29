@@ -1,44 +1,49 @@
-/* cash-collection.css — Post-trip cash fare collection screen */
-
-.driver-cash-page {
-  background: var(--color-surface-alt);
-}
+/*
+ * cash-collection.css — Post-trip cash fare collection screen
+ * Figma: "Driver - Trip Completed". All values from tokens.
+ */
 
 .cash-layout {
   display: flex;
   flex-direction: column;
+  gap: var(--space-4);
+  /* Fill the viewport above the pinned CTA so short content still sits it at the bottom */
+  min-block-size: calc(100dvh - var(--control-height) - var(--space-8));
+  padding: var(--space-8) var(--page-gutter) var(--space-4);
+}
+
+/* Base paragraph margins would space out the stacked card text */
+:where(.cash-layout) p { margin: 0; }
+
+/* ── Heading: icon in soft green rings ── */
+.cash-hero {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-6);
-  min-block-size: 100dvh;
-  padding: var(--space-8) var(--space-5);
+  gap: var(--space-2);
   text-align: center;
 }
 
-/* ── Icon ── */
 .cash-icon {
-  inline-size: 104px;
-  block-size: 104px;
-  border-radius: 50%;
-  background: rgba(var(--color-success-rgb), 0.10);
-  color: var(--color-success);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* ── Heading ── */
-.cash-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 2);
+  block-size: calc(var(--icon-tile-size-lg) * 2);
+  margin: var(--space-6) auto var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+  color: var(--color-on-primary);
+  box-shadow:
+    0 0 0 var(--space-2) var(--color-surface),
+    0 0 0 var(--space-3) rgba(var(--color-success-rgb), 0.45),
+    0 0 0 var(--space-5) var(--color-surface),
+    0 0 0 var(--space-6) rgba(var(--color-success-rgb), 0.2);
 }
 
 .cash-title {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-3xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
   line-height: var(--leading-tight);
 }
 
@@ -47,32 +52,42 @@
   color: var(--color-text-muted);
 }
 
-/* ── Fare amount badge ── */
-.cash-fare-badge {
+/* ── Total to collect (Figma "Total Fare" card) ── */
+.cash-total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.cash-total__label {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+}
+
+.cash-total__amount {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding: var(--space-6) var(--space-8);
-  background: var(--color-surface);
-  border: 2px solid rgba(var(--color-success-rgb), 0.3);
-  border-radius: var(--radius-2xl);
-  box-shadow: 0 0 0 4px rgba(var(--color-success-rgb), 0.06);
+  color: var(--color-text-strong);
+  line-height: 1;
 }
 
-.cash-fare-badge__amount {
-  font-size: 64px;
+.cash-total__value {
+  font-size: var(--fs-5xl);
   font-weight: var(--fw-bold);
-  color: var(--color-success);
-  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
-.cash-fare-badge__currency {
-  font-size: var(--fs-2xl);
+.cash-total__currency {
+  font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
-  align-self: flex-end;
-  padding-block-end: var(--space-1);
 }
 
 /* ── Itemised breakdown — fare + recovered rider fee (spec §3) ── */
@@ -80,13 +95,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding: var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  inline-size: 100%;
-  max-inline-size: 320px;
-  text-align: start;
 }
 
 .cash-breakdown__note {
@@ -105,67 +117,107 @@
   color: var(--color-text);
 }
 
+.cash-breakdown__row > span:last-child {
+  flex-shrink: 0;
+  font-weight: var(--fw-semibold);
+}
+
 .cash-breakdown__row--total {
   font-weight: var(--fw-bold);
   padding-block-start: var(--space-2);
   border-block-start: 1px solid var(--color-border);
 }
 
-/* ── Trip summary chip ── */
-.cash-trip-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  max-inline-size: 100%;
-  overflow: hidden;
-}
-
-.cash-trip-chip__sep {
-  color: var(--color-accent-500);
-  font-weight: var(--fw-bold);
-  flex-shrink: 0;
-}
-
-/* ── Net earnings card (#1766) ── */
+/* ── Net earnings card (#1766) — Figma "Today's Earnings" card ── */
 .cash-net-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4) var(--space-6);
-  inline-size: 100%;
-  max-inline-size: 320px;
+  border-radius: var(--radius-lg);
 }
 
 .cash-net-card__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.cash-net-card__row {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
 }
 
 .cash-net-card__amount {
-  font-size: var(--fs-3xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
   display: flex;
   align-items: baseline;
   gap: var(--space-1);
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-success);
+  line-height: 1;
+}
+
+.cash-net-card__amount > span:last-child {
+  font-size: var(--fs-lg);
 }
 
 .cash-net-card__note {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
-  margin: 0;
+}
+
+/* ── Trip summary ── */
+.cash-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cash-summary__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.cash-summary__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.cash-summary__row .icon-tile {
+  background: var(--color-surface-tint);
+}
+
+.cash-summary__label {
+  flex: 1;
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
+}
+
+.cash-summary__value {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+/* ── Pinned CTA ── */
+.cash-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--z-above);
+  padding: var(--space-3) var(--page-gutter) max(var(--space-5), env(safe-area-inset-bottom));
+  background: var(--color-surface);
 }

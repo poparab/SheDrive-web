@@ -1,5 +1,7 @@
 /*
  * trip.css — Driver active trip screen
+ * Figma: "Navigate To Pickup", "Waiting For Passenger", "Ride In Progress",
+ * "Rider Mismatch Report (+ Submitted)", "Cancel Trip - Reason".
  * All values use tokens. No hardcoded colors or sizes.
  */
 
@@ -7,52 +9,69 @@
 
 .driver-trip-page { overflow: hidden; }
 
-/* ── Top status bar ──────────────────────────────── */
+/* ── Top floating status pills ───────────────────── */
 
 .trip-topbar {
   position: fixed;
   inset-block-start: 0;
   inset-inline: 0;
   z-index: var(--z-nav);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--page-gutter);
   pointer-events: none;
 }
 
 .trip-topbar__inner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
-  pointer-events: auto;
 }
 
-.trip-topbar__timer {
+.trip-topbar__pill {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-block-size: var(--icon-btn-size);
+  padding-inline: var(--space-4);
   background: var(--color-surface);
-  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-text-strong);
+  pointer-events: auto;
+  min-inline-size: 0;
 }
 
-/* ── Trip card (all states) ──────────────────────── */
+.trip-topbar__status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-topbar__timer {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary-600);
+}
+
+/* ── Trip sheet (all states) ─────────────────────── */
+/* A bottom sheet over the map: a scrolling body and a pinned footer, so a tall
+   card scrolls inside itself and the primary action is never pushed off-screen. */
 
 .trip-card {
   position: fixed;
   inset-block-end: 0;
   inset-inline: 0;
   z-index: var(--z-modal);
+  display: none;
+  flex-direction: column;
+  max-block-size: calc(100dvh - var(--space-16));
+  padding-block-start: var(--space-3);
   background: var(--color-surface);
   border-start-start-radius: var(--radius-2xl);
   border-start-end-radius: var(--radius-2xl);
-  padding: var(--space-5) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-sheet);
   animation: sheetUp var(--transition-base) ease-out;
 }
 
@@ -62,381 +81,508 @@
 }
 
 /* State visibility via data-state on body */
-
-body[data-state="en-route"]     .state--en-route  { display: flex; }
-body[data-state="arrived"]      .state--arrived   { display: flex; }
-body[data-state="in-ride"]      .state--in-ride   { display: flex; }
-body[data-state="verify-rider"] .state--arrived   { display: flex; }
-
-/* Hide non-active states by default */
-.state--en-route,
-.state--arrived,
-.state--in-ride {
-  display: none;
+body[data-state="en-route"]     .state--en-route,
+body[data-state="arrived"]      .state--arrived,
+body[data-state="verify-rider"] .state--arrived,
+body[data-state="in-ride"]      .state--in-ride,
+body:not([data-state])          .state--in-ride {
+  display: flex;
 }
 
-/* Default state (no data-state attribute) shows in-ride */
-body:not([data-state]) .state--in-ride { display: flex; }
+.trip-card__handle {
+  flex-shrink: 0;
+  margin-block-end: var(--space-2);
+}
 
-/* ── Rider summary row ───────────────────────────── */
-
-.trip-card__rider {
+.trip-card__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--page-gutter);
+}
+
+.trip-card__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--page-gutter) max(var(--space-4), env(safe-area-inset-bottom));
+}
+
+.trip-card__link { align-self: center; }
+
+/* Base paragraph margins would space out the stacked sheet text */
+:where(.trip-card, .trip-sheet) p { margin: 0; }
+
+/* ── Sheet heading ───────────────────────────────── */
+
+.trip-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
-.trip-card__rider-info {
-  flex: 1;
-}
-
-.trip-card__rider-name {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  display: block;
-}
-
-.trip-card__rider-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-1);
-}
-
-.trip-card__rating {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-warning, var(--color-primary-600));
-  font-weight: var(--fw-medium);
-}
-
-/* ── Route ───────────────────────────────────────── */
-
-.trip-card__route {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg);
-}
-
-.trip-card__route-point {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex: 1;
-}
-
-.trip-card__route-dot {
-  inline-size: 10px;
-  block-size: 10px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-}
-
-.trip-card__route-dot--from { background: var(--color-primary-600); }
-.trip-card__route-dot--to   { background: var(--color-danger); }
-
-.trip-card__route-arrow {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-}
-
-.trip-card__route-text {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-}
-
-/* ── Stats row (in-ride) ─────────────────────────── */
-
-.trip-card__stats {
-  display: flex;
-  gap: var(--space-6);
-}
-
-.trip-card__stat {
+.trip-card__heading {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-inline-size: 0;
 }
 
-.trip-card__stat-label {
-  font-size: var(--fs-xs);
+.trip-card__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.trip-card__subtitle {
+  font-size: var(--fs-base);
   color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
+  line-height: var(--leading-snug);
 }
 
-.trip-card__stat-value {
+/* Lavender pill — waiting counter (Figma "03:46") */
+.trip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  min-block-size: var(--icon-btn-size);
+  padding-inline: var(--space-4);
+  background: var(--color-primary-100);
+  border-radius: var(--radius-full);
+  color: var(--color-text-strong);
   font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
 }
 
-/* ── Navigation deep-link row (#1586 / #1590) ────── */
-
-.trip-nav-row {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.trip-nav-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-}
-
-/* ── Action icon row (in-ride) ───────────────────── */
-
-.trip-card__actions {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: center;
-}
-
-.trip-card__action-label {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  display: block;
-  margin-block-start: var(--space-1);
-}
-
-/* ── En-route ETA chip ───────────────────────────── */
-
-.trip-enroute-eta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  background: var(--color-surface-alt);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-full);
-}
-
-/* ── Waiting counter (arrived) #1767 ─────────────── */
-
-.trip-wait-row {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  background: var(--color-surface-alt);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-full);
-}
-
-.trip-wait-row strong {
-  color: var(--color-text);
+.trip-pill strong {
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
-  min-inline-size: 42px;
-  display: inline-block;
 }
 
-/* ── Verify-rider section (#1587 / #1588) ────────── */
+/* ── Estimated arrival card (en route) ───────────── */
+
+.trip-eta-card {
+  margin: 0; /* Framework7 gives .card outer margins */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-5);
+}
+
+.trip-eta-card__label {
+  font-size: var(--fs-base);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+.trip-eta-card__value {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-on-primary);
+}
+
+.trip-eta-card__place {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
+  color: var(--color-on-primary);
+}
+
+.trip-eta-card__place svg { flex-shrink: 0; }
+
+/* ── Rider card ──────────────────────────────────── */
+
+.trip-rider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.trip-rider__avatar {
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-2));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-2));
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+.trip-rider__name {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-rider__rating {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.trip-rider__score {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: 1;
+}
+
+.trip-rider__score svg { color: var(--color-star); }
+
+.trip-rider__rating-label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+}
+
+/* ── Route card (in ride) ────────────────────────── */
+
+.trip-route-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.trip-route-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.trip-route-card__stats .stat-tile__value {
+  font-size: var(--fs-lg);
+}
+
+/* ── Tinted action buttons (Figma "Call" / "Chat") ── */
+
+.trip-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.trip-actions--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trip-action {
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding-inline: var(--space-3);
+  background: var(--color-surface-tint);
+  border-color: var(--color-border);
+  color: var(--color-primary-600);
+  font-size: var(--fs-base);
+}
+
+/* Long labels (EN "Google Maps" at 360px) wrap instead of clipping */
+.trip-action,
+.trip-verify-actions .btn {
+  white-space: normal;
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+
+.trip-action:hover:not(:disabled) { background: var(--color-primary-200); }
+
+/* Three across: icon over label, so every label fits at 360px */
+.trip-actions--three .trip-action {
+  flex-direction: column;
+  gap: var(--space-1);
+  min-block-size: calc(var(--control-height) + var(--space-4));
+  font-size: var(--fs-sm);
+}
+
+.trip-action--sos {
+  background: var(--color-danger-bg);
+  border-color: rgba(var(--color-danger-rgb), 0.25);
+  color: var(--color-danger);
+}
+
+.trip-action--sos:hover:not(:disabled) {
+  background: var(--color-danger-bg);
+  filter: brightness(0.97);
+}
+
+/* ── Verify-rider box (#1587 / #1588) — Figma "Before starting the ride" ── */
 
 .trip-verify-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
   padding: var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.trip-verify-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.trip-verify-head__icon {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
+.trip-verify-head__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.trip-verify-title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-warning-strong);
 }
 
 .trip-verify-prompt {
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  margin: 0;
+  color: var(--color-text);
+  line-height: var(--leading-snug);
 }
 
 .trip-verify-name {
-  font-size: var(--fs-base);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
   color: var(--color-text);
-  margin: 0;
 }
 
-.trip-verify-name__label {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
-  display: block;
-  margin-block-end: var(--space-1);
-}
+.trip-verify-name__label { color: var(--color-text-muted); }
 
 .trip-verify-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-}
-
-/* ── Gender-mismatch report modal (#1588 S4) ─────── */
-
-.verify-fail-modal { max-inline-size: 420px; }
-
-/* Stacked actions for the same reason as the cancel modal: the EN confirm label does
-   not fit beside the back button at 375px. */
-.verify-fail-modal .modal__actions { flex-direction: column; }
-.verify-fail-modal .modal__actions > .btn { inline-size: 100%; }
-
-.verify-statement {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-block: var(--space-4);
-}
-
-.verify-statement__label {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-}
-
-.verify-statement__input {
-  resize: vertical;
-  min-block-size: 84px;
-  line-height: var(--leading-relaxed);
-}
-
-.verify-statement__hint {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-.verify-statement__count {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  text-align: end;
-  font-variant-numeric: tabular-nums;
-  margin: 0;
-}
-
-/* ── SOS modal ───────────────────────────────────── */
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--z-modal) + 1);
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  backdrop-filter: blur(3px);
-}
-
-.modal-backdrop[hidden] { display: none; }
-
-.modal {
-  background: var(--color-surface);
-  border-start-start-radius: var(--radius-2xl);
-  border-start-end-radius: var(--radius-2xl);
-  padding: var(--space-6) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
-  inline-size: 100%;
-  max-inline-size: 520px;
-  box-shadow: var(--shadow-xl);
-  animation: sheetUp var(--transition-base) ease-out;
-}
-
-.modal__title {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin-block-end: var(--space-3);
-}
-
-.modal__body {
-  font-size: var(--fs-base);
-  color: var(--color-text-muted);
-  margin-block-end: var(--space-5);
-  line-height: var(--leading-relaxed);
-}
-
-.modal__actions {
-  display: flex;
   gap: var(--space-3);
 }
 
-@media (min-width: 768px) {
-  .trip-card {
-    max-inline-size: 480px;
-    inset-inline: auto;
-    inset-inline-end: var(--space-6);
-    border-radius: var(--radius-2xl);
-  }
+
+/* ── Sheets over the trip (cancel, mismatch report, SOS) ── */
+
+.driver-trip-page .modal-backdrop {
+  z-index: calc(var(--z-modal) + 1);
+  background: var(--color-overlay);
 }
 
-/* ── Cancel trip modal: reasons + fee (#1722) ─────── */
+.trip-sheet {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(100dvh - var(--space-10));
+  max-inline-size: none;
+  padding: var(--space-3) 0 0;
+}
 
-.cancel-modal { max-inline-size: 420px; }
+.trip-sheet > .sheet-handle { flex-shrink: 0; }
 
-/* Stacked actions: the longer EN labels overflow a side-by-side row at 375px, and a
-   full-width destructive confirm reads the same in both languages. */
-.cancel-modal .modal__actions { flex-direction: column; }
-.cancel-modal .modal__actions > .btn { inline-size: 100%; }
+.trip-sheet__step {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
 
-.cancel-reasons {
-  border: 0;
-  margin: 0;
-  padding: 0;
+.trip-sheet__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--page-gutter) var(--space-2);
+  text-align: center;
+}
+
+.trip-sheet__footer {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  padding: var(--space-3) var(--page-gutter) max(var(--space-5), env(safe-area-inset-bottom));
+}
+
+.trip-sheet__footer .btn--link { align-self: center; }
+
+.trip-sheet__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-2));
+  block-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-2));
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.trip-sheet__icon--accent  { background: var(--color-accent-100); color: var(--color-accent-700); }
+.trip-sheet__icon--danger  { background: var(--color-danger-bg);  color: var(--color-danger); }
+.trip-sheet__icon--success { background: var(--color-success-bg); color: var(--color-success-strong); }
+
+.trip-sheet .trip-sheet__title {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.trip-sheet .trip-sheet__title--accent  { color: var(--color-accent-700); }
+.trip-sheet .trip-sheet__title--danger  { color: var(--color-danger); }
+.trip-sheet .trip-sheet__title--success { color: var(--color-success-strong); }
+
+.trip-sheet__text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Cancel trip: reasons + fee (#1722) ──────────── */
+
+.cancel-reasons {
+  inline-size: 100%;
+  border: 0;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: start;
 }
 
 .cancel-reason {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-block: var(--space-3);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-lg);
+  min-block-size: var(--control-height);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--color-text);
+  line-height: var(--leading-snug);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .cancel-reason:hover { background: var(--color-surface-alt); }
 
-.cancel-reason input {
-  inline-size: 20px;
-  block-size: 20px;
-  accent-color: var(--color-primary-600);
-  flex-shrink: 0;
+.cancel-reason:has(input:checked) {
+  background: var(--color-surface-tint);
+  border-color: var(--color-primary-400);
 }
 
-.cancel-reason input:disabled { opacity: 0.4; cursor: not-allowed; }
+.cancel-reason:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-reason input {
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary-600);
+  cursor: inherit;
+}
 
 .cancel-fee-note {
-  margin-block: var(--space-3) 0;
-  padding: var(--space-3);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  inline-size: 100%;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-100);
   border-radius: var(--radius-lg);
-  background: var(--color-surface-alt);
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  border-inline-start: 3px solid transparent;
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+  text-align: start;
 }
+
+.cancel-fee-note svg { flex-shrink: 0; }
 
 /* Free vs paid cancellation read differently at a glance (#1850) */
 .cancel-fee-note--free {
-  background: rgba(var(--color-success-rgb), 0.08);
-  border-inline-start-color: var(--color-success);
-  color: var(--color-text);
+  background: var(--color-success-bg);
+  color: var(--color-success-strong);
 }
 
 .cancel-fee-note--fee {
-  background: rgba(var(--color-warning-rgb), 0.1);
-  border-inline-start-color: var(--color-warning);
-  color: var(--color-text);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-strong);
+}
+
+/* ── Gender-mismatch report (#1588 S4) ───────────── */
+
+.verify-statement {
+  inline-size: 100%;
+  margin-block-start: var(--space-2);
+  text-align: start;
+}
+
+.verify-statement__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.verify-statement__input {
+  min-block-size: calc(var(--control-height) * 2);
+}
+
+.verify-statement__meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.verify-statement__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.verify-statement__count {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }

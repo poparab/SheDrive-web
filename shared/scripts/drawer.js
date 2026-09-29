@@ -130,6 +130,12 @@ export const Drawer = {
   },
 
   open() {
+    // Arm the slide on first open, from the settled closed position (see
+    // .is-ready in drawer.css); the forced reflow makes the first open animate.
+    if (Drawer._el && !Drawer._el.classList.contains('is-ready')) {
+      Drawer._el.classList.add('is-ready');
+      void Drawer._el.offsetWidth;
+    }
     Drawer._el?.classList.add('is-open');
     Drawer._backdrop?.classList.add('is-open');
     // Lock scroll on the shell (drawer is mounted inside it)

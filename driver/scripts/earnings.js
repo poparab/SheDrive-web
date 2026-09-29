@@ -65,11 +65,29 @@ const PERIOD_SUMMARY = {
 // ── Render ────────────────────────────────────────────
 let activePeriod = 'today';
 
+const ICON_CLOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
+const ICON_TIMER = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><polyline points="12 11 12 14"/><line x1="10" y1="3" x2="14" y2="3"/><line x1="12" y1="3" x2="12" y2="7"/></svg>';
+const ICON_CHEVRON = '<svg class="trip-item__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
+
+const money = (n) => Number(n).toFixed(2);
+
+/** Set a translated string and keep its data-i18n in step, so a later language switch re-applies it. */
+function setKey(el, key) {
+  el.setAttribute('data-i18n', key);
+  el.textContent = translate(key);
+}
+
 function renderSummary(period) {
   const s = PERIOD_SUMMARY[period];
-  qs('#summary-amount').textContent = s.amount;
-  qs('#summary-trips').textContent  = s.trips;
-  qs('#summary-hours').textContent  = s.hours;
+  const trips = (MOCK_TRIPS[period] || []).length;
+  setKey(qs('#summary-label'), `earnings.periodLabel.${period}`);
+  setKey(qs('#list-title'), `earnings.listTitle.${period}`);
+  qs('#summary-amount').textContent = money(s.amount);
+  qs('#summary-trips').textContent = translate('earnings.tripsCount', { n: s.trips });
+  qs('#summary-hours').innerHTML = `${s.hours} <span class="earnings-stat__unit">${translate('earnings.hours')}</span>`;
+  const count = qs('#list-count');
+  count.textContent = translate('earnings.completedCount', { n: trips });
+  count.hidden = trips === 0;
 }
 
 function renderTrips(period) {
@@ -93,30 +111,24 @@ function renderTrips(period) {
   const min = translate('trip.minutes');
 
   list.innerHTML = trips.map((t) => `
-    <article class="trip-item" data-trip-id="${t.id}">
-      <div class="trip-item__summary" role="button" tabindex="0" aria-expanded="false" aria-label="${t.from[lang]} ${arrow} ${t.to[lang]}">
-        <div class="trip-item__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="1" y="3" width="15" height="13" rx="2"/>
-            <path d="M16 8h4l3 3v5h-7V8z"/>
-            <circle cx="5.5" cy="18.5" r="2.5"/>
-            <circle cx="18.5" cy="18.5" r="2.5"/>
-          </svg>
-        </div>
+    <article class="trip-item" role="listitem" data-trip-id="${t.id}">
+      <div class="trip-item__summary" role="button" tabindex="0" aria-expanded="false" aria-label="${t.from[lang]} ${arrow} ${t.to[lang]}, +${t.fare} ${egp}">
         <div class="trip-item__info">
-          <div class="trip-item__route">${t.from[lang]} ${arrow} ${t.to[lang]}</div>
+          <ol class="route trip-item__route">
+            <li class="route__stop route__stop--pickup"><span class="route__place">${t.from[lang]}</span></li>
+            <li class="route__stop route__stop--destination"><span class="route__place">${t.to[lang]}</span></li>
+          </ol>
           <div class="trip-item__meta">
-            <span>${t.time[lang]}</span>
-            <span>·</span>
-            <span class="badge badge--neutral">${t.minutes} ${min}</span>
+            <span class="trip-item__meta-item">${ICON_CLOCK}<span>${t.time[lang]}</span></span>
+            <span class="trip-item__meta-item">${ICON_TIMER}<span>${t.minutes} ${min}</span></span>
+            <span class="badge badge--success trip-item__status" data-i18n="driver.history.completed">${translate('driver.history.completed')}</span>
           </div>
         </div>
         <div class="trip-item__right">
-          <span class="trip-item__fare badge badge--success">+${t.fare} ${egp}</span>
-          <svg class="trip-item__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
+          <span class="trip-item__fare"><bdi>+${t.fare}</bdi> ${egp}</span>
+          <span class="trip-item__fare-label" data-i18n="earnings.tripFare">${translate('earnings.tripFare')}</span>
         </div>
+        ${ICON_CHEVRON}
       </div>
       <div class="trip-item__detail" aria-hidden="true">
         <ul class="trip-item__breakdown">
@@ -166,8 +178,11 @@ document.querySelectorAll('.earnings-tab').forEach((tab) => {
 renderSummary(activePeriod);
 renderTrips(activePeriod);
 
-// Re-render the rows on a language switch — routes, units and currency all change.
-document.addEventListener(I18N_EVENT, () => renderTrips(activePeriod));
+// Re-render on a language switch — routes, units, counts and currency all change.
+document.addEventListener(I18N_EVENT, () => {
+  renderSummary(activePeriod);
+  renderTrips(activePeriod);
+});
 
 // ── Toast helper ─────────────────────────────────────
 const toastContainer = qs('#toast-container');

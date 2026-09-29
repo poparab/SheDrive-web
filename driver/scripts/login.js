@@ -19,6 +19,22 @@ if (auth.getSession() && !previewState) window.location.replace('./home.html');
 
 await initI18n();
 
+// ── Splash: brief brand moment on launch; tap to skip. Skipped for design-review states.
+const splash = qs('#splash-overlay');
+if (splash) {
+  const dismissSplash = () => {
+    if (splash.classList.contains('is-hidden')) return;
+    splash.classList.add('is-hidden');
+    splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+    setTimeout(() => splash.remove(), 600);
+  };
+  if (previewState) splash.remove();
+  else {
+    setTimeout(dismissSplash, 1200);
+    splash.addEventListener('click', dismissSplash, { once: true });
+  }
+}
+
 document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
@@ -35,6 +51,7 @@ const modeToggle   = qs('#mode-toggle');
 const nameField    = qs('#name-field');
 const nameInput    = qs('#name-input');
 const nameError    = qs('#name-error');
+const phoneTitle   = qs('#phone-step-title');
 
 function switchMode(newMode) {
   mode = newMode;
@@ -53,6 +70,11 @@ function switchMode(newMode) {
     formSubtitle.textContent = translate(formSubtitle.getAttribute('data-i18n'));
   }
 
+  if (phoneTitle) {
+    phoneTitle.setAttribute('data-i18n', isRegister ? 'register.button.create' : 'login.sheetTitle.driver');
+    phoneTitle.textContent = translate(phoneTitle.getAttribute('data-i18n'));
+  }
+
   qs('.auth-mode--login', modeToggle)?.toggleAttribute('hidden', isRegister);
   qs('.auth-mode--register', modeToggle)?.toggleAttribute('hidden', !isRegister);
 
@@ -69,7 +91,7 @@ function showStep(step) {
   ['phone', 'otp', 'restore'].forEach((name) =>
     qs(`#step-${name}`)?.classList.toggle('login-step--hidden', step !== name)
   );
-  modeToggle?.toggleAttribute('hidden', step === 'restore');
+  modeToggle?.toggleAttribute('hidden', step !== 'phone');
   qs('.login-terms')?.toggleAttribute('hidden', step === 'restore');
 }
 
@@ -157,6 +179,13 @@ const resendLabel = qs('#resend-countdown');
 
 let currentPhone = '';
 
+// otp-flow.js falls back to the label's data-cooldown-template (Arabic in the HTML);
+// hand it the active language's template so English shows an English countdown.
+function startCooldown() {
+  if (resendLabel) resendLabel.dataset.cooldownTemplate = translate('login.resend.cooldown');
+  startResendCountdown(resendBtn, resendLabel, 60);
+}
+
 function startOtpStep(digits) {
   currentPhone = digits;
   attempts = 0;
@@ -166,7 +195,7 @@ function startOtpStep(digits) {
   otpInput?.clear?.();
   otpInput?.removeAttribute('error');
   otpInput?.focus?.();
-  startResendCountdown(resendBtn, resendLabel, 60);
+  startCooldown();
 
   clearTimeout(expireTimer);
   expireTimer = setTimeout(() => {
@@ -260,7 +289,7 @@ resendBtn?.addEventListener('click', () => {
   otpInput?.clear?.();
   otpInput?.removeAttribute('error');
   if (verifyBtn) verifyBtn.disabled = false;
-  startResendCountdown(resendBtn, resendLabel, 60);
+  startCooldown();
   clearTimeout(expireTimer);
   expireTimer = setTimeout(() => {
     isExpired = true;

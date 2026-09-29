@@ -49,9 +49,17 @@ function renderRecoveryNotice() {
   const hasOwed = owed > 0;
   notice.hidden = !hasOwed;
   notice.setAttribute('aria-hidden', String(!hasOwed));
+  const badge = qs('#fees-pending-badge');
+  if (badge) badge.hidden = !hasOwed;
   if (!hasOwed) return;
+  qs('#fees-recovery-total').textContent = `${owed.toFixed(2)} ${translate('home.fare.egp')}`;
   qs('#fees-recovery-notice-msg').textContent = translate('fees.recoveryNotice', { owed });
 }
+
+const PIN_ICON =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+const CALENDAR_ICON =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
 function renderFees() {
   const fees = getOutstandingFees();
@@ -68,6 +76,7 @@ function renderFees() {
   fees.forEach((fee) => {
     const row = document.createElement('div');
     row.className = 'fee-row';
+    row.setAttribute('role', 'listitem');
 
     const top = document.createElement('div');
     top.className = 'fee-row__top';
@@ -81,31 +90,35 @@ function renderFees() {
     amount.textContent = `${fee.amount} ${currency}`;
 
     top.append(label, amount);
+    row.appendChild(top);
 
-    const meta = document.createElement('div');
-    meta.className = 'fee-row__meta';
     const route = isAr() ? fee.route?.ar : fee.route?.en;
-    const dateText = (fee.date || '').replace(/-/g, '/');
-    const metaText = document.createElement('span');
-    metaText.textContent = dateText;
-    meta.appendChild(metaText);
-
     if (route) {
+      const routeRow = document.createElement('div');
+      routeRow.className = 'fee-row__route';
+      routeRow.innerHTML = PIN_ICON;
       const link = document.createElement('a');
       link.href = `./trip-detail.html?id=${encodeURIComponent(fee.tripId)}`;
       link.textContent = route;
-      meta.append(document.createTextNode(' · '), link);
+      routeRow.appendChild(link);
+      row.appendChild(routeRow);
     }
 
-    const note = document.createElement('div');
-    note.className = 'fee-row__note';
-    note.innerHTML =
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-    const noteText = document.createElement('span');
-    noteText.textContent = translate('fees.recoveryNote');
-    note.appendChild(noteText);
+    const meta = document.createElement('div');
+    meta.className = 'fee-row__meta';
+    const date = document.createElement('span');
+    date.className = 'fee-row__date';
+    date.innerHTML = CALENDAR_ICON;
+    const dateText = document.createElement('span');
+    dateText.textContent = (fee.date || '').replace(/-/g, '/');
+    date.appendChild(dateText);
 
-    row.append(top, meta, note);
+    const note = document.createElement('span');
+    note.className = 'badge badge--brand fee-row__note';
+    note.textContent = translate('fees.recoveryNote');
+
+    meta.append(date, note);
+    row.appendChild(meta);
     list.appendChild(row);
   });
 }

@@ -1,7 +1,7 @@
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, getLanguage, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
-import { getEmergencyContacts } from '../../shared/scripts/emergency-contacts.js';
+import { getEmergencyContacts, relationshipLabel } from '../../shared/scripts/emergency-contacts.js';
 
 auth.requireAuth();
 await initI18n();
@@ -14,7 +14,7 @@ qsa('[data-lang-btn]').forEach((btn) =>
 // ── Trip recap ──
 const activeTripRaw = sessionStorage.getItem('shedrive.activeTrip');
 const fallback = {
-  driver: { name: 'نورا أحمد', plate: 'ق أ ب 123', vehicle: 'تويوتا كورولا 2023' },
+  driver: { name: 'نورا أحمد', nameEn: 'Nora Ahmed', plate: 'ق أ ب 123', vehicle: 'تويوتا كورولا 2023', vehicleEn: 'Toyota Corolla 2023' },
   trip: {},
 };
 let data = fallback;
@@ -24,9 +24,16 @@ try {
   data = fallback;
 }
 
-qs('#recap-driver').textContent = data.driver?.name || '—';
-qs('#recap-plate').textContent = data.driver?.plate || '—';
-qs('#recap-vehicle').textContent = data.driver?.vehicle || '—';
+// Driver name and vehicle follow the active language when the trip carries both.
+function renderRecap() {
+  const en = getLanguage() === 'en';
+  const d = data.driver || {};
+  qs('#recap-driver').textContent = (en && d.nameEn) || d.name || '—';
+  qs('#recap-plate').textContent = d.plate || '—';
+  qs('#recap-vehicle').textContent = (en && d.vehicleEn) || d.vehicle || '—';
+}
+renderRecap();
+document.addEventListener(I18N_EVENT, renderRecap);
 qs('#recap-location').textContent = '30.0444°N, 31.2357°E';
 
 if (navigator.geolocation) {
@@ -41,6 +48,19 @@ if (navigator.geolocation) {
 }
 
 // ── Render the emergency contacts that were alerted (Phase 1 SOS) ──
+function contactMeta(c) {
+  return [relationshipLabel(c), c.phone].filter(Boolean).join(' · ');
+}
+
+// Keep the relationship label in step with a language switch (statuses stay as they are).
+document.addEventListener(I18N_EVENT, () => {
+  const contacts = getEmergencyContacts();
+  qsa('.emergency-contact-notified__meta').forEach((el) => {
+    const c = contacts.find((x) => (x.id || '') === el.dataset.contactId);
+    if (c) el.textContent = contactMeta(c);
+  });
+});
+
 function renderNotifiedContacts() {
   const list = qs('#notified-contacts');
   const emptyMsg = qs('#no-contacts-msg');
@@ -63,7 +83,9 @@ function renderNotifiedContacts() {
     name.textContent = c.name || '';
     const meta = document.createElement('span');
     meta.className = 'emergency-contact-notified__meta';
-    meta.textContent = [c.relationship, c.phone].filter(Boolean).join(' · ');
+    // Relationship is stored as a key — show its label in the active language.
+    meta.textContent = contactMeta(c);
+    meta.dataset.contactId = c.id || '';
     info.append(name, meta);
 
     // Delivery starts as "sending" and settles once the SMS gateway reports back.
@@ -121,11 +143,39 @@ qsa('.emergency-call').forEach((btn) => {
   });
 });
 
+// ── Confirmation sheets (stop sharing, false alarm) ──
+let lastFocus = null;
+
+function openSheet(sheet) {
+  if (!sheet) return;
+  lastFocus = document.activeElement;
+  sheet.hidden = false;
+  requestAnimationFrame(() => sheet.classList.add('is-open'));
+  sheet.querySelector('.emergency-dialog__actions .btn')?.focus({ preventScroll: true });
+}
+
+function closeSheet(sheet) {
+  if (!sheet || sheet.hidden) return;
+  sheet.classList.remove('is-open');
+  sheet.hidden = true;
+  lastFocus?.focus?.({ preventScroll: true });
+}
+
+qsa('.emergency-dialog').forEach((sheet) => {
+  sheet.addEventListener('click', (e) => {
+    if (e.target.closest('[data-dismiss]')) closeSheet(sheet);
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') qsa('.emergency-dialog:not([hidden])').forEach(closeSheet);
+});
+
 // ── Stop sharing (revokes the live location link immediately; the alert itself
-// stays active) ──
-qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
-  const btn = e.currentTarget;
-  btn.disabled = true;
+// stays active) — #3968 S8 ──
+function stopSharing() {
+  const btn = qs('#stop-sharing-btn');
+  if (btn) btn.disabled = true;
   const step2 = qs('[data-step="2"]');
   if (step2) {
     step2.classList.remove('emergency-step--active', 'emergency-step--pending');
@@ -136,6 +186,27 @@ qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
       text.textContent = translate('emergency.sharingStopped');
     }
   }
+  // The hero no longer claims her location is being shared.
+  const alertBody = qs('#alert-body');
+  if (alertBody) {
+    alertBody.setAttribute('data-i18n', 'emergency.sharingStopped');
+    alertBody.textContent = translate('emergency.sharingStopped');
+  }
+  const live = qs('#live-status');
+  const liveText = qs('#live-status-text');
+  live?.classList.add('is-stopped');
+  if (liveText) {
+    liveText.setAttribute('data-i18n', 'emergency.liveStopped');
+    liveText.textContent = translate('emergency.liveStopped');
+  }
+}
+
+const stopDialog = qs('#stop-dialog');
+qs('#stop-sharing-btn')?.addEventListener('click', () => openSheet(stopDialog));
+qs('#stop-keep')?.addEventListener('click', () => closeSheet(stopDialog));
+qs('#stop-confirm')?.addEventListener('click', () => {
+  closeSheet(stopDialog);
+  stopSharing();
   showToast(translate('emergency.sharingStopped'), 'success');
 });
 
@@ -143,8 +214,13 @@ qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
 qs('#return-btn').addEventListener('click', () => window.location.assign('./active-trip.html'));
 qs('#back-btn')?.addEventListener('click', () => window.location.assign('./active-trip.html'));
 
-// ── Cancel alert ──
-qs('#cancel-btn').addEventListener('click', () => {
+// ── Cancel alert: she confirms it was a false alarm; sharing stops (#3968 S10) ──
+const alarmDialog = qs('#alarm-dialog');
+qs('#cancel-btn').addEventListener('click', () => openSheet(alarmDialog));
+qs('#alarm-keep')?.addEventListener('click', () => closeSheet(alarmDialog));
+qs('#alarm-confirm')?.addEventListener('click', () => {
+  closeSheet(alarmDialog);
+  stopSharing();
   showToast(translate('emergency.cancelToast'), 'success');
   setTimeout(() => window.location.assign('./active-trip.html'), 800);
 });

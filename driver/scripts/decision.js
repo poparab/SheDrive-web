@@ -14,6 +14,18 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
+// ── Push banner (#1577), worded for the decision on screen ──
+const isRejected = new URLSearchParams(location.search).get('state') === 'rejected';
+const banner = qs('#decision-push-banner');
+const bannerText = qs('#push-banner-text');
+if (banner && bannerText) {
+  const key = isRejected ? 'driver.decision.rejected.title' : 'driver.decision.approved.title';
+  bannerText.setAttribute('data-i18n', key);
+  bannerText.textContent = translate(key);
+  banner.hidden = false;
+  setTimeout(() => { banner.hidden = true; }, 3500);
+}
+
 // ── Approved CTA ──────────────────────────────────────
 qs('#start-btn')?.addEventListener('click', () => {
   window.location.assign('./home.html');
@@ -49,6 +61,8 @@ qs('#contact-btn')?.addEventListener('click', () => {
 
 // ── Toast helper ──────────────────────────────────────
 function showToast(message, type = 'info') {
+  const host = document.querySelector('sd-toast-host');
+  if (host?.showToast) { host.showToast(message, type); return; }
   const container = qs('#toast-container');
   if (!container) return;
   const toast = document.createElement('div');

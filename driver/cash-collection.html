@@ -6,20 +6,6 @@
     <meta name="description" content="SheDrive Driver — تحصيل التكلفة النقدية" />
     <title>SheDrive Driver — تحصيل نقدي</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/styles/tokens.css" />
-    <link rel="stylesheet" href="../shared/styles/reset.css" />
-    <link rel="stylesheet" href="../shared/styles/base.css" />
-    <link rel="stylesheet" href="../shared/styles/components.css" />
-    <link rel="stylesheet" href="../shared/styles/utilities.css" />
-    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
-    <link rel="stylesheet" href="../shared/styles/web-components.css" />
-    <link rel="stylesheet" href="../shared/styles/rtl.css" />
-    <link rel="stylesheet" href="styles/driver.css" />
-    <link rel="stylesheet" href="styles/cash-collection.css" />
-
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
@@ -32,26 +18,27 @@
         data-i18n-aria-label="aria.driver.cashCollection"
       >
 
-        <!-- Cash icon -->
-        <div class="cash-icon" aria-hidden="true">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="2"/>
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M17 12h.01M7 12h.01"/>
-          </svg>
-        </div>
-
-        <!-- Heading -->
-        <div class="cash-header">
+        <!-- ── Heading — Figma "Trip Completed" ── -->
+        <div class="cash-hero">
+          <div class="cash-icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="2"/>
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M17 12h.01M7 12h.01"/>
+            </svg>
+          </div>
           <h1 class="cash-title" data-i18n="driver.cash.title">اجمعي التكلفة النقدية</h1>
           <p class="cash-subtitle" data-i18n="driver.cash.subtitle">أبلغي الراكبة بالمبلغ المطلوب</p>
         </div>
 
-        <!-- Total-to-collect badge (fare, or fare + recovered rider fee) -->
-        <div class="cash-fare-badge" role="status" aria-live="polite">
-          <span class="cash-fare-badge__amount" id="cash-fare-amount">٦٥</span>
-          <span class="cash-fare-badge__currency" data-i18n="driver.currency">جنيه</span>
-        </div>
+        <!-- ── Total to collect (fare, or fare + recovered rider fee) ── -->
+        <section class="cash-total" role="status" aria-live="polite">
+          <span class="cash-total__label" data-i18n="driver.cash.totalLine">الإجمالي المطلوب تحصيله</span>
+          <p class="cash-total__amount">
+            <span class="cash-total__value" id="cash-fare-amount">٦٥</span>
+            <span class="cash-total__currency" data-i18n="driver.currency">جنيه</span>
+          </p>
+        </section>
 
         <!-- ── Itemised breakdown — shown only when a rider fee is recovered on this trip (spec §3) ── -->
         <div class="cash-breakdown" id="cash-breakdown" hidden aria-hidden="true">
@@ -70,46 +57,54 @@
           </div>
         </div>
 
-        <!-- Net earnings card (#1766) — gross × 0.8, commission never shown -->
-        <div class="cash-net-card" role="note" aria-label="صافي أرباحك">
-          <div class="cash-net-card__label">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span data-i18n="driver.cash.netEarnings">صافي أرباحك</span>
+        <!-- ── Net earnings (#1766) — gross × 0.8, commission never shown ── -->
+        <section class="cash-net-card" aria-labelledby="cash-net-label">
+          <h2 class="cash-net-card__label" id="cash-net-label" data-i18n="driver.cash.netEarnings">صافي أرباحك</h2>
+          <div class="cash-net-card__row">
+            <p class="cash-net-card__amount">
+              <span id="cash-net-amount">٥٢</span>
+              <span data-i18n="driver.currency">جنيه</span>
+            </p>
+            <p class="cash-net-card__note" data-i18n="driver.cash.netNote">بعد خصم عمولة المنصة</p>
           </div>
-          <div class="cash-net-card__amount">
-            <span id="cash-net-amount">٥٢</span>
-            <span data-i18n="driver.currency">جنيه</span>
+        </section>
+
+        <!-- ── Trip summary ── -->
+        <section class="cash-summary" aria-labelledby="cash-summary-title">
+          <h2 class="section-title cash-summary__title" id="cash-summary-title" data-i18n="driver.tripDetail.summary">ملخص الرحلة</h2>
+          <div class="cash-summary__card">
+            <ol class="route">
+              <li class="route__stop route__stop--pickup">
+                <span class="route__place" id="cash-from">المعادي</span>
+                <span class="route__label" data-i18n="request.pickup">الانطلاق</span>
+              </li>
+              <li class="route__stop route__stop--destination">
+                <span class="route__place" id="cash-to">مدينة نصر</span>
+                <span class="route__label" data-i18n="request.destination">الوجهة</span>
+              </li>
+            </ol>
+            <div class="cash-summary__row">
+              <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              </span>
+              <span class="cash-summary__label" data-i18n="payments.methodTitle">طريقة الدفع</span>
+              <span class="cash-summary__value" data-i18n="payments.cash">نقداً</span>
+            </div>
           </div>
-          <p class="cash-net-card__note" data-i18n="driver.cash.netNote">بعد خصم عمولة المنصة</p>
-        </div>
+        </section>
+      </main>
 
-        <!-- Trip summary chip -->
-        <div class="cash-trip-chip" role="note" id="cash-trip-chip" aria-label="ملخص الرحلة">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          <span id="cash-from">المعادي</span>
-          <span class="cash-trip-chip__sep" aria-hidden="true">←</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-          </svg>
-          <span id="cash-to">مدينة نصر</span>
-        </div>
-
-        <!-- Confirm button -->
+      <!-- ── Pinned CTA ── -->
+      <div class="cash-actions">
         <button
           type="button"
-          class="btn btn--primary btn--full btn--lg"
+          class="btn btn--primary btn--full"
           id="collected-btn"
           data-i18n="driver.cash.collected"
         >
           تم الاستلام — ابدئي رحلة جديدة
         </button>
-
-      </main>
+      </div>
 
       <script type="module" src="scripts/cash-collection.js"></script>
     </sd-page>

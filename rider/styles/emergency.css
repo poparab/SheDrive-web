@@ -1,54 +1,73 @@
 /* ============================================================
-   SheDrive — Emergency Safety Dashboard
-   Screen-scoped styles. All values via tokens except the red
-   gradient and rgba pulse shadows.
+   SheDrive — Rider emergency screen (SOS raised)
+   Figma: "Safety Alert Active" + "Stop Live Sharing".
+   Pink safety hero, white panel overlapping it with a 32px radius,
+   bottom-sheet confirmations. Phase 1 SOS = emergency contacts +
+   live-location sharing only (no control room).
+   All values via tokens.
    ============================================================ */
 
 .emergency-page {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface-alt);
-}
-
-/* ── Topbar ── */
-.emergency-topbar {
-  position: sticky;
-  top: 0;
-  height: 56px;
-  padding: 0 var(--space-4);
-  z-index: 10;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.emergency-topbar__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-  height: 100%;
 }
 
 /* ── Hero ── */
 .emergency-hero {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  color: white;
-  padding: var(--space-8) var(--space-5);
-  text-align: center;
   position: relative;
+  isolation: isolate;
   overflow: hidden;
+  padding-block-end: calc(var(--radius-2xl) + var(--space-5));
+  background: linear-gradient(180deg, var(--color-accent-400) 0%, var(--color-accent-200) 60%, var(--color-accent-100) 100%);
+  color: var(--color-accent-700);
+  text-align: center;
 }
 
-.emergency-hero__pulse {
+/* Header sits in flow on the pink band — no bar, no blur */
+.emergency-hero .emergency-topbar {
   position: relative;
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--space-4);
+  z-index: var(--z-above);
+  inset: auto;
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter) var(--space-2);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.emergency-hero .emergency-topbar__inner {
+  position: relative;
+  inset: auto;
+  block-size: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[dir='rtl'] .emergency-back-icon {
+  transform: scaleX(-1);
+}
+
+.emergency-hero__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--page-gutter) 0;
+}
+
+/* Shield badge with soft pulsing rings */
+.emergency-hero__pulse {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 3);
+  block-size: calc(var(--icon-tile-size-lg) * 3);
+  margin-block-end: var(--space-2);
 }
 
 .emergency-hero__pulse::before,
@@ -56,176 +75,147 @@
   content: '';
   position: absolute;
   inset: 0;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  animation: radar-pulse 1.8s ease-out infinite;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(var(--color-surface-rgb), 0.7);
+  animation: radar-pulse 2.4s ease-out infinite;
 }
 
 .emergency-hero__pulse::after {
-  animation-delay: 0.9s;
+  animation-delay: 1.2s;
 }
 
-.emergency-hero__dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25);
+.emergency-hero__badge {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 1.8);
+  block-size: calc(var(--icon-tile-size-lg) * 1.8);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-700);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 var(--space-2) rgba(var(--color-surface-rgb), 0.35);
 }
 
 @keyframes radar-pulse {
   0% {
-    transform: scale(0.3);
+    transform: scale(0.55);
     opacity: 1;
   }
   100% {
-    transform: scale(2);
+    transform: scale(1.1);
     opacity: 0;
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .emergency-hero__pulse::before,
+  .emergency-hero__pulse::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
 .emergency-hero__title {
-  font-size: var(--fs-2xl);
+  margin: 0;
+  font-size: var(--fs-3xl);
   font-weight: var(--fw-bold);
-  margin: 0 0 var(--space-2);
-  color: white;
+  line-height: var(--leading-tight);
+  color: var(--color-accent-700);
 }
 
 .emergency-hero__subtitle {
-  font-size: var(--fs-base);
-  opacity: 0.9;
   margin: 0;
-  line-height: var(--leading-relaxed);
+  max-inline-size: 32ch;
+  font-size: var(--fs-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text-strong);
 }
 
-/* ── Content ── */
-.emergency-content {
-  flex: 1;
-  padding: var(--space-6) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-/* ── Call list ── */
-.emergency-call-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.emergency-call {
-  width: 100%;
-  display: flex;
+/* "Live sharing active" pill */
+.emergency-live {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  cursor: pointer;
-  text-align: start;
-  transition: all var(--transition-base);
-  font-family: inherit;
-}
-
-.emergency-call:hover,
-.emergency-call:active,
-.emergency-call:focus-visible {
-  border-color: var(--color-primary-600);
+  color: var(--color-success-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   box-shadow: var(--shadow-sm);
-  outline: none;
 }
 
-.emergency-call__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: white;
-}
-
-.emergency-call__icon--police {
-  background: var(--color-danger);
-}
-
-.emergency-call__icon--ambulance {
+.emergency-live__dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
   background: var(--color-success);
 }
 
-.emergency-call__icon--safety {
-  background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary-600), var(--color-accent-500)));
+.emergency-live.is-stopped {
+  color: var(--color-text-muted);
 }
 
-.emergency-call__body {
-  flex: 1;
+.emergency-live.is-stopped .emergency-live__dot {
+  background: var(--color-text-subtle);
+}
+
+/* ── White panel over the hero ── */
+.emergency-content {
+  position: relative;
+  z-index: var(--z-above);
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.emergency-call__label {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-.emergency-call__number {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.emergency-call__chevron {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-[dir='rtl'] .emergency-call__chevron {
-  transform: scaleX(-1);
-}
-
-/* ── Timeline ── */
-.emergency-timeline {
+  gap: var(--space-6);
+  margin-block-start: calc(var(--radius-2xl) * -1);
+  padding: var(--space-3) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
 }
 
-.emergency-timeline__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-4);
+.emergency-content__handle {
+  margin-block-end: calc(var(--space-2) * -1);
+}
+
+.emergency-section-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
+}
+
+/* ── Contacts notified ── */
+.emergency-timeline {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .emergency-step {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   padding-block: var(--space-2);
-  position: relative;
 }
 
 .emergency-step__indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-border);
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: white;
-  position: relative;
-  z-index: 1;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  color: var(--color-on-primary);
 }
 
 .emergency-step--active .emergency-step__indicator {
@@ -234,13 +224,7 @@
 
 /* Stop-sharing state: the step already happened but is no longer live. */
 .emergency-step--done .emergency-step__indicator {
-  background: var(--color-text-muted);
-}
-.emergency-step--done .emergency-step__check {
-  display: block;
-}
-.emergency-step--done:not(:last-child)::before {
-  background: var(--color-text-muted);
+  background: var(--color-text-subtle);
 }
 
 .emergency-step__check,
@@ -248,7 +232,8 @@
   display: none;
 }
 
-.emergency-step--active .emergency-step__check {
+.emergency-step--active .emergency-step__check,
+.emergency-step--done .emergency-step__check {
   display: block;
 }
 
@@ -257,214 +242,300 @@
 }
 
 .emergency-step__spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border: 2px solid rgba(var(--color-surface-rgb), 0.4);
+  border-top-color: var(--color-surface);
+  border-radius: var(--radius-full);
+  animation: emergency-spin 0.8s linear infinite;
 }
 
-.emergency-step:not(:last-child)::before {
+@keyframes emergency-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.emergency-step:not(:last-of-type)::before {
   content: '';
   position: absolute;
-  inset-inline-start: 11px;
-  top: 32px;
-  width: 2px;
-  height: calc(100% - 16px);
+  inset-inline-start: calc(var(--space-3) - 1px);
+  inset-block-start: calc(var(--space-8));
+  inline-size: 2px;
+  block-size: calc(100% - var(--space-6));
   background: var(--color-border);
-  z-index: 0;
 }
 
-.emergency-step--active:not(:last-child)::before {
+.emergency-step--active:not(:last-of-type)::before {
   background: var(--color-success);
 }
 
 .emergency-step__text {
   flex: 1;
   font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
 }
 
-.emergency-step--pending .emergency-step__text {
+.emergency-step--pending .emergency-step__text,
+.emergency-step--done .emergency-step__text {
   color: var(--color-text-muted);
 }
 
-/* ── Notified emergency contacts (Phase 1 SOS) ── */
+/* Per-contact delivery status (Phase 1 SOS, #3968 S5) */
 .emergency-contacts-notified {
-  list-style: none;
-  margin: var(--space-3) 0 0;
-  padding: var(--space-3) 0 0;
-  border-block-start: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-4) 0 0;
+  list-style: none;
+  border-block-start: 1px solid var(--color-border);
 }
+
 .emergency-contacts-notified:empty {
   display: none;
 }
+
 .emergency-contact-notified {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
+
 .emergency-contact-notified__info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   min-inline-size: 0;
 }
+
 .emergency-contact-notified__name {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
 }
+
 .emergency-contact-notified__meta {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
+
 .emergency-contact-notified__status {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
   white-space: nowrap;
-  flex-shrink: 0;
 }
+
 .emergency-contact-notified__status.is-sending {
+  background: var(--color-primary-100);
   color: var(--color-text-muted);
-  background: var(--color-surface-alt);
 }
+
 .emergency-contact-notified__status.is-delivered {
-  color: var(--color-success);
-  background: rgba(var(--color-success-rgb), 0.1);
+  background: var(--color-success-bg);
+  color: var(--color-success-strong);
 }
+
 .emergency-contact-notified__status.is-failed {
-  color: var(--color-danger);
-  background: rgba(var(--color-danger-rgb), 0.1);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-strong);
 }
+
 .emergency-no-contacts {
   margin: var(--space-3) 0 0;
   font-size: var(--fs-sm);
+  line-height: var(--leading-normal);
   color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
 }
+
 .emergency-no-contacts[hidden] {
   display: none;
 }
 
-/* ── Recap ── */
-.emergency-recap {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
+/* ── Quick emergency services (Police 122, Ambulance 123) ── */
+.emergency-call-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
-.emergency-recap__title {
+.emergency-call {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: 100%;
+  padding: var(--space-5) var(--space-3);
+  background: var(--color-accent-50);
+  border: 1px solid var(--color-accent-200);
+  border-radius: var(--radius-lg);
+  color: var(--color-accent-700);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.emergency-call:hover {
+  border-color: var(--color-accent-400);
+}
+
+.emergency-call:active {
+  transform: scale(0.98);
+}
+
+.emergency-call:focus-visible {
+  outline: 2px solid var(--color-accent-600);
+  outline-offset: 2px;
+}
+
+.emergency-call__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-2));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-2));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-300);
+  color: var(--color-accent-700);
+}
+
+.emergency-call__label {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-accent-700);
+}
+
+.emergency-call__number {
   font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-3);
+  color: var(--color-text-subtle);
+}
+
+/* ── Trip recap ── */
+.emergency-recap__card {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .emergency-recap__row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
-  padding-block: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
   font-size: var(--fs-sm);
 }
 
 .emergency-recap__row:last-child {
-  border-bottom: none;
+  border-block-end: none;
 }
 
 .emergency-recap__label {
+  flex-shrink: 0;
   color: var(--color-text-muted);
 }
 
 .emergency-recap__value {
-  color: var(--color-text);
+  min-inline-size: 0;
   font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
   text-align: end;
+  overflow-wrap: anywhere;
 }
 
-/* ── Bottom actions ── */
+/* ── Actions (in flow, after the content — nothing is pinned over it) ── */
 .emergency-actions {
-  position: sticky;
-  bottom: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  z-index: 5;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-/* ── Spinner util ── */
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary-600);
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ── Toast (mirrors rider/styles/trip.css) ── */
-.toast-container {
+/* ── Confirmation sheets ── */
+.emergency-dialog {
   position: fixed;
-  top: var(--space-4);
-  inset-inline-end: var(--space-4);
-  z-index: 10000;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+}
+
+.emergency-dialog[hidden] {
+  display: none;
+}
+
+.emergency-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-overlay);
+  backdrop-filter: blur(var(--space-1));
+  -webkit-backdrop-filter: blur(var(--space-1));
+}
+
+.emergency-dialog__sheet {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-block-size: 90dvh;
+  overflow-y: auto;
+  padding: var(--space-3) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-2xl);
+  border-start-end-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sheet);
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform var(--transition-base);
 }
 
-.toast {
-  padding: var(--space-3) var(--space-5);
+.emergency-dialog.is-open .emergency-dialog__sheet {
+  transform: none;
+}
+
+.emergency-dialog__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 1.8);
+  block-size: calc(var(--icon-tile-size-lg) * 1.8);
+  margin-block-start: var(--space-3);
   border-radius: var(--radius-full);
+  background: var(--color-accent-100);
+  color: var(--color-accent-700);
+}
+
+.emergency-dialog__title {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-accent-700);
+}
+
+.emergency-dialog__body {
+  margin: 0;
   font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  background: var(--color-text);
-  color: white;
-  box-shadow: var(--shadow-md);
-  animation: toast-in 0.25s ease;
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
 }
 
-.toast--success {
-  background: var(--color-success);
-}
-
-.toast--danger {
-  background: var(--color-danger);
-}
-
-.toast--info {
-  background: var(--color-text);
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.emergency-dialog__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  margin-block-start: var(--space-4);
 }

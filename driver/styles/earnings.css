@@ -1,201 +1,144 @@
 /*
- * earnings.css — Driver earnings & trip history screen
- * All values use tokens. No hardcoded colors or sizes.
+ * earnings.css — Driver earnings dashboard (#1736)
+ * Figma "Driver - Earnings": purple hero with the period switch, a white panel
+ * holding the lavender summary card, the trip list, and a pinned
+ * "Balance & statement" action. All values use tokens.
  */
 
-/* ── Page layout ─────────────────────────────────── */
+/* ── Hero ────────────────────────────────────────── */
 
-.earnings-page {
-  background: var(--color-surface-alt);
-  min-block-size: 100dvh;
-  display: flex;
-  flex-direction: column;
+/* Back chevron points "back": left in LTR, right in RTL. */
+[dir='rtl'] .earnings-back__icon {
+  transform: scaleX(-1);
 }
 
-/* ── Header ──────────────────────────────────────── */
-
-.earnings-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border-block-end: 1px solid var(--color-border);
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--z-nav);
+.earnings-hero__title {
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
 }
 
-.earnings-header__back {
+.earnings-hero__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earnings-hero__title svg {
   flex-shrink: 0;
 }
 
-.earnings-header__title {
-  flex: 1;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  text-align: center;
+/* F7 stretches plain buttons to 100% — the segments share the row instead. */
+.earnings-tabs .sd-segmented__btn {
+  inline-size: auto;
+  min-inline-size: 0;
 }
 
-/* ── Main scroll area ────────────────────────────── */
+/* ── Panel ───────────────────────────────────────── */
 
 .earnings-main {
-  flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-4) max(var(--space-8), env(safe-area-inset-bottom));
-  max-inline-size: 600px;
-  margin-inline: auto;
-  inline-size: 100%;
+  gap: var(--space-6);
+  /* Room for the pinned action so the last trip is never hidden behind it. */
+  padding-block-end: calc(var(--control-height) + var(--space-10) + env(safe-area-inset-bottom));
 }
 
 /* ── Summary card ────────────────────────────────── */
 
 .earnings-summary {
-  background: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-500) 100%);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-6);
-  color: var(--color-surface);
-  text-align: center;
+  margin: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--space-2);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.earnings-summary__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-3);
-  box-shadow: var(--shadow-lg);
 }
 
 .earnings-summary__label {
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+}
+
+.earnings-summary__trips {
+  flex-shrink: 0;
   font-size: var(--fs-sm);
-  opacity: 0.85;
-  font-weight: var(--fw-medium);
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3);
 }
 
 .earnings-summary__amount {
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
-}
-
-.earnings-summary__amount span:first-child {
-  font-size: var(--fs-5xl, 3rem);
-  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
   line-height: 1;
 }
 
+.earnings-summary__value {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+}
+
 .earnings-summary__currency {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-medium);
-  opacity: 0.85;
-}
-
-.earnings-summary__stats {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-6);
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.earnings-summary__stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.earnings-summary__stat-value {
   font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-}
-
-.earnings-summary__stat-label {
-  font-size: var(--fs-xs);
-  opacity: 0.8;
-}
-
-.earnings-summary__divider {
-  inline-size: 1px;
-  block-size: 40px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* ── Driver performance metrics (#1736 / #1766) ─── */
-
-.earnings-metrics {
-  display: flex;
-  justify-content: space-around;
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid rgba(255, 255, 255, 0.2);
-  gap: var(--space-2);
-}
-
-.earnings-metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.earnings-metric__value {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  color: var(--color-surface);
-}
-
-.earnings-metric__value svg { flex-shrink: 0; color: var(--color-warning); }
-
-.earnings-metric__label {
-  font-size: var(--fs-xs);
-  opacity: 0.8;
-  text-align: center;
-  line-height: var(--leading-snug);
-}
-
-/* ── Filter tabs ─────────────────────────────────── */
-
-.earnings-tabs {
-  display: flex;
-  gap: var(--space-2);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-1);
-  box-shadow: var(--shadow-sm);
-}
-
-.earnings-tab {
-  flex: 1;
-  padding-block: var(--space-2);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-lg);
-  border: none;
-  background: transparent;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: background var(--transition-base), color var(--transition-base);
-  font-family: inherit;
-}
-
-.earnings-tab.is-active {
-  background: var(--color-primary-600);
-  color: var(--color-surface);
   font-weight: var(--fw-semibold);
 }
 
-.earnings-tab:not(.is-active):hover {
-  background: var(--color-surface-alt);
-  color: var(--color-text);
+.earnings-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+/* Figma tiles are white on the lavender card. */
+.earnings-stat {
+  background: var(--color-surface);
+  min-inline-size: 0;
+}
+
+.earnings-stat .stat-tile__value {
+  white-space: nowrap;
+}
+
+.earnings-stat__unit {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.earnings-stat .stat-tile__label {
+  line-height: var(--leading-snug);
+}
+
+.earnings-summary__total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.earnings-summary__total strong {
+  color: var(--color-text-strong);
+  font-weight: var(--fw-bold);
 }
 
 /* ── Trip list ───────────────────────────────────── */
+
+.earnings-list .section-head {
+  margin-block-end: var(--space-4);
+}
 
 .earnings-trips {
   display: flex;
@@ -203,18 +146,18 @@
   gap: var(--space-3);
 }
 
-/* Individual trip item */
+/* Figma trip card: white, thin lavender border, 16px radius. */
 .trip-item {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 
 .trip-item__summary {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: var(--space-4);
   cursor: pointer;
   user-select: none;
@@ -224,39 +167,48 @@
   background: var(--color-surface-alt);
 }
 
-.trip-item__icon {
-  inline-size: 40px;
-  block-size: 40px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.trip-item__summary:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: -2px;
 }
 
 .trip-item__info {
   flex: 1;
   min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.trip-item__route {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-  white-space: nowrap;
+.trip-item__route .route__place {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trip-item__meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-1);
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+}
+
+.trip-item__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.trip-item__meta-item svg {
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+}
+
+.trip-item__status {
+  padding-block: 0;
 }
 
 .trip-item__right {
@@ -268,18 +220,29 @@
 }
 
 .trip-item__fare {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  /* the dark variant — the light one is unreadable on the badge's green tint */
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
   color: var(--color-success-strong);
+  white-space: nowrap;
+}
+
+.trip-item__fare-label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
 }
 
 .trip-item__chevron {
-  color: var(--color-text-muted);
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
   transition: transform var(--transition-base);
 }
 
-.trip-item.is-expanded .trip-item__chevron {
+[dir='rtl'] .trip-item__chevron {
+  transform: scaleX(-1);
+}
+
+.trip-item.is-expanded .trip-item__chevron,
+[dir='rtl'] .trip-item.is-expanded .trip-item__chevron {
   transform: rotate(90deg);
 }
 
@@ -300,11 +263,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  margin: 0;
+  padding: 0;
 }
 
 .trip-item__breakdown li {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-3);
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
 }
@@ -321,13 +287,9 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  padding-block: var(--space-12);
+  padding-block: var(--space-10);
   text-align: center;
   color: var(--color-text-muted);
-}
-
-.earnings-empty__illustration {
-  opacity: 0.35;
 }
 
 .earnings-empty__msg {
@@ -335,21 +297,23 @@
   font-weight: var(--fw-medium);
 }
 
-@media (min-width: 768px) {
-  .earnings-main { padding: var(--space-6) var(--space-8); }
-  .earnings-summary__amount span:first-child { font-size: 3.5rem; }
+/* ── Pinned "Balance & statement" action (#1788) ── */
+
+.earnings-cta {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-nav);
+  padding: var(--space-3) var(--page-gutter) calc(var(--space-4) + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--color-surface) 70%, rgba(var(--color-surface-rgb), 0));
 }
 
-/* ── Balance-owed entry link (#1788) ─────────────── */
-
-/* A bordered row with a chevron, like the other tappable rows — as a bare ghost
-   button it read as a section heading. */
 .earnings-balance-link {
-  margin-block-start: var(--space-3);
-  justify-content: space-between;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-primary-600);
+  min-block-size: var(--control-height);
+  font-size: var(--fs-lg);
 }
 
-[dir="rtl"] .earnings-balance-link__chevron { transform: scaleX(-1); }
+/* Framework7 gives every <p> a 1em block margin. */
+.earnings-main p {
+  margin: 0;
+}

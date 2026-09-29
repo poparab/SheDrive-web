@@ -5,10 +5,15 @@
   background: var(--color-surface-alt);
 }
 
-.delete-account-page .del-topbar {
+/* Pin the whole header element: a sticky bar nested inside <sd-app-header> can
+   only stick within the header itself, so it scrolled away with the content. */
+.delete-account-page sd-app-header {
   position: sticky;
   inset-block-start: 0;
   z-index: var(--z-nav);
+}
+
+.delete-account-page .del-topbar {
   background: var(--color-surface);
   border-block-end: 1px solid var(--color-border);
 }
@@ -17,3 +22,4 @@
   padding: 0 var(--space-4);
   block-size: calc(var(--space-12) + var(--space-2));
 }
+

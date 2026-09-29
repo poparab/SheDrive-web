@@ -5,7 +5,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { storage } from '../../shared/scripts/storage.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
@@ -64,6 +64,8 @@ function clearPhoneError() {
 
 function showPhoneError(key) {
   if (phoneError) {
+    // Keep data-i18n in step so a language switch re-renders this message, not the default.
+    phoneError.setAttribute('data-i18n', key);
     phoneError.textContent = translate(key);
     phoneError.hidden = false;
   }
@@ -93,6 +95,14 @@ const resendLabel = qs('#resend-countdown');
 
 let currentPhone = '';
 
+// The shared countdown formats from the label's data-cooldown-template; keep that
+// template in the current language so the English page doesn't count in Arabic.
+function syncCooldownTemplate() {
+  if (resendLabel) resendLabel.dataset.cooldownTemplate = translate('login.resend.cooldown');
+}
+syncCooldownTemplate();
+document.addEventListener(I18N_EVENT, syncCooldownTemplate);
+
 function startOtpStep(digits) {
   currentPhone = digits;
   attempts = 0;
@@ -116,6 +126,7 @@ function startOtpStep(digits) {
 
 function showOtpError(key) {
   if (otpErrorMsg) {
+    otpErrorMsg.setAttribute('data-i18n', key);
     otpErrorMsg.textContent = translate(key);
     otpErrorMsg.hidden = false;
   }
@@ -227,6 +238,7 @@ function startNameStep() {
 
 function showNameError(key) {
   if (nameError) {
+    nameError.setAttribute('data-i18n', key);
     nameError.textContent = translate(key);
     nameError.hidden = false;
   }

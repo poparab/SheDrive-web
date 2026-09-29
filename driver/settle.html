@@ -8,7 +8,6 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -26,30 +25,35 @@
   <body class="app-shell settle-page">
     <sd-page body-class="app-shell settle-page" screen-styles="styles/driver.css, styles/settle.css">
 
-      <sd-app-header>
-        <a href="./balance.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </a>
-        <span data-i18n="driver.settle.title">تسوية الرصيد</span>
-      </sd-app-header>
+      <div class="sd-hero settle-hero">
+        <sd-app-header>
+          <a href="./balance.html" class="btn btn--icon btn--ghost" data-slot="start" data-i18n-aria-label="aria.back" aria-label="رجوع">
+            <svg class="settle-back__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </a>
+          <span class="settle-hero__title" data-i18n="driver.settle.title">تسوية الرصيد</span>
+        </sd-app-header>
+      </div>
 
-      <main class="settle-main">
+      <main class="sd-panel settle-main">
 
         <!-- ── Error state ── -->
         <div class="settle-error" id="settle-error" hidden aria-hidden="true">
+          <span class="icon-tile icon-tile--xl icon-tile--round icon-tile--warning" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
           <p class="settle-error__msg" data-i18n="driver.settle.error">تعذّر تحميل بيانات التسوية. تحقّقي من اتصالك.</p>
-          <button type="button" class="btn btn--ghost" id="settle-retry" data-i18n="driver.settle.retry">إعادة المحاولة</button>
+          <button type="button" class="btn btn--secondary settle-error__retry" id="settle-retry" data-i18n="driver.settle.retry">إعادة المحاولة</button>
         </div>
 
         <div class="settle-content" id="settle-content">
 
           <!-- ── What she owes ── -->
-          <div class="settle-card" id="settle-card">
+          <div class="card card--violet settle-card" id="settle-card">
             <p class="settle-card__label" data-i18n="driver.settle.owedLabel">المبلغ المستحق عليكِ</p>
             <p class="settle-card__amount">
-              <span id="settle-amount">0</span>
+              <span class="settle-card__value" id="settle-amount">0</span>
               <span class="settle-card__currency" data-i18n="driver.currency">جنيه</span>
             </p>
             <p class="settle-card__explain" data-i18n="driver.settle.explain">سلّمي هذا المبلغ بإحدى الطرق أدناه، ويسجّله فريق المالية في رصيدك. إن كان حسابك موقوفاً، يعود للعمل فور تسجيل التسوية.</p>
@@ -57,34 +61,34 @@
 
           <!-- ── Nothing to settle ── -->
           <div class="settle-zero" id="settle-zero" hidden aria-hidden="true">
-            <div class="settle-zero__icon" aria-hidden="true">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <span class="icon-tile icon-tile--xl icon-tile--round icon-tile--success" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-            </div>
+            </span>
             <p class="settle-zero__msg" data-i18n="driver.settle.zero">لا يوجد عليكِ أي مبلغ لتسويته حالياً.</p>
           </div>
 
           <!-- ── Settlement channels ── -->
           <section class="settle-channels" id="settle-channels" data-i18n-aria-label="driver.settle.channelsAria" aria-label="قنوات التسوية">
-            <h2 class="settle-section__title" data-i18n="driver.settle.channelsTitle">طرق التسوية</h2>
-            <div id="channels-list"><!-- rendered by JS --></div>
+            <h2 class="section-label settle-section__title" data-i18n="driver.settle.channelsTitle">طرق التسوية</h2>
+            <div class="list-stack" id="channels-list"><!-- rendered by JS --></div>
           </section>
 
           <!-- ── Office address + hours ── -->
           <section class="settle-office">
-            <h2 class="settle-section__title" data-i18n="driver.settle.officeTitle">مكتب SheDrive</h2>
-            <div class="settle-office__card">
+            <h2 class="section-label settle-section__title" data-i18n="driver.settle.officeTitle">مكتب SheDrive</h2>
+            <div class="card settle-office__card">
               <div class="settle-office__row">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                </svg>
+                <span class="icon-tile icon-tile--lg icon-tile--round icon-tile--white" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
                 <span data-i18n="driver.settle.officeAddress">برج النيل التجاري، طابق ٣، شارع الجزيرة، الزمالك، القاهرة</span>
               </div>
               <div class="settle-office__row">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
+                <span class="icon-tile icon-tile--lg icon-tile--round icon-tile--white" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
                 <span data-i18n="driver.settle.officeHours">السبت – الخميس، ١٠ صباحاً – ٦ مساءً</span>
               </div>
             </div>
@@ -92,8 +96,8 @@
 
           <!-- ── Settlement history ── -->
           <section class="settle-history" id="settle-history" data-i18n-aria-label="driver.settle.historyAria" aria-label="سجل التسويات">
-            <h2 class="settle-section__title" data-i18n="driver.settle.historyTitle">سجل التسويات</h2>
-            <div id="history-list"><!-- rendered by JS --></div>
+            <h2 class="section-label settle-section__title" data-i18n="driver.settle.historyTitle">سجل التسويات</h2>
+            <div class="list-stack" id="history-list"><!-- rendered by JS --></div>
             <p class="settle-history__empty" id="history-empty" hidden aria-hidden="true" data-i18n="driver.settle.historyEmpty">لا توجد تسويات مسجّلة بعد.</p>
           </section>
 

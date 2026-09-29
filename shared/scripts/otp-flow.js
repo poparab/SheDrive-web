@@ -6,6 +6,7 @@
  *   getOtpErrorKey(errorCode)
  *   MAX_ATTEMPTS
  */
+import { translate } from './i18n.js';
 
 export const MAX_ATTEMPTS = 3;
 export const RESEND_SECONDS = 60;

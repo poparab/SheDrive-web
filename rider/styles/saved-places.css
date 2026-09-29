@@ -1,29 +1,106 @@
-/* saved-places.css — rider saved places (#1724) */
+/* saved-places.css — rider saved places (#4916)
+   Figma "Saved Places": purple hero band with the header, white panel with a
+   32px top radius, white place cards with a gradient icon and round edit /
+   delete buttons, Add New Place pinned to the bottom. Add / edit / delete open
+   as modal bottom sheets over a dimmed page. <sd-page> is the scroll container. */
 
-.places-topbar__inner {
+/* ── Page layout ────────────────────────────────────── */
+
+.saved-places-page sd-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.places-hero {
+  flex: none;
+}
+
+/* No bottom padding: the pinned action bar supplies it, so it sits flush with
+   the bottom of the screen. */
+.places-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-block-end: 0;
+}
+
+.places-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.places-body[hidden] {
+  display: none;
+}
+
+/* ── Header (inside the hero) ───────────────────────── */
+
+/* Framework7's `.navbar .title { display: inline-block }` outranks the shared
+   flex rule — keep the icon and the title on one row. */
+.saved-places-page .navbar .places-topbar__title {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 .places-topbar__title-text {
-  font-size: var(--fs-lg);
+  margin: 0;
+  font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: inherit;
+  line-height: var(--leading-tight);
+  text-align: center;
+  /* Wrap between words (never inside one) when the language toggle leaves
+     little room. */
+  white-space: normal;
+  overflow-wrap: normal;
 }
 
-.places-content {
-  padding: var(--space-5) var(--space-4) var(--space-10);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
+/* The title icon only fits beside the title on wider phones. */
+.places-topbar__icon {
+  display: none;
 }
+
+@media (min-width: 400px) {
+  .places-topbar__title-text {
+    font-size: var(--fs-2xl);
+  }
+
+  .places-topbar__icon {
+    display: block;
+  }
+}
+
+
+[dir='rtl'] .places-topbar__back-icon {
+  transform: scaleX(-1);
+}
+
+/* ── Intro + list head ──────────────────────────────── */
 
 .places-intro {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.places-list-head {
+  margin-block-end: 0;
+}
+
+.places-list-head[hidden] {
+  display: none;
+}
+
+.places-count {
   font-size: var(--fs-sm);
-  line-height: var(--leading-relaxed);
   color: var(--color-text-muted);
-  margin: 0;
+  white-space: nowrap;
 }
 
 /* ── List ─────────────────────────────────────────────────────────────── */
@@ -34,7 +111,11 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.places-list:empty {
+  display: none;
 }
 
 .place-card {
@@ -49,22 +130,8 @@
 }
 
 .place-card__icon {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  inline-size: var(--space-10);
-  block-size: var(--space-10);
-  border-radius: var(--radius-full);
-  background: var(--color-surface-alt);
-  color: var(--color-primary-600);
-}
-
-.place-card__icon--work {
-  color: var(--color-info);
-}
-
-.place-card__icon--custom {
-  color: var(--color-accent-500);
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-1));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-1));
 }
 
 .place-card__text {
@@ -75,107 +142,230 @@
   gap: var(--space-1);
 }
 
+.place-card__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
 .place-card__label {
-  font-size: var(--fs-base);
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
   color: var(--color-text);
+  line-height: var(--leading-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-card__badge {
+  flex: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
 }
 
 .place-card__address {
   font-size: var(--fs-sm);
-  line-height: var(--leading-normal);
-  color: var(--color-text-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  color: var(--color-text-subtle);
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .place-card__actions {
   flex: 0 0 auto;
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
+/* Round lavender buttons (Framework7 would otherwise stretch <button> to 100%). */
 .place-card__action {
-  color: var(--color-text-muted);
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
 }
 
-.place-card__action--danger {
-  color: var(--color-danger);
+.place-card__action:hover {
+  background: var(--color-primary-200);
 }
 
-/* ── Empty, limit and error states ────────────────────────────────────── */
+/* ── Pinned add action ──────────────────────────────── */
 
-.places-empty {
+.places-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--z-above);
+  margin-block-start: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-9) var(--space-4);
-  text-align: center;
-}
-
-.places-empty__icon {
-  color: var(--color-text-muted);
-  opacity: 0.5;
-}
-
-.places-empty__title {
-  margin: 0;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-.places-empty__hint {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  gap: var(--space-3);
+  padding-block: var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background: linear-gradient(
+    to top,
+    var(--color-surface) 75%,
+    rgba(var(--color-surface-rgb), 0)
+  );
 }
 
 .places-limit {
   margin: 0;
   padding: var(--space-3) var(--space-4);
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  background: var(--color-surface-alt);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
 
-.places-error {
+.places-limit[hidden] {
+  display: none;
+}
+
+/* ── Centred states: empty, error ───────────────────── */
+
+.places-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-9) var(--space-4);
+  justify-content: center;
+  gap: var(--space-2);
+  padding-block: var(--space-8) var(--space-2);
   text-align: center;
 }
 
-.places-error__msg {
+.places-state[hidden] {
+  display: none;
+}
+
+.places-error {
+  flex: 1 0 auto;
+  padding-block-end: var(--space-8);
+}
+
+.places-state__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-6));
+  block-size: calc(var(--space-16) + var(--space-6));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
+  color: var(--color-primary-700);
+}
+
+.places-state__title {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.places-state__body {
   margin: 0;
   font-size: var(--fs-base);
+  line-height: var(--leading-snug);
   color: var(--color-text-muted);
 }
 
-/* ── Sheets ───────────────────────────────────────────────────────────── */
-
-/* sd-bottom-sheet mounts open (it is a docked sheet on the home screen). Here both
-   sheets are modal, so they stay off-screen until something opens them. */
-.saved-places-page .sd-bottom-sheet {
-  max-block-size: 90vh;
-  overflow-y: auto;
-  transition: transform var(--transition-base);
+.places-state__cta {
+  margin-block-start: var(--space-6);
 }
 
-.saved-places-page .sd-bottom-sheet.modal-out {
-  transform: translateY(100%);
+/* Nothing saved: no intro, and the empty message + Add sit together in the
+   middle of the panel instead of Add being pinned to the bottom. */
+.places-body.is-empty {
+  justify-content: center;
+}
+
+.places-body.is-empty .places-intro {
+  display: none;
+}
+
+.places-body.is-empty .places-actions {
+  position: static;
+  margin-block-start: var(--space-4);
+  background: none;
+}
+
+/* ── Scrim + modal sheets ─────────────────────────────────────────────── */
+
+.places-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-overlay);
+  backdrop-filter: blur(var(--space-1));
+  -webkit-backdrop-filter: blur(var(--space-1));
+}
+
+.places-scrim[hidden] {
+  display: none;
+}
+
+/* sd-bottom-sheet mounts open (it is a docked sheet on the home screen). Here
+   both sheets are modal: fixed to the bottom of the app shell, off-screen until
+   opened, and scrolling inside themselves when taller than the screen. */
+body.saved-places-page sd-bottom-sheet.sd-bottom-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: auto;
+  inset-block-end: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  box-shadow: var(--shadow-sheet);
+  transition: transform var(--transition-base), visibility var(--transition-base);
+}
+
+body.saved-places-page sd-bottom-sheet.sd-bottom-sheet.modal-out {
+  transform: translate3d(0, 100%, 0);
   visibility: hidden;
 }
 
-.saved-places-page .sd-bottom-sheet.modal-in {
+body.saved-places-page sd-bottom-sheet.sd-bottom-sheet.modal-in {
   transform: none;
   visibility: visible;
+}
+
+/* The confirmation opens over the add/edit sheet when replacing Home or Work. */
+body.saved-places-page #confirm-sheet.sd-bottom-sheet {
+  z-index: calc(var(--z-modal) + 1);
+}
+
+body.saved-places-page sd-bottom-sheet .ride-sheet__toolbar {
+  flex: none;
+  background: transparent;
+}
+
+body.saved-places-page sd-bottom-sheet .sheet-modal-inner {
+  block-size: auto;
+  overflow: visible;
+}
+
+.places-sheet__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-2));
+  block-size: calc(var(--space-16) + var(--space-2));
+  margin-inline: auto;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
 /* ── Add / edit sheet ─────────────────────────────────────────────────── */
@@ -184,54 +374,95 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-5) var(--space-4) var(--space-6);
 }
 
 .place-form__title {
   margin: 0;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
+  text-align: center;
 }
 
 .place-labels {
-  display: flex;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
 .place-label-chip {
-  flex: 1 1 0;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  inline-size: 100%;
   padding: var(--space-3) var(--space-2);
   font-family: inherit;
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
-}
-
-.place-label-chip.is-active {
-  color: var(--color-primary-700);
-  border-color: var(--color-primary-500);
-  background: rgba(var(--color-primary-500-rgb), 0.08);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .place-label-chip__icon {
-  display: inline-flex;
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
+  color: var(--color-primary-700);
 }
 
-.place-form__actions {
+.place-label-chip.is-active {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-200);
+}
+
+.place-label-chip.is-active .place-label-chip__icon {
+  background: var(--color-surface);
+}
+
+.place-label-chip:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.places-input {
+  position: relative;
+}
+
+.places-input__icon {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-above);
+  color: var(--color-primary-600);
+  pointer-events: none;
+}
+
+.places-input .input {
+  padding-inline-start: calc(var(--space-4) + var(--space-8));
+}
+
+.place-form__actions,
+.confirm-box__actions {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
   margin-block-start: var(--space-2);
+}
+
+.place-form__actions sd-button[full],
+.confirm-box__actions sd-button[full] {
+  align-self: stretch;
 }
 
 /* ── Confirm sheet ────────────────────────────────────────────────────── */
@@ -240,27 +471,33 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-4) var(--space-6);
   text-align: center;
 }
 
 .confirm-box__title {
   margin: 0;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
 }
 
 .confirm-box__msg {
   margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text-muted);
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
 }
 
-.confirm-box__actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-block-start: var(--space-2);
+.confirm-box--danger .confirm-box__icon {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.confirm-box--danger .confirm-box__title {
+  color: var(--color-danger);
+}
+
+/* Replacing Home or Work is not destructive — no red "remove place" icon. */
+.confirm-box:not(.confirm-box--danger) .confirm-box__icon {
+  display: none;
 }

@@ -21,6 +21,18 @@ await initI18n();
 // Unread badge on the bell — the inbox marks items read as she opens them.
 qs('#notif-bell')?.setAttribute('count', String(unreadCount('rider')));
 
+// ── Greeting — uses her first name once her profile has one ──
+function renderGreeting() {
+  const el = qs('#home-greeting-text');
+  const name = String(storage.get('shedrive.profile')?.name || '').trim().split(/\s+/)[0];
+  if (!el || !name) return;
+  el.removeAttribute('data-i18n');
+  // First-strong isolates keep an Arabic name from reordering English punctuation.
+  el.textContent = translate('home.greetingNamed', { name: `\u2068${name}\u2069` });
+}
+renderGreeting();
+document.addEventListener(I18N_EVENT, renderGreeting);
+
 // ── Language switcher ────────────────────────────────
 qsa('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
@@ -34,7 +46,6 @@ const searchBackBtn    = qs('#search-back-btn');
 const searchClearBtn   = qs('#search-clear-btn');
 const useCurrentLocBtn = qs('#use-current-loc-btn');
 const pinDropBtn       = qs('#pin-drop-btn');
-const requestRideBtn   = qs('#request-ride-btn');
 const confirmRideBtn   = qs('#confirm-ride-btn');
 const fareChangeLink   = qs('.fare-change-link');
 const fareDestLabel    = qs('.fare-route__label--dest');
@@ -50,6 +61,19 @@ const recentBlock      = qs('#search-recent-block');
 const suggestionsList  = qs('#search-suggestions-list');
 const noResultsEl      = qs('#search-no-results');
 const locationStatus   = qs('#location-status');
+const searchTitle      = qs('#search-title');
+const savedBlock       = qs('#search-saved-block');
+const savedList        = qs('#search-saved-list');
+const searchErrorEl    = qs('#search-error');
+const searchRetryBtn   = qs('#search-retry-btn');
+const searchLocMsg     = qs('#search-loc-msg');
+const swapBtn          = qs('#swap-btn');
+
+const demo = new URLSearchParams(location.search);
+
+// Where "Use my current location" stands: 'ok' | 'denied' | 'unavailable' (#1550 S4/S5).
+// ?loc=denied|unavailable previews the two failures without touching browser permissions.
+let _locState = demo.get('loc') || 'ok';
 
 // ── Restore pickup/destination after a cancelled trip (#1719/#1852) ──
 // matching.js / active-trip.js set `cancelled: true` on the stored trip instead of
@@ -89,6 +113,7 @@ MapService.getUserLocation()
     if (!_pickupRestored) setPickupFromGps();
   })
   .catch((err) => {
+    if (!demo.get('loc')) _locState = err?.code === 1 ? 'denied' : 'unavailable';
     if (err?.code === 1 /* PERMISSION_DENIED */ && !_pickupRestored) {
       gpsBanner?.removeAttribute('hidden');
       if (pickupInput) {
@@ -153,11 +178,75 @@ function renderSuggestionRow(item) {
   return li;
 }
 
+// ── Saved places strip (#1549) — read-only; she manages them in her profile (#1724) ──
+// Same store and seed as saved-places.js, so the strip matches that screen.
+// ?saved=none previews a rider who has saved nothing: the strip is left out.
+const SAVED_SEED = [
+  { id: 'p1', label: 'home', name: '', address: 'شارع الشيخ زايد، الشيخ زايد، الجيزة' },
+  { id: 'p2', label: 'work', name: '', address: 'الرحاب، القاهرة الجديدة، القاهرة' },
+  { id: 'p3', label: 'custom', name: 'النادي', address: 'نادي الجزيرة، الزمالك، القاهرة' },
+];
+const SAVED_ORDER = { home: 0, work: 1, custom: 2 };
+const SAVED_ICONS = {
+  home: '<path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path>',
+  work: '<rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 13h18"></path>',
+  custom: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle>',
+};
+
+function savedPlaces() {
+  if (demo.get('saved') === 'none') return [];
+  const list = storage.get('shedrive.savedPlaces') ?? SAVED_SEED;
+  return list.slice().sort((a, b) => SAVED_ORDER[a.label] - SAVED_ORDER[b.label]);
+}
+
+function savedName(p) {
+  if (p.label === 'home') return translate('savedPlaces.home');
+  if (p.label === 'work') return translate('savedPlaces.work');
+  return p.name || translate('savedPlaces.custom');
+}
+
+function renderSavedStrip() {
+  const places = savedPlaces();
+  savedBlock?.toggleAttribute('hidden', places.length === 0);
+  if (!savedList) return;
+  savedList.innerHTML = '';
+  places.forEach((p) => {
+    const li = document.createElement('li');
+    li.className = 'saved-chip';
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', 'false');
+    li.tabIndex = 0;
+    li.innerHTML = `
+      <span class="saved-chip__icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SAVED_ICONS[p.label] || SAVED_ICONS.custom}</svg>
+      </span>
+      <span class="saved-chip__text">
+        <span class="saved-chip__name"></span>
+        <span class="saved-chip__sub"></span>
+      </span>`;
+    li.querySelector('.saved-chip__name').textContent = savedName(p);
+    li.querySelector('.saved-chip__sub').textContent = p.address;
+    // Picking a saved place behaves exactly like picking that address from search.
+    const activate = () => selectResult(p.address);
+    li.addEventListener('click', activate);
+    li.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+    });
+    savedList.appendChild(li);
+  });
+}
+document.addEventListener(I18N_EVENT, renderSavedStrip);
+
+// ?state=search-error previews a failed search; Retry clears it and searches again.
+let _searchFails = demo.get('state') === 'search-error';
+
 // 2-character threshold, up to 5 suggestions — #1549
 function runAutocomplete(query) {
   const q = query.trim();
+  searchErrorEl?.setAttribute('hidden', '');
 
   if (q.length < 2) {
+    renderSavedStrip();
     recentBlock?.removeAttribute('hidden');
     suggestionsList?.setAttribute('hidden', '');
     noResultsEl?.setAttribute('hidden', '');
@@ -165,7 +254,16 @@ function runAutocomplete(query) {
     return;
   }
 
+  savedBlock?.setAttribute('hidden', '');
   recentBlock?.setAttribute('hidden', '');
+
+  if (_searchFails) {
+    suggestionsList?.setAttribute('hidden', '');
+    noResultsEl?.setAttribute('hidden', '');
+    searchErrorEl?.removeAttribute('hidden');
+    return;
+  }
+
   const matches = AUTOCOMPLETE_RESULTS.filter((r) => r.name.includes(q)).slice(0, 5);
 
   if (suggestionsList) {
@@ -179,11 +277,28 @@ function runAutocomplete(query) {
 
 searchInput?.addEventListener('input', () => runAutocomplete(searchInput.value || ''));
 
+searchRetryBtn?.addEventListener('click', () => {
+  _searchFails = false;
+  runAutocomplete(searchInput?.value || '');
+});
+
 // ── Search overlay mode: "use current location" is pickup-only (#1550 vs #1551) ──
 let _searchMode = 'destination';
+const searchOverlay = qs('#search-overlay');
 
 function openSearch(mode) {
   _searchMode = mode;
+  // The overlay's field card takes the pickup or destination look (Figma "Select
+  // Pickup" / "Select Destination"), and its placeholder names the field.
+  if (searchOverlay) searchOverlay.dataset.mode = mode;
+  // The title names the field being chosen (#1549 S1).
+  const titleKey = mode === 'pickup' ? 'home.search.titlePickup' : 'home.search.title';
+  searchTitle?.setAttribute('data-i18n', titleKey);
+  if (searchTitle) searchTitle.textContent = translate(titleKey);
+  searchLocMsg?.setAttribute('hidden', '');
+  const placeholderKey = mode === 'pickup' ? 'home.pickup.required' : 'home.search.placeholder';
+  searchInput?.setAttribute('data-i18n-placeholder', placeholderKey);
+  searchInput?.setAttribute('placeholder', translate(placeholderKey));
   useCurrentLocBtn?.toggleAttribute('hidden', mode !== 'pickup');
   if (searchInput) searchInput.value = '';
   runAutocomplete('');
@@ -210,8 +325,19 @@ searchClearBtn?.addEventListener('click', () => {
 });
 
 // ── Use current location (pickup only) ───────────────
+// Refused permission or an unknown position keeps her on the search screen with a
+// message, and her pickup is unchanged (#1550 S4/S5).
 useCurrentLocBtn?.addEventListener('click', () => {
   if (_searchMode !== 'pickup') return;
+  if (_locState !== 'ok') {
+    const key = _locState === 'denied' ? 'home.search.locDenied' : 'home.search.locUnavailable';
+    searchLocMsg?.setAttribute('data-i18n', key);
+    if (searchLocMsg) {
+      searchLocMsg.textContent = translate(key);
+      searchLocMsg.hidden = false;
+    }
+    return;
+  }
   selectResult(translate('home.pickup.current'));
 });
 
@@ -254,6 +380,23 @@ function selectResult(name) {
     setState('');
   }
 }
+
+// ── Swap pickup and destination (#1551 S5) ──────────
+swapBtn?.addEventListener('click', () => {
+  if (!pickupInput || !destinationInput) return;
+  const pickup = pickupInput.value;
+  pickupInput.value = destinationInput.value;
+  destinationInput.value = pickup;
+  if (farePickupLabel) farePickupLabel.textContent = pickupInput.value;
+  if (fareDestLabel) fareDestLabel.textContent = destinationInput.value;
+  if (checkSameLocation()) { setState(''); return; }
+  if (hasFareContext()) {
+    storePendingTrip(destinationInput.value.trim());
+    setState('fare');
+  } else {
+    setState('');
+  }
+});
 
 // ── Account under review blocks the request (#1687 S4) ──
 // The server refuses the trip request while the rider is pending_review after a
@@ -333,20 +476,6 @@ fareRetryBtn?.addEventListener('click', () => {
   }
 });
 
-// ── Operating hours (#1791) — Phase 1 is daytime-only ────
-const OPERATING_HOURS = { start: 6, end: 23 }; // 06:00–23:00 local time
-
-function checkOperatingHours() {
-  const hour = new Date().getHours();
-  const isOpen = hour >= OPERATING_HOURS.start && hour < OPERATING_HOURS.end;
-  if (!isOpen) {
-    qs('#hours-banner')?.removeAttribute('hidden');
-    [requestRideBtn, confirmRideBtn].forEach((btn) => btn?.setAttribute('disabled', ''));
-  }
-  return isOpen;
-}
-checkOperatingHours();
-
 // ── Outstanding rider fee (spec §7.1, #3995/#3998) ─────
 // She is NEVER blocked from booking — a block would deadlock, because taking a ride is
 // the only way a cash rider can clear a fee. Her entire outstanding balance is recovered
@@ -383,6 +512,15 @@ qs('#fee-banner-dismiss')?.addEventListener('click', () => {
   qs('#fee-banner')?.setAttribute('hidden', '');
   sessionStorage.setItem(FEE_BANNER_DISMISSED_KEY, '1');
 });
+
+// ── Demo: search previews open the overlay in the right mode ──
+if (['search', 'search-pickup', 'search-error'].includes(demo.get('state'))) {
+  openSearch(demo.get('state') === 'search-pickup' ? 'pickup' : 'destination');
+  if (demo.get('state') === 'search-error' && searchInput) {
+    searchInput.value = 'مول';
+    runAutocomplete(searchInput.value);
+  }
+}
 
 // ── Side drawer ──────────────────────────────────────
 qs('#menu-btn')?.addEventListener('click', () => Drawer.open());

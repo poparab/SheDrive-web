@@ -68,7 +68,7 @@
   margin: 0;
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
   line-height: var(--leading-snug);
 }
 
@@ -90,7 +90,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
+  background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
@@ -142,19 +142,20 @@
 }
 
 /* ── Verify ───────────────────────────────────────────────────────────── */
+/* Figma OTP: the six lavender boxes stand on the page, no surrounding card. */
 
 .del-otp {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  text-align: center;
 }
 
+/* The phone number is LTR even in Arabic — without an inline-block isolate
+   "+20 1012345678" rendered as "1012345678 20+". */
 .del-otp__phone {
+  display: inline-block;
   direction: ltr;
   unicode-bidi: isolate;
   font-weight: var(--fw-semibold);
@@ -166,8 +167,20 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  min-block-size: var(--control-height-sm);
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
+}
+
+/* While the cooldown runs only the countdown shows; once the resend action is
+   live again the countdown gives way to it (same as the sign-in code step). */
+.del-resend .btn:disabled {
+  display: none;
+}
+
+.del-resend .btn:not(:disabled) + span,
+.del-resend span:empty {
+  display: none;
 }
 
 /* ── Footnote ─────────────────────────────────────────────────────────── */

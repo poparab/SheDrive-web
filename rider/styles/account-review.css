@@ -1,21 +1,40 @@
 /* account-review.css — Rider account under review after a gender-mismatch report.
-   Screen owner: rider/account-review.html (#1687 S4). */
+   Screen owner: rider/account-review.html (#1687 S4).
+   Figma "Rider - Account Under Review": lavender page, ringed gradient icon,
+   centred title and body, a bordered details card, an info callout, and the
+   support CTA + log-out link at the foot. */
 
 .review-page {
   background: var(--color-surface-alt);
 }
 
-.review-topbar__logo {
-  display: inline-flex;
-  align-items: center;
+/* Header: only the language control, no bar. F7 positions .navbar absolutely;
+   keep this one in flow. */
+.review-page .review-topbar {
+  position: relative;
+  inset: auto;
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter) 0;
+  background: transparent;
+}
+
+.review-page .review-topbar__inner {
+  position: relative;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.review-topbar__spacer {
+  flex: 1;
 }
 
 .review-content {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6) var(--space-4) var(--space-10);
-  min-block-size: 100%;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-block-size: calc(100% - var(--icon-btn-size) - var(--space-4));
+  padding: var(--space-4) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
 }
 
 .review-card {
@@ -23,106 +42,147 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  inline-size: 100%;
-  max-inline-size: 420px;
-  padding: var(--space-6);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
   text-align: center;
 }
 
+/* Ringed gradient disc */
 .review-card__icon {
   display: grid;
   place-items: center;
-  inline-size: 72px;
-  block-size: 72px;
+  inline-size: calc(var(--space-16) * 2);
+  block-size: calc(var(--space-16) * 2);
+  margin-block-end: var(--space-2);
   border-radius: var(--radius-full);
-  background: rgba(var(--color-warning-rgb), 0.12);
-  color: var(--color-warning);
+  border: 1px solid var(--color-accent-200);
+  box-shadow: inset 0 0 0 var(--space-2) var(--color-surface-alt), inset 0 0 0 calc(var(--space-2) + var(--space-1) / 2) var(--color-accent-300);
+}
+
+.review-card__icon-disc {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-8));
+  block-size: calc(var(--space-16) + var(--space-8));
+  border-radius: var(--radius-full);
+  background: linear-gradient(160deg, var(--color-primary-500) 0%, var(--color-accent-600) 100%);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 var(--space-1) var(--color-surface-alt), 0 0 0 calc(var(--space-1) * 1.5) var(--color-accent-300);
 }
 
 .review-card__title {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
   margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
 }
 
 .review-card__body {
-  font-size: var(--fs-base);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
   margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  color: var(--color-text-subtle);
 }
 
-/* ── Status pill row ─────────────────────────────── */
+/* ── Details card ────────────────────────────────── */
 
-.review-status {
+.review-details {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-1) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: start;
+}
+
+.review-details__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  inline-size: 100%;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg);
+  padding-block: var(--space-3);
 }
 
-.review-status__label {
+.review-details__row + .review-details__row {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.review-details__key {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.review-details__key .icon-tile {
+  background: var(--color-primary-100);
+}
+
+.review-details__val {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  text-align: end;
+}
+
+.review-details__val--ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .review-status__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  background: rgba(var(--color-warning-rgb), 0.15);
-  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-strong);
   font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
 
-/* ── Reference / raised-at ───────────────────────── */
-
-.review-meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  inline-size: 100%;
-  margin: 0;
-}
-
-.review-meta__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.review-meta__key {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.review-meta__val {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-  margin: 0;
-}
+/* ── What happens next ───────────────────────────── */
 
 .review-card__note {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  margin: 0;
+  inline-size: 100%;
+  text-align: start;
 }
+
+.review-card__note .icon-tile {
+  background: var(--color-primary-200);
+}
+
+.review-card__note .callout__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--fs-base);
+  color: var(--color-text-strong);
+}
+
+.review-card__note-body {
+  margin: 0;
+  color: var(--color-text);
+}
+
+/* ── Actions (pinned to the foot when the content is short) ── */
 
 .review-actions {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
-  inline-size: 100%;
+  margin-block-start: auto;
+}
+
+.review-page .review-logout {
+  inline-size: auto;
+  gap: var(--space-2);
+  font-size: var(--fs-base);
 }

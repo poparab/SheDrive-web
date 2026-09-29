@@ -6,9 +6,9 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
-import { getEmergencyContacts } from '../../shared/scripts/emergency-contacts.js';
+import { getEmergencyContacts, relationshipLabel } from '../../shared/scripts/emergency-contacts.js';
 
 auth.requireAuth();
 await initI18n();
@@ -69,6 +69,7 @@ function renderNotifiedContacts() {
   contacts.forEach((c) => {
     const li = document.createElement('li');
     li.className = 'emergency-contact-notified';
+    li.dataset.contactId = c.id || '';
 
     const info = document.createElement('span');
     info.className = 'emergency-contact-notified__info';
@@ -77,7 +78,8 @@ function renderNotifiedContacts() {
     name.textContent = c.name || '';
     const meta = document.createElement('span');
     meta.className = 'emergency-contact-notified__meta';
-    meta.textContent = [c.relationship, c.phone].filter(Boolean).join(' · ');
+    // The stored relationship is a key (or legacy free text) — show its label.
+    meta.textContent = [relationshipLabel(c), c.phone].filter(Boolean).join(' · ');
     info.append(name, meta);
 
     // Delivery starts as "sending" and settles once the SMS gateway reports back.
@@ -94,6 +96,16 @@ function renderNotifiedContacts() {
   });
 }
 renderNotifiedContacts();
+
+// The relationship label follows a language switch; delivery statuses keep their state.
+document.addEventListener(I18N_EVENT, () => {
+  const contacts = getEmergencyContacts();
+  qsa('.emergency-contact-notified').forEach((li) => {
+    const c = contacts.find((x) => (x.id || '') === li.dataset.contactId);
+    const meta = li.querySelector('.emergency-contact-notified__meta');
+    if (c && meta) meta.textContent = [relationshipLabel(c), c.phone].filter(Boolean).join(' · ');
+  });
+});
 
 // ── Delivery status simulation (no SMS gateway yet — #1952) ──
 // Each contact settles from "sending" to "delivered", except the last of two-or-more
@@ -136,10 +148,27 @@ qsa('.emergency-call').forEach((btn) => {
 });
 
 // ── Stop sharing (revokes the live location link immediately; the alert itself
-// stays active) ──
-qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
-  const btn = e.currentTarget;
-  btn.disabled = true;
+// stays active). Confirmed first on a sheet — Figma "Stop Live Sharing". ──
+const stopBackdrop = qs('#stop-sharing-backdrop');
+const stopBtn = qs('#stop-sharing-btn');
+
+function openStopSheet() {
+  if (!stopBackdrop || stopBtn?.disabled) return;
+  stopBackdrop.hidden = false;
+  stopBackdrop.removeAttribute('aria-hidden');
+  void stopBackdrop.offsetHeight; // flush [hidden] so the slide-up transition runs
+  stopBackdrop.classList.add('is-open');
+  qs('#stop-sharing-keep')?.focus();
+}
+function closeStopSheet() {
+  if (!stopBackdrop) return;
+  stopBackdrop.classList.remove('is-open');
+  stopBackdrop.hidden = true;
+  stopBackdrop.setAttribute('aria-hidden', 'true');
+}
+
+function stopSharing() {
+  if (stopBtn) stopBtn.disabled = true;
   const step2 = qs('[data-step="2"]');
   if (step2) {
     step2.classList.remove('emergency-step--active', 'emergency-step--pending');
@@ -151,7 +180,21 @@ qs('#stop-sharing-btn')?.addEventListener('click', (e) => {
     }
   }
   showToast(translate('emergency.sharingStopped'), 'success');
+}
+
+stopBtn?.addEventListener('click', openStopSheet);
+qs('#stop-sharing-keep')?.addEventListener('click', closeStopSheet);
+qs('#stop-sharing-confirm')?.addEventListener('click', () => {
+  closeStopSheet();
+  stopSharing();
 });
+stopBackdrop?.addEventListener('click', (e) => { if (e.target === stopBackdrop) closeStopSheet(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && stopBackdrop && !stopBackdrop.hidden) closeStopSheet();
+});
+
+// Design preview: ?sheet=stop opens the confirmation straight away.
+if (new URLSearchParams(location.search).get('sheet') === 'stop') openStopSheet();
 
 // ── Navigation ──
 qs('#return-btn').addEventListener('click', () => window.location.assign('./trip.html'));

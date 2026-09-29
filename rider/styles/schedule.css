@@ -1,36 +1,83 @@
 /*
- * schedule.css — Rider scheduled rides stub screen
- * All values use design-system tokens.
+ * schedule.css — Rider "Schedule a Ride" (coming soon) screen.
+ * House header: round white back button, centred deep-purple title, the
+ * language toggle as one round button. All values use design-system tokens.
  */
 
-.schedule-page {
-  background: var(--color-surface-alt);
-}
-
-.schedule-topbar {
+.schedule-page sd-app-header .schedule-topbar {
   position: sticky;
-  top: 0;
+  inset-block-start: 0;
   z-index: var(--z-nav);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter);
+  background: var(--color-surface);
 }
 
-.schedule-topbar__inner {
-  display: flex;
+.schedule-page sd-app-header .schedule-topbar__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  height: 56px;
+  gap: var(--space-2);
+  block-size: auto;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.schedule-page sd-app-header .schedule-topbar__inner > sd-button {
+  justify-self: start;
+}
+
+.schedule-page sd-app-header .schedule-topbar__title {
+  justify-self: center;
+  flex: none;
+  min-inline-size: 0;
+}
+
+.schedule-page sd-app-header .sd-app-header__actions {
+  justify-self: end;
+}
+
+[dir='rtl'] .schedule-topbar__back-icon {
+  transform: scaleX(-1);
 }
 
 .schedule-topbar__title-text {
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  flex: 1;
+  color: var(--color-text-strong);
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Compact language toggle: one round white button naming the other language. */
+.schedule-page .schedule-topbar .lang-switcher {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-block-size: var(--icon-btn-size);
+}
+
+.schedule-page .schedule-topbar .lang-switcher__sep,
+.schedule-page .schedule-topbar .lang-switcher__btn[aria-pressed='true'] {
+  display: none;
+}
+
+.schedule-page .schedule-topbar button.lang-switcher__btn {
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-inline-size: 0;
+  padding: 0;
+  color: var(--color-primary-600);
+  font-family: var(--font-latin);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
 }
 
 /* ── Content ─────────────────────────────────────────── */
@@ -39,8 +86,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-block-size: calc(100dvh - 60px);
-  padding: var(--space-6) var(--space-5);
+  min-block-size: calc(100dvh - var(--icon-btn-size) - var(--space-8));
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
 }
 
 .coming-soon-card {
@@ -48,28 +95,37 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--space-4);
-  max-inline-size: 360px;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: calc(var(--space-16) * 6);
 }
 
 .coming-soon-card__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-8));
+  block-size: calc(var(--space-16) + var(--space-8));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-tint);
   color: var(--color-primary-600);
-  opacity: 0.7;
 }
 
 .coming-soon-card__title {
-  font-size: var(--fs-xl);
+  margin: 0;
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
 
 .coming-soon-card__body {
-  font-size: var(--fs-sm);
+  margin: 0;
+  font-size: var(--fs-base);
   color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
 }
 
 .coming-soon-card__back {
-  margin-block-start: var(--space-2);
-  min-inline-size: 200px;
+  margin-block-start: var(--space-4);
 }

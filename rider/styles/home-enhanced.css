@@ -1,97 +1,560 @@
-/* home-enhanced.css — pickup/destination ride request input group */
+/*
+ * home-enhanced.css — rider home (booking) screen.
+ * Figma: "Rider - Home", "Home - Slide Up", "Select Pickup", "Select Destination",
+ * "Home + Outstanding Fee", "Ride Now". Loads after rider.css; the .home-page
+ * scoped rules here override its older home layout without editing it.
+ */
 
-.ride-sheet {
-  --f7-sheet-height: auto;
+/* ── Top bar ───────────────────────────────────────────
+   Figma: no bar — a round white menu button, the centred wordmark, and a round
+   white bell float over the map. The language toggle becomes one more round
+   button (showing the language to switch to) beside the bell. */
+
+.home-page sd-app-header .home-topbar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter) 0;
+  pointer-events: none;
 }
 
-.ride-sheet__toolbar {
+.home-page sd-app-header .home-topbar__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  block-size: auto;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.home-page sd-app-header .home-topbar__inner > * {
+  pointer-events: auto;
+}
+
+.home-page sd-app-header .home-topbar__menu {
+  justify-self: start;
+}
+
+.home-page sd-app-header .home-topbar__title {
+  justify-self: center;
+  flex: none;
+}
+
+.home-page sd-app-header .home-topbar__actions {
+  justify-self: end;
+  gap: var(--space-2);
+}
+
+/* Compact language toggle: one round white button naming the other language. */
+.home-page .home-topbar .lang-switcher {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-block-size: var(--icon-btn-size);
+}
+
+.home-page .home-topbar .lang-switcher__sep,
+.home-page .home-topbar .lang-switcher__btn[aria-pressed='true'] {
+  display: none;
+}
+
+.home-page .home-topbar button.lang-switcher__btn {
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-inline-size: 0;
+  padding: 0;
+  color: var(--color-primary-600);
+  font-family: var(--font-latin);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+/* Wordmark: "SheDrive" in the brand gradient, "DRIVEN BY WOMEN" underneath. */
+.home-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+  line-height: var(--leading-tight);
+}
+
+.home-brand__name {
+  font-family: var(--font-latin);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  direction: ltr;
+}
+
+.home-brand__tagline {
+  font-size: calc(var(--fs-xs) * 0.85);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+/* Letter-spacing breaks Arabic joining. */
+[dir='rtl'] .home-brand__tagline {
+  font-size: var(--fs-xs);
+  letter-spacing: 0;
+}
+
+/* ── "Locating you…" pill ──────────────────────────────
+   Centred under the top bar with logical insets, so RTL no longer pushes it
+   off the start edge (rider.css centres it with a physical translateX). */
+.home-page .location-status {
+  inset-block-start: calc(var(--space-4) + var(--icon-btn-size) + var(--space-6));
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: max-content;
+  max-inline-size: calc(100% - var(--page-gutter) * 2);
+  transform: none;
+  z-index: calc(var(--z-nav) + 1);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text);
+}
+
+/* The shared spinner is white-on-purple; on the white pill it needs purple. */
+.home-page .location-status .spinner {
+  flex-shrink: 0;
+  border-color: var(--color-primary-200);
+  border-block-start-color: var(--color-primary-600);
+}
+
+/* ── Booking sheet ─────────────────────────────────────
+   Pinned to the bottom, never taller than the space under the top bar; its body
+   scrolls on its own when the content (notices, fare card) is taller. */
+.home-page sd-bottom-sheet.ride-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  inline-size: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  block-size: auto;
+  max-block-size: calc(100% - var(--space-16) - var(--space-8));
+  padding: var(--space-3) 0 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  box-shadow: var(--shadow-sheet);
+}
+
+.home-page .ride-sheet__toolbar {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  block-size: auto;
+  min-block-size: var(--space-4);
   background: transparent;
-  min-block-size: var(--space-5);
 }
 
-.ride-sheet .sheet-modal-inner {
-  height: auto;
-  overflow: visible;
+.home-page .ride-sheet__toolbar::before,
+.home-page .ride-sheet__toolbar::after {
+  display: none;
+}
+
+.home-page .ride-sheet .ride-sheet__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  block-size: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+
+/* Author `display: flex` on sd-bottom-sheet otherwise beats the UA [hidden] rule. */
+#ride-sheet[hidden] { display: none; }
+
+/* ── Greeting ── */
+.home-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.home-greeting__title,
+.home-greeting__sub {
+  margin: 0;
+}
+
+.home-greeting__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.home-greeting__sub {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+/* ── Notices in the sheet (outstanding fee, GPS denied) ── */
+.home-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-bg);
+  border: 1px solid rgba(var(--color-warning-rgb), 0.35);
+  border-radius: var(--radius-lg);
+  color: var(--color-warning-strong);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
+}
+
+.home-notice[hidden] { display: none; }
+
+.home-notice__icon {
+  background: var(--color-warning);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-md);
+}
+
+.home-notice__text {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-weight: var(--fw-medium);
+}
+
+.home-notice .btn--icon {
+  flex-shrink: 0;
+  inline-size: var(--icon-btn-size);
+  color: var(--color-warning-strong);
+}
+
+.home-notice .btn--link {
+  flex-shrink: 0;
+  inline-size: auto;
+  padding-inline: var(--space-2);
+  color: var(--color-warning-strong);
+  font-size: var(--fs-sm);
+}
+
+/* ── Pickup + destination cards ────────────────────────
+   Figma: two separate cards — lavender pickup (crosshair), pink destination
+   (pin) — whose icons are joined by a dashed line. */
+.fare-default-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .pickup-destination {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  gap: var(--space-3);
 }
 
-.pickup-destination__connector {
+/* Dashed connector between the two icons (rows are control-height + space-3 tall,
+   so the gap between the icons is centred on the stack). */
+.pickup-destination::before {
+  content: '';
   position: absolute;
-  inset-inline-start: calc(var(--space-4) + 9px); /* center of dot */
-  top: 50%;
-  width: 2px;
-  height: calc(100% - var(--space-10));
-  background: var(--color-border);
+  z-index: 1;
+  inset-block-start: 50%;
+  inset-inline-start: calc(var(--space-4) + var(--space-3) - 1px);
+  block-size: var(--control-height);
   transform: translateY(-50%);
-  z-index: 0;
+  border-inline-start: 2px dashed var(--color-border-strong);
+  pointer-events: none;
 }
 
 .pickup-row {
+  position: relative;
   display: flex;
   align-items: center;
+  gap: var(--space-4);
+  min-block-size: calc(var(--control-height) + var(--space-3));
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Swap button (Figma: round gradient button straddling the two cards) — #1551 */
+.home-page .pickup-swap {
+  position: absolute;
+  z-index: var(--z-above);
+  inset-block-start: 50%;
+  inset-inline-end: var(--space-8);
+  transform: translateY(-50%);
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  border: 3px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.pickup-row--destination {
+  background: var(--color-accent-50);
+  border-color: var(--color-accent-200);
+}
+
+.pickup-row:focus-within {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
+}
+
+.pickup-row--destination:focus-within {
+  border-color: var(--color-accent-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-600-rgb), 0.12);
+}
+
+.pickup-row__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  color: var(--color-primary-600);
+}
+
+.pickup-row--destination .pickup-row__icon {
+  color: var(--color-accent-600);
+}
+
+.pickup-row__field {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pickup-row__label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+  cursor: pointer;
+}
+
+.pickup-row--destination .pickup-row__label {
+  color: var(--color-accent-500);
+}
+
+.home-page .pickup-row input.pickup-row__input,
+.home-page .pickup-row input.pickup-row__input:hover,
+.home-page .pickup-row input.pickup-row__input:focus,
+.home-page .pickup-row input.pickup-row__input[readonly] {
+  inline-size: 100%;
+  block-size: auto;
+  min-block-size: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.home-page .pickup-row--destination input.pickup-row__input {
+  color: var(--color-accent-700);
+}
+
+.pickup-row__input::placeholder {
+  font-weight: var(--fw-regular);
+  color: var(--color-text-subtle);
+  opacity: 1;
+}
+
+.pickup-row--destination .pickup-row__input::placeholder {
+  color: var(--color-accent-400);
+}
+
+.pickup-row__input::-webkit-search-cancel-button,
+.search-bar__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Fare estimate card (state=fare) ── Figma "Ride Now" */
+.fare-panel {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+[data-state='fare'] .fare-panel {
+  display: flex;
+}
+
+.fare-estimate-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: opacity var(--transition-base);
+}
+
+.fare-estimate-badge__label {
+  font-size: var(--fs-base);
+  color: var(--color-text-muted);
+}
+
+.fare-estimate-badge__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-strong);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+}
+
+.fare-estimate-badge__amount {
+  font-size: var(--fs-3xl);
+}
+
+.fare-estimate-badge__currency {
+  font-size: var(--fs-xl);
+}
+
+/* Figma reads "EGP 328 - 395" in English. */
+[dir='ltr'] .fare-estimate-badge__currency {
+  order: -1;
+}
+
+.fare-meta-row {
+  display: flex;
+  align-self: stretch;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.fare-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+/* Fare loading (#1552) */
+.fare-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.fare-loading[hidden],
+.fare-estimate-badge[hidden] { display: none; }
+
+/* The shared spinner is white-on-purple; on the light card it needs purple. */
+.fare-loading .spinner {
+  border-color: var(--color-primary-200);
+  border-block-start-color: var(--color-primary-600);
+}
+
+.fare-error-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  position: relative;
-  z-index: 1;
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.2);
+  border-radius: var(--radius-lg);
 }
 
-.pickup-row--pickup {
-  border-bottom: 1px solid var(--color-border);
+.fare-error-row[hidden] { display: none; }
+
+.fare-error-msg {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-danger);
+  margin: 0;
 }
 
-.pickup-dot {
+.fare-error-row .btn {
+  inline-size: auto;
   flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+}
+
+/* ── CTA ── */
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.home-actions sd-button {
+  align-self: stretch;
+}
+
+.home-page #confirm-ride-btn,
+.home-page .fare-change-link {
+  display: none;
+}
+
+[data-state='fare'] #request-ride-btn {
+  display: none;
+}
+
+[data-state='fare'] #confirm-ride-btn {
   display: block;
 }
 
-.pickup-dot--green {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+[data-state='fare'] .fare-change-link {
+  display: inline-flex;
+  inline-size: auto;
 }
 
-.pickup-dot--magenta {
-  background: var(--color-accent-500);
-  border-radius: 2px; /* square pin */
-  box-shadow: 0 0 0 3px rgba(214, 58, 226, 0.15);
-}
-
-.pickup-row__input {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  padding-inline: 0 !important;
-  font-size: var(--fs-base);
-}
-
-.pickup-row__input:focus {
-  outline: none;
-  box-shadow: none !important;
-}
-
-.pickup-row__input[readonly] {
-  color: var(--color-text-muted);
-  cursor: default;
-}
-
-/* ── Address Search Overlay ────────────────────────── */
-
+/* ── Address search overlay (state=search) ─────────────
+   Figma "Select Pickup" / "Select Destination": white page, back arrow and a
+   large title, the field card for the field being set, then the lists. */
 .search-overlay {
   position: fixed;
   inset: 0;
@@ -102,82 +565,182 @@
   overflow: hidden;
 }
 
-[data-state="search"] .search-overlay {
+[data-state='search'] .search-overlay {
   display: flex;
+}
+
+.search-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-6) var(--page-gutter) var(--space-4);
+}
+
+.search-head__title {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.search-overlay .search-bar__back {
+  flex-shrink: 0;
+  inline-size: var(--icon-btn-size);
+  margin-inline-start: calc(var(--space-2) * -1);
+  color: var(--color-primary-600);
+}
+
+[dir='rtl'] .search-bar__back svg {
+  transform: scaleX(-1);
+}
+
+.search-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  flex-shrink: 0;
-}
-
-.search-bar__input {
-  flex: 1;
-  font-size: var(--fs-base);
+  gap: var(--space-4);
+  min-block-size: calc(var(--control-height) + var(--space-3));
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4) var(--space-2);
   background: var(--color-surface-alt);
-  border-color: transparent;
-  border-radius: var(--radius-full);
-  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
-.search-bar__input:focus {
-  border-color: var(--color-primary-500);
-  background: var(--color-surface);
+.search-bar:focus-within {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
-.search-bar__back,
-.search-bar__clear {
+.search-bar__icon {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  color: var(--color-text-muted);
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  color: var(--color-primary-600);
+}
+
+.search-bar__field {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-bar__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+}
+
+.search-overlay input.search-bar__input,
+.search-overlay input.search-bar__input:hover,
+.search-overlay input.search-bar__input:focus {
+  inline-size: 100%;
+  block-size: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+}
+
+.search-bar__input::placeholder {
+  font-weight: var(--fw-regular);
+  color: var(--color-text-subtle);
+  opacity: 1;
+}
+
+.search-overlay .search-bar__clear {
+  flex-shrink: 0;
+  inline-size: var(--icon-btn-size);
+  color: var(--color-text-subtle);
+}
+
+/* One card, two looks: pickup (lavender, crosshair) or destination (pink, pin). */
+.search-overlay[data-mode='pickup'] .search-bar__icon--destination,
+.search-overlay[data-mode='pickup'] .search-bar__label--destination,
+.search-overlay:not([data-mode='pickup']) .search-bar__icon--pickup,
+.search-overlay:not([data-mode='pickup']) .search-bar__label--pickup {
+  display: none;
+}
+
+.search-overlay:not([data-mode='pickup']) .search-bar {
+  background: var(--color-accent-50);
+  border-color: var(--color-accent-200);
+}
+
+.search-overlay:not([data-mode='pickup']) .search-bar:focus-within {
+  border-color: var(--color-accent-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-600-rgb), 0.12);
+}
+
+.search-overlay:not([data-mode='pickup']) .search-bar__icon {
+  color: var(--color-accent-600);
+}
+
+.search-overlay:not([data-mode='pickup']) .search-bar__label {
+  color: var(--color-accent-500);
+}
+
+.search-overlay:not([data-mode='pickup']) .search-bar__input::placeholder {
+  color: var(--color-accent-400);
+}
+
+.search-overlay:not([data-mode='pickup']) input.search-bar__input {
+  color: var(--color-accent-700);
+}
+
+/* Quick actions: current location (pickup only) and pick on map */
+.search-actions {
+  display: flex;
+  flex-direction: column;
+  margin-block-start: var(--space-3);
 }
 
 .search-current-loc {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-4) var(--space-5);
+  gap: var(--space-4);
+  inline-size: 100%;
+  padding: var(--space-3) 0;
   border: none;
+  border-block-end: 1px solid var(--color-border);
   background: none;
   cursor: pointer;
   font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--color-primary-600);
-  border-bottom: 1px solid var(--color-border);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
   text-align: start;
   transition: background var(--transition-fast);
 }
 
+.search-current-loc[hidden] { display: none; }
+
 .search-current-loc:hover,
 .search-current-loc:focus-visible {
-  background: rgba(var(--color-primary-600-rgb), 0.05);
-}
-
-.search-current-loc__icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(var(--color-primary-600-rgb), 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--color-primary-600);
+  background: var(--color-surface-alt);
 }
 
 .search-section-label {
-  padding: var(--space-3) var(--space-5) var(--space-2);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0;
+  margin: var(--space-6) 0 var(--space-1);
 }
 
 .search-list {
@@ -186,11 +749,14 @@
   margin: 0;
 }
 
+.search-list[hidden] { display: none; }
+
 .search-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-block-end: 1px solid var(--color-border);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
@@ -202,22 +768,13 @@
 }
 
 .search-row__icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-}
-
-.search-row__icon--clock {
-  background: var(--color-surface-alt);
-  color: var(--color-text-muted);
-}
-
-.search-row__icon--pin {
-  background: rgba(var(--color-primary-600-rgb), 0.08);
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
   color: var(--color-primary-600);
 }
 
@@ -225,13 +782,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .search-row__name {
   font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -239,168 +796,160 @@
 
 .search-row__sub {
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.search-list--suggestions {
+  margin-block-start: var(--space-3);
+}
+
 .search-no-results {
-  padding: var(--space-8) var(--space-5);
+  padding: var(--space-8) 0;
   text-align: center;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   margin: 0;
 }
 
-.search-no-results[hidden] {
-  display: none;
-}
+.search-no-results[hidden] { display: none; }
 
-/* Hide suggestions list by default; shown while typing (designer static demo shows both) */
-.search-list--suggestions {
-  border-top: 1px solid var(--color-border);
-  margin-top: var(--space-2);
-}
-
-/* ── Fare Estimate Panel ───────────────────────────── */
-
-.fare-default-panel {
+/* Recent places carry driving time and distance from where she is (Figma "Recent Places"). */
+.search-row__meta {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-}
-
-.fare-panel {
-  display: none;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-[data-state="fare"] .fare-default-panel {
-  display: none;
-}
-
-[data-state="fare"] .fare-panel {
-  display: flex;
-}
-
-.fare-route .pickup-destination {
-  border-radius: var(--radius-lg);
-}
-
-.fare-route__label {
-  font-size: var(--fs-base);
-  color: var(--color-text);
-  font-weight: var(--fw-medium);
-}
-
-.fare-route__label--dest {
-  color: var(--color-text);
-}
-
-.fare-estimate-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-1);
-  padding: var(--space-5);
-  background: rgba(var(--color-primary-600-rgb), 0.06);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(var(--color-primary-600-rgb), 0.12);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  white-space: nowrap;
 }
 
-.fare-estimate-badge__amount {
-  font-size: var(--fs-4xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
-  line-height: var(--leading-tight);
-}
-
-.fare-estimate-badge__currency {
-  font-size: var(--fs-lg);
+.search-row__km {
+  font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
   color: var(--color-primary-600);
 }
 
-.fare-estimate-badge__label {
+/* "Use my current location" failures (#1550) */
+.search-loc-msg {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-danger);
+}
+
+.search-loc-msg[hidden] { display: none; }
+
+/* Search failed — message and Retry (#1549) */
+.search-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.search-error[hidden] { display: none; }
+
+.search-error__msg {
+  margin: 0;
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  margin-top: var(--space-1);
 }
 
-.fare-meta-row {
+.search-error .btn {
+  inline-size: auto;
+}
+
+/* ── Saved places strip (Figma "Saved Places": two cards per row, View All) ── */
+.search-saved[hidden] { display: none; }
+
+.search-saved__head {
   display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--space-3);
-  justify-content: center;
 }
 
-.fare-meta-chip {
+.search-saved__all {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-500);
+  text-decoration: none;
+}
+
+.saved-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+}
+
+.saved-chip {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-3);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.fare-change-link {
-  background: none;
-  border: none;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  padding: var(--space-1) 0;
-  text-align: center;
-  width: 100%;
-  transition: color var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
-.fare-change-link:hover,
-.fare-change-link:focus-visible {
+.saved-chip:hover,
+.saved-chip:focus-visible {
+  border-color: var(--color-primary-400);
+  outline: none;
+}
+
+.saved-chip__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
   color: var(--color-primary-600);
 }
 
-/* ── GPS Denied Banner ─────────────────────────────── */
-
-.gps-banner {
+.saved-chip__text {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-warning-bg, rgba(255, 193, 7, 0.12));
-  border-bottom: 1px solid var(--color-warning, #ffc107);
-  font-size: var(--fs-sm);
-  color: var(--color-text);
+  flex-direction: column;
+  min-inline-size: 0;
 }
 
-.gps-banner[hidden] { display: none; }
-
-.gps-banner__icon {
-  flex-shrink: 0;
-  color: var(--color-warning, #ffc107);
+.saved-chip__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
 
-.gps-banner__text {
-  flex: 1;
-}
-
-.gps-banner__settings {
-  flex-shrink: 0;
-  color: var(--color-warning, #ffc107);
-  border-color: var(--color-warning, #ffc107);
+.saved-chip__name,
+.saved-chip__sub {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Map Pin Overlay ───────────────────────────────── */
+.saved-chip__sub {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
 
+/* ── Map-pin overlay (state=pin-pickup | pin-dest) ── */
 .map-pin-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
   display: flex;
@@ -412,109 +961,31 @@
 
 .map-pin-overlay[hidden] { display: none; }
 
+/* While a pin is being placed the confirm bar replaces the booking sheet. */
+.map-pin-overlay:not([hidden]) ~ sd-bottom-sheet {
+  display: none;
+}
+
 .map-pin-overlay__pin {
   pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(var(--color-text-strong-rgb), 0.3));
 }
 
 .map-pin-overlay__bar {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  pointer-events: all;
-}
-
-.map-pin-overlay__bar .btn {
-  flex: 1;
-}
-
-/* ── Fare Error Row ────────────────────────────────── */
-
-.fare-error-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: rgba(var(--color-danger-rgb, 220, 53, 69), 0.08);
-  border: 1px solid rgba(var(--color-danger-rgb, 220, 53, 69), 0.2);
-  border-radius: var(--radius-lg);
-}
-
-.fare-error-row[hidden] { display: none; }
-
-.fare-error-msg {
-  flex: 1;
-  font-size: var(--fs-sm);
-  color: var(--color-danger, #dc3545);
-  margin: 0;
-}
-
-/* ── Outside-operating-hours notice (#1791) ────────── */
-
-.hours-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-warning-bg, rgba(255, 193, 7, 0.12));
-  border-bottom: 1px solid var(--color-warning, #ffc107);
-  color: var(--color-text);
-}
-
-.hours-banner[hidden] { display: none; }
-
-.hours-banner__icon {
-  flex-shrink: 0;
-  color: var(--color-warning, #ffc107);
-}
-
-.hours-banner__text {
+  inset-block-end: 0;
+  inset-inline: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.hours-banner__title {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-}
-
-.hours-banner__sub {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
-
-/* ── Outstanding-fee banner (dismissible, spec §7.1) ───── */
-
-.fee-banner {
-  position: relative;
-  z-index: var(--z-above);
-  display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-warning-bg, rgba(245, 158, 11, 0.12));
-  border-bottom: 1px solid var(--color-warning);
-  font-size: var(--fs-sm);
-  color: var(--color-text);
+  gap: var(--space-1);
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-4) + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  box-shadow: var(--shadow-sheet);
+  pointer-events: auto;
 }
 
-.fee-banner[hidden] { display: none; }
-
-.fee-banner svg { flex-shrink: 0; color: var(--color-warning); }
-
-.fee-banner__text { flex: 1; }
-
-.fee-banner__dismiss {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
+.map-pin-overlay__bar .btn--link {
+  inline-size: auto;
 }
-
-/* Author `display: block` on sd-bottom-sheet otherwise beats the UA [hidden] rule. */
-#ride-sheet[hidden] { display: none; }

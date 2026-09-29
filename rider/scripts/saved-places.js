@@ -70,6 +70,9 @@ const limitEl = qs('#places-limit');
 const errorEl = qs('#places-error');
 const bodyEl = qs('#places-body');
 const addBtn = qs('#add-place-btn');
+const countEl = qs('#places-count');
+const listHeadEl = qs('#places-list-head');
+const scrim = qs('#places-scrim');
 
 const sheet = qs('#place-sheet');
 const form = qs('#place-form');
@@ -84,6 +87,7 @@ const confirmSheet = qs('#confirm-sheet');
 const confirmTitle = qs('#confirm-title');
 const confirmMsg = qs('#confirm-msg');
 const confirmOk = qs('#confirm-ok');
+const confirmBox = qs('#confirm-box');
 
 let editingId = null;
 let chosenLabel = 'home';
@@ -126,17 +130,23 @@ function render() {
     limitEl.setAttribute('aria-hidden', String(!isFull));
   }
   if (addBtn) addBtn.toggleAttribute('disabled', isFull);
+  bodyEl?.classList.toggle('is-empty', isEmpty);
+  if (listHeadEl) listHeadEl.hidden = isEmpty;
+  if (countEl) countEl.textContent = translate('savedPlaces.count', { n: sorted.length, max: MAX_PLACES });
 
   if (!listEl) return;
   listEl.innerHTML = sorted
     .map(
       (p) => `
       <li class="place-card" role="listitem" data-id="${p.id}">
-        <span class="place-card__icon place-card__icon--${p.label}" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[p.label]}</svg>
+        <span class="icon-tile icon-tile--round icon-tile--solid place-card__icon place-card__icon--${p.label}" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[p.label]}</svg>
         </span>
         <span class="place-card__text">
-          <span class="place-card__label">${displayName(p)}</span>
+          <span class="place-card__name">
+            <span class="place-card__label">${displayName(p)}</span>
+            ${p.label === 'home' ? '<span class="badge badge--success place-card__badge" data-i18n="savedPlaces.default">افتراضي</span>' : ''}
+          </span>
           <span class="place-card__address">${p.address}</span>
         </span>
         <span class="place-card__actions">
@@ -177,8 +187,46 @@ function openSheet(place) {
   if (addressInput) addressInput.value = place?.address || '';
   if (labelError) labelError.hidden = true;
   if (addressError) addressError.hidden = true;
-  sheet?.open();
+  showSheet(sheet);
 }
+
+/* ── Sheet open / close with the scrim ─────────────────────────────────── */
+
+let lastFocus = null;
+
+const isOpen = (s) => s?.classList.contains('modal-in');
+
+function showSheet(target) {
+  if (!isOpen(sheet) && !isOpen(confirmSheet)) lastFocus = document.activeElement;
+  // The confirm sheet can open over the add/edit sheet (replacing Home or Work).
+  target?.open();
+  if (scrim) scrim.hidden = false;
+  // Move focus into the sheet so keyboard and screen-reader users land in it.
+  // A confirmation starts on Cancel, never on the destructive action.
+  const focusEl = target === confirmSheet
+    ? target.querySelector('#confirm-cancel button')
+    : target?.querySelector('button, input');
+  focusEl?.focus({ preventScroll: true });
+}
+
+function hideSheets() {
+  sheet?.close();
+  confirmSheet?.close();
+  if (scrim) scrim.hidden = true;
+  lastFocus?.focus?.({ preventScroll: true });
+  lastFocus = null;
+}
+
+/** Close only the confirm sheet — the add/edit sheet under it (if any) stays. */
+function hideConfirm() {
+  if (!isOpen(sheet)) { hideSheets(); return; }
+  confirmSheet?.close();
+}
+
+scrim?.addEventListener('click', () => { onConfirm = null; hideSheets(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && scrim && !scrim.hidden) { onConfirm = null; hideSheets(); }
+});
 
 qsa('[data-label]').forEach((chip) =>
   chip.addEventListener('click', () => pickLabel(chip.getAttribute('data-label')))
@@ -192,7 +240,7 @@ addBtn?.addEventListener('click', () => {
   openSheet(null);
 });
 
-qs('#place-cancel')?.addEventListener('click', () => sheet?.close());
+qs('#place-cancel')?.addEventListener('click', hideSheets);
 
 listEl?.addEventListener('click', (e) => {
   const editId = e.target.closest('[data-edit]')?.getAttribute('data-edit');
@@ -207,7 +255,8 @@ listEl?.addEventListener('click', (e) => {
     () => {
       save(places.filter((p) => p.id !== delId));
       showToast(translate('savedPlaces.deleted'), 'success');
-    }
+    },
+    'danger'
   );
 });
 
@@ -241,7 +290,7 @@ form?.addEventListener('submit', (e) => {
       address,
     };
     save([...kept, entry]);
-    sheet?.close();
+    hideSheets();
     showToast(translate('savedPlaces.saved'), 'success');
   };
 
@@ -258,22 +307,27 @@ form?.addEventListener('submit', (e) => {
 
 /* ── Confirm sheet ──────────────────────────────────────────────────────── */
 
-function askConfirm(title, msg, action) {
+/** tone 'danger' (delete) paints the icon, title and button red; replacing a
+ *  home/work is a plain confirmation. */
+function askConfirm(title, msg, action, tone = 'default') {
   if (confirmTitle) confirmTitle.textContent = title;
   if (confirmMsg) confirmMsg.textContent = msg;
+  confirmBox?.classList.toggle('confirm-box--danger', tone === 'danger');
+  confirmOk?.setAttribute('variant', tone === 'danger' ? 'danger' : 'primary');
   onConfirm = action;
-  confirmSheet?.open();
+  showSheet(confirmSheet);
 }
 
 confirmOk?.addEventListener('click', () => {
-  confirmSheet?.close();
-  onConfirm?.();
+  const action = onConfirm;
   onConfirm = null;
+  hideSheets();
+  action?.();
 });
 
 qs('#confirm-cancel')?.addEventListener('click', () => {
-  confirmSheet?.close();
   onConfirm = null;
+  hideConfirm();
 });
 
 qs('#places-retry')?.addEventListener('click', () => {

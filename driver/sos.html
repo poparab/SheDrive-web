@@ -5,38 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SheDrive Driver — جهات اتصال الطوارئ</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-
-    <link rel="stylesheet" href="../shared/styles/tokens.css" />
-    <link rel="stylesheet" href="../shared/styles/reset.css" />
-    <link rel="stylesheet" href="../shared/styles/base.css" />
-    <link rel="stylesheet" href="../shared/styles/components.css" />
-    <link rel="stylesheet" href="../shared/styles/utilities.css" />
-    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
-    <link rel="stylesheet" href="../shared/styles/web-components.css" />
-    <link rel="stylesheet" href="../shared/styles/rtl.css" />
-    <link rel="stylesheet" href="styles/driver.css" />
-    <link rel="stylesheet" href="styles/sos.css" />
-
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
 
   <body class="app-shell driver-sos-page">
     <sd-page body-class="app-shell driver-sos-page" screen-styles="styles/driver.css, styles/sos.css">
 
-      <sd-app-header hide-lang-toggle>
-        <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start"
-          aria-label="رجوع" data-i18n-aria-label="aria.back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
+      <!-- ── Purple hero band holding the header (Figma "Safety & Emergency") ── -->
+      <div class="sd-hero sos-hero">
+        <sd-app-header hide-lang-toggle bar-class="sos-topbar" inner-class="sos-topbar__inner" title-class="sos-topbar__title">
+          <a href="./home.html" class="btn btn--icon btn--ghost sos-topbar__back" data-slot="start"
+            aria-label="رجوع" data-i18n-aria-label="aria.back">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+          </a>
+          <svg class="sos-topbar__icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
           </svg>
-        </a>
-        <span data-i18n="sos.title">جهات اتصال الطوارئ</span>
-      </sd-app-header>
+          <h1 class="sos-topbar__text" data-i18n="sos.title">جهات اتصال الطوارئ</h1>
+        </sd-app-header>
+      </div>
 
-      <main class="driver-sos-main" role="main">
+      <main class="sd-panel driver-sos-main" role="main">
         <section class="sos-contacts" id="sos-contacts-root" aria-label="جهات اتصال الطوارئ" data-i18n-aria-label="sos.title"></section>
       </main>
 

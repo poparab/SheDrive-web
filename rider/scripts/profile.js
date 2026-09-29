@@ -1,5 +1,5 @@
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, getLanguage } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { storage } from '../../shared/scripts/storage.js';
 
@@ -19,17 +19,27 @@ const saveBtn     = qs('#save-btn');
 const phoneNote   = qs('#profile-phone-note');
 const heroName    = qs('#profile-hero-name');
 const heroPhone   = qs('#profile-hero-phone');
+const avatar      = qs('#profile-avatar');
 
-// Populate fields
-const displayPhone = session?.phone ? `+20 ${session.phone}` : '';
+// Populate fields. The session holds the national number (01X…); show it the way
+// Figma does: +20 without the trunk 0, grouped 3-3-4.
+function formatPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '').replace(/^0/, '');
+  if (!d) return '';
+  return d.length === 10 ? `+20 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : `+20 ${d}`;
+}
+const displayPhone = formatPhone(session?.phone);
 if (phoneInput) phoneInput.value = displayPhone;
 const saved = storage.get('shedrive.profile') || {};
 if (nameInput)  nameInput.value  = saved.name  || '';
 if (emailInput) emailInput.value = saved.email || '';
 
 function updateHero() {
-  if (heroName) heroName.textContent = nameInput?.value?.trim() || translate('profile.title');
+  const name = nameInput?.value?.trim() || '';
+  if (heroName) heroName.textContent = name || translate('profile.title');
   if (heroPhone) heroPhone.textContent = displayPhone;
+  // Initials avatar: first letter of the saved name (the markup keeps a fallback).
+  if (avatar && name) avatar.textContent = Array.from(name)[0].toUpperCase();
 }
 updateHero();
 
@@ -44,7 +54,8 @@ qs('#profile-logout-btn')?.addEventListener('click', () => {
 });
 
 // Language selector
-const currentLang = localStorage.getItem('shedrive.lang') || 'ar';
+// storage keeps the language JSON-encoded, so ask i18n rather than reading the raw key.
+const currentLang = getLanguage() || 'ar';
 qsa('[data-lang]').forEach((btn) => {
   btn.setAttribute('aria-pressed', btn.getAttribute('data-lang') === currentLang ? 'true' : 'false');
   btn.classList.toggle('is-active', btn.getAttribute('data-lang') === currentLang);
@@ -59,19 +70,26 @@ qsa('[data-lang]').forEach((btn) => {
 });
 
 // Save
+function showNameError(key) {
+  if (!nameError) return;
+  nameError.setAttribute('data-i18n', key); // re-renders on a language switch
+  nameError.textContent = translate(key);
+  nameError.hidden = false;
+}
+
 qs('#profile-form')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const name = (nameInput?.value || '').trim();
   if (!name) {
-    if (nameError) { nameError.textContent = translate('profile.name.error.empty'); nameError.hidden = false; }
+    showNameError('profile.name.error.empty');
     return;
   }
   if (!/^[\p{L}\s'-]+$/u.test(name)) {
-    if (nameError) { nameError.textContent = translate('profile.name.error.format'); nameError.hidden = false; }
+    showNameError('profile.name.error.format');
     return;
   }
   if (name.length < 2 || name.length > 50) {
-    if (nameError) { nameError.textContent = translate('profile.name.error.length'); nameError.hidden = false; }
+    showNameError('profile.name.error.length');
     return;
   }
   if (nameError) nameError.hidden = true;

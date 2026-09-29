@@ -9,14 +9,16 @@
   </head>
   <body class="app-shell delete-account-page">
     <sd-page body-class="app-shell delete-account-page" screen-styles="/rider/styles/rider.css, /shared/styles/account-deletion.css, /rider/styles/delete-account.css">
-      <sd-app-header bar-class="del-topbar" inner-class="del-topbar__inner" title-class="del-topbar__title" hide-lang-toggle>
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="del-topbar__title-text" data-i18n="deleteAccount.title">حذف الحساب</span>
-      </sd-app-header>
+      <div class="sd-hero del-hero-band">
+        <sd-app-header bar-class="del-topbar" inner-class="del-topbar__inner" title-class="del-topbar__title" hide-lang-toggle>
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <span class="del-topbar__title-text" data-i18n="deleteAccount.title">حذف الحساب</span>
+        </sd-app-header>
+      </div>
 
-      <main class="del-content" id="main-content">
+      <main class="sd-panel del-content" id="main-content">
 
         <!-- ── Step 1: confirm she means it ────────────────────────────── -->
         <section class="del-step" data-del-step="review" aria-labelledby="del-review-title">
@@ -75,8 +77,8 @@
           </div>
 
           <div class="del-resend">
-            <button type="button" class="btn btn--ghost btn--sm" id="del-resend" data-i18n="login.button.resend">إعادة إرسال الرمز</button>
-            <span id="del-resend-countdown" aria-live="polite" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
+            <button type="button" class="btn btn--link" id="del-resend" data-i18n="login.button.resend">إعادة إرسال الرمز</button>
+            <span class="del-resend__countdown" id="del-resend-countdown" aria-live="polite" data-cooldown-template="إعادة الإرسال في {{n}} ثانية"></span>
           </div>
 
           <div class="del-actions">

@@ -5,62 +5,96 @@
  */
 
 :root {
-  /* ── Brand colors ─────────────────────────────────── */
-  --color-primary-700: #5b21b6;
-  --color-primary-600: #6b2bd9;
-  --color-primary-500: #8b5cf6;
-  --color-primary-400: #a78bfa;
-  --color-primary-200: #ddd6fe;
-  --color-primary-50: #f5f3ff;
-  --color-accent-500: #d63ae2;
-  --color-accent-400: #e879f9;
-  --color-primary-700-rgb: 91, 33, 182;
-  --color-primary-600-rgb: 107, 43, 217;
-  --color-primary-500-rgb: 139, 92, 246;
-  --color-accent-500-rgb: 214, 58, 226;
-  --color-accent-400-rgb: 232, 121, 249;
+  /* ── Brand colors ─────────────────────────────────────
+     Sampled from the Figma mobile kit (docs/design/figma-rider|driver).
+     The whole UI is purple-on-lavender: headings #511698, body text #601bb3,
+     brand purple #7323d7, magenta #b1019d, lavender fills #f8f6fe/#efecfd. */
+  --color-primary-800: #511698;
+  --color-primary-700: #601bb3;
+  --color-primary-600: #7323d7;
+  --color-primary-500: #8641f2;
+  --color-primary-400: #9970f5;
+  --color-primary-300: #cdbffa;
+  --color-primary-200: #e1dafc;
+  --color-primary-100: #efecfd;
+  --color-primary-50: #f8f6fe;
+  --color-accent-700: #7a0068;
+  --color-accent-600: #b1019d;
+  --color-accent-500: #ff32e6;
+  --color-accent-400: #ff7ef0;
+  --color-accent-300: #ffacef;
+  --color-accent-200: #ffcff4;
+  --color-accent-100: #ffe6f9;
+  --color-accent-50: #fff4fc;
+  --color-primary-800-rgb: 81, 22, 152;
+  --color-primary-700-rgb: 96, 27, 179;
+  --color-primary-600-rgb: 115, 35, 215;
+  --color-primary-500-rgb: 134, 65, 242;
+  --color-accent-600-rgb: 177, 1, 157;
+  --color-accent-500-rgb: 255, 50, 230;
+  --color-accent-400-rgb: 255, 126, 240;
   /* Unscaled aliases the driver screens were written against */
   --color-primary-rgb: var(--color-primary-600-rgb);
   --color-on-primary: var(--color-surface);
 
-  /* ── Gradient ─────────────────────────────────────── */
-  --gradient-brand: linear-gradient(135deg, #6b2bd9 0%, #d63ae2 100%);
+  /* ── Gradients ────────────────────────────────────── */
+  /* Primary CTA: purple → magenta, left to right */
+  --gradient-brand: linear-gradient(100deg, var(--color-primary-600) 0%, var(--color-accent-600) 100%);
+  /* Disabled / not-yet-ready CTA (Figma "Request Ride", "Submit Rating" idle) */
+  --gradient-brand-soft: linear-gradient(100deg, #a77be8 0%, #d266c3 100%);
+  /* Hero headers, side-menu profile header, login backdrop */
+  --gradient-hero: linear-gradient(160deg, #7a2fda 0%, #6a1fc8 45%, var(--color-accent-600) 115%);
+  /* Driver money cards (Today's earnings, estimated fare) */
+  --gradient-violet: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-500) 100%);
+  /* Primary CTA fill. The rider kit uses the gradient; the driver kit uses solid
+     purple, so driver/styles/driver.css re-points these two at :root. */
+  --cta-bg: var(--gradient-brand);
+  --cta-bg-disabled: var(--gradient-brand-soft);
 
   /* ── Neutrals ─────────────────────────────────────── */
   --color-surface: #ffffff;
-  --color-surface-alt: #f8f7fb;
-  --color-border: #e5e2ee;
-  --color-text: #1a1530;
-  --color-text-muted: #6b6580;
+  --color-surface-alt: #f8f6fe;   /* card fill, soft page background */
+  --color-surface-tint: #efecfd;  /* input fill, info callouts, stat tiles */
+  --color-border: #e1dafc;
+  --color-border-strong: #cdbffa; /* sheet handles, inactive stars */
+  --color-text: #601bb3;          /* body text and titles — deep purple, never black */
+  --color-text-strong: #511698;   /* headings, section labels */
+  --color-text-muted: #8641f2;    /* subtitles, secondary text (AA on white) */
+  --color-text-subtle: #9970f5;   /* placeholders, chevrons, meta — large text/icons only */
   --color-surface-rgb: 255, 255, 255;
-  --color-surface-alt-rgb: 248, 247, 251;
-  --color-border-rgb: 229, 226, 238;
-  --color-text-rgb: 26, 21, 48;
-  --color-text-muted-rgb: 107, 101, 128;
+  --color-surface-alt-rgb: 248, 246, 254;
+  --color-border-rgb: 225, 218, 252;
+  --color-text-rgb: 96, 27, 179;
+  --color-text-strong-rgb: 81, 22, 152;
+  --color-text-muted-rgb: 134, 65, 242;
 
   /* ── Semantic ─────────────────────────────────────── */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  --color-success: #32a800;
+  --color-warning: #eb9100;
+  --color-danger: #c60d00;
   --color-info: #3b82f6;
-  /* Text on a 12% tint of the same colour — dark enough to read at badge size */
-  --color-success-strong: #065f46;
-  --color-warning-strong: #92400e;
-  --color-danger-strong: #991b1b;
+  /* Text on the matching *-bg tint — dark enough to read at badge size */
+  --color-success-strong: #2b8500;
+  --color-warning-strong: #9a5a00;
+  --color-danger-strong: #900b09;
   --color-info-strong: #1e40af;
-  --color-success-rgb: 16, 185, 129;
-  --color-warning-rgb: 245, 158, 11;
-  --color-danger-rgb: 239, 68, 68;
+  --color-success-bg: #ceffc4;
+  --color-danger-bg: #ffd5ce;
+  --color-success-rgb: 50, 168, 0;
+  --color-warning-rgb: 235, 145, 0;
+  --color-danger-rgb: 198, 13, 0;
   --color-info-rgb: 59, 130, 246;
-  --color-warning-bg: rgba(var(--color-warning-rgb), 0.15);
+  --color-warning-bg: #ffecd3;
   --color-warning-light: var(--color-warning-bg);
+  /* Star ratings (Figma orange) */
+  --color-star: var(--color-warning);
 
   /* ── Overlay ──────────────────────────────────────── */
-  --color-overlay: rgba(26, 21, 48, 0.5);
+  --color-overlay: rgba(81, 22, 152, 0.42);
 
   /* ── Typography ───────────────────────────────────── */
-  --font-latin: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  --font-latin: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', 'Montserrat', system-ui, sans-serif;
 
   --fs-xs: 0.75rem;
   --fs-sm: 0.875rem;
@@ -98,19 +132,23 @@
   --space-16: 4rem;
 
   /* ── Border radii ─────────────────────────────────── */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-sm: 8px;    /* icon tiles, small chips */
+  --radius-md: 10px;   /* buttons, inputs, OTP boxes, menu rows */
+  --radius-lg: 16px;   /* cards, list rows */
+  --radius-xl: 24px;   /* dialogs, hero money cards */
+  --radius-2xl: 32px;  /* bottom sheets, content panel over a hero */
   --radius-full: 999px;
 
-  /* ── Shadows ──────────────────────────────────────── */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.10);
-  --shadow-brand: 0 10px 30px rgba(107, 43, 217, 0.25);
+  /* ── Shadows (purple-tinted, derived from --color-primary-800) ── */
+  --shadow-sm: 0 1px 3px rgba(81, 22, 152, 0.06), 0 1px 2px rgba(81, 22, 152, 0.04);
+  --shadow-md: 0 6px 16px rgba(81, 22, 152, 0.10), 0 2px 4px rgba(81, 22, 152, 0.05);
+  --shadow-lg: 0 12px 28px rgba(81, 22, 152, 0.14), 0 4px 8px rgba(81, 22, 152, 0.06);
+  --shadow-xl: 0 20px 40px rgba(81, 22, 152, 0.18), 0 8px 16px rgba(81, 22, 152, 0.08);
+  --shadow-brand: 0 10px 24px rgba(115, 35, 215, 0.24);
+  /* Round white floating buttons over maps and heroes */
+  --shadow-float: 0 6px 18px rgba(81, 22, 152, 0.16);
+  /* Bottom sheets rising over a map */
+  --shadow-sheet: 0 -8px 30px rgba(81, 22, 152, 0.10);
 
   /* ── Z-index scale ────────────────────────────────── */
   --z-base: 0;
@@ -120,8 +158,21 @@
   --z-modal: 300;
   --z-toast: 400;
 
+  /* ── Component sizes ──────────────────────────────── */
+  --toast-max-inline-size: 20rem;
+  --control-height: 52px;      /* buttons, inputs */
+  --control-height-sm: 40px;
+  --icon-btn-size: 40px;       /* round floating buttons (menu, bell, locate) */
+  --icon-tile-size: 32px;      /* square icon tile in a menu row */
+  --icon-tile-size-lg: 40px;   /* round icon tile in a card row */
+  --menu-row-height: 48px;
+  --sheet-handle-width: 40px;
+  --sheet-handle-height: 4px;
+  --page-gutter: var(--space-5);
+
   /* ── Transitions ──────────────────────────────────── */
   --transition-fast: 120ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 350ms ease;
+  --transition-drawer: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }

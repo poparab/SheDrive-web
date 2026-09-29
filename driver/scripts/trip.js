@@ -26,9 +26,12 @@ const previewCancel = previewParams.get('cancel');
 const PREVIEW_STATES = ['en-route', 'arrived', 'verify-rider', 'in-ride'];
 const CANCEL_PREVIEWS = { free: 'en-route', fee: 'en-route', waiting: 'arrived', 'no-show': 'arrived' };
 
+const REPORT_PREVIEWS = ['form', 'sent']; // ?report= — the gender-mismatch sheet, on the arrived card
+
 const initialState = PREVIEW_STATES.includes(previewState)
   ? previewState
-  : CANCEL_PREVIEWS[previewCancel] || 'en-route';
+  : CANCEL_PREVIEWS[previewCancel]
+    || (REPORT_PREVIEWS.includes(previewParams.get('report')) ? 'arrived' : 'en-route');
 
 setState(initialState); // setState/updateBadge are hoisted declarations
 
@@ -48,35 +51,40 @@ const tripData = (() => {
   } catch { return {}; }
 })();
 
-const rider  = tripData.rider  || { name: 'نور', nameEn: 'Nour', rating: 4.8 };
-const pickup = tripData.pickup || { ar: 'المعادي، القاهرة', en: 'Maadi, Cairo' };
-const dest   = tripData.dest   || { ar: 'مدينة نصر، القاهرة', en: 'Nasr City, Cairo' };
-const fare   = tripData.fare   || { ar: '65 جنيه', en: 'EGP 65' };
+const rider    = tripData.rider    || { name: 'نور', nameEn: 'Nour', rating: 4.8 };
+const pickup   = tripData.pickup   || { ar: 'المعادي، القاهرة', en: 'Maadi, Cairo' };
+const dest     = tripData.dest     || { ar: 'مدينة نصر، القاهرة', en: 'Nasr City, Cairo' };
+const fare     = tripData.fare     || { ar: '65 جنيه', en: 'EGP 65' };
+const distance = tripData.distance || { ar: '8.4 كم', en: '8.4 km' };
 
 // ── Populate rider info across states ─────────────
-const riderName = document.documentElement.lang === 'ar'
-  ? rider.name
-  : (rider.nameEn || rider.name);
+// Every bilingual value follows the active language; the trip carries both.
+const isAr = document.documentElement.lang === 'ar';
+const pick = (v) => (v && typeof v === 'object' ? (isAr ? v.ar : (v.en || v.ar)) : v);
+const riderName = isAr ? rider.name : (rider.nameEn || rider.name);
 
 ['enroute-rider-name', 'arrived-rider-name', 'trip-rider-name'].forEach((id) => {
   const el = qs(`#${id}`);
   if (el) el.textContent = riderName;
 });
-['enroute-avatar', 'arrived-avatar'].forEach((id) => {
+['enroute-avatar', 'arrived-avatar', 'trip-avatar'].forEach((id) => {
   const el = qs(`#${id}`);
   if (el) el.textContent = riderName.charAt(0);
 });
 
-const ratingEl = qs('#trip-rider-rating');
-if (ratingEl) ratingEl.textContent = rider.rating;
+document.querySelectorAll('.js-rider-rating').forEach((el) => { el.textContent = rider.rating; });
 
-const fromEl  = qs('#trip-from');   if (fromEl)  fromEl.textContent  = pickup.ar;
-const toEl    = qs('#trip-to');     if (toEl)    toEl.textContent    = dest.ar;
-const fareEl  = qs('#trip-fare');   if (fareEl)  fareEl.textContent  = fare.ar;
-const pickupEl = qs('#enroute-pickup'); if (pickupEl) pickupEl.textContent = pickup.ar;
+const fromEl   = qs('#trip-from');      if (fromEl)   fromEl.textContent   = pick(pickup);
+const toEl     = qs('#trip-to');        if (toEl)     toEl.textContent     = pick(dest);
+const fareEl   = qs('#trip-fare');      if (fareEl)   fareEl.textContent   = pick(fare);
+const distEl   = qs('#trip-distance');  if (distEl)   distEl.textContent   = pick(distance);
+const pickupEl = qs('#enroute-pickup'); if (pickupEl) pickupEl.textContent = pick(pickup);
 
 const verifyNameEl = qs('#verify-rider-name strong');
-if (verifyNameEl) verifyNameEl.textContent = rider.name + (rider.lastName ? ` ${rider.lastName}` : ' أحمد');
+if (verifyNameEl) {
+  const lastName = rider.lastName ? pick(rider.lastName) : (isAr ? 'أحمد' : 'Ahmed');
+  verifyNameEl.textContent = `${riderName} ${lastName}`;
+}
 
 // ── State machine ─────────────────────────────────
 function getState() { return document.body.dataset.state || 'in-ride'; }
@@ -196,11 +204,29 @@ statementEl?.addEventListener('input', () => {
   if (statementCnt) statementCnt.textContent = String(statementEl.value.length);
 });
 
-qs('#verify-fail-btn')?.addEventListener('click', () => openBackdrop(failBackdrop));
+const failForm = qs('#verify-fail-form');
+const failDone = qs('#verify-fail-done');
+let reportSent = false;
+
+function openFailReport() {
+  if (failForm) failForm.hidden = false;
+  if (failDone) failDone.hidden = true;
+  openBackdrop(failBackdrop);
+}
+
+qs('#verify-fail-btn')?.addEventListener('click', openFailReport);
 qs('#verify-fail-goback')?.addEventListener('click', () => closeBackdrop(failBackdrop));
 failBackdrop?.addEventListener('click', (e) => {
-  if (e.target === failBackdrop) closeBackdrop(failBackdrop);
+  // Once the report is in, the trip is gone — only "Done" leaves this sheet.
+  if (e.target === failBackdrop && !reportSent) closeBackdrop(failBackdrop);
 });
+
+function showReportSent() {
+  reportSent = true;
+  if (failForm) failForm.hidden = true;
+  if (failDone) failDone.hidden = false;
+  qs('#verify-fail-done-btn')?.focus();
+}
 
 qs('#verify-fail-confirm')?.addEventListener('click', () => {
   // The report the API would submit (#1687): trip id, reporting driver, and the
@@ -215,12 +241,12 @@ qs('#verify-fail-confirm')?.addEventListener('click', () => {
     sessionStorage.setItem('shedrive.genderMismatchReport', JSON.stringify(report));
   } catch { /* preview-only stash */ }
 
-  closeBackdrop(failBackdrop);
   if (waitCounterStop) waitCounterStop();
-  showToast(translate('verifyRider.cancelledToast') || 'تم إلغاء الرحلة وإرسال تقرير أمان', 'danger');
-  // Online status is preserved — she returns to home still available (#1588 S6).
-  setTimeout(() => window.location.assign('./home.html'), 1800);
+  showReportSent();
 });
+
+// Online status is preserved — she returns to home still available (#1588 S6).
+qs('#verify-fail-done-btn')?.addEventListener('click', () => window.location.assign('./home.html'));
 
 // ── Cancel trip with reason + fee (#1722) ─────────
 const CANCEL_FEE = { ar: '20 جنيه', en: 'EGP 20' };
@@ -342,6 +368,14 @@ if (previewCancel && CANCEL_SCENARIOS[previewCancel]) {
   arrivalTs = Date.now();
 }
 
+// ── Mismatch-report preview (?report=form|sent) ──
+// Deep-links the gender-mismatch sheet for design review; implies the arrived card.
+const previewReport = previewParams.get('report');
+if (previewReport === 'form' || previewReport === 'sent') {
+  openFailReport();
+  if (previewReport === 'sent') showReportSent();
+}
+
 // ── Navigation deep-link (#1586 / #1590) ──────────
 document.querySelectorAll('.trip-nav-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -357,10 +391,10 @@ document.querySelectorAll('.trip-nav-btn').forEach((btn) => {
 
 // ── Call / message ────────────────────────────────
 qs('#call-rider-btn')?.addEventListener('click', () =>
-  showToast(translate('trip.driver.callToast') || 'جارٍ الاتصال…', 'info')
+  showToast(translate('driver.trip.callToast') || 'جارٍ الاتصال…', 'info')
 );
 qs('#msg-rider-btn')?.addEventListener('click', () =>
-  showToast(translate('trip.driver.msgToast') || 'الرسائل غير متاحة حالياً', 'info')
+  showToast(translate('driver.trip.msgToast') || 'الرسائل غير متاحة حالياً', 'info')
 );
 
 // ── Complete trip (#1591) → cash-collection ───────

@@ -1,75 +1,132 @@
 /*
  * payments.css — Rider payment method + outstanding fees (spec §7.1)
- * All values use tokens from tokens.css.
+ * Figma "Payment Method": purple hero band with the header, white panel with a
+ * 32px top radius; cash card with a gradient icon; outstanding-fee summary card
+ * and fee rows; centred zero and error states. All values use tokens.
  */
 
-.payments-page { background: var(--color-surface-alt); }
+/* ── Page layout ────────────────────────────────────── */
 
-.payments-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(var(--color-surface-rgb), 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-block-end: 1px solid var(--color-border);
-}
-
-.payments-topbar__inner {
+/* Stack hero + panel so the panel reaches the bottom and the centred states
+   sit in the middle of the white area. sd-page keeps its overflow-y scroll. */
+.payments-page sd-page {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-inline: var(--space-4);
-  block-size: 56px;
+  flex-direction: column;
 }
 
-.payments-topbar__title-text {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  flex: 1;
-  text-align: center;
+.payments-hero {
+  flex: none;
 }
 
 .payments-content {
-  max-inline-size: 560px;
-  margin-inline: auto;
-  padding: var(--space-4);
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+/* ── Header (inside the hero) ───────────────────────── */
+
+/* Framework7's `.navbar .title { display: inline-block }` outranks the shared
+   flex rule — keep the icon and the title on one row. */
+.payments-page .navbar .payments-topbar__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.payments-topbar__title-text {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: inherit;
+  line-height: var(--leading-tight);
+  text-align: center;
+  /* Wrap between words (never inside one) when the language toggle leaves
+     little room. */
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+/* The title icon only fits beside the title on wider phones. */
+.payments-topbar__icon {
+  display: none;
+}
+
+@media (min-width: 400px) {
+  .payments-topbar__title-text {
+    font-size: var(--fs-2xl);
+  }
+
+  .payments-topbar__icon {
+    display: block;
+  }
+}
+
+
+[dir='rtl'] .payments-topbar__back-icon {
+  transform: scaleX(-1);
+}
+
+/* ── Sections ───────────────────────────────────────── */
+
+.payments-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.payments-body[hidden] {
+  display: none;
 }
 
 .payments-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.payments-section:last-child {
+  flex: 1 0 auto;
 }
 
 .payments-section__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  margin: 0;
+}
+
+.payments-section__head {
+  margin-block-end: 0;
+}
+
+.payments-pending {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.payments-pending[hidden] {
+  display: none;
 }
 
 /* ── Payment method statement ──────────────────────── */
-/* Cash is how a trip is paid for, not a selectable option — no row list,
-   no selected/disabled states. */
+/* Cash is how a trip is paid for, not a selectable option — no radio, no
+   selected/disabled states. */
 
 .payment-method-statement {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
   background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
 }
 
 .payment-method-statement__icon {
-  flex: none;
-  display: inline-flex;
-  color: var(--color-primary-600);
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-3));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-3));
 }
 
 .payment-method-statement__text {
@@ -77,80 +134,71 @@
   min-inline-size: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
 }
 
 .payment-method-statement__label {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
+  line-height: var(--leading-tight);
 }
 
 .payment-method-statement__hint {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
 }
 
-/* ── Outstanding fees ──────────────────────────────── */
+/* ── Outstanding fees: summary card ─────────────────── */
 
 .fees-recovery-notice {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  background: rgba(var(--color-warning-rgb), 0.1);
-  border: 1px solid var(--color-warning);
   color: var(--color-text);
 }
 
 .fees-recovery-notice[hidden] { display: none; }
 
-.fees-recovery-notice svg { flex: none; color: var(--color-warning); margin-block-start: 2px; }
+.fees-recovery-notice__amount {
+  margin: 0;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
 
 .fees-recovery-notice__msg {
+  margin: 0;
   font-size: var(--fs-sm);
-  line-height: var(--leading-relaxed);
-}
-
-.fees-zero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  text-align: center;
-  padding-block: var(--space-8);
-}
-
-.fees-zero[hidden] { display: none; }
-
-.fees-zero__icon { color: var(--color-success); }
-
-.fees-zero__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-}
-
-.fees-zero__hint {
-  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
   color: var(--color-text-muted);
 }
+
+/* ── Outstanding fees: rows ─────────────────────────── */
 
 .fees-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.fees-list:empty {
+  display: none;
 }
 
 .fee-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  gap: var(--space-3);
   padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-200);
+  border-radius: var(--radius-lg);
 }
 
 .fee-row__top {
@@ -161,61 +209,103 @@
 }
 
 .fee-row__label {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
 }
 
 .fee-row__amount {
   font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-danger);
+  font-weight: var(--fw-semibold);
+  color: var(--color-danger-strong);
   white-space: nowrap;
 }
 
+.fee-row__route {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.fee-row__route svg { flex: none; color: var(--color-text-subtle); }
+
+/* The link inherits its colour (f7-overrides resets every plain <a>). */
+.fee-row__route a {
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  min-inline-size: 0;
+}
+
+.fee-row__route a:hover { text-decoration: underline; }
+
 .fee-row__meta {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.fee-row__date {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  flex-wrap: wrap;
 }
 
-.fee-row__meta a {
-  color: var(--color-primary-600);
-  text-decoration: none;
-  font-weight: var(--fw-medium);
-}
-
-.fee-row__meta a:hover { text-decoration: underline; }
+.fee-row__date svg { flex: none; color: var(--color-text-subtle); }
 
 .fee-row__note {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  padding-block-start: var(--space-2);
-  border-block-start: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: normal;
+  text-align: center;
+  line-height: var(--leading-snug);
 }
 
-.fee-row__note svg { flex: none; color: var(--color-warning); }
+/* ── Centred states: no fees due, error ─────────────── */
 
-/* ── Error state ───────────────────────────────────── */
-
-.payments-error {
+.payments-state {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  gap: var(--space-2);
+  padding-block: var(--space-8);
   text-align: center;
-  padding-block: var(--space-10);
 }
 
-.payments-error[hidden] { display: none; }
+.payments-state[hidden] { display: none; }
 
-.payments-error__msg {
+.payments-state__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-6));
+  block-size: calc(var(--space-16) + var(--space-6));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
+  color: var(--color-primary-700);
+}
+
+.payments-state__title {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.payments-state__body {
+  margin: 0;
   font-size: var(--fs-base);
-  color: var(--color-text);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
+}
+
+.payments-state__cta {
+  margin-block-start: var(--space-6);
 }

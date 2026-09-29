@@ -7,9 +7,6 @@
     <title>SheDrive — الرئيسية</title>
 
     <!-- CSS — explicit links so the page renders when opened directly (file://). -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -34,68 +31,44 @@
       drawer
       mapbox
     >
-      <sd-app-header menu profile profile-avatar="S">
-        <a href="." class="home-topbar__logo" data-i18n-aria-label="aria.logo.home">
-          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="32" />
+      <!-- Figma: round white menu button, centred wordmark, round white bell.
+           The language toggle sits beside the bell as one more round button. -->
+      <sd-app-header menu>
+        <a href="." class="home-brand" aria-label="العودة إلى رئيسية شي درايف" data-i18n-aria-label="aria.logo.home">
+          <span class="home-brand__name" data-i18n="home.brand.name">SheDrive</span>
+          <span class="home-brand__tagline" data-i18n="home.brand.tagline">بقيادة نسائية</span>
         </a>
         <sd-notification-bell data-slot="end" href="./notifications.html" id="notif-bell"></sd-notification-bell>
       </sd-app-header>
 
-      <!-- GPS denied banner -->
-      <div class="gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <span data-i18n="home.gps.denied">فشل الحصول على موقعك. يرجى تفعيل خدمة الموقع</span>
-        <button type="button" class="btn btn--ghost btn--sm gps-banner__settings" id="gps-settings-btn" data-i18n="home.gps.settings">فتح الإعدادات</button>
-      </div>
-
-      <!-- Service-closed / outside-operating-hours notice (state=closed) — #1791 -->
-      <div class="hours-banner" id="hours-banner" role="status" aria-live="polite" hidden>
-        <span class="hours-banner__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </span>
-        <span class="hours-banner__text">
-          <span class="hours-banner__title" data-i18n="home.hours.closed">الخدمة مغلقة حالياً</span>
-          <span class="hours-banner__sub" data-i18n="home.hours.next">تفتح في تمام الساعة ٦:٠٠ صباحاً</span>
-        </span>
-      </div>
-
-      <!-- Outstanding-fee banner. Always dismissible; states her full outstanding
-           balance, which is always what her next ride recovers (spec §3, #3998).
-           There is deliberately no blocked state — a block would deadlock. -->
-      <div class="fee-banner" id="fee-banner" role="status" aria-live="polite" hidden>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-        <span class="fee-banner__text" id="fee-banner-msg"></span>
-        <button type="button" class="btn btn--icon btn--ghost fee-banner__dismiss" id="fee-banner-dismiss" data-i18n-aria-label="aria.close" aria-label="إغلاق">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-
       <!-- Map-pin drop overlay (state=pin-pickup | pin-dest) -->
-      <div class="map-pin-overlay" id="map-pin-overlay" hidden aria-modal="true" role="dialog" data-i18n-aria-label="aria.pinOverlay">
+      <div class="map-pin-overlay" id="map-pin-overlay" hidden aria-modal="true" role="dialog" aria-label="تحديد الموقع على الخريطة" data-i18n-aria-label="aria.pinOverlay">
         <div class="map-pin-overlay__pin" aria-hidden="true">
           <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.333 16 24 16 24s16-12.667 16-24C32 7.163 24.837 0 16 0z" fill="var(--color-primary)"/>
-            <circle cx="16" cy="16" r="6" fill="white"/>
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.333 16 24 16 24s16-12.667 16-24C32 7.163 24.837 0 16 0z" fill="var(--color-primary-600)"/>
+            <circle cx="16" cy="16" r="6" fill="var(--color-surface)"/>
           </svg>
         </div>
         <div class="map-pin-overlay__bar">
           <button type="button" class="btn btn--primary btn--full" id="pin-confirm-btn" data-i18n="home.pin.confirm">تأكيد الموقع</button>
-          <button type="button" class="btn btn--ghost btn--sm" id="pin-cancel-btn" data-i18n="common.cancel">إلغاء</button>
+          <button type="button" class="btn btn--link" id="pin-cancel-btn" data-i18n="common.cancel">إلغاء</button>
         </div>
       </div>
 
       <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
 
-      <!-- ── Address Search Overlay (state=search) ───────── -->
+      <!-- ── Address Search Overlay (state=search) ─────────
+           Figma "Select Pickup" / "Select Destination": back arrow + title, then a
+           field card styled for the field being chosen (data-mode, set by home.js). -->
       <div
         class="search-overlay"
         id="search-overlay"
         role="search"
-        aria-label="بحث عن وجهة"
+        aria-label="ابحثي عن وجهة…"
         data-i18n-aria-label="home.search.placeholder"
+        data-mode="destination"
       >
-        <!-- Search bar -->
-        <div class="search-bar">
+        <div class="search-head">
           <button
             type="button"
             class="btn btn--icon btn--ghost search-bar__back"
@@ -103,185 +76,286 @@
             aria-label="رجوع إلى الخريطة"
             data-i18n-aria-label="aria.search.back"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
           </button>
-          <input
-            type="search"
-            id="search-input"
-            class="input search-bar__input"
-            placeholder="ابحثي عن وجهة…"
-            data-i18n-placeholder="home.search.placeholder"
-            autocomplete="off"
-            aria-autocomplete="list"
-            aria-controls="search-suggestions"
-          />
-          <button
-            type="button"
-            class="btn btn--icon btn--ghost search-bar__clear"
-            id="search-clear-btn"
-            aria-label="مسح البحث"
-            data-i18n-aria-label="aria.search.clear"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <h2 class="search-head__title" id="search-title" data-i18n="home.search.title">إلى أين تذهبين؟</h2>
         </div>
 
-        <!-- Current location quick-select — pickup only, per #1550/#1551 -->
-        <button type="button" class="search-current-loc" id="use-current-loc-btn">
-          <span class="search-current-loc__icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
-            </svg>
-          </span>
-          <span data-i18n="home.search.currentLoc">موقعي الحالي</span>
-        </button>
-
-        <!-- Drop a pin on the map — available for both pickup and destination -->
-        <button type="button" class="search-current-loc" id="pin-drop-btn">
-          <span class="search-current-loc__icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          </span>
-          <span data-i18n="home.search.pinDrop">تحديد على الخريطة</span>
-        </button>
-
-        <div role="listbox" id="search-suggestions" aria-label="اقتراحات البحث">
-          <!-- Recent searches (shown while the query is under 2 characters) -->
-          <div id="search-recent-block">
-            <p class="search-section-label" data-i18n="home.search.recent">البحث السابق</p>
-            <ul class="search-list" id="search-recent-list" aria-label="البحث السابق">
-              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="سيتي ستارز — النزهة" data-sub="مدينة نصر، القاهرة">
-                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </span>
-                <span class="search-row__text">
-                  <span class="search-row__name">سيتي ستارز — النزهة</span>
-                  <span class="search-row__sub">مدينة نصر، القاهرة</span>
-                </span>
-              </li>
-              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="المستشفى التخصصي" data-sub="المعادي، القاهرة">
-                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </span>
-                <span class="search-row__text">
-                  <span class="search-row__name">المستشفى التخصصي</span>
-                  <span class="search-row__sub">المعادي، القاهرة</span>
-                </span>
-              </li>
-              <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="الجامعة الأمريكية — التحرير" data-sub="وسط القاهرة">
-                <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </span>
-                <span class="search-row__text">
-                  <span class="search-row__name">الجامعة الأمريكية — التحرير</span>
-                  <span class="search-row__sub">وسط القاهرة</span>
-                </span>
-              </li>
-            </ul>
+        <div class="search-body">
+          <div class="search-bar">
+            <span class="search-bar__icon search-bar__icon--pickup" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.5"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+            </span>
+            <span class="search-bar__icon search-bar__icon--destination" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            </span>
+            <span class="search-bar__field">
+              <label class="search-bar__label" for="search-input">
+                <span class="search-bar__label--pickup" data-i18n="home.pickup.label">نقطة الانطلاق</span>
+                <span class="search-bar__label--destination" data-i18n="home.destination.label">الوجهة</span>
+              </label>
+              <input
+                type="search"
+                id="search-input"
+                class="input search-bar__input"
+                placeholder="ابحثي عن وجهة…"
+                data-i18n-placeholder="home.search.placeholder"
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="search-suggestions"
+              />
+            </span>
+            <button
+              type="button"
+              class="btn btn--icon btn--ghost search-bar__clear"
+              id="search-clear-btn"
+              aria-label="مسح البحث"
+              data-i18n-aria-label="aria.search.clear"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
-          <!-- Autocomplete suggestions — rendered from search-input by scripts/home.js (2-char threshold, max 5) -->
-          <ul class="search-list search-list--suggestions" id="search-suggestions-list" aria-label="اقتراحات" hidden></ul>
+          <div class="search-actions">
+            <!-- Current location quick-select — pickup only, per #1550/#1551 -->
+            <button type="button" class="search-current-loc" id="use-current-loc-btn">
+              <span class="icon-tile icon-tile--lg icon-tile--round search-current-loc__icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+                </svg>
+              </span>
+              <span data-i18n="home.search.currentLoc">موقعي الحالي</span>
+            </button>
 
-          <!-- No results state (hidden by default) -->
-          <p class="search-no-results" id="search-no-results" aria-live="polite" data-i18n="home.search.noResults" hidden>لا توجد نتائج</p>
+            <!-- Drop a pin on the map — available for both pickup and destination -->
+            <button type="button" class="search-current-loc" id="pin-drop-btn">
+              <span class="icon-tile icon-tile--lg icon-tile--round search-current-loc__icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <span data-i18n="home.search.pinDrop">تحديد على الخريطة</span>
+            </button>
+          </div>
+
+          <!-- "Use my current location" failures — permission refused / position not found (#1550) -->
+          <p class="search-loc-msg" id="search-loc-msg" role="alert" hidden></p>
+
+          <div role="listbox" id="search-suggestions" aria-label="اقتراحات البحث" data-i18n-aria-label="home.search.recent">
+            <!-- Saved places (read-only here; managed in the profile, #1724). Rendered by
+                 home.js from shedrive.savedPlaces; left out when she has none (#1549). -->
+            <div class="search-saved" id="search-saved-block" hidden>
+              <div class="search-saved__head">
+                <p class="section-label search-section-label" data-i18n="home.search.saved">الأماكن المحفوظة</p>
+                <a class="search-saved__all" href="./saved-places.html" data-i18n="home.search.viewAll">عرض الكل</a>
+              </div>
+              <ul class="saved-strip" id="search-saved-list" aria-label="الأماكن المحفوظة" data-i18n-aria-label="home.search.saved"></ul>
+            </div>
+
+            <!-- Recent places — the last five she picked on this device, newest first (#1549) -->
+            <div id="search-recent-block">
+              <p class="section-label search-section-label" data-i18n="home.search.recent">البحث السابق</p>
+              <ul class="search-list" id="search-recent-list" aria-label="البحث السابق" data-i18n-aria-label="home.search.recent">
+                <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="سيتي ستارز — النزهة" data-sub="مدينة نصر، القاهرة">
+                  <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>
+                  </span>
+                  <span class="search-row__text">
+                    <span class="search-row__name">سيتي ستارز — النزهة</span>
+                    <span class="search-row__sub">مدينة نصر، القاهرة</span>
+                  </span>
+                  <span class="search-row__meta">
+                    <span>8 <span data-i18n="trip.minutes">دقيقة</span></span>
+                    <span class="search-row__km">2.3 <span data-i18n="complete.km">كم</span></span>
+                  </span>
+                </li>
+                <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="المستشفى التخصصي" data-sub="المعادي، القاهرة">
+                  <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>
+                  </span>
+                  <span class="search-row__text">
+                    <span class="search-row__name">المستشفى التخصصي</span>
+                    <span class="search-row__sub">المعادي، القاهرة</span>
+                  </span>
+                  <span class="search-row__meta">
+                    <span>16 <span data-i18n="trip.minutes">دقيقة</span></span>
+                    <span class="search-row__km">4.1 <span data-i18n="complete.km">كم</span></span>
+                  </span>
+                </li>
+                <li class="search-row" role="option" aria-selected="false" tabindex="0" data-name="الجامعة الأمريكية — التحرير" data-sub="وسط القاهرة">
+                  <span class="search-row__icon search-row__icon--clock" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>
+                  </span>
+                  <span class="search-row__text">
+                    <span class="search-row__name">الجامعة الأمريكية — التحرير</span>
+                    <span class="search-row__sub">وسط القاهرة</span>
+                  </span>
+                  <span class="search-row__meta">
+                    <span>23 <span data-i18n="trip.minutes">دقيقة</span></span>
+                    <span class="search-row__km">6.7 <span data-i18n="complete.km">كم</span></span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Autocomplete suggestions — rendered from search-input by scripts/home.js (2-char threshold, max 5) -->
+            <ul class="search-list search-list--suggestions" id="search-suggestions-list" aria-label="اقتراحات البحث" data-i18n-aria-label="home.search.placeholder" hidden></ul>
+
+            <!-- No results state (hidden by default) -->
+            <p class="search-no-results" id="search-no-results" aria-live="polite" data-i18n="home.search.noResults" hidden>لم نجد أماكن تطابق بحثك</p>
+
+            <!-- Search failed (state=search-error) -->
+            <div class="search-error" id="search-error" role="alert" hidden>
+              <p class="search-error__msg" data-i18n="home.search.error">تعذّر البحث. تحققي من اتصالكِ وحاولي مجدداً</p>
+              <button type="button" class="btn btn--secondary btn--sm" id="search-retry-btn" data-i18n="common.retry">حاولي مجدداً</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ── Booking Bottom Sheet (default state) ──────── -->
+      <!-- ── Booking Bottom Sheet ─────────────────────────
+           Figma "Home" / "Ride Now": greeting, notices, the pickup + destination
+           cards, the fare card once a fare exists, and the gradient CTA. The sheet
+           scrolls internally when its content is taller than the space above it. -->
       <sd-bottom-sheet id="ride-sheet" data-i18n-aria-label="aria.requestRideSheet">
 
-        <!-- Default booking panel -->
+        <div class="home-greeting">
+          <h1 class="home-greeting__title">
+            <span id="home-greeting-text" data-i18n="home.greeting">أهلاً بكِ</span>
+            <span class="home-greeting__wave" aria-hidden="true">👋</span>
+          </h1>
+          <p class="home-greeting__sub" data-i18n="home.greetingSub">إلى أين تودّين الذهاب اليوم؟</p>
+        </div>
+
+        <!-- Outstanding-fee notice. Always dismissible; states her full outstanding
+             balance, which is always what her next ride recovers (spec §3, #3998).
+             There is deliberately no blocked state — a block would deadlock. -->
+        <div class="home-notice home-notice--fee fee-banner" id="fee-banner" role="status" aria-live="polite" hidden>
+          <span class="icon-tile icon-tile--lg home-notice__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+          </span>
+          <span class="fee-banner__text home-notice__text" id="fee-banner-msg"></span>
+          <button type="button" class="btn btn--icon btn--ghost fee-banner__dismiss" id="fee-banner-dismiss" data-i18n-aria-label="aria.close" aria-label="إغلاق">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- GPS denied notice -->
+        <div class="home-notice gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
+          <span class="icon-tile icon-tile--lg home-notice__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </span>
+          <span class="home-notice__text" data-i18n="home.gps.denied">فشل الحصول على موقعك. يرجى تفعيل خدمة الموقع</span>
+          <button type="button" class="btn btn--link gps-banner__settings" id="gps-settings-btn" data-i18n="home.gps.settings">فتح الإعدادات</button>
+        </div>
+
+        <!-- Pickup + destination cards (both states) -->
         <div class="fare-default-panel">
           <div class="pickup-destination">
-            <div class="pickup-destination__connector" aria-hidden="true"></div>
-
             <div class="pickup-row pickup-row--pickup">
-              <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
-              <input
-                type="text"
-                id="pickup-input"
-                class="input pickup-row__input"
-                value="موقعي الحالي"
-                data-i18n-value="home.pickup.current"
-                readonly
-                aria-label="Pickup location"
-                data-i18n-aria-label="home.pickup.label"
-              />
+              <span class="pickup-row__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.5"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+              </span>
+              <span class="pickup-row__field">
+                <label class="pickup-row__label" for="pickup-input" data-i18n="home.pickup.label">نقطة الانطلاق</label>
+                <input
+                  type="text"
+                  id="pickup-input"
+                  class="input pickup-row__input"
+                  value="موقعي الحالي"
+                  data-i18n-value="home.pickup.current"
+                  readonly
+                  aria-label="نقطة الانطلاق"
+                  data-i18n-aria-label="home.pickup.label"
+                />
+              </span>
             </div>
 
+            <button type="button" class="btn btn--icon pickup-swap" id="swap-btn" aria-label="تبديل نقطة الانطلاق والوجهة" data-i18n-aria-label="home.swap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4v16M4 8l4-4 4 4"></path><path d="M16 20V4M12 16l4 4 4-4"></path></svg>
+            </button>
+
             <div class="pickup-row pickup-row--destination">
-              <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
-              <input
-                type="search"
-                id="destination-input"
-                name="destination"
-                class="input pickup-row__input"
-                data-i18n-placeholder="home.destination.placeholder"
-                placeholder="إلى أين؟"
-                autocomplete="off"
-                aria-label="Destination"
-                data-i18n-aria-label="home.destination.label"
-              />
+              <span class="pickup-row__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <span class="pickup-row__field">
+                <label class="pickup-row__label" for="destination-input" data-i18n="home.destination.label">الوجهة</label>
+                <input
+                  type="search"
+                  id="destination-input"
+                  name="destination"
+                  class="input pickup-row__input"
+                  data-i18n-placeholder="home.destination.placeholder"
+                  placeholder="إلى أين؟"
+                  autocomplete="off"
+                  aria-label="الوجهة"
+                  data-i18n-aria-label="home.destination.label"
+                />
+              </span>
             </div>
           </div>
           <p class="field__error" id="same-location-error" hidden role="alert" data-i18n="home.dest.sameAsPickup">يرجى اختيار وجهة مختلفة عن موقع الانطلاق</p>
-
-          <!-- Inactive until a fare has been fetched (fare panel below) — #1548/#1552 -->
-          <sd-button id="request-ride-btn" variant="primary" size="lg" full disabled data-i18n="home.requestRide">
-            طلب رحلة
-          </sd-button>
         </div>
 
-        <!-- Fare estimate panel (state=fare) -->
-        <div class="fare-panel" aria-label="تقدير السعر" data-i18n-aria-label="home.fare.estimated">
-          <div class="fare-route">
-            <div class="pickup-destination">
-              <div class="pickup-destination__connector" aria-hidden="true"></div>
-              <div class="pickup-row pickup-row--pickup">
-                <span class="pickup-dot pickup-dot--green" aria-hidden="true"></span>
-                <span class="fare-route__label" id="fare-route-pickup">موقعي الحالي</span>
-              </div>
-              <div class="pickup-row">
-                <span class="pickup-dot pickup-dot--magenta" aria-hidden="true"></span>
-                <span class="fare-route__label fare-route__label--dest">مدينة نصر</span>
-              </div>
-            </div>
-          </div>
+        <!-- Fare estimate card (state=fare) -->
+        <div class="fare-panel" role="group" aria-label="تقدير السعر" data-i18n-aria-label="home.fare.estimated">
+          <!-- Kept for home.js, which mirrors the chosen places here; the cards above show them. -->
+          <span class="fare-route__label" id="fare-route-pickup" hidden>موقعي الحالي</span>
+          <span class="fare-route__label fare-route__label--dest" hidden>مدينة نصر</span>
 
           <div class="fare-estimate-badge" role="status" aria-live="polite">
-            <span class="fare-estimate-badge__amount">٤٥–٦٥</span>
-            <span class="fare-estimate-badge__currency" data-i18n="home.fare.egp">ج.م.</span>
             <span class="fare-estimate-badge__label" data-i18n="home.fare.estimated">تقدير السعر</span>
+            <span class="fare-estimate-badge__value">
+              <span class="fare-estimate-badge__amount">55.00</span>
+              <span class="fare-estimate-badge__currency" data-i18n="home.fare.egp">ج.م.</span>
+            </span>
+            <span class="fare-meta-row">
+              <span class="fare-meta-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>~20</span>
+                <span data-i18n="trip.minutes">دقيقة</span>
+              </span>
+              <span class="fare-meta-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"></path></svg>
+                <span>~8.2</span>
+                <span data-i18n="complete.km">كم</span>
+              </span>
+            </span>
           </div>
 
-          <div class="fare-meta-row">
-            <span class="fare-meta-chip">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>~٢٠ دقيقة</span>
-            </span>
-            <span class="fare-meta-chip">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              <span>~٨.٢ كم</span>
-            </span>
+          <!-- Fare loading (state=fare-loading) — Request Ride stays inactive (#1552) -->
+          <p class="fare-loading" id="fare-loading" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span data-i18n="home.fare.loading">جارٍ حساب الأجرة…</span>
+          </p>
+
+          <!-- Pickup outside every service zone (state=fare-outside) — no fare, no retry (#1552, #1629) -->
+          <div class="fare-error-row" id="fare-outside-row" hidden>
+            <p class="fare-error-msg" data-i18n="home.fare.outside">الخدمة غير متاحة في موقع الانطلاق هذا بعد</p>
           </div>
 
           <!-- Fare error state -->
           <div class="fare-error-row" id="fare-error-row" hidden>
             <p class="fare-error-msg" data-i18n="home.fare.error">تعذّر حساب السعر</p>
-            <button type="button" class="btn btn--ghost btn--sm" id="fare-retry-btn" data-i18n="home.fare.retry">إعادة حساب السعر</button>
+            <button type="button" class="btn btn--secondary btn--sm" id="fare-retry-btn" data-i18n="home.fare.retry">إعادة حساب السعر</button>
           </div>
+        </div>
 
+        <!-- CTA: inactive until a fare exists (#1548/#1552); the fare CTA requests the ride -->
+        <div class="home-actions">
+          <sd-button id="request-ride-btn" variant="primary" size="lg" full disabled data-i18n="home.requestRide">
+            طلب رحلة
+          </sd-button>
           <sd-button id="confirm-ride-btn" variant="primary" size="lg" full data-i18n="home.requestRide">
             طلب رحلة
           </sd-button>
-          <button type="button" class="fare-change-link" data-i18n="home.fare.change">
+          <button type="button" class="btn btn--link fare-change-link" data-i18n="home.fare.change">
             تغيير الوجهة
           </button>
         </div>
@@ -301,22 +375,27 @@
 
     <script type="module" src="scripts/home.js"></script>
 
-    <!-- Demo only: ?state=search | fare | fare-error | gps-denied | pin-pickup | pin-dest | closed -->
+    <!-- Demo only: ?state=search | search-pickup | search-error | fare | fare-loading | fare-error | fare-outside | gps-denied | pin-pickup | pin-dest
+         Extra: ?saved=none (no saved places), ?loc=denied | unavailable ("Use my current location" failures) -->
     <script type="module">
       const s = new URLSearchParams(location.search).get('state');
       if (s) document.body.dataset.state = s;
+      if (s === 'fare' || s === 'fare-error' || s === 'fare-loading' || s === 'fare-outside') {
+        // The fare card belongs to a chosen destination — fill the demo one in.
+        const dest = document.getElementById('destination-input');
+        if (dest && !dest.value) dest.value = document.querySelector('.fare-route__label--dest')?.textContent || '';
+      }
       if (s === 'gps-denied') {
         document.getElementById('gps-banner').hidden = false;
       }
-      if (s === 'closed') {
-        document.getElementById('hours-banner').hidden = false;
-        ['request-ride-btn', 'confirm-ride-btn'].forEach((id) => {
-          const btn = document.getElementById(id);
-          if (btn) btn.setAttribute('disabled', '');
-        });
-      }
       if (s === 'pin-pickup' || s === 'pin-dest') {
         document.getElementById('map-pin-overlay').hidden = false;
+      }
+      if (s === 'fare-loading' || s === 'fare-outside') {
+        document.body.dataset.state = 'fare';
+        document.querySelector('.fare-estimate-badge').hidden = true;
+        document.getElementById(s === 'fare-loading' ? 'fare-loading' : 'fare-outside-row').hidden = false;
+        document.getElementById('confirm-ride-btn')?.setAttribute('disabled', '');
       }
       if (s === 'fare-error') {
         document.body.dataset.state = 'fare';

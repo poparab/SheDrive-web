@@ -49,6 +49,14 @@ function renderOwed() {
   qs('#settle-amount').textContent = String(owed);
 }
 
+const svg = (inner) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const CHANNEL_ICONS = {
+  office_cash: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'),
+  bank_deposit: svg('<path d="M3 10 12 4l9 6"/><line x1="5" y1="10" x2="5" y2="18"/><line x1="10" y1="10" x2="10" y2="18"/><line x1="14" y1="10" x2="14" y2="18"/><line x1="19" y1="10" x2="19" y2="18"/><line x1="3" y1="20" x2="21" y2="20"/>'),
+  mobile_wallet: svg('<rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>'),
+  field_agent: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/>'),
+};
+
 // ── Channels ──────────────────────────────────────────
 function renderChannels() {
   const list = qs('#channels-list');
@@ -57,6 +65,14 @@ function renderChannels() {
   SETTLEMENT_CHANNELS.forEach((channel) => {
     const card = document.createElement('div');
     card.className = 'settle-channel';
+
+    const icon = document.createElement('span');
+    icon.className = 'icon-tile icon-tile--lg icon-tile--round';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = CHANNEL_ICONS[channel.id] || CHANNEL_ICONS.office_cash;
+
+    const body = document.createElement('span');
+    body.className = 'settle-channel__body';
 
     const name = document.createElement('span');
     name.className = 'settle-channel__name';
@@ -68,7 +84,8 @@ function renderChannels() {
       channel.refRequired ? 'driver.settle.refRequired' : 'driver.settle.refOptional',
     );
 
-    card.append(name, note);
+    body.append(name, note);
+    card.append(icon, body);
     list.appendChild(card);
   });
 }

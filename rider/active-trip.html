@@ -6,10 +6,8 @@
     <meta name="description" content="SheDrive — رحلتك الآن" />
     <title>SheDrive — رحلتك الآن</title>
 
-    <!-- CSS — explicit links so the page renders when opened directly (file://). -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- CSS — explicit links so the map, drawer and sheet are styled on first paint
+         (sd-page injects the same stack again, plus the fonts, once its module runs). -->
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -40,17 +38,6 @@
         <span data-i18n="trip.arrivedBanner">وصلت سائقتك! توجهي إلى نقطة الانطلاق</span>
       </div>
 
-      <!-- Cancel trip dialog -->
-      <sd-confirm-dialog
-        id="trip-cancel-dialog"
-        title-key="cancel.tripTitle"
-        title-fallback="إلغاء الرحلة؟"
-        body-key="cancel.tripBody"
-        body-fallback="سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة"
-        confirm-key="cancel.confirmBtn"
-        cancel-key="cancel.cancelBtn"
-        danger
-      ></sd-confirm-dialog>
       <sd-app-header
         menu
         bar-class="trip-topbar"
@@ -58,7 +45,7 @@
         actions-class="trip-topbar__actions"
         title-class="trip-topbar__title"
       >
-        <a href="home.html" class="trip-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
+        <a href="home.html" class="trip-topbar__logo" aria-label="شي درايف" data-i18n-aria-label="aria.logo.shedrive">
           <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
         </a>
       </sd-app-header>
@@ -67,162 +54,183 @@
         <div id="map"></div>
       </div>
 
-      <section class="trip-panel" aria-label="تفاصيل السائقة والرحلة" data-i18n-aria-label="trip.title">
+      <section class="trip-panel" aria-label="تفاصيل الرحلة" data-i18n-aria-label="trip.title">
+        <span class="sheet-handle trip-panel__handle" aria-hidden="true"></span>
 
-        <!-- ── Driver Arrived banner (state=arrived) ──── -->
-        <div class="state--arrived trip-arrived-banner" role="status" aria-live="assertive">
-          <span class="trip-arrived-banner__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <!-- ── Status row: en route / arrived / started ── -->
+        <div class="trip-status" role="status" aria-live="polite">
+          <span class="icon-tile icon-tile--lg icon-tile--round icon-tile--solid trip-status__icon" aria-hidden="true">
+            <svg class="state--enroute" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            <svg class="state--arrived" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <svg class="state--started" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
           </span>
-          <div class="trip-arrived-banner__text">
-            <p class="trip-arrived-banner__title" data-i18n="trip.arrived.title">وصلت سائقتك!</p>
-            <p class="trip-arrived-banner__body" data-i18n="trip.arrived.body">توجهي إلى نقطة الالتقاء</p>
+
+          <div class="trip-status__text">
+            <h1 class="trip-status__title">
+              <span class="state--enroute" data-i18n="trip.status.onTheWay">سائقتك في الطريق إليكِ</span>
+              <span class="state--arrived" data-i18n="trip.arrived.title">وصلت سائقتك!</span>
+              <span class="state--started" data-i18n="trip.status.started">استمتعي برحلتك</span>
+            </h1>
+            <p class="trip-status__subtitle state--arrived" data-i18n="trip.arrived.body">توجهي إلى نقطة الالتقاء</p>
+            <p class="trip-status__subtitle state--started" data-i18n="trip.status.startedBody">أنتِ في الطريق إلى وجهتك.</p>
           </div>
-        </div>
 
-        <!-- ── Waiting counter (state=arrived) ─────────── -->
-        <div class="state--arrived trip-waiting-section" id="waiting-section">
-          <p class="trip-waiting__title" data-i18n="trip.waitingTitle">وصلت سائقتك — في انتظارك</p>
-          <div class="trip-waiting__counter-row">
-            <span class="trip-waiting__label" data-i18n="trip.waitingCounter">وقت الانتظار</span>
-            <span class="trip-waiting__counter" id="wait-counter" aria-live="off">00:00</span>
-          </div>
-        </div>
+          <!-- ETA pill (en route) -->
+          <span class="trip-status__pill state--enroute">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14 15"/><line x1="10" y1="2" x2="14" y2="2"/></svg>
+            <span class="u-visually-hidden" data-i18n="trip.eta">الوصول خلال</span>
+            <span id="driver-eta">4 دقيقة</span>
+          </span>
 
-        <sd-driver-card
-          variant="detailed"
-          name-id="driver-name"
-          name-fallback="نورا أحمد"
-          rating-id="driver-rating"
-          rating-fallback="★★★★★ 4.9"
-          vehicle-id="driver-vehicle"
-          vehicle-fallback="تويوتا كورولا 2023 — أبيض | ق أ ب 123"
-          eta-id="driver-eta"
-          eta-fallback="الوصول خلال 4 دقيقة"
-          avatar="ن"
-        ></sd-driver-card>
-
-        <div class="safety-badges" role="list" data-i18n-aria-label="aria.trip.safetyBadges">
-          <span class="safety-badge" role="listitem">
-            <span aria-hidden="true">✓</span>
-            <span data-i18n="trip.badge.verified">سائقة موثقة</span>
+          <!-- Waiting counter pill (arrived) — counts up from 00:00 (#1559) -->
+          <span class="trip-status__pill state--arrived">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14 15"/><line x1="10" y1="2" x2="14" y2="2"/></svg>
+            <span class="u-visually-hidden" data-i18n="trip.waitingCounter">وقت الانتظار</span>
+            <span class="trip-status__counter" id="wait-counter" aria-live="off">00:00</span>
           </span>
         </div>
 
-        <div class="trip-actions" role="group" data-i18n-aria-label="aria.trip.actions">
+        <!-- ── Driver card ── -->
+        <div class="trip-driver">
+          <sd-driver-card
+            variant="detailed"
+            name-id="driver-name"
+            name-fallback="نورا أحمد"
+            rating-id="driver-rating"
+            rating-fallback="★ 4.9"
+            vehicle-id="driver-vehicle"
+            vehicle-fallback="تويوتا كورولا 2023 — أبيض • ق أ ب 123"
+            avatar="ن"
+          ></sd-driver-card>
 
-          <!-- Cancel trip (hidden once trip is in-progress) -->
-          <button
-            type="button"
-            id="trip-cancel-btn"
-            class="btn btn--ghost btn--sm trip-cancel-btn"
-            data-i18n="trip.cancelBtn"
-            data-i18n-aria-label="aria.cancel"
-            aria-label="إلغاء الرحلة"
-          >
-            إلغاء الرحلة
-          </button>
-
-          <button
-            type="button"
-            id="sos-btn"
-            class="btn btn--sos"
-            data-i18n-aria-label="aria.sos"
-            aria-label="زر الطوارئ"
-          >
-            <span data-i18n="trip.sos">🆘 طوارئ</span>
-          </button>
-
+          <div class="safety-badges" role="list" aria-label="شارات السلامة" data-i18n-aria-label="aria.trip.safetyBadges">
+            <span class="badge badge--success safety-badge" role="listitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span data-i18n="trip.badge.verified">سائقة موثقة</span>
+            </span>
+          </div>
         </div>
 
-        <div class="trip-details">
-          <button
-            type="button"
-            id="trip-details-toggle"
-            class="trip-details-toggle"
-            aria-expanded="false"
-            aria-controls="trip-details-body"
-          >
-            <span data-i18n="trip.details">تفاصيل الرحلة</span>
-            <svg class="icon-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
+        <!-- Waiting note (arrived) -->
+        <p class="trip-waiting state--arrived" id="waiting-section">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+          <span data-i18n="trip.waitingAtPickup">سائقتك في انتظارك عند نقطة الانطلاق</span>
+        </p>
 
-          <div id="trip-details-body" class="trip-details-body" role="region" data-i18n-aria-label="aria.trip.details">
-            <div class="trip-detail-row">
-              <span class="trip-detail-row__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
-              <span class="trip-detail-row__value" id="detail-pickup">موقعي الحالي</span>
+        <!-- ── Route + fare ── -->
+        <div class="trip-route" role="region" aria-label="تفاصيل الرحلة" data-i18n-aria-label="aria.trip.details">
+          <ol class="route trip-route__stops">
+            <li class="route__stop route__stop--pickup state--prestart">
+              <span class="route__place" id="detail-pickup">موقعي الحالي</span>
+              <span class="route__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
+            </li>
+            <li class="route__stop route__stop--destination state--notarrived">
+              <span class="route__place" id="detail-destination">مدينة نصر</span>
+              <span class="route__label" data-i18n="home.destination.label">الوجهة</span>
+            </li>
+          </ol>
+
+          <dl class="trip-route__meta state--notarrived">
+            <div class="trip-route__fact">
+              <dt data-i18n="trip.fare">التكلفة التقديرية</dt>
+              <dd><span dir="ltr">45–60</span> <span data-i18n="complete.currency">جنيه</span></dd>
             </div>
-
-            <div class="trip-detail-row">
-              <span class="trip-detail-row__label" data-i18n="home.destination.label">الوجهة</span>
-              <span class="trip-detail-row__value" id="detail-destination">مدينة نصر</span>
+            <div class="trip-route__fact">
+              <dt data-i18n="trip.distance">المسافة</dt>
+              <dd><span dir="ltr">~8</span> <span data-i18n="complete.km">كم</span></dd>
             </div>
+          </dl>
+        </div>
 
-            <div class="trip-detail-row">
-              <span class="trip-detail-row__label" data-i18n="trip.fare">التكلفة التقديرية</span>
-              <span class="trip-detail-row__value">٤٥–٦٠ جنيه</span>
-            </div>
+        <!-- ── Safety & assistance: SOS stays reachable in every state (#3968 S1) ── -->
+        <section class="trip-safety" aria-labelledby="trip-safety-title">
+          <div class="trip-safety__head">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <h2 class="trip-safety__title" id="trip-safety-title" data-i18n="trip.safety.title">السلامة والمساعدة</h2>
+          </div>
+          <p class="trip-safety__hint" data-i18n="trip.safety.hint">ابقَي آمنة واطلبي المساعدة متى احتجتِ إليها.</p>
 
-            <div class="trip-detail-row">
-              <span class="trip-detail-row__label" data-i18n="trip.distance">المسافة</span>
-              <span class="trip-detail-row__value">~8 كم</span>
-            </div>
-
+          <div class="trip-safety__tiles" role="group" aria-label="إجراءات الرحلة" data-i18n-aria-label="aria.trip.actions">
             <button
               type="button"
-              id="demo-end-btn"
-              class="btn btn--secondary btn--full btn--sm trip-details-demo"
-              data-i18n="trip.demoEnd"
+              id="sos-btn"
+              class="trip-safety__tile trip-safety__tile--sos"
+              aria-label="زر الطوارئ"
+              data-i18n-aria-label="aria.sos"
             >
-              محاكاة انتهاء الرحلة (تجريبي)
+              <span class="trip-safety__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2"/><path d="M4.5 4.5a10 10 0 0 0 0 13"/><path d="M19.5 4.5a10 10 0 0 1 0 13"/></svg>
+              </span>
+              <span class="trip-safety__label" data-i18n="trip.safety.sos">طوارئ</span>
+              <span class="trip-safety__sub" data-i18n="trip.safety.sosHint">مشاركة موقعي المباشر</span>
             </button>
+
+            <a href="sos.html" class="trip-safety__tile">
+              <span class="trip-safety__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="18" y1="2" x2="18" y2="8"/><line x1="15" y1="5" x2="21" y2="5"/></svg>
+              </span>
+              <span class="trip-safety__label" data-i18n="sos.title">جهات اتصال الطوارئ</span>
+            </a>
           </div>
-        </div>
+        </section>
+
+        <!-- Cancel — available until the trip starts (#1719 S5) -->
+        <button
+          type="button"
+          id="trip-cancel-btn"
+          class="btn btn--link trip-cancel-btn state--prestart"
+          data-i18n="trip.cancelBtn"
+        >
+          إلغاء الرحلة
+        </button>
+
+        <!-- Demo only: steps through en route → arrived → started → trip complete -->
+        <button type="button" id="demo-advance-btn" class="btn btn--ghost btn--sm trip-demo-btn">
+          <span class="state--enroute" data-i18n="trip.demoArrive">محاكاة وصول السائقة (تجريبي)</span>
+          <span class="state--arrived" data-i18n="trip.demoStart">محاكاة بدء الرحلة (تجريبي)</span>
+          <span class="state--started" data-i18n="trip.demoEnd">محاكاة انتهاء الرحلة (تجريبي)</span>
+        </button>
       </section>
 
-      <div
-        class="sos-modal-backdrop"
-        id="sos-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sos-modal-title"
-        aria-describedby="sos-modal-body"
-      >
-        <div class="sos-modal">
-          <h2 class="sos-modal__title" id="sos-modal-title" data-i18n="trip.sosConfirmTitle">تأكيد الطوارئ</h2>
-          <p class="sos-modal__body" id="sos-modal-body" data-i18n="trip.sosConfirmBody">
-            سيتم إرسال تنبيه إلى جهات اتصال الطوارئ ومشاركة موقعك المباشر معهم.
+      <!-- ── Cancel trip sheet (#1719) ── -->
+      <div class="trip-dialog" id="trip-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="cancel-title" aria-describedby="cancel-body" hidden>
+        <div class="trip-dialog__backdrop" data-dismiss></div>
+        <div class="trip-dialog__sheet">
+          <span class="sheet-handle" aria-hidden="true"></span>
+          <span class="trip-dialog__icon" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </span>
+          <h2 class="trip-dialog__title" id="cancel-title" data-i18n="cancel.tripTitle">هل تريدين إلغاء الرحلة؟</h2>
+          <p class="trip-dialog__body" id="cancel-body" data-i18n="cancel.tripBody">سيتم إلغاء طلبك ولن تتحمّلي أي تكلفة</p>
+          <p class="trip-dialog__pill state--enroute">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            <span id="cancel-eta">الوصول خلال 4 دقيقة</span>
           </p>
-          <div class="sos-modal__actions">
-            <button
-              type="button"
-              id="sos-confirm"
-              class="btn btn--danger"
-              data-i18n="trip.sosConfirm"
-            >
-              نعم، أرسلي التنبيه
-            </button>
-            <button
-              type="button"
-              id="sos-cancel"
-              class="btn btn--ghost btn--full"
-              data-i18n="trip.sosCancel"
-            >
-              إلغاء
-            </button>
+          <div class="trip-dialog__actions">
+            <button type="button" class="btn btn--primary btn--full" id="cancel-keep" data-i18n="cancel.keepRide">العودة إلى الرحلة</button>
+            <button type="button" class="btn btn--link" id="cancel-confirm" data-i18n="cancel.confirmBtn">نعم، إلغاء الرحلة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SOS confirmation sheet (#3968 S3) ── -->
+      <div class="trip-dialog" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" aria-describedby="sos-modal-body" hidden>
+        <div class="trip-dialog__backdrop" data-dismiss></div>
+        <div class="trip-dialog__sheet">
+          <span class="sheet-handle" aria-hidden="true"></span>
+          <span class="trip-dialog__icon" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </span>
+          <h2 class="trip-dialog__title" id="sos-modal-title" data-i18n="trip.sosConfirmTitle">تأكيد الطوارئ</h2>
+          <p class="trip-dialog__body" id="sos-modal-body" data-i18n="trip.sosConfirmBody">سيتم إرسال تنبيه إلى جهات اتصال الطوارئ ومشاركة موقعك المباشر معهم.</p>
+          <div class="trip-dialog__actions">
+            <button type="button" id="sos-confirm" class="btn btn--primary btn--full" data-i18n="trip.sosConfirm">نعم، أرسلي التنبيه</button>
+            <button type="button" id="sos-cancel" class="btn btn--link" data-i18n="trip.sosCancel">إلغاء</button>
           </div>
         </div>
       </div>
     </sd-page>
 
     <script type="module" src="scripts/active-trip.js"></script>
-
-    <!-- Demo only: ?state=arrived -->
-    <script type="module">
-      const s = new URLSearchParams(location.search).get('state');
-      if (s) document.body.dataset.state = s;
-    </script>
   </body>
 </html>

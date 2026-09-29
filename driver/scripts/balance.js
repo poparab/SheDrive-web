@@ -151,8 +151,11 @@ function renderStatement() {
 
     const amount = document.createElement('span');
     amount.className = 'statement-row__amount';
-    // Sign here is meaningful: it is a ledger movement, not her balance.
-    amount.textContent = `${credit ? '+' : '−'}${Math.abs(entry.amount)} ${currency}`;
+    // Sign here is meaningful: it is a ledger movement, not her balance. The signed
+    // figure is isolated so the sign stays glued to the number in Arabic too.
+    const figure = document.createElement('bdi');
+    figure.textContent = `${credit ? '+' : '−'}${Math.abs(entry.amount)}`;
+    amount.append(figure, ` ${currency}`);
 
     row.append(info, amount);
     list.appendChild(row);

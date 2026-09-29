@@ -8,55 +8,75 @@
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
   <body class="app-shell saved-places-page">
-    <sd-page body-class="app-shell saved-places-page" screen-styles="/rider/styles/rider.css, /rider/styles/saved-places.css" drawer>
-      <sd-app-header bar-class="places-topbar" inner-class="places-topbar__inner" title-class="places-topbar__title">
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="places-topbar__title-text" data-i18n="savedPlaces.title">الأماكن المحفوظة</span>
-      </sd-app-header>
+    <sd-page body-class="app-shell saved-places-page" screen-styles="styles/rider.css, styles/saved-places.css" drawer>
+      <!-- ── Purple hero band holding the header (Figma "Saved Places") ── -->
+      <div class="sd-hero places-hero">
+        <sd-app-header bar-class="places-topbar" inner-class="places-topbar__inner" title-class="places-topbar__title">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg class="places-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <svg class="places-topbar__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><polyline points="9 10 11 12 15 8"/></svg>
+          <h1 class="places-topbar__title-text" data-i18n="savedPlaces.title">الأماكن المحفوظة</h1>
+        </sd-app-header>
+      </div>
 
-      <main class="places-content" id="main-content" data-i18n-aria-label="savedPlaces.title" aria-label="الأماكن المحفوظة">
+      <main class="sd-panel places-content" id="main-content" data-i18n-aria-label="savedPlaces.title" aria-label="الأماكن المحفوظة">
 
         <!-- ── Error state (?state=error) ───────────────────────── -->
-        <div class="places-error" id="places-error" hidden aria-hidden="true">
-          <p class="places-error__msg" data-i18n="savedPlaces.errorMsg">تعذّر تحميل الأماكن المحفوظة. تحقّقي من اتصالك.</p>
-          <button type="button" class="btn btn--ghost" id="places-retry" data-i18n="common.retry">حاولي مجدداً</button>
+        <div class="places-state places-error" id="places-error" hidden aria-hidden="true">
+          <div class="places-state__icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <h2 class="places-state__title" data-i18n="common.error">حدث خطأ ما</h2>
+          <p class="places-state__body places-error__msg" data-i18n="savedPlaces.errorMsg">تعذّر تحميل الأماكن المحفوظة. تحقّقي من اتصالك.</p>
+          <button type="button" class="btn btn--primary btn--full places-state__cta" id="places-retry" data-i18n="common.retry">حاولي مجدداً</button>
         </div>
 
-        <div id="places-body">
+        <div id="places-body" class="places-body">
           <p class="places-intro" data-i18n="savedPlaces.intro">
             احفظي الأماكن التي تذهبين إليها كثيراً لتطلبي رحلة إليها بضغطة واحدة.
           </p>
 
           <!-- ── Empty state (?state=empty) ─────────────────────── -->
-          <div class="places-empty" id="places-empty" hidden aria-hidden="true">
-            <div class="places-empty__icon" aria-hidden="true">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div class="places-state places-empty" id="places-empty" hidden aria-hidden="true">
+            <div class="places-state__icon" aria-hidden="true">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10c0 5-7 10-7 10s-7-5-7-10a7 7 0 0 1 11-5.7"/><circle cx="10" cy="10" r="2.5"/><line x1="19" y1="2" x2="19" y2="8"/><line x1="16" y1="5" x2="22" y2="5"/></svg>
             </div>
-            <p class="places-empty__title" data-i18n="savedPlaces.emptyTitle">لا توجد أماكن محفوظة بعد</p>
-            <p class="places-empty__hint" data-i18n="savedPlaces.emptyHint">ابدئي بحفظ المنزل أو العمل.</p>
+            <p class="places-state__title places-empty__title" data-i18n="savedPlaces.emptyTitle">لا توجد أماكن محفوظة بعد</p>
+            <p class="places-state__body places-empty__hint" data-i18n="savedPlaces.emptyHint">ابدئي بحفظ المنزل أو العمل.</p>
           </div>
 
           <!-- ── The list ───────────────────────────────────────── -->
+          <div class="section-head places-list-head" id="places-list-head">
+            <h2 class="section-title" data-i18n="savedPlaces.listTitle">أماكني المحفوظة</h2>
+            <span class="places-count" id="places-count"></span>
+          </div>
           <ul class="places-list" id="places-list" role="list"></ul>
 
-          <p class="places-limit" id="places-limit" hidden aria-hidden="true" role="status" data-i18n="savedPlaces.limitReached">
-            وصلتِ إلى الحد الأقصى (١٠ أماكن). احذفي مكاناً لإضافة آخر.
-          </p>
-
-          <sd-button variant="primary" full id="add-place-btn" data-i18n="savedPlaces.add">إضافة مكان</sd-button>
+          <!-- ── Add action, pinned to the bottom of the screen ──── -->
+          <div class="places-actions">
+            <p class="places-limit" id="places-limit" hidden aria-hidden="true" role="status" data-i18n="savedPlaces.limitReached">
+              وصلتِ إلى الحد الأقصى (١٠ أماكن). احذفي مكاناً لإضافة آخر.
+            </p>
+            <sd-button variant="primary" full id="add-place-btn" data-i18n="savedPlaces.add">إضافة مكان</sd-button>
+          </div>
         </div>
       </main>
 
+      <!-- Dims the page behind an open sheet; tapping it closes the sheet. -->
+      <div class="places-scrim" id="places-scrim" hidden></div>
+
       <!-- ── Add / edit sheet ─────────────────────────────────────── -->
-      <sd-bottom-sheet id="place-sheet" height="auto">
+      <sd-bottom-sheet id="place-sheet" height="auto" role="dialog" aria-modal="true" aria-labelledby="place-form-title">
         <form id="place-form" class="place-form" novalidate>
+          <div class="places-sheet__icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10c0 5-7 10-7 10s-7-5-7-10a7 7 0 0 1 11-5.7"/><circle cx="10" cy="10" r="2.5"/><line x1="19" y1="2" x2="19" y2="8"/><line x1="16" y1="5" x2="22" y2="5"/></svg>
+          </div>
           <h2 class="place-form__title" id="place-form-title" data-i18n="savedPlaces.addTitle">إضافة مكان</h2>
 
           <div class="field">
-            <p class="field__label" data-i18n="savedPlaces.labelField">التسمية</p>
-            <div class="place-labels" role="group" data-i18n-aria-label="savedPlaces.labelField" aria-label="التسمية">
+            <p class="field__label u-visually-hidden" id="place-labels-label" data-i18n="savedPlaces.labelField">التسمية</p>
+            <div class="place-labels" role="group" aria-labelledby="place-labels-label">
               <button type="button" class="place-label-chip" data-label="home" aria-pressed="false">
                 <span class="place-label-chip__icon" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
@@ -80,32 +100,41 @@
 
           <div class="field" id="custom-label-field" hidden>
             <label class="field__label" for="place-label" data-i18n="savedPlaces.customLabel">اسم المكان</label>
-            <input type="text" id="place-label" class="input" maxlength="30" data-i18n-placeholder="savedPlaces.customLabelPlaceholder" placeholder="النادي، بيت ماما…" />
+            <div class="places-input">
+              <svg class="places-input__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <input type="text" id="place-label" class="input" maxlength="30" data-i18n-placeholder="savedPlaces.customLabelPlaceholder" placeholder="النادي، بيت ماما…" />
+            </div>
             <span id="place-label-error" class="field__error" role="alert" hidden></span>
           </div>
 
           <div class="field">
             <label class="field__label" for="place-address" data-i18n="savedPlaces.addressField">العنوان</label>
-            <input type="text" id="place-address" class="input" data-i18n-placeholder="savedPlaces.addressPlaceholder" placeholder="ابحثي عن العنوان" autocomplete="off" />
+            <div class="places-input">
+              <svg class="places-input__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <input type="text" id="place-address" class="input" data-i18n-placeholder="savedPlaces.addressPlaceholder" placeholder="ابحثي عن العنوان" autocomplete="off" />
+            </div>
             <span class="field__hint" data-i18n="savedPlaces.addressHint">نفس البحث المستخدم في طلب الرحلة.</span>
             <span id="place-address-error" class="field__error" role="alert" hidden></span>
           </div>
 
           <div class="place-form__actions">
             <sd-button variant="primary" full type="submit" id="place-save" data-i18n="common.save">حفظ</sd-button>
-            <sd-button variant="ghost" full type="button" id="place-cancel" data-i18n="common.cancel">إلغاء</sd-button>
+            <sd-button variant="link" type="button" id="place-cancel" data-i18n="common.cancel">إلغاء</sd-button>
           </div>
         </form>
       </sd-bottom-sheet>
 
       <!-- ── Confirm sheet (delete, and replacing an existing home/work) ── -->
-      <sd-bottom-sheet id="confirm-sheet" height="auto">
-        <div class="confirm-box">
+      <sd-bottom-sheet id="confirm-sheet" height="auto" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-msg">
+        <div class="confirm-box" id="confirm-box">
+          <div class="places-sheet__icon confirm-box__icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10c0 5-7 10-7 10s-7-5-7-10a7 7 0 0 1 12.9-3.8"/><circle cx="10" cy="10" r="2.5"/><line x1="16" y1="14" x2="21" y2="19"/><line x1="21" y1="14" x2="16" y2="19"/></svg>
+          </div>
           <p class="confirm-box__title" id="confirm-title">—</p>
           <p class="confirm-box__msg" id="confirm-msg">—</p>
           <div class="confirm-box__actions">
             <sd-button variant="danger" full type="button" id="confirm-ok" data-i18n="common.confirm">تأكيد</sd-button>
-            <sd-button variant="ghost" full type="button" id="confirm-cancel" data-i18n="common.cancel">إلغاء</sd-button>
+            <sd-button variant="link" type="button" id="confirm-cancel" data-i18n="common.cancel">إلغاء</sd-button>
           </div>
         </div>
       </sd-bottom-sheet>

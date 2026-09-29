@@ -81,6 +81,11 @@ a:hover {
   color: var(--color-surface);
 }
 
+::placeholder {
+  color: var(--color-text-subtle);
+  opacity: 1;
+}
+
 /* Muted text helper */
 .text-muted {
   color: var(--color-text-muted);

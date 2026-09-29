@@ -8,33 +8,41 @@
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
   <body class="app-shell payments-page">
-    <sd-page body-class="app-shell payments-page" screen-styles="/rider/styles/rider.css, /rider/styles/payments.css" drawer>
-      <sd-app-header bar-class="payments-topbar" inner-class="payments-topbar__inner" title-class="payments-topbar__title">
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="payments-topbar__title-text" data-i18n="payments.title">وسائل الدفع</span>
-      </sd-app-header>
+    <sd-page body-class="app-shell payments-page" screen-styles="styles/rider.css, styles/payments.css" drawer>
+      <!-- ── Purple hero band holding the header (Figma "Payment Method") ── -->
+      <div class="sd-hero payments-hero">
+        <sd-app-header bar-class="payments-topbar" inner-class="payments-topbar__inner" title-class="payments-topbar__title">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg class="payments-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <svg class="payments-topbar__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="16" y1="15" x2="18" y2="15"/></svg>
+          <h1 class="payments-topbar__title-text" data-i18n="payments.title">وسائل الدفع</h1>
+        </sd-app-header>
+      </div>
 
-      <main class="payments-content" id="main-content" aria-label="وسائل الدفع والرسوم المستحقة" data-i18n-aria-label="payments.title">
+      <main class="sd-panel payments-content" id="main-content" aria-label="وسائل الدفع والرسوم المستحقة" data-i18n-aria-label="payments.title">
 
         <!-- ── Error state (?error) ───────────────────── -->
-        <div class="payments-error" id="payments-error" hidden aria-hidden="true">
-          <p class="payments-error__msg" data-i18n="payments.errorMsg">تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.</p>
-          <button type="button" class="btn btn--ghost" id="payments-retry" data-i18n="common.retry">حاولي مجدداً</button>
+        <div class="payments-state payments-error" id="payments-error" hidden aria-hidden="true">
+          <div class="payments-state__icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <h2 class="payments-state__title" data-i18n="common.error">حدث خطأ ما</h2>
+          <p class="payments-state__body payments-error__msg" data-i18n="payments.errorMsg">تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.</p>
+          <button type="button" class="btn btn--primary btn--full payments-state__cta" id="payments-retry" data-i18n="common.retry">حاولي مجدداً</button>
         </div>
 
-        <div id="payments-body">
+        <div id="payments-body" class="payments-body">
 
           <!-- ── Payment method ──────────────────────── -->
           <!-- Cash is how a trip is paid for — not one of several options, so this is a
                statement, not a selectable row. No radiogroup semantics. -->
           <section class="payments-section" aria-labelledby="method-heading">
-            <h2 class="payments-section__title" id="method-heading" data-i18n="payments.methodTitle">طريقة الدفع</h2>
+            <h2 class="section-title payments-section__title" id="method-heading" data-i18n="payments.methodTitle">طريقة الدفع</h2>
 
             <div class="payment-method-statement">
-              <span class="payment-method-statement__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+              <span class="icon-tile icon-tile--round icon-tile--solid payment-method-statement__icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
               </span>
               <span class="payment-method-statement__text">
                 <span class="payment-method-statement__label" data-i18n="payments.cash">نقداً</span>
@@ -45,25 +53,28 @@
 
           <!-- ── Outstanding fees ─────────────────────── -->
           <section class="payments-section" aria-labelledby="fees-heading">
-            <h2 class="payments-section__title" id="fees-heading" data-i18n="payments.outstandingTitle">الرسوم المستحقة</h2>
+            <div class="section-head payments-section__head">
+              <h2 class="section-title payments-section__title" id="fees-heading" data-i18n="payments.outstandingTitle">الرسوم المستحقة</h2>
+              <span class="badge badge--brand payments-pending" id="fees-pending-badge" hidden data-i18n="payments.pendingNextRide">تُضاف لرحلتكِ القادمة</span>
+            </div>
 
             <!-- Recovery notice — her whole balance rides on the next trip, every time. Never a block. -->
             <div class="fees-recovery-notice" id="fees-recovery-notice" hidden aria-hidden="true" role="status">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p class="fees-recovery-notice__amount" id="fees-recovery-total"></p>
               <p class="fees-recovery-notice__msg" id="fees-recovery-notice-msg"></p>
             </div>
 
             <!-- Zero state -->
-            <div class="fees-zero" id="fees-zero" hidden aria-hidden="true">
-              <div class="fees-zero__icon" aria-hidden="true">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="payments-state fees-zero" id="fees-zero" hidden aria-hidden="true">
+              <div class="payments-state__icon" aria-hidden="true">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
-              <p class="fees-zero__title" data-i18n="payments.zeroFees">لا توجد رسوم مستحقة عليكِ</p>
-              <p class="fees-zero__hint" data-i18n="payments.zeroFeesHint">رائع! حسابكِ خالٍ من أي رسوم مستحقة.</p>
+              <p class="payments-state__title fees-zero__title" data-i18n="payments.zeroFees">لا توجد رسوم مستحقة عليكِ</p>
+              <p class="payments-state__body fees-zero__hint" data-i18n="payments.zeroFeesHint">رائع! حسابكِ خالٍ من أي رسوم مستحقة.</p>
             </div>
 
             <!-- Fee rows -->
-            <div class="fees-list" id="fees-list"></div>
+            <div class="fees-list" id="fees-list" role="list"></div>
           </section>
 
         </div>

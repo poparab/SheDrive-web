@@ -57,9 +57,17 @@ if (driverVehicleEl) driverVehicleEl.textContent = trip.vehicle ?? '—';
 const driverAvatarEl = qs('.trip-detail-driver .driver-card__avatar');
 if (driverAvatarEl && trip.avatar) driverAvatarEl.textContent = trip.avatar;
 
-setText('detail-fare-base', `${trip.baseFare ?? '—'} ج.م.`);
-setText('detail-fare-distance', `${trip.distanceFare ?? '—'} ج.م.`);
-setText('detail-fare-duration', `${trip.timeFare ?? '—'} ج.م.`);
+// Amount + a translatable currency span, so a language switch relabels it in place.
+const setMoney = (id, amount) => {
+  const el = qs(`#${id}`);
+  if (!el) return;
+  if (amount == null) { el.textContent = '—'; return; }
+  el.innerHTML = `${amount} <span data-i18n="home.fare.egp">${translate('home.fare.egp')}</span>`;
+};
+
+setMoney('detail-fare-base', trip.baseFare);
+setMoney('detail-fare-distance', trip.distanceFare);
+setMoney('detail-fare-duration', trip.timeFare);
 
 // ── Outstanding fee recovered on this trip (spec §3, #3999) ──
 // Historic trips carry it as `trip.recoveredFee`; `?fee=N` overrides it for a demo
@@ -73,14 +81,12 @@ const hasFee = recoveredFeeAmount > 0;
 
 if (feeRow) feeRow.hidden = !hasFee;
 if (feeNote) feeNote.hidden = !hasFee;
-if (hasFee) setText('detail-fare-fee-amount', `${recoveredFeeAmount} ج.م.`);
+if (hasFee) setMoney('detail-fare-fee-amount', recoveredFeeAmount);
 
-if (trip.fare == null && !hasFee) {
-  setText('detail-fare-total', '—');
-} else {
-  const total = (trip.fare ?? 0) + (hasFee ? recoveredFeeAmount : 0);
-  setText('detail-fare-total', `${total} ج.م.`);
-}
+// The total shows twice: large at the top of the fare card and as the breakdown's last row.
+const total = trip.fare == null && !hasFee ? null : (trip.fare ?? 0) + (hasFee ? recoveredFeeAmount : 0);
+setMoney('detail-fare-total', total);
+setMoney('detail-fare-total-row', total);
 
 // ── Rating display vs. interactive rate section (#1568) ──
 function renderStaticStars(container, stars) {
@@ -131,8 +137,11 @@ detailRateBtn?.addEventListener('click', () => {
     if (detailError) detailError.hidden = false;
     return;
   }
+  // The submitted rating replaces the prompt (#1568 Scenario 2).
   if (rateSection) rateSection.hidden = true;
   if (ratedMsg) ratedMsg.hidden = false;
+  document.body.dataset.state = 'rated';
+  renderStaticStars(qs('#detail-rating-stars'), detailRating);
 
   // Persist so returning to this trip later shows it as rated (mock only — no backend).
   trip.rating = { stars: detailRating, tags: [] };
@@ -186,7 +195,8 @@ if (map) {
     pickupEl.className = 'map-user-dot';
     new mapboxgl.Marker({ element: pickupEl }).setLngLat([31.2357, 30.0444]).addTo(map);
 
-    // Destination marker (brand)
-    new mapboxgl.Marker({ color: '#d63ae2' }).setLngLat([31.2457, 30.0544]).addTo(map);
+    // Destination marker (brand accent, read from the token like the route colour)
+    const destColor = rootStyles.getPropertyValue('--color-accent-600').trim();
+    new mapboxgl.Marker(destColor ? { color: destColor } : {}).setLngLat([31.2457, 30.0544]).addTo(map);
   });
 }

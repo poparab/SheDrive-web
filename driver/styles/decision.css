@@ -1,119 +1,133 @@
-/* decision.css — Application decision screen (approved / rejected) */
-
-.driver-decision-page {
-  background: var(--color-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: 100dvh;
-}
+/* decision.css — Application decision (Figma "Driver - Account Approved" / "Account Rejected")
+   White page, centred ringed status icon, text, then the action pinned to the bottom
+   of the content column. Scrolls via sd-page when the content is taller than the screen. */
 
 .decision-layout {
-  inline-size: 100%;
-  padding: var(--space-6) var(--space-5);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-block-size: 100dvh;
-}
-
-/* ── Shared card ── */
-.decision-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--color-border);
-  padding: var(--space-8) var(--space-6);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-6);
-  text-align: center;
-  inline-size: 100%;
-  max-inline-size: 400px;
-  margin-inline: auto;
+  padding: var(--space-8) var(--page-gutter) max(var(--space-6), env(safe-area-inset-bottom));
 }
 
 /* ── State visibility ── */
-.state--rejected { display: none; }
+.decision-card { display: none; }
 
-[data-state="approved"] .state--approved { display: flex; }
-[data-state="approved"] .state--rejected { display: none; }
-
-[data-state="rejected"] .state--approved { display: none; }
-[data-state="rejected"] .state--rejected { display: flex; }
-
-/* ── Icon circle ── */
-.decision-icon {
-  inline-size: 96px;
-  block-size: 96px;
-  border-radius: 50%;
+[data-state="approved"] .state--approved,
+[data-state="rejected"] .state--rejected {
   display: flex;
+}
+
+.decision-card {
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-8);
+  inline-size: 100%;
+}
+
+.decision-card__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  gap: var(--space-6);
+  text-align: center;
+}
+
+/* ── Ringed icon ── */
+.decision-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: calc(var(--icon-tile-size-lg) * 2);
+  block-size: calc(var(--icon-tile-size-lg) * 2);
+  margin: var(--space-6);
+  border-radius: var(--radius-full);
+  color: var(--color-on-primary);
 }
 
 .decision-icon--success {
-  background: rgba(var(--color-success-rgb), 0.12);
-  color: var(--color-success);
+  background: var(--gradient-violet);
+  box-shadow:
+    0 0 0 var(--space-1) var(--color-surface),
+    0 0 0 calc(var(--space-1) * 2) rgba(var(--color-primary-500-rgb), 0.55),
+    0 0 0 var(--space-4) rgba(var(--color-primary-500-rgb), 0.18),
+    0 0 0 var(--space-6) rgba(var(--color-primary-500-rgb), 0.08);
 }
 
-.decision-icon--danger {
-  background: rgba(var(--color-danger-rgb), 0.10);
-  color: var(--color-danger);
+.decision-icon--warning {
+  background: var(--color-warning);
+  box-shadow:
+    0 0 0 var(--space-1) var(--color-surface),
+    0 0 0 calc(var(--space-1) * 2) rgba(var(--color-warning-rgb), 0.55),
+    0 0 0 var(--space-4) rgba(var(--color-warning-rgb), 0.2),
+    0 0 0 var(--space-6) rgba(var(--color-warning-rgb), 0.1);
 }
 
-/* ── Text block ── */
+/* ── Text ── */
 .decision-text {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .decision-title {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-3xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
   line-height: var(--leading-tight);
+  color: var(--color-primary-700);
+}
+
+.decision-title--warning {
+  color: var(--color-warning);
 }
 
 .decision-body {
   font-size: var(--fs-base);
-  color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
-  max-inline-size: 30ch;
-  margin-inline: auto;
+  color: var(--color-text);
+  max-inline-size: 32ch;
+  margin: 0 auto;
 }
 
-/* ── Rejection reason card ── */
+/* ── Rejection reason row ── */
 .decision-rejection-reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-4);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  inline-size: 100%;
-  max-inline-size: 360px;
+  text-align: start;
 }
 
+.decision-rejection-reason .icon-tile { flex: none; }
+
 .decision-rejection-reason__text {
-  font-size: var(--fs-sm);
-  color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  flex: 1 1 auto;
+  min-inline-size: 0;
   margin: 0;
-  font-style: italic;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.decision-rejection-reason__flag {
+  flex: none;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-warning);
 }
 
 .decision-rejection-note {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  max-inline-size: 30ch;
-  margin-inline: auto;
+  inline-size: 100%;
+  margin: 0;
+  text-align: start;
 }
 
-/* ── Safety badges row ── */
+/* ── Verified badge ── */
 .decision-badges {
   display: flex;
   gap: var(--space-3);
@@ -124,11 +138,20 @@
 .decision-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  background: rgba(var(--color-primary-600-rgb), 0.07);
-  color: var(--color-primary-700);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-success-bg);
+  color: var(--color-success-strong);
   border-radius: var(--radius-full);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+/* ── Actions ── */
+.decision-actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
 }

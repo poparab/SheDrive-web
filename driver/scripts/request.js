@@ -1,10 +1,12 @@
 /**
  * request.js — Incoming ride request screen controller
- * Countdown timer → auto-decline / accept → trip.html / decline → home.html
+ * Countdown timer → auto-expire → home.html / accept → trip.html / decline → home.html
+ *
+ * Demo states (designer deep links): ?state=expired | conflict | urgency | push
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, getLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 import { qs } from '../../shared/scripts/utils.js';
 
@@ -36,37 +38,49 @@ const mockRequest = {
   duration: { ar: '18 دقيقة', en: '18 min' },
 };
 
-// Populate mock data
-const lang = document.documentElement.lang || 'ar';
-qs('#rider-name').textContent     = lang === 'ar' ? mockRequest.rider.name : mockRequest.rider.nameEn;
-qs('#rider-rating').textContent   = mockRequest.rider.rating;
-qs('#rider-distance').innerHTML   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg> ${mockRequest.rider.distance} km`;
-qs('#trip-pickup').textContent    = mockRequest.pickup.ar;
-qs('#trip-dest').textContent      = mockRequest.dest.ar;
-qs('#trip-fare').textContent      = mockRequest.fare.ar;
-qs('#trip-duration').textContent  = mockRequest.duration.ar;
+// Populate mock data in the active language, and again whenever she switches.
+function renderRequest() {
+  const lang = getLanguage() === 'en' ? 'en' : 'ar';
+  const name = lang === 'ar' ? mockRequest.rider.name : mockRequest.rider.nameEn;
+  qs('#rider-name').textContent     = name;
+  qs('#rider-avatar').textContent   = name.charAt(0);
+  qs('#rider-rating').textContent   = mockRequest.rider.rating;
+  qs('#rider-distance').textContent = `${mockRequest.rider.distance} km`;
+  qs('#trip-pickup').textContent    = mockRequest.pickup[lang];
+  qs('#trip-dest').textContent      = mockRequest.dest[lang];
+  qs('#trip-fare').textContent      = mockRequest.fare[lang];
+  qs('#trip-duration').textContent  = mockRequest.duration[lang];
+}
 
-// ── Countdown — 10s with 3s urgency (#1582) ──────────
-const TOTAL = 10;
-const CIRCUMFERENCE = 2 * Math.PI * 26; // ≈ 163.4
+renderRequest();
+document.addEventListener(I18N_EVENT, renderRequest);
+
+// ── Countdown (#1582) ────────────────────────────────
+// The acceptance window comes from the super-admin setting (#1759, default 30 s)
+// and the timer turns urgent in the last 5 seconds.
+const TOTAL = 30;
+const URGENT_AT = 5;
 
 const countdownNumber   = qs('#countdown-number');
 const countdownProgress = qs('#countdown-progress');
 const urgencyLabel      = qs('#urgency-label');
 const requestSheet      = qs('#request-sheet');
 
-let remaining = TOTAL;
-countdownProgress.style.strokeDasharray = CIRCUMFERENCE;
+const demoState = new URLSearchParams(location.search).get('state');
+// Skip auto-advance when a designer previews a ?state=
+const isPreview = Boolean(demoState);
 
-// Skip auto-advance when designer previews a ?state=
-const isPreview = new URLSearchParams(location.search).has('state');
+let remaining = demoState === 'urgency' ? 3 : TOTAL;
+
+function formatClock(seconds) {
+  const s = Math.max(0, seconds);
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
 
 function updateRing() {
-  const frac = remaining / TOTAL;
-  countdownProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - frac);
-  countdownNumber.textContent = remaining;
-  if (remaining <= 3) {
-    countdownProgress.classList.add('is-urgent');
+  countdownNumber.textContent = formatClock(remaining);
+  countdownProgress?.style.setProperty('--progress', String(remaining / TOTAL));
+  if (remaining <= URGENT_AT) {
     requestSheet?.classList.add('is-urgent');
     if (urgencyLabel) urgencyLabel.hidden = false;
   }
@@ -83,18 +97,21 @@ const timer = isPreview ? null : setInterval(() => {
   }
 }, 1000);
 
-function autoExpire() {
+function showExpired() {
   const expiredEl = qs('#request-expired');
-  const sheetEl   = qs('#request-sheet');
-  if (sheetEl)   sheetEl.hidden   = true;
+  if (requestSheet) requestSheet.hidden = true;
   if (expiredEl) expiredEl.hidden = false;
+}
+
+function autoExpire() {
+  showExpired();
   // Auto-dismiss after 2.5s (#1585)
   setTimeout(() => window.location.assign('./home.html'), 2500);
 }
 
 // ── Buttons ───────────────────────────────────────────
 qs('#decline-btn').addEventListener('click', () => {
-  clearInterval(timer);
+  if (timer) clearInterval(timer);
   window.location.assign('./home.html');
 });
 
@@ -103,6 +120,10 @@ qs('#accept-btn').addEventListener('click', () => {
   requestSheet?.classList.add('is-accepting');
   qs('#accept-btn').disabled  = true;
   qs('#decline-btn').disabled = true;
+  // Loading state (#1583 Scenario 4)
+  const acceptLabel = qs('#accept-label');
+  acceptLabel.setAttribute('data-i18n', 'driver.request.accepting');
+  acceptLabel.textContent = translate('driver.request.accepting');
   // Store mock trip data for the trip screen
   sessionStorage.setItem('shedrive.activeDriverTrip', JSON.stringify({
     rider:    mockRequest.rider,
@@ -120,16 +141,14 @@ qs('#conflict-ok-btn')?.addEventListener('click', () => {
   window.location.assign('./home.html');
 });
 
-// ── Toast helper ─────────────────────────────────────
-function showToast(message, type = 'info') {
-  const host = document.querySelector('sd-toast-host') || document.querySelector('#toast-container');
-  if (host?.showToast) { host.showToast(message, type); return; }
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-  const toast = document.createElement('div');
-  toast.className = `toast toast--${type}`;
-  toast.setAttribute('role', 'status');
-  toast.textContent = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
+// ── Demo states ──────────────────────────────────────
+if (demoState === 'expired') showExpired();
+if (demoState === 'conflict') {
+  qs('#request-conflict').hidden = false;
+  qs('#conflict-ok-btn')?.focus();
+}
+if (demoState === 'push') {
+  const banner = qs('#push-banner');
+  banner.hidden = false;
+  setTimeout(() => { banner.hidden = true; }, 3500);
 }

@@ -13,7 +13,7 @@
   --f7-bars-bg-color: rgba(var(--color-surface-rgb), 0.92);
   --f7-bars-bg-color-rgb: var(--color-surface-rgb);
   --f7-bars-border-color: rgba(var(--color-border-rgb), 0.88);
-  --f7-page-bg-color: var(--color-surface-alt);
+  --f7-page-bg-color: var(--color-surface);
   --f7-page-master-border-color: rgba(var(--color-border-rgb), 0.88);
   --f7-navbar-bg-color: rgba(var(--color-surface-rgb), 0.92);
   --f7-navbar-bg-color-rgb: var(--color-surface-rgb);
@@ -30,7 +30,9 @@
   --f7-list-item-footer-text-color: var(--color-text-muted);
   --f7-sheet-bg-color: var(--color-surface);
   --f7-sheet-border-color: var(--color-border);
-  --f7-sheet-shadow: var(--shadow-lg);
+  --f7-sheet-shadow: var(--shadow-sheet);
+  /* F7 paints sheet corners from this variable with a (0,2,0) selector */
+  --f7-sheet-border-radius: var(--radius-2xl);
 }
 
 html[lang='ar'] {
@@ -47,20 +49,33 @@ html.ios {
   --f7-navbar-inner-padding-right: var(--space-3);
 }
 
+/* Figma pages are white; lavender (--color-surface-alt) is the card fill. */
 body.framework7-root {
-  background: var(--color-surface-alt);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
 /*
- * F7 locks overflow on every page via `.framework7-root { overflow: hidden }`.
- * Map-based screens (home, matching, trip) are fine with that lock.
- * Form/flow screens need native document scroll — re-enable it here.
+ * F7 locks overflow on every page via `.framework7-root { overflow: hidden }`,
+ * so the body can never scroll. Keep that lock — the body is the transformed
+ * `.app-shell` and the containing block for every position:fixed layer
+ * (drawer, toasts, sheets, sticky CTA bars); if the body scrolled, those
+ * layers would scroll away with the content.
+ *
+ * Instead the <sd-page> element is the one scroll container on every screen.
+ * Fixed layers resolve against the body, so they stay pinned while the page
+ * content scrolls underneath. Map screens whose content fits the viewport
+ * simply never overflow.
  */
-body.verify-page,
-body.complete-page,
-body.emergency-page {
-  overflow-y: auto !important;
+body.framework7-root > sd-page {
+  flex: 1 1 auto;
+  block-size: 100dvh;
+  min-block-size: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 /* .btn is excluded: this selector outranks .btn--primary, so without it every
@@ -105,9 +120,10 @@ a:not(.link):not(.item-link):not(.tab-link):not(.btn) {
 }
 
 .sheet-modal {
+  --f7-sheet-border-radius: var(--radius-2xl);
   background: var(--color-surface);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  box-shadow: var(--shadow-sheet);
 }
 
 .page-transition {
@@ -130,16 +146,105 @@ a:not(.link):not(.item-link):not(.tab-link):not(.btn) {
    own --f7-badge-* variables (iOS grey, white text), overriding .badge--* colours.
    Point those variables at SheDrive's colours so F7's rule paints ours instead. */
 .badge {
-  --f7-badge-bg-color: rgba(var(--color-text-muted-rgb), 0.12);
+  --f7-badge-bg-color: var(--color-primary-100);
   --f7-badge-text-color: var(--color-text-muted);
+  --f7-badge-font-size: var(--fs-xs);
+  --f7-badge-font-weight: var(--fw-semibold);
   block-size: auto;
   min-inline-size: 0;
 }
-.badge--success { --f7-badge-bg-color: rgba(var(--color-success-rgb), 0.12); --f7-badge-text-color: var(--color-success-strong); }
-.badge--warning { --f7-badge-bg-color: rgba(var(--color-warning-rgb), 0.12); --f7-badge-text-color: var(--color-warning-strong); }
-.badge--danger  { --f7-badge-bg-color: rgba(var(--color-danger-rgb), 0.12);  --f7-badge-text-color: var(--color-danger-strong); }
-.badge--info    { --f7-badge-bg-color: rgba(var(--color-info-rgb), 0.12);    --f7-badge-text-color: var(--color-info-strong); }
-.badge--brand   { --f7-badge-bg-color: rgba(var(--color-primary-600-rgb), 0.12); --f7-badge-text-color: var(--color-primary-700); }
+.badge--success { --f7-badge-bg-color: var(--color-success-bg); --f7-badge-text-color: var(--color-success-strong); }
+.badge--warning { --f7-badge-bg-color: var(--color-warning-bg); --f7-badge-text-color: var(--color-warning-strong); }
+.badge--danger  { --f7-badge-bg-color: var(--color-danger-bg);  --f7-badge-text-color: var(--color-danger); }
+.badge--info    { --f7-badge-bg-color: rgba(var(--color-info-rgb), 0.12); --f7-badge-text-color: var(--color-info-strong); }
+.badge--brand   { --f7-badge-bg-color: var(--color-primary-200); --f7-badge-text-color: var(--color-primary-700); }
+.badge--accent  { --f7-badge-bg-color: var(--color-accent-100); --f7-badge-text-color: var(--color-accent-700); }
+
+/* ── Cards ────────────────────────────────────────────
+   Framework7's .card loads after components.css and repaints every card from
+   --f7-card-* (white, 8px radius). Point those variables at the kit's values so
+   .card and its modifiers keep the SheDrive fill. Margins are left to F7/screens. */
+.card          { --f7-card-bg-color: var(--color-surface-alt); --f7-card-border-radius: var(--radius-lg); --f7-card-text-color: var(--color-text); }
+.card--plain   { --f7-card-bg-color: var(--color-surface); }
+.card--tint    { --f7-card-bg-color: var(--color-surface-tint); }
+.card--accent  { --f7-card-bg-color: var(--color-accent-100); }
+.card--elevated { --f7-card-bg-color: var(--color-surface); }
+.card--brand   { --f7-card-bg-color: var(--gradient-brand); --f7-card-text-color: var(--color-on-primary); }
+.card--violet  { --f7-card-bg-color: var(--gradient-violet); --f7-card-text-color: var(--color-on-primary); --f7-card-border-radius: var(--radius-xl); }
+
+/* ── Chips ────────────────────────────────────────────
+   Framework7 ships its own .chip (grey, 28px tall) after components.css and
+   stretches every <button> to width:100%. Feed F7's variables SheDrive values so
+   its rule paints the kit's chip, and let chip buttons size to their label. */
+.chip {
+  --f7-chip-bg-color: var(--color-surface);
+  --f7-chip-text-color: var(--color-text);
+  --f7-chip-height: var(--control-height-sm);
+  --f7-chip-font-size: var(--fs-sm);
+  --f7-chip-font-weight: var(--fw-semibold);
+  --f7-chip-border-radius: var(--radius-full);
+  --f7-chip-padding-horizontal: var(--space-4);
+  line-height: var(--leading-tight);
+}
+.chip--outline {
+  --f7-chip-text-color: var(--color-primary-600);
+  --f7-chip-font-weight: var(--fw-medium);
+}
+.chip--outline.is-active,
+.chip--outline[aria-pressed='true'],
+.chip--outline[aria-checked='true'] {
+  --f7-chip-bg-color: var(--color-primary-600);
+  --f7-chip-text-color: var(--color-on-primary);
+}
+button.chip,
+button.sd-segmented__btn,
+button.lang-switcher__btn,
+button.star-btn {
+  width: auto;
+}
+
+/* ── Inputs ───────────────────────────────────────────
+   Framework7 resets input[type=text|tel|email…] and textarea (0,1,1) after
+   components.css, which wiped the .input fill and border on every screen.
+   Re-assert the kit's field paint one notch higher. */
+input.input,
+textarea.input,
+select.input {
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding-inline: var(--space-4);
+  color: var(--color-text);
+}
+input.input,
+select.input {
+  block-size: var(--control-height);
+}
+input.input:hover,
+textarea.input:hover,
+select.input:hover {
+  border-color: var(--color-border-strong);
+}
+input.input:focus,
+textarea.input:focus,
+select.input:focus {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
+}
+input.input[readonly] {
+  background: var(--color-surface-alt);
+}
+input.input.input--error,
+textarea.input.input--error {
+  border-color: var(--color-danger);
+  background: rgba(var(--color-danger-rgb), 0.04);
+}
+.input-group input.input {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
 
 /* ── Toggle ───────────────────────────────────────────
    Framework7's .toggle is the switch for settings rows. Two fixes on top of it:
@@ -148,8 +253,8 @@ a:not(.link):not(.item-link):not(.tab-link):not(.btn) {
    a separate bundle, so mirror the knob here for Arabic. */
 .toggle {
   --f7-toggle-active-color: var(--color-primary-600);
-  --f7-toggle-inactive-border-color: var(--color-border);
-  --f7-toggle-inactive-bg-color: var(--color-surface-alt);
+  --f7-toggle-inactive-border-color: var(--color-primary-200);
+  --f7-toggle-inactive-bg-color: var(--color-primary-200);
   flex: 0 0 auto;
 }
 .toggle input[type='checkbox'] {
@@ -188,10 +293,10 @@ html[dir='rtl'].ios .toggle input[type='checkbox']:checked + .toggle-icon::after
    specificity. SheDrive toasts stack inside .toast-container: put them back in
    flow, size them to their text, and paint F7's background with our tones. */
 .toast {
-  --f7-toast-bg-color: var(--color-text);
+  --f7-toast-bg-color: var(--color-text-strong);
   --f7-toast-text-color: var(--color-surface);
 }
-.toast--success { --f7-toast-bg-color: var(--color-success); }
+.toast--success { --f7-toast-bg-color: var(--color-success-strong); }
 .toast--danger  { --f7-toast-bg-color: var(--color-danger); }
 .toast--warning { --f7-toast-bg-color: var(--color-warning); --f7-toast-text-color: var(--color-text); }
 

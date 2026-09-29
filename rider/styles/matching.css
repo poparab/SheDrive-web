@@ -1,91 +1,258 @@
 /**
- * matching.css — "Finding your driver" screen styles
- * All color/spacing values use design tokens from tokens.css.
- * Scoped to .matching-* and .map-pulse-dot — no shared file modifications.
+ * matching.css — "Finding your driver" screen (Figma "Finding Driver",
+ * "Driver Found", "No Driver Available").
+ * Full-screen map, floating header, and a bottom sheet that scrolls on its own
+ * when a state is taller than the space under the header.
  */
-
-/* ── Page layout ── */
-.matching-page {
-  position: relative;
-  height: 100dvh;
-  overflow: hidden;
-}
 
 /* ── Map ── */
 .matching-map {
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: var(--z-base);
 }
 
-/* ── Topbar ── */
-.matching-topbar {
-  position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-  z-index: 10;
+/* ── Top bar: round white buttons over the map, wordmark centred ── */
+.matching-page sd-app-header .matching-topbar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter) 0;
+  pointer-events: none;
 }
 
-.matching-topbar__inner {
-  height: 56px;
-  display: flex;
+.matching-page sd-app-header .matching-topbar__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-  padding: 0 var(--space-4);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
+  gap: var(--space-2);
+  block-size: auto;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
-.matching-topbar__logo {
+.matching-page sd-app-header .matching-topbar__inner > * {
+  pointer-events: auto;
+}
+
+.matching-page sd-app-header .matching-topbar__inner > sd-button {
+  justify-self: start;
+}
+
+.matching-page sd-app-header .matching-topbar__title {
+  justify-self: center;
+  flex: none;
+}
+
+.matching-page sd-app-header .sd-app-header__actions {
+  justify-self: end;
+}
+
+[dir='rtl'] .matching-topbar__back-icon {
+  transform: scaleX(-1);
+}
+
+/* Compact language toggle: one round white button naming the other language. */
+.matching-page .matching-topbar .lang-switcher {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-block-size: var(--icon-btn-size);
+}
+
+.matching-page .matching-topbar .lang-switcher__sep,
+.matching-page .matching-topbar .lang-switcher__btn[aria-pressed='true'] {
+  display: none;
+}
+
+.matching-page .matching-topbar button.lang-switcher__btn {
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  min-inline-size: 0;
+  padding: 0;
+  color: var(--color-primary-600);
+  font-family: var(--font-latin);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.matching-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  height: 28px;
+  gap: var(--space-1);
+  text-decoration: none;
+  line-height: var(--leading-tight);
+}
+
+.matching-brand__name {
+  font-family: var(--font-latin);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  direction: ltr;
+}
+
+.matching-brand__tagline {
+  font-size: calc(var(--fs-xs) * 0.85);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+[dir='rtl'] .matching-brand__tagline {
+  font-size: var(--fs-xs);
+  letter-spacing: 0;
+}
+
+/* Author display:flex on .push-banner otherwise beats the UA [hidden] rule. */
+.push-banner[hidden] {
+  display: none;
 }
 
 /* ── Bottom sheet ── */
 .matching-sheet {
-  position: absolute;
-  bottom: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 0;
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-above);
+  max-block-size: calc(100% - var(--space-16) - var(--space-8));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--color-surface);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  padding: var(--space-6) var(--space-4) var(--space-8);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  box-shadow: 0 -4px 32px rgba(26, 21, 48, 0.12);
-  z-index: 20;
+  padding: var(--space-3) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-sheet);
 }
 
-/* ── Search indicator ── */
+.matching-sheet__handle {
+  inline-size: var(--sheet-handle-width);
+  block-size: var(--sheet-handle-height);
+  margin: 0 auto var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+}
+
+.matching-sheet p,
+.matching-sheet h2 {
+  margin: 0;
+}
+
+/* ── State visibility ── */
+.state--searching,
+[data-state='confirmed'] .state--confirmed,
+[data-state='no-driver'] .state--no-driver {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.state--confirmed,
+.state--no-driver,
+[data-state='confirmed'] .state--searching,
+[data-state='no-driver'] .state--searching {
+  display: none;
+}
+
+/* ── Searching: pulsing gradient disc ── */
 .matching-search {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   text-align: center;
 }
 
-.matching-search .spinner {
-  width: 48px;
-  height: 48px;
-  border-width: 4px;
-  border-color: var(--color-border);
-  border-top-color: var(--color-primary-600);
+.matching-pulse {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-9));
+  block-size: calc(var(--space-16) + var(--space-9));
+  margin-block-end: var(--space-2);
+}
+
+.matching-pulse__core {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: var(--space-16);
+  block-size: var(--space-16);
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 var(--space-1) var(--color-surface), 0 0 0 calc(var(--space-1) + 2px) var(--color-accent-300);
+}
+
+.matching-pulse__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-accent-300);
+  opacity: 0;
+  animation: matching-ring 2.4s ease-out infinite;
+}
+
+.matching-pulse__ring--late {
+  animation-delay: 1.2s;
+}
+
+@keyframes matching-ring {
+  0%   { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matching-pulse__ring {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 .matching-search__title {
   font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
 
 .matching-search__sub {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+/* ── Trip card (route) ── */
+.matching-trip-card {
+  padding: var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.matching-trip-card .route {
+  gap: var(--space-3);
+}
+
+.matching-trip-card .route__place {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Safety note ── */
@@ -94,18 +261,19 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: rgba(107, 43, 217, 0.06);
-  border-radius: var(--radius-lg);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
   color: var(--color-primary-600);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
 }
 
 .matching-safety__icon {
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
+/* ── Driver card (sd-driver-card, detailed/preview variants) ── */
 .matching-driver-card {
   display: flex;
   align-items: center;
@@ -113,261 +281,208 @@
   padding: var(--space-4);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
 }
 
 .matching-driver-card .driver-avatar {
-  width: 56px;
-  height: 56px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--space-16);
+  block-size: var(--space-16);
   border-radius: var(--radius-full);
   background: var(--gradient-brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-surface);
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-md);
+  color: var(--color-on-primary);
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
-  flex-shrink: 0;
 }
 
 .matching-driver-card .driver-info {
   flex: 1;
-  min-width: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.matching-driver-card .driver-info p {
+  margin: 0;
 }
 
 .matching-driver-card .driver-name {
   font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
 
 .matching-driver-card .driver-rating {
   font-size: var(--fs-sm);
-  color: var(--color-warning);
+  font-weight: var(--fw-semibold);
+  color: var(--color-star);
 }
 
 .matching-driver-card .driver-vehicle {
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .matching-driver-card .driver-eta {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--color-primary-600);
-  margin-top: var(--space-1);
+  color: var(--color-text);
 }
 
-/* ── Trip chip ── */
-.matching-trip-chip {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  overflow: hidden;
-}
-
-.matching-trip-chip__sep {
-  color: var(--color-accent-500);
-  font-weight: var(--fw-bold);
-  flex-shrink: 0;
-}
-
-.matching-trip-chip__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Pulsing map marker ── */
-.map-pulse-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-primary-600);
-  box-shadow: 0 0 0 0 rgba(107, 43, 217, 0.4);
-  animation: map-pulse 1.8s ease-out infinite;
-}
-
-@keyframes map-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(107, 43, 217, 0.4); }
-  70%  { box-shadow: 0 0 0 20px rgba(107, 43, 217, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(107, 43, 217, 0); }
-}
-
-/* ── Spinner (size + animation override) ── */
-.spinner {
-  display: inline-block;
-  border-radius: 50%;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary-600);
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ── State visibility rules ────────────────────────── */
-
-.state--confirmed,
-.state--no-driver {
-  display: none;
-}
-
-[data-state="confirmed"] .state--searching {
-  display: none;
-}
-[data-state="confirmed"] .state--confirmed {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-[data-state="no-driver"] .state--searching {
-  display: none;
-}
-[data-state="no-driver"] .state--no-driver {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* ── Driver Confirmed state ─────────────────────────── */
-
+/* ── Confirmed ── Figma "Driver Found" */
 .matching-confirmed-banner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
-  padding: var(--space-4);
-  background: rgba(var(--color-success-rgb), 0.08);
-  border: 1px solid rgba(var(--color-success-rgb), 0.2);
-  border-radius: var(--radius-xl);
 }
 
 .matching-confirmed-banner__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-success);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  color: var(--color-on-primary);
 }
 
 .matching-confirmed-banner__title {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
 
 .matching-confirmed-banner__sub {
-  font-size: var(--fs-sm);
+  margin-block-start: var(--space-1);
+  font-size: var(--fs-base);
   color: var(--color-text-muted);
-  margin: var(--space-1) 0 0;
+  line-height: var(--leading-snug);
 }
 
-.matching-driver-card--confirmed {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
-}
-
-.matching-confirmed-meta {
+/* The panel is the card; the driver card inside it goes flat. */
+.matching-driver-panel {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--space-3);
-  flex-wrap: wrap;
+  padding: var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.matching-driver-panel .matching-driver-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .matching-verified-badge {
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  margin-inline-start: calc(var(--space-16) + var(--space-4));
   padding: var(--space-1) var(--space-3);
-  background: rgba(var(--color-primary-600-rgb), 0.08);
-  color: var(--color-primary-700);
+  background: var(--color-success-bg);
+  color: var(--color-success-strong);
   border-radius: var(--radius-full);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
 }
 
 .matching-advance-bar {
-  height: 4px;
+  block-size: var(--space-1);
   background: var(--color-border);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .matching-advance-bar__fill {
-  height: 100%;
-  width: 60%;
+  block-size: 100%;
+  inline-size: 60%;
   background: var(--gradient-brand);
   border-radius: var(--radius-full);
   animation: advance-fill 2s ease-in-out infinite;
 }
 
 @keyframes advance-fill {
-  0%   { width: 10%; }
-  50%  { width: 80%; }
-  100% { width: 10%; }
+  0%   { inline-size: 10%; }
+  50%  { inline-size: 80%; }
+  100% { inline-size: 10%; }
 }
 
 .matching-advance-label {
   text-align: center;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  margin: 0;
 }
 
-/* ── No Driver Found state ──────────────────────────── */
-
+/* ── No driver ── Figma "No Driver Available" */
 .matching-no-driver {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) 0;
+  gap: var(--space-2);
   text-align: center;
 }
 
 .matching-no-driver__icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--color-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
+  display: grid;
+  place-items: center;
+  inline-size: var(--space-16);
+  block-size: var(--space-16);
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
+  color: var(--color-primary-600);
 }
 
 .matching-no-driver__title {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
 
 .matching-no-driver__body {
-  font-size: var(--fs-sm);
+  max-inline-size: 36ch;
+  font-size: var(--fs-base);
   color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  margin: 0;
-  max-width: 28ch;
+  line-height: var(--leading-snug);
+}
+
+.matching-no-driver__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+/* ── Pulsing map marker ── */
+.map-pulse-dot {
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+  border: 3px solid var(--color-surface);
+  box-shadow: 0 0 0 0 rgba(var(--color-primary-600-rgb), 0.4);
+  animation: map-pulse 1.8s ease-out infinite;
+}
+
+@keyframes map-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--color-primary-600-rgb), 0.4); }
+  70%  { box-shadow: 0 0 0 var(--space-5) rgba(var(--color-primary-600-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--color-primary-600-rgb), 0); }
 }

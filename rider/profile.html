@@ -8,48 +8,67 @@
   </head>
   <body>
     <sd-page body-class="app-shell profile-page" screen-styles="/rider/styles/rider.css, /rider/styles/profile.css" drawer>
-      <sd-app-header bar-class="profile-topbar" inner-class="profile-topbar__inner" title-class="profile-topbar__title" hide-lang-toggle>
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="profile-topbar__title-text" data-i18n="profile.title">ملفي الشخصي</span>
-      </sd-app-header>
 
-      <main class="profile-content">
+      <!-- Figma Profile / Edit Profile: purple hero with the avatar, name and number;
+           the white panel below holds the editable details and account links. -->
+      <div class="sd-hero profile-hero">
+        <sd-app-header bar-class="profile-topbar" inner-class="profile-topbar__inner" title-class="profile-topbar__title" hide-lang-toggle>
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <span class="profile-topbar__title-text" data-i18n="profile.title">ملفي الشخصي</span>
+        </sd-app-header>
 
         <!-- Profile hero — #1853 -->
-        <section class="profile-hero" aria-label="ملخص الملف الشخصي">
-          <div class="profile-hero__avatar" id="profile-avatar" aria-hidden="true">ش</div>
-          <div class="profile-hero__text">
-            <p class="profile-hero__name" id="profile-hero-name">—</p>
-            <p class="profile-hero__phone" id="profile-hero-phone">—</p>
+        <section class="profile-hero__summary" data-i18n-aria-label="profile.title" aria-label="ملفي الشخصي">
+          <!-- Initials avatar: profile.js swaps the icon for the first letter of her name. -->
+          <div class="profile-hero__avatar" id="profile-avatar" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6z"/></svg>
           </div>
+          <p class="profile-hero__name" id="profile-hero-name">—</p>
+          <p class="profile-hero__phone">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+            <span id="profile-hero-phone">—</span>
+          </p>
         </section>
+      </div>
+
+      <main class="sd-panel profile-content">
 
         <form id="profile-form" class="profile-form" novalidate>
-
-          <div class="field">
-            <label class="field__label" for="profile-phone" data-i18n="profile.phone.label">رقم الهاتف</label>
-            <input type="tel" id="profile-phone" class="input" readonly aria-readonly="true" aria-describedby="profile-phone-note" />
-            <span id="profile-phone-note" class="field__hint" hidden data-i18n="profile.phone.readonly">رقم الهاتف لا يمكن تغييره</span>
-          </div>
+          <h2 class="section-label" data-i18n="profile.section.details">البيانات الشخصية</h2>
 
           <div class="field">
             <label class="field__label" for="profile-name" data-i18n="profile.name.label">الاسم الكامل</label>
-            <input type="text" id="profile-name" class="input" maxlength="60" data-i18n-placeholder="register.name.placeholder" placeholder="الاسم كما هو رسمياً" autocomplete="name" />
+            <span class="profile-input">
+              <svg class="profile-input__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6z"/></svg>
+              <input type="text" id="profile-name" class="input" maxlength="60" data-i18n-placeholder="register.name.placeholder" placeholder="الاسم كما هو رسمياً" autocomplete="name" aria-describedby="profile-name-error" />
+            </span>
             <span id="profile-name-error" class="field__error" role="alert" hidden></span>
           </div>
 
           <div class="field">
-            <label class="field__label" for="profile-email" data-i18n="profile.email.label">البريد الإلكتروني (اختياري)</label>
-            <input type="email" id="profile-email" class="input" autocomplete="email" />
+            <label class="field__label" for="profile-phone" data-i18n="profile.phone.label">رقم الهاتف</label>
+            <span class="profile-input profile-input--readonly">
+              <svg class="profile-input__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              <input type="tel" id="profile-phone" class="input" readonly aria-readonly="true" aria-describedby="profile-phone-note" />
+            </span>
+            <span id="profile-phone-note" class="field__hint" hidden data-i18n="profile.phone.readonly">رقم الهاتف لا يمكن تغييره</span>
           </div>
 
           <div class="field">
-            <p class="field__label" data-i18n="profile.language.label">اللغة المفضّلة</p>
-            <div class="lang-selector" role="group" data-i18n-aria-label="aria.languageSelector">
-              <button type="button" class="lang-option" id="lang-ar" data-lang="ar" data-i18n="profile.language.ar" aria-pressed="true">العربية</button>
-              <button type="button" class="lang-option" id="lang-en" data-lang="en" data-i18n="profile.language.en" aria-pressed="false">الإنجليزية</button>
+            <label class="field__label" for="profile-email" data-i18n="profile.email.label">البريد الإلكتروني (اختياري)</label>
+            <span class="profile-input">
+              <svg class="profile-input__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>
+              <input type="email" id="profile-email" class="input" autocomplete="email" />
+            </span>
+          </div>
+
+          <div class="field">
+            <p class="field__label profile-lang-label" id="profile-lang-label" data-i18n="profile.language.label">اللغة المفضّلة</p>
+            <div class="lang-selector sd-segmented" role="group" aria-labelledby="profile-lang-label">
+              <button type="button" class="lang-option sd-segmented__btn" id="lang-ar" data-lang="ar" data-i18n="profile.language.ar" aria-pressed="true">العربية</button>
+              <button type="button" class="lang-option sd-segmented__btn" id="lang-en" data-lang="en" data-i18n="profile.language.en" aria-pressed="false">الإنجليزية</button>
             </div>
           </div>
 
@@ -57,41 +76,49 @@
         </form>
 
         <!-- Quick links — #1853 -->
-        <nav class="profile-quick-links" data-i18n-aria-label="aria.profile.quickLinks">
-          <a class="profile-quick-link" href="./history.html">
-            <span class="profile-quick-link__icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            </span>
-            <span class="profile-quick-link__label" data-i18n="profile.myTrips">رحلاتي</span>
-            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </a>
-          <a class="profile-quick-link" href="./saved-places.html">
-            <span class="profile-quick-link__icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            </span>
-            <span class="profile-quick-link__label" data-i18n="profile.savedPlaces">الأماكن المحفوظة</span>
-            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </a>
-          <a class="profile-quick-link" href="./payments.html">
-            <span class="profile-quick-link__icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-            </span>
-            <span class="profile-quick-link__label" data-i18n="profile.payments">وسائل الدفع</span>
-            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </a>
-          <a class="profile-quick-link" href="./notification-settings.html">
-            <span class="profile-quick-link__icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            </span>
-            <span class="profile-quick-link__label" data-i18n="notifications.settings.title">إعدادات الإشعارات</span>
-            <svg class="profile-quick-link__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </a>
-        </nav>
+        <section class="profile-section">
+          <h2 class="section-label" data-i18n="profile.section.account">الحساب</h2>
+          <nav class="profile-quick-links list-stack" data-i18n-aria-label="aria.profile.quickLinks" aria-label="روابط سريعة">
+            <a class="list-row list-row--card profile-quick-link" href="./history.html">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="profile.myTrips">رحلاتي</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+            <a class="list-row list-row--card profile-quick-link" href="./saved-places.html">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="profile.savedPlaces">الأماكن المحفوظة</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+            <a class="list-row list-row--card profile-quick-link" href="./payments.html">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="profile.payments">وسائل الدفع</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+            <a class="list-row list-row--card profile-quick-link" href="./notification-settings.html">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="notifications.settings.title">إعدادات الإشعارات</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+          </nav>
+        </section>
 
-        <button type="button" class="btn btn--ghost btn--full profile-logout-btn" id="profile-logout-btn" data-i18n="menu.logout">تسجيل الخروج</button>
+        <div class="profile-footer">
+          <button type="button" class="btn btn--ghost profile-logout-btn" id="profile-logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <span data-i18n="menu.logout">تسجيل الخروج</span>
+          </button>
 
-        <!-- Account deletion — required by App Store and Google Play -->
-        <a class="profile-delete-link" href="./delete-account.html"><span class="profile-delete-link__label" data-i18n="deleteAccount.entry">حذف الحساب</span></a>
+          <!-- Account deletion — required by App Store and Google Play -->
+          <a class="profile-delete-link" href="./delete-account.html"><span class="profile-delete-link__label" data-i18n="deleteAccount.entry">حذف الحساب</span></a>
+        </div>
       </main>
     </sd-page>
 

@@ -1,19 +1,18 @@
-/* delete-account.css — rider shell adjustments for the shared deletion screen
-   (shared/styles/account-deletion.css). */
+/* delete-account.css — rider shell for the shared deletion screen
+   (shared/styles/account-deletion.css). The rider app wraps it in the kit's hero
+   band + white panel (.sd-hero / .sd-panel), like the other account screens. */
 
 .delete-account-page {
-  background: var(--color-surface-alt);
-}
-
-.delete-account-page .del-topbar {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--z-nav);
   background: var(--color-surface);
-  border-block-end: 1px solid var(--color-border);
 }
 
-.delete-account-page .del-topbar__inner {
-  padding: 0 var(--space-4);
-  block-size: calc(var(--space-12) + var(--space-2));
+/* White title on the purple band (account-deletion.css paints it for a white bar) */
+.del-hero-band .del-topbar__title-text {
+  color: var(--color-on-primary);
+  font-size: var(--fs-xl);
+}
+
+/* The panel keeps the kit's gutters and clears the home indicator */
+.delete-account-page main.del-content {
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
 }

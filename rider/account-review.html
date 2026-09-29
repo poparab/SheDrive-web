@@ -4,10 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SheDrive — الحساب قيد المراجعة</title>
-    <!-- CSS — explicit links so the page renders when opened directly (file://). -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- CSS — explicit links so the page paints before sd-page's module runs.
+         Fonts are injected by sd-page. -->
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
     <link rel="stylesheet" href="../shared/styles/base.css" />
@@ -23,23 +21,22 @@
   </head>
   <body class="app-shell review-page">
     <sd-page body-class="app-shell review-page" screen-styles="styles/rider.css, styles/account-review.css">
-      <sd-app-header bar-class="review-topbar" inner-class="review-topbar__inner">
-        <a href="." data-slot="start" class="review-topbar__logo" data-i18n-aria-label="aria.logo.shedrive">
-          <img src="../shared/assets/logos/shedrive-logo.svg" alt="SheDrive" height="28" />
-        </a>
-      </sd-app-header>
+      <!-- Figma "Account Under Review" has no bar; only the language control stays. -->
+      <sd-app-header bar-class="review-topbar" inner-class="review-topbar__inner" title-class="review-topbar__spacer"></sd-app-header>
 
       <main class="review-content" id="main-content">
         <!-- Account blocked after a driver's gender-mismatch report (#1687 S4). The
              rider is told her account is under review; the reason is deliberately
              non-accusatory because the report is not yet adjudicated (#1811). -->
-        <div class="review-card" role="status" aria-live="polite">
+        <section class="review-card" role="status" aria-live="polite">
           <div class="review-card__icon" aria-hidden="true">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
+            <span class="review-card__icon-disc">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <line x1="12" y1="8" x2="12" y2="12.5"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </span>
           </div>
 
           <h1 class="review-card__title" data-i18n="accountReview.title">حسابك قيد المراجعة</h1>
@@ -48,35 +45,65 @@
             لا يمكنك طلب رحلات جديدة في الوقت الحالي. تلقّينا بلاغًا يتعلق بسياسة القيادة للنساء فقط، ويقوم فريق السلامة بمراجعته الآن.
           </p>
 
-          <!-- Status row: mirrors the admin-side pending_review state (#1662 / #1810) -->
-          <div class="review-status">
-            <span class="review-status__label" data-i18n="accountReview.statusLabel">حالة الحساب</span>
-            <span class="review-status__pill" data-i18n="accountReview.statusPending">قيد المراجعة</span>
-          </div>
-
-          <dl class="review-meta">
-            <div class="review-meta__row">
-              <dt class="review-meta__key" data-i18n="accountReview.referenceLabel">رقم البلاغ</dt>
-              <dd class="review-meta__val" id="review-reference">GMR-4103</dd>
+          <!-- Status + reference + date: mirrors the admin-side pending_review state
+               (#1662 / #1810) -->
+          <dl class="review-details">
+            <div class="review-details__row">
+              <dt class="review-details__key">
+                <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 1.8 3 .1.9 2.9 2.4 1.8-.9 2.9.9 2.9-2.4 1.8-.9 2.9-3 .1L12 21l-2.4-1.8-3-.1-.9-2.9-2.4-1.8.9-2.9-.9-2.9 2.4-1.8.9-2.9 3-.1z"/><polyline points="8.5 12 11 14.5 15.5 10"/></svg>
+              </span>
+                <span data-i18n="accountReview.statusLabel">حالة الحساب</span>
+              </dt>
+              <dd class="review-details__val">
+                <span class="review-status__pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <span data-i18n="accountReview.statusPending">قيد المراجعة</span>
+                </span>
+              </dd>
             </div>
-            <div class="review-meta__row">
-              <dt class="review-meta__key" data-i18n="accountReview.raisedLabel">تاريخ البلاغ</dt>
-              <dd class="review-meta__val" id="review-raised">٣ سبتمبر ٢٠٢٦</dd>
+            <div class="review-details__row">
+              <dt class="review-details__key">
+                <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+              </span>
+                <span data-i18n="accountReview.referenceLabel">رقم البلاغ</span>
+              </dt>
+              <dd class="review-details__val review-details__val--ltr" id="review-reference">GMR-4103</dd>
+            </div>
+            <div class="review-details__row">
+              <dt class="review-details__key">
+                <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </span>
+                <span data-i18n="accountReview.raisedLabel">تاريخ البلاغ</span>
+              </dt>
+              <dd class="review-details__val" id="review-raised">٣ سبتمبر ٢٠٢٦</dd>
             </div>
           </dl>
 
-          <p class="review-card__note" data-i18n="accountReview.note">
-            سنُخطرك بمجرد اتخاذ قرار. لا يُحتسب أي رسوم على الرحلة الملغاة.
-          </p>
-
-          <div class="review-actions">
-            <a class="btn btn--primary btn--full" href="tel:16123" data-i18n="accountReview.contactSupport">
-              تواصلي مع الدعم
-            </a>
-            <button type="button" class="btn btn--ghost btn--full" id="review-logout-btn" data-i18n="menu.logout">
-              تسجيل الخروج
-            </button>
+          <div class="callout review-card__note">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            <div>
+              <p class="callout__title" data-i18n="accountReview.nextTitle">ماذا بعد؟</p>
+              <p class="review-card__note-body" data-i18n="accountReview.note">
+                سنُخطرك بمجرد اتخاذ قرار. لا يُحتسب أي رسوم على الرحلة الملغاة.
+              </p>
+            </div>
           </div>
+        </section>
+
+        <div class="review-actions">
+          <a class="btn btn--primary btn--full" href="tel:16123">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/><path d="M19.5 19c0 1.5-2 2.5-5 2.5"/></svg>
+            <span data-i18n="accountReview.contactSupport">تواصلي مع الدعم</span>
+          </a>
+          <button type="button" class="btn btn--link review-logout" id="review-logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <span data-i18n="menu.logout">تسجيل الخروج</span>
+          </button>
         </div>
       </main>
     </sd-page>

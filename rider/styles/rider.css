@@ -4,133 +4,146 @@
  * No hardcoded colors, sizes, or radii — reference var(--token-name) exclusively.
  */
 
-/* ── Login page layout ──────────────────────────────── */
+/* ── Brand lockup ───────────────────────────────────── */
+/* Figma splash / login: a white rounded tile holding the purple monogram, over the
+   white "SheDrive" logotype. Used on the purple splash and the login hero. */
+
+.brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-on-primary);
+}
+
+.brand-lockup__tile {
+  display: grid;
+  place-items: center;
+  inline-size: var(--space-16);
+  block-size: var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary-600);
+  box-shadow: var(--shadow-float);
+}
+
+.brand-lockup__tile svg {
+  inline-size: 72%;
+  block-size: 72%;
+}
+
+.brand-lockup__word {
+  display: block;
+  inline-size: calc(var(--space-16) * 2.7);
+  block-size: auto;
+}
+
+.brand-lockup__word text {
+  font-family: var(--font-latin);
+  font-size: var(--space-12);
+  font-weight: var(--fw-semibold);
+  fill: currentColor;
+}
+
+.brand-lockup--lg .brand-lockup__tile {
+  inline-size: calc(var(--space-16) + var(--space-5));
+  block-size: calc(var(--space-16) + var(--space-5));
+  border-radius: var(--radius-lg);
+}
+
+.brand-lockup--lg .brand-lockup__word {
+  inline-size: calc(var(--space-16) * 4);
+}
+
+/* ── Login page layout (rider/index.html) ───────────── */
+/* Figma Login / OTP / Screen Name: a full-height purple hero (language control,
+   centred logo, step heading at its foot) and a white panel with a 32px top radius
+   rising over it. sd-page is the scroll container, so nothing here clips: on a
+   short screen the whole page scrolls. */
 
 .login-page {
-  background: var(--color-surface-alt);
+  background: var(--color-surface);
 }
 
 .login-layout {
   display: flex;
   flex-direction: column;
-  block-size: 100dvh;
-  overflow: hidden;
+  min-block-size: 100%;
 }
 
-/* Brand panel */
-.login-brand {
-  background: var(--gradient-brand);
-  padding: var(--space-10) var(--space-8);
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  block-size: clamp(160px, 32dvh, 240px);
-}
-
-.login-brand__inner {
+.login-hero {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-5);
-  position: relative;
-  z-index: var(--z-above);
-  text-align: center;
+  padding-block-end: calc(var(--radius-2xl) + var(--space-6));
 }
 
-.login-brand__logo {
-  filter: brightness(0) invert(1);
-  inline-size: 180px;
-  block-size: auto;
+/* Figma puts the language control on the start edge of the hero. */
+.login-hero .sd-app-header__actions {
+  order: -1;
 }
 
-.login-brand__tagline {
-  color: rgba(255, 255, 255, 0.92);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-medium);
-  max-inline-size: 320px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  line-height: var(--leading-relaxed);
-}
-
-/* Decorative blurred circles */
-.login-brand__deco {
-  position: absolute;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.12);
-  pointer-events: none;
-}
-.login-brand__deco--1 {
-  inline-size: 280px;
-  block-size: 280px;
-  inset-block-start: -80px;
-  inset-inline-end: -60px;
-}
-.login-brand__deco--2 {
-  inline-size: 180px;
-  block-size: 180px;
-  inset-block-end: -60px;
-  inset-inline-start: -40px;
-}
-
-/* Form panel */
-.login-form-panel {
+.login-hero__bar-spacer {
   flex: 1;
-  min-block-size: 0;
-  background: var(--color-surface);
-  padding: var(--space-6) var(--space-5);
+}
+
+.login-hero__brand {
+  flex: 1 0 auto;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8) var(--page-gutter);
+}
+
+.login-hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline: var(--page-gutter);
+}
+
+.login-hero__title {
+  margin: 0;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-on-primary);
+}
+
+.login-hero__subtitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+/* White panel over the hero (.sd-panel supplies radius, overlap and gutters). */
+main.login-panel {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  padding-block: var(--space-8) calc(var(--space-6) + env(safe-area-inset-bottom));
 }
 
-.login-form-panel__lang {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.login-form-panel__header {
-  display: block;
-}
-
-.login-form-panel__header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.login-form-panel__header-spacer {
-  flex: 1;
-}
-
-.login-form-panel__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  flex: 1;
-}
-
-/* Form header */
-.login-form__header {
+.login-panel__head {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.login-form__title {
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
+.login-panel__title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
 }
 
-.login-form__subtitle {
-  font-size: var(--fs-base);
-  color: var(--color-text-muted);
+.login-panel__hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
 }
 
 /* Login form */
@@ -144,201 +157,175 @@
 .login-step {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
 .login-step--hidden {
   display: none;
 }
 
-.login-page #step-otp {
-  gap: var(--space-5);
+.login-step .field {
+  gap: var(--space-3);
 }
 
-.login-page .otp-panel {
-  width: 100%;
-  max-inline-size: 420px;
-  margin-inline: auto;
-  padding: var(--space-8) var(--space-5) var(--space-5);
-  gap: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: calc(var(--radius-xl) + var(--space-1));
-  background:
-    radial-gradient(circle at top center, rgba(214, 58, 226, 0.14) 0%, rgba(214, 58, 226, 0) 44%),
-    linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%) !important;
-  box-shadow: 0 18px 40px rgba(107, 43, 217, 0.08), var(--shadow-sm) !important;
-  position: relative;
-  overflow: hidden;
+/* Phone step: the step title is the field's label, as Figma titles the panel. */
+#step-phone .login-panel__title {
+  margin-block-end: var(--space-2);
 }
 
-.login-page .otp-panel::before {
-  content: '';
-  position: absolute;
-  inset-block-start: var(--space-4);
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  inline-size: var(--space-12);
-  block-size: 4px;
-  border-radius: var(--radius-full);
-  background: var(--gradient-brand);
-  opacity: 0.7;
+/* ── Phone number: two separate lavender boxes (Figma) ── */
+
+.login-page .login-phone {
+  /* A phone number reads left to right in both languages: +20 box, then the number. */
+  direction: ltr;
+  gap: var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
 }
 
-.login-page .otp-panel__title {
-  padding-top: var(--space-2);
-  text-align: center;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
+.login-page .login-phone:focus-within {
+  box-shadow: none;
 }
 
-.login-page .otp-panel__hint {
-  max-inline-size: 30ch;
-  margin-inline: auto;
-  text-align: center;
-  font-size: var(--fs-sm);
-  line-height: var(--leading-relaxed);
-}
-
-.login-page .otp-panel__group {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto repeat(3, minmax(0, 1fr));
-  align-items: center;
+.login-page .login-phone .login-phone__country {
+  flex: 0 0 auto;
+  inline-size: auto;
   gap: var(--space-2);
-  inline-size: 100%;
-  max-inline-size: 360px;
-  margin-inline: auto;
-}
-
-.login-page .otp-group__split {
-  inline-size: var(--space-4);
-  block-size: 2px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(90deg, rgba(107, 43, 217, 0.28) 0%, rgba(214, 58, 226, 0.45) 100%);
-  justify-self: center;
-}
-
-.login-page .otp-box {
-  appearance: none;
-  -webkit-appearance: none;
-  inline-size: 100%;
-  min-inline-size: 0;
-  block-size: calc(var(--space-12) + var(--space-1));
-  text-align: center;
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  line-height: 1;
-  padding: 0 !important;
-  border: 1px solid rgba(107, 43, 217, 0.14) !important;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface) !important;
+  padding-inline: var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   color: var(--color-text);
-  caret-color: var(--color-primary-600);
-  box-shadow: 0 8px 18px rgba(26, 21, 48, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
-    transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  line-height: 1;
 }
 
-.login-page .otp-box:hover {
-  border-color: var(--color-primary-500);
+.login-page .login-phone .login-phone__country:focus-visible {
+  outline: none;
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
-.login-page .otp-box:focus {
-  transform: translateY(-2px) scale(1.02);
-  border-color: var(--color-primary-600) !important;
-  background: var(--color-surface) !important;
-  color: var(--color-primary-700);
-  box-shadow: 0 0 0 var(--space-1) rgba(107, 43, 217, 0.12), 0 14px 28px rgba(107, 43, 217, 0.18) !important;
+.login-phone__flag {
+  inline-size: var(--space-6);
+  block-size: auto;
+  flex-shrink: 0;
 }
 
-.login-page .otp-box.otp-box--filled {
-  color: var(--color-primary-700);
-  border-color: var(--color-primary-500) !important;
-  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(214, 58, 226, 0.08) 100%) !important;
-  box-shadow: 0 10px 20px rgba(107, 43, 217, 0.1), inset 0 -2px 0 rgba(107, 43, 217, 0.08) !important;
+.login-phone__code {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.login-phone__field,
+.login-name__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.login-phone__icon,
+.login-name__icon {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  z-index: var(--z-above);
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.login-page .login-phone .input,
+.login-page .login-name .input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-inline-start: calc(var(--space-4) + var(--space-6) + var(--space-2));
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.login-page .login-phone .input:focus,
+.login-page .login-name .input:focus {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
+}
+
+.login-page .login-name .input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+/* ── OTP step ── */
+/* The six boxes are the shared sd-otp-input primitive (Figma lavender squares). */
+
+.login-otp {
+  gap: var(--space-3);
 }
 
 .login-page #step-otp .field__error {
   text-align: center;
 }
 
-@media (max-width: 480px) {
-  .login-page .otp-panel {
-    padding-inline: var(--space-4);
-  }
-
-  .login-page .otp-panel__group {
-    gap: var(--space-1);
-  }
-
-  .login-page .otp-group__split {
-    inline-size: var(--space-3);
-  }
-
-  .login-page .otp-box {
-    block-size: var(--space-12);
-    font-size: var(--fs-xl);
-  }
+.resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--control-height-sm);
+  margin-block-start: calc(var(--space-2) * -1);
 }
 
-/* Compact height: tighten gaps so OTP step fits without internal scroll */
-@media (max-height: 750px) {
-  .login-brand {
-    block-size: clamp(100px, 18dvh, 160px);
-    padding-block: var(--space-5);
-  }
-
-  .login-brand__tagline {
-    font-size: var(--fs-sm);
-  }
-
-  .login-brand__logo {
-    inline-size: 140px;
-  }
-
-  .login-form-panel {
-    padding-block: var(--space-2);
-    gap: var(--space-2);
-  }
-
-  .login-form-panel__body {
-    gap: var(--space-3);
-  }
-
-  .login-form__title {
-    font-size: var(--fs-xl);
-  }
-
-  .login-form__subtitle {
-    font-size: var(--fs-sm);
-  }
-
-  .login-page #step-otp {
-    gap: var(--space-3);
-  }
-
-  .login-page .otp-panel {
-    padding-block: var(--space-4) var(--space-3);
-    gap: var(--space-2);
-  }
-
-  .login-page .otp-box {
-    block-size: var(--space-12);
-  }
-
-  .login-terms {
-    padding-block-end: 0;
-  }
+/* While the cooldown runs, the muted countdown stands in for the link. */
+.resend-row .btn--link:disabled {
+  display: none;
 }
 
-/* Terms */
+.resend-countdown {
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+/* Once the link is live again (cooldown over, or unlocked after too many
+   attempts) the countdown gives way to it. */
+.resend-row .btn--link:not(:disabled) + .resend-countdown {
+  display: none;
+}
+
+.resend-countdown:empty {
+  display: none;
+}
+
+/* ── Restore step ── */
+/* account-deletion.css loads after this file, hence the page-scoped selectors. */
+
+.login-page .login-restore__card {
+  flex-direction: row;
+  align-items: flex-start;
+  background: var(--color-warning-bg);
+  border-color: transparent;
+}
+
+.login-page .login-restore__card .icon-tile {
+  background: var(--color-surface);
+}
+
+.login-page .login-restore__card .del-card__body {
+  color: var(--color-warning-strong);
+}
+
+.login-restore__decline {
+  align-self: center;
+  margin-block-start: calc(var(--space-2) * -1);
+}
+
+/* ── Terms ── */
 .login-terms {
+  margin: 0;
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
   text-align: center;
-  margin-block-start: auto;
   line-height: var(--leading-relaxed);
-  padding-block-end: var(--space-4);
 }
 
 .login-terms a {
@@ -346,48 +333,27 @@
   text-decoration: underline;
 }
 
-/* Tablet and desktop: side-by-side split */
-@media (min-width: 768px) {
-  .login-layout {
-    flex-direction: row;
+/* Short phones (360×740 and below): tighten the hero so the step fits. */
+@media (max-height: 760px) {
+  .login-hero__brand {
+    padding-block: var(--space-5);
   }
 
-  .login-brand {
-    flex: 1;
-    min-block-size: 100dvh;
-    padding: var(--space-12);
-    align-items: center;
-    justify-content: center;
+  .login-hero {
+    padding-block-end: calc(var(--radius-2xl) + var(--space-4));
   }
 
-  .login-brand__inner {
-    max-inline-size: 380px;
+  .login-hero__title {
+    font-size: var(--fs-2xl);
   }
 
-  .login-brand__logo {
-    inline-size: 220px;
+  main.login-panel {
+    padding-block-start: var(--space-6);
+    gap: var(--space-4);
   }
 
-  .login-brand__tagline {
-    font-size: var(--fs-xl);
-  }
-
-  .login-form-panel {
-    inline-size: 480px;
-    flex-shrink: 0;
-    padding: var(--space-10) var(--space-10);
-    justify-content: center;
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-@media (min-width: 1024px) {
-  .login-brand {
-    flex: 1.2;
-  }
-
-  .login-form-panel {
-    inline-size: 520px;
+  .login-step {
+    gap: var(--space-4);
   }
 }
 
@@ -406,15 +372,15 @@
   padding: var(--space-3) var(--space-4);
 }
 
+/* Figma: no bar — round white floating buttons sit directly over the map with the
+   logo centred between them (the buttons get their look from sd-app-header). */
 .home-topbar__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--color-surface);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-3);
-  box-shadow: var(--shadow-md);
-  gap: var(--space-3);
+  background: transparent;
+  padding: 0;
+  gap: var(--space-2);
 }
 
 .home-topbar__logo img {

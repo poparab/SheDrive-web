@@ -1,191 +1,160 @@
 /*
- * profile.css — Rider profile screen
- * All values use design-system tokens.
+ * profile.css — Rider profile screen (Figma "Rider - Profile" / "Edit Profile").
+ * Layout: .sd-hero band (header + avatar summary) and an .sd-panel with the
+ * details form and account links. sd-page is the scroll container, so nothing
+ * here fixes a height. All values use design-system tokens.
  */
 
 .profile-page {
-  background: var(--color-surface-alt);
-}
-
-.profile-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.profile-topbar__inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  height: 56px;
-}
-
-.profile-topbar__title-text {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  flex: 1;
-  text-align: center;
-}
-
-/* ── Content ─────────────────────────────────────────── */
-
-.profile-content {
-  padding: var(--space-5) var(--space-4) var(--space-10);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-inline-size: 540px;
-  margin-inline: auto;
+  background: var(--color-surface);
 }
 
 /* ── Hero ────────────────────────────────────────────── */
 
-.profile-hero {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
-}
-
-.profile-hero__avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-full);
-  background: var(--gradient-brand);
-  color: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.profile-topbar__title-text {
   font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  flex-shrink: 0;
+  font-weight: var(--fw-semibold);
 }
 
-.profile-hero__name {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0;
-}
-
-.profile-hero__phone {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  margin: 0;
-  direction: ltr;
-  text-align: end;
-}
-
-/* ── Quick links ─────────────────────────────────────── */
-
-.profile-quick-links {
+.profile-hero__summary {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.profile-quick-link {
-  display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  color: var(--color-text);
-  text-decoration: none;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.profile-quick-link:last-child {
-  border-bottom: none;
-}
-
-.profile-quick-link:hover,
-.profile-quick-link:focus-visible {
-  background: var(--color-surface-alt);
-}
-
-.profile-quick-link__icon {
-  color: var(--color-primary-600);
-  flex-shrink: 0;
-}
-
-.profile-quick-link__label {
-  flex: 1;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-}
-
-.profile-quick-link__chevron {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-[dir="rtl"] .profile-quick-link__chevron {
-  transform: scaleX(-1);
-}
-
-/* ── Logout ──────────────────────────────────────────── */
-
-.profile-logout-btn {
-  color: var(--color-danger);
-}
-
-/* ── Form ────────────────────────────────────────────── */
-
-.profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* ── Language selector ───────────────────────────────── */
-
-.lang-selector {
-  display: flex;
-  gap: var(--space-2);
-  margin-block-start: var(--space-1);
-}
-
-.lang-option {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1.5px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--page-gutter) 0;
   text-align: center;
 }
 
-.lang-option[aria-pressed="true"],
-.lang-option.is-active {
-  border-color: var(--color-primary-600);
-  background: rgba(107, 43, 217, 0.06);
+.profile-hero__avatar {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-8));
+  block-size: calc(var(--space-16) + var(--space-8));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  border: var(--space-1) solid rgba(var(--color-surface-rgb), 0.85);
+  background: var(--color-primary-100);
   color: var(--color-primary-600);
+  font-size: var(--fs-4xl);
   font-weight: var(--fw-bold);
+  box-shadow: var(--shadow-float);
 }
 
-/* ── Delete account ──────────────────────────────────── */
+.profile-hero__name {
+  margin: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-on-primary);
+}
+
+.profile-hero__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--fs-base);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+#profile-hero-phone {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ── Panel ───────────────────────────────────────────── */
+
+main.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+.profile-form,
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Input with a leading icon (Figma Edit Profile) */
+.profile-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-input__icon {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  z-index: var(--z-above);
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.profile-input .input {
+  padding-inline-start: calc(var(--space-4) + var(--space-5) + var(--space-3));
+}
+
+/* The phone is fixed: quieter, but still readable */
+.profile-input--readonly .input {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+/* rtl.css keeps tel inputs left-to-right. In Arabic the icon sits on the right,
+   so pad and align the number to that side (logical values resolve against the
+   input's own ltr direction). */
+[dir='rtl'] .profile-input--readonly .input {
+  text-align: end;
+  padding-inline-start: var(--space-4);
+  padding-inline-end: calc(var(--space-4) + var(--space-5) + var(--space-3));
+}
+
+/* ── Language selector (Figma segmented control) ────── */
+
+.profile-lang-label {
+  margin: 0;
+}
+
+/* ── Account links ───────────────────────────────────── */
+
+.profile-quick-link .icon-tile {
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+}
+
+.profile-quick-link .list-row__title {
+  font-size: var(--fs-base);
+}
+
+/* ── Log out + delete account ────────────────────────── */
+
+.profile-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Figma: a muted "⏻ Log Out" text action, not a full-width button */
+.profile-page .profile-logout-btn {
+  inline-size: auto;
+  gap: var(--space-2);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-subtle);
+}
 
 /* The colour sits on the label: f7-overrides.css forces color: inherit on every
    plain <a> with a selector no single class can outrank. */
 .profile-delete-link {
   display: block;
-  margin-inline: auto;
   padding: var(--space-2) var(--space-4);
   text-align: center;
 }

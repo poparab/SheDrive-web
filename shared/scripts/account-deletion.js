@@ -110,7 +110,11 @@ export function wireOtpStep({ input, error, submit, resend, resendLabel, onVerif
   let expireTimer = null;
 
   const showError = (key) => {
-    if (error) { error.textContent = translate(key); error.hidden = false; }
+    if (error) {
+      error.setAttribute('data-i18n', key); // re-renders on a language switch
+      error.textContent = translate(key);
+      error.hidden = false;
+    }
     input?.setAttribute('error', 'true');
   };
   const clearError = () => {
@@ -119,6 +123,9 @@ export function wireOtpStep({ input, error, submit, resend, resendLabel, onVerif
   };
 
   const start = () => {
+    // otp-flow formats the countdown from this template; keep it in the page's
+    // current language (it is authored in Arabic in the markup).
+    if (resendLabel) resendLabel.dataset.cooldownTemplate = translate('login.resend.cooldown');
     attempts = 0;
     expired = false;
     clearError();
@@ -178,7 +185,7 @@ export function mountAccountDeletion(role) {
   const steps = qsa('[data-del-step]');
   const show = (name) => {
     steps.forEach((el) => { el.hidden = el.getAttribute('data-del-step') !== name; });
-    window.scrollTo(0, 0);
+    (document.querySelector('sd-page') || document.scrollingElement)?.scrollTo(0, 0);
   };
 
   // Notices on the review step — information, never a gate.

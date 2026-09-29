@@ -8,7 +8,6 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../shared/styles/tokens.css" />
     <link rel="stylesheet" href="../shared/styles/reset.css" />
@@ -27,111 +26,114 @@
   <body class="app-shell driver-profile-page">
     <sd-page body-class="app-shell driver-profile-page" screen-styles="styles/driver.css, styles/profile.css">
 
-      <!-- Top bar with back button -->
-      <sd-app-header hide-lang-toggle>
-        <a href="./home.html" class="btn btn--icon btn--ghost" slot="start"
-          data-slot="start" aria-label="رجوع" data-i18n-aria-label="aria.back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </a>
-        <span data-i18n="driverProfile.title">ملفي الشخصي</span>
-      </sd-app-header>
+      <!-- ── Hero: header + identity (Figma "Driver - Menu" header look) ── -->
+      <div class="sd-hero dprofile-hero">
+        <sd-app-header hide-lang-toggle>
+          <a href="./home.html" class="btn btn--icon btn--ghost" data-slot="start" aria-label="رجوع" data-i18n-aria-label="aria.back">
+            <svg class="dprofile-back__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </a>
+          <span class="dprofile-hero__title" data-i18n="driverProfile.title">ملفي الشخصي</span>
+          <span class="dprofile-hero__spacer" data-slot="end" aria-hidden="true"></span>
+        </sd-app-header>
 
-      <main class="driver-profile-main">
-
-        <!-- ── Avatar + name header ── -->
-        <div class="dprofile-hero">
-          <div class="avatar avatar--xl dprofile-hero__avatar" aria-hidden="true" id="hero-avatar">س</div>
-          <div class="dprofile-hero__info">
-            <p class="dprofile-hero__name" id="hero-name">سارة محمد</p>
-            <div class="dprofile-hero__rating" aria-label="التقييم: 4.9 نجوم" data-i18n-aria-label="aria.rating">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <div class="dprofile-id">
+          <div class="avatar dprofile-id__avatar" aria-hidden="true" id="hero-avatar">س</div>
+          <div class="dprofile-id__info">
+            <p class="dprofile-id__name" id="hero-name">سارة محمد</p>
+            <p class="dprofile-id__rating">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <span>4.9</span>
-            </div>
+              <span class="u-visually-hidden" data-i18n="earnings.avgRating">متوسط التقييم</span>
+              <span class="dprofile-id__score">4.9</span>
+            </p>
           </div>
         </div>
+      </div>
+
+      <main class="sd-panel driver-profile-main">
 
         <!-- ── Editable fields ── -->
-        <section class="dprofile-section card" aria-label="البيانات الشخصية" data-i18n-aria-label="driverProfile.section.personal">
+        <section class="dprofile-section" aria-labelledby="dprofile-personal-title">
+          <h2 class="section-label" id="dprofile-personal-title" data-i18n="driverProfile.section.personal">البيانات الشخصية</h2>
+          <div class="card dprofile-form">
 
-          <!-- Phone (read-only) -->
-          <div class="field">
-            <label class="field__label" for="dprofile-phone" data-i18n="driverProfile.phone.label">رقم الهاتف</label>
-            <input type="tel" id="dprofile-phone" class="input" readonly aria-readonly="true" value="+20 0100 000 0000" dir="ltr" />
-            <span class="field__hint" data-i18n="driverProfile.phone.hint">لا يمكن تغيير رقم الهاتف</span>
-          </div>
-
-          <!-- Full name (editable) -->
-          <div class="field">
-            <label class="field__label" for="dprofile-name" data-i18n="driverProfile.name.label">الاسم الكامل</label>
-            <input type="text" id="dprofile-name" class="input" autocomplete="name" aria-required="true" aria-describedby="dprofile-name-error" value="سارة محمد" />
-            <span id="dprofile-name-error" class="field__error" role="alert" hidden></span>
-          </div>
-
-          <!-- Language selector — live switch (#1731) -->
-          <div class="field">
-            <label class="field__label" data-i18n="driverProfile.language.label">اللغة</label>
-            <div class="dprofile-lang-row" role="group" aria-label="اختيار اللغة" data-i18n-aria-label="driverProfile.language.label">
-              <button type="button" class="btn btn--ghost dprofile-lang-btn" data-lang-btn="ar" aria-pressed="true" data-i18n="driverProfile.language.ar">
-                العربية
-              </button>
-              <button type="button" class="btn btn--ghost dprofile-lang-btn" data-lang-btn="en" aria-pressed="false" data-i18n="driverProfile.language.en">
-                English
-              </button>
+            <!-- Phone (read-only) -->
+            <div class="field">
+              <label class="field__label" for="dprofile-phone" data-i18n="driverProfile.phone.label">رقم الهاتف</label>
+              <input type="tel" id="dprofile-phone" class="input" readonly aria-readonly="true" value="+20 0100 000 0000" dir="ltr" aria-describedby="dprofile-phone-hint" />
+              <span class="field__hint" id="dprofile-phone-hint" data-i18n="driverProfile.phone.hint">لا يمكن تغيير رقم الهاتف</span>
             </div>
-          </div>
 
-          <button type="button" class="btn btn--primary btn--full" id="dprofile-save-btn" data-i18n="driverProfile.save">
-            حفظ التغييرات
-          </button>
+            <!-- Full name (editable) -->
+            <div class="field">
+              <label class="field__label" for="dprofile-name" data-i18n="driverProfile.name.label">الاسم الكامل</label>
+              <input type="text" id="dprofile-name" class="input" dir="auto" autocomplete="name" aria-required="true" aria-describedby="dprofile-name-error" value="سارة محمد" />
+              <span id="dprofile-name-error" class="field__error" role="alert" hidden></span>
+            </div>
+
+            <!-- Language selector — live switch (#1731) -->
+            <div class="field">
+              <span class="field__label" id="dprofile-lang-label" data-i18n="driverProfile.language.label">اللغة</span>
+              <div class="sd-segmented dprofile-lang-row" role="group" aria-labelledby="dprofile-lang-label">
+                <button type="button" class="sd-segmented__btn dprofile-lang-btn" data-lang-btn="ar" aria-pressed="true" data-i18n="driverProfile.language.ar">العربية</button>
+                <button type="button" class="sd-segmented__btn dprofile-lang-btn" data-lang-btn="en" aria-pressed="false" data-i18n="driverProfile.language.en">English</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn--primary btn--full" id="dprofile-save-btn" data-i18n="driverProfile.save">حفظ التغييرات</button>
+          </div>
         </section>
 
         <!-- ── Quick links ── -->
-        <section class="dprofile-section card dprofile-links" aria-label="الروابط السريعة" data-i18n-aria-label="driverProfile.links.label">
-          <a href="./earnings.html" class="profile-sheet__link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span data-i18n="nav.earnings">الأرباح</span>
-            <svg class="dprofile-links__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-          <a href="./history.html" class="profile-sheet__link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/>
-            </svg>
-            <span data-i18n="nav.history">سجل الرحلات</span>
-            <svg class="dprofile-links__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-          <a href="./notifications.html" class="profile-sheet__link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span data-i18n="notifications.title">الإشعارات</span>
-            <svg class="dprofile-links__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-          <a href="./notification-settings.html" class="profile-sheet__link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
-            </svg>
-            <span data-i18n="notifications.settings.title">إعدادات الإشعارات</span>
-            <svg class="dprofile-links__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-          <a href="./sos.html" class="profile-sheet__link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <span data-i18n="menu.safety">جهات اتصال الطوارئ</span>
-            <svg class="dprofile-links__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
+        <section class="dprofile-section" aria-labelledby="dprofile-links-title">
+          <h2 class="section-label" id="dprofile-links-title" data-i18n="driverProfile.links.label">الروابط السريعة</h2>
+          <div class="list-stack">
+            <a href="./earnings.html" class="list-row dprofile-link">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="nav.earnings">الأرباح</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="./history.html" class="list-row dprofile-link">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="nav.history">سجل الرحلات</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="./notifications.html" class="list-row dprofile-link">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="notifications.title">الإشعارات</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="./notification-settings.html" class="list-row dprofile-link">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="notifications.settings.title">إعدادات الإشعارات</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="./sos.html" class="list-row dprofile-link">
+              <span class="icon-tile" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
+              <span class="list-row__body"><span class="list-row__title" data-i18n="menu.safety">جهات اتصال الطوارئ</span></span>
+              <svg class="list-row__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
         </section>
 
-        <!-- ── Danger zone ── -->
-        <section class="dprofile-section" aria-label="إجراءات الحساب">
-          <button type="button" class="btn btn--danger btn--full" id="dprofile-logout-btn" data-i18n="driverProfile.logout">
-            تسجيل الخروج
+        <!-- ── Account actions ── -->
+        <section class="dprofile-section dprofile-actions" aria-label="تسجيل الخروج" data-i18n-aria-label="driverProfile.logout">
+          <button type="button" class="btn btn--secondary btn--full dprofile-logout" id="dprofile-logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <span data-i18n="driverProfile.logout">تسجيل الخروج</span>
           </button>
           <!-- Account deletion — required by App Store and Google Play -->
           <a class="dprofile-delete-link" href="./delete-account.html"><span class="dprofile-delete-link__label" data-i18n="deleteAccount.entry">حذف الحساب</span></a>

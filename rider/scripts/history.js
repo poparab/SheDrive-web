@@ -6,7 +6,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, applyTranslations } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 
 auth.requireAuth();
@@ -32,43 +32,64 @@ const PAGE_SIZE = 3;
 let renderedCount = 0;
 
 const listEl = qs('#history-list-items');
+// <sd-page> is the scroll container (see f7-overrides.css), not the window.
+const scroller = qs('sd-page');
+const RETURN_KEY = 'shedrive.historyReturn';
+
+const CALENDAR_ICON = `
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>`;
 
 function renderCard(trip) {
   const article = document.createElement('article');
   article.className = 'history-card';
-  article.setAttribute('role', 'option');
-  article.tabIndex = 0;
-  article.setAttribute('aria-label', `رحلة — ${trip.date}`);
-  article.setAttribute('data-i18n-aria-label', 'aria.history.tripCard');
+  article.setAttribute('role', 'listitem');
+
+  // The whole card is one link-like control: date, route, fare and driver read as
+  // its accessible name, and Enter / Space / tap open the trip detail (#1568).
   article.innerHTML = `
-    <div class="history-card__meta">
-      <span class="history-card__date">${trip.date}</span>
-      <span class="badge badge--success history-card__status" data-i18n="history.completed">مكتملة</span>
-    </div>
-    <div class="history-card__body">
-      <div class="history-card__route">
-        <span class="history-card__dot history-card__dot--green" aria-hidden="true"></span>
-        <span class="history-card__destination">${trip.destination}</span>
+    <div class="history-card__link" role="link" tabindex="0">
+      <div class="history-card__meta">
+        <span class="history-card__date">${CALENDAR_ICON}<span>${trip.date}</span></span>
+        <span class="badge badge--success history-card__status" data-i18n="history.completed">مكتملة</span>
       </div>
-      <div class="history-card__footer">
-        <div class="history-card__driver">
-          <span class="history-card__avatar" aria-hidden="true">${trip.avatar}</span>
-          <span class="history-card__driver-name">${trip.driverName}</span>
-        </div>
-        <span class="history-card__fare">${trip.fare} ج.م.</span>
+      <ol class="route history-card__route">
+        <li class="route__stop route__stop--pickup">
+          <span class="route__place">${trip.pickup}</span>
+          <span class="route__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
+        </li>
+        <li class="route__stop route__stop--destination">
+          <span class="route__place">${trip.destination}</span>
+          <span class="route__label" data-i18n="home.destination.label">الوجهة</span>
+        </li>
+      </ol>
+      <div class="history-card__fare">
+        <span class="history-card__amount">${trip.fare} <span data-i18n="home.fare.egp">ج.م.</span></span>
+        <span class="history-card__fare-label" data-i18n="history.tripFare">قيمة الرحلة</span>
       </div>
+      <div class="history-card__driver">
+        <span class="history-card__avatar" aria-hidden="true">${trip.avatar}</span>
+        <span class="history-card__driver-name">${trip.driverName}</span>
+      </div>
+      <svg class="history-card__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
     </div>
-    <svg class="history-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
   `;
 
   const openDetail = () => {
     sessionStorage.setItem('shedrive.selectedTrip', JSON.stringify(trip));
+    // Back from the detail screen returns to the same place in the list (#1568 Scenario 3).
+    sessionStorage.setItem(RETURN_KEY, JSON.stringify({ count: renderedCount, top: scroller?.scrollTop ?? 0 }));
     window.location.assign('./trip-detail.html');
   };
-  article.addEventListener('click', openDetail);
-  article.addEventListener('keydown', (e) => {
+  const link = article.querySelector('.history-card__link');
+  link.addEventListener('click', openDetail);
+  link.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); }
   });
 
@@ -79,13 +100,39 @@ function renderNextPage() {
   const next = MOCK_TRIPS.slice(renderedCount, renderedCount + PAGE_SIZE);
   next.forEach((trip) => listEl?.appendChild(renderCard(trip)));
   renderedCount += next.length;
+  applyTranslations();
 }
 
+/** Keep loading pages until the list overflows the screen — otherwise a tall
+ *  viewport shows the whole first page with nothing to scroll, and the next page
+ *  could never be reached. */
+function fillViewport() {
+  while (renderedCount < MOCK_TRIPS.length && scroller && scroller.scrollHeight <= scroller.clientHeight) {
+    renderNextPage();
+  }
+}
+
+// Returning from a trip's detail: restore the pages she had loaded and her scroll position.
+let restore = null;
+try { restore = JSON.parse(sessionStorage.getItem(RETURN_KEY) || 'null'); } catch { restore = null; }
+sessionStorage.removeItem(RETURN_KEY);
+
 renderNextPage();
+while (restore && renderedCount < Math.min(restore.count, MOCK_TRIPS.length)) renderNextPage();
+
+// sd-page injects the stylesheets, so measure only once they have applied —
+// before that sd-page has no fixed height and never looks scrollable.
+function settle() {
+  fillViewport();
+  if (restore && scroller) scroller.scrollTop = restore.top;
+}
+if (document.readyState === 'complete') settle();
+else window.addEventListener('load', settle, { once: true });
+window.addEventListener('resize', fillViewport, { passive: true });
 
 // ── Pagination: load the next page when the rider nears the bottom (#1567) ──
-window.addEventListener('scroll', () => {
+scroller?.addEventListener('scroll', () => {
   if (renderedCount >= MOCK_TRIPS.length) return;
-  const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
+  const nearBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 200;
   if (nearBottom) renderNextPage();
-});
+}, { passive: true });

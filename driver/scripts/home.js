@@ -43,10 +43,14 @@ MapService.getUserLocation()
 // ── Online / Offline toggle ──────────────────────────
 const ONLINE_KEY = 'shedrive.driver.online';
 const onlineToggle = qs('#online-toggle');
+const onlineToggleLabel = qs('#online-toggle-label');
+const onlinePill = qs('#online-pill');
 const onlineLabel = qs('#online-label');
 const driverStatus = qs('#driver-status');
 
-let isOnline = storage.get(ONLINE_KEY) === true;
+// ?state=online is the designer deep link to the "Waiting New Request" state.
+const demoState = new URLSearchParams(location.search).get('state');
+let isOnline = demoState === 'online' || storage.get(ONLINE_KEY) === true;
 renderOnlineState();
 
 onlineToggle.addEventListener('click', () => {
@@ -61,7 +65,7 @@ onlineToggle.addEventListener('click', () => {
   storage.set(ONLINE_KEY, isOnline);
   renderOnlineState();
   showToast(
-    isOnline ? translate('driver.goOnline') : translate('driver.goOffline'),
+    translate(isOnline ? 'driver.status.waiting' : 'driver.status.offline'),
     isOnline ? 'success' : 'info',
   );
 });
@@ -114,42 +118,86 @@ renderBalanceWarn();
 document.addEventListener(I18N_EVENT, renderBalanceWarn);
 
 function renderOnlineState() {
-  onlineToggle.classList.toggle('toggle-pill--online', isOnline);
-  onlineToggle.setAttribute('aria-pressed', String(isOnline));
-
+  onlinePill.classList.toggle('toggle-pill--online', isOnline);
   onlineLabel.setAttribute('data-i18n', isOnline ? 'driver.online' : 'driver.offline');
   onlineLabel.textContent = translate(isOnline ? 'driver.online' : 'driver.offline');
 
   driverStatus.innerHTML = `<span data-i18n="${isOnline ? 'driver.status.waiting' : 'driver.status.offline'}">${
     translate(isOnline ? 'driver.status.waiting' : 'driver.status.offline')
   }</span>`;
-  driverStatus.classList.toggle('driver-statusbar__status--online', isOnline);
+  driverStatus.classList.toggle('driver-sheet__status--online', isOnline);
 
-  onlineToggle.setAttribute(
-    'aria-label',
-    translate(isOnline ? 'driver.goOffline' : 'driver.goOnline'),
-  );
+  // Figma: "Go Online" is the solid CTA; once online it becomes the outlined "Go Offline".
+  onlineToggle.classList.toggle('btn--primary', !isOnline);
+  onlineToggle.classList.toggle('btn--secondary', isOnline);
+  onlineToggle.classList.toggle('is-online', isOnline);
+  onlineToggleLabel.setAttribute('data-i18n', isOnline ? 'driver.goOffline' : 'driver.goOnline');
+  onlineToggleLabel.textContent = translate(isOnline ? 'driver.goOffline' : 'driver.goOnline');
+  document.body.dataset.state = isOnline ? 'online' : 'offline';
 }
+
+// ── Bottom sheet: collapsed ↔ slide-up (Figma "Waiting New Request - Slide Up") ──
+const sheet = qs('#driver-sheet');
+const sheetHandle = qs('#sheet-handle');
+
+function setSheetExpanded(expanded) {
+  sheet.classList.toggle('is-expanded', expanded);
+  sheetHandle.setAttribute('aria-expanded', String(expanded));
+  const key = expanded ? 'driver.home.sheetCollapse' : 'driver.home.sheetExpand';
+  sheetHandle.setAttribute('data-i18n-aria-label', key);
+  sheetHandle.setAttribute('aria-label', translate(key));
+}
+
+sheetHandle.addEventListener('click', () => {
+  setSheetExpanded(!sheet.classList.contains('is-expanded'));
+});
+
+// A swipe on the handle or the sheet head slides it up or down.
+let swipeStartY = null;
+sheet.addEventListener('pointerdown', (event) => {
+  if (event.target.closest('button, a') && event.target !== sheetHandle) return;
+  if (!event.target.closest('.driver-sheet__handle, .driver-sheet__head')) return;
+  swipeStartY = event.clientY;
+});
+sheet.addEventListener('pointerup', (event) => {
+  if (swipeStartY === null) return;
+  const delta = event.clientY - swipeStartY;
+  swipeStartY = null;
+  if (Math.abs(delta) < 24) return;
+  setSheetExpanded(delta < 0);
+});
+
+setSheetExpanded(new URLSearchParams(location.search).get('sheet') === 'expanded');
 
 // ── Working Zones modal ───────────────────────────
 const zonesBackdrop = qs('#zones-backdrop');
 
-qs('#working-zones-btn').addEventListener('click', () => {
+// The shared .modal-backdrop is transparent and the .modal off-screen until
+// .is-open is set — without it the modal opened invisibly and swallowed taps.
+function openZones() {
   zonesBackdrop.hidden = false;
   zonesBackdrop.setAttribute('aria-hidden', 'false');
+  void zonesBackdrop.offsetWidth; // commit the closed frame so the slide-up animates
+  zonesBackdrop.classList.add('is-open');
   qs('#zones-close').focus();
-});
+}
 
-qs('#zones-close').addEventListener('click', () => {
+function closeZones() {
+  zonesBackdrop.classList.remove('is-open');
   zonesBackdrop.hidden = true;
   zonesBackdrop.setAttribute('aria-hidden', 'true');
-});
+  qs('#working-zones-btn').focus();
+}
+
+qs('#working-zones-btn').addEventListener('click', openZones);
+qs('#zones-close').addEventListener('click', closeZones);
 
 zonesBackdrop.addEventListener('click', (e) => {
-  if (e.target === zonesBackdrop) {
-    zonesBackdrop.hidden = true;
-    zonesBackdrop.setAttribute('aria-hidden', 'true');
-  }
+  if (e.target === zonesBackdrop) closeZones();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !zonesBackdrop.hidden) closeZones();
 });
 
 // ── Simulate request (demo) ───────────────────────

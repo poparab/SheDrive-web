@@ -1,55 +1,37 @@
 /* ============================================================
-   SheDrive Driver — Emergency Safety Dashboard
-   Mirrors rider/styles/emergency.css so both apps read identically.
-   Screen-scoped styles. All values via tokens except the red
-   gradient and rgba pulse shadows.
+   SheDrive Driver — Emergency (SOS alert) screen
+   Figma: "Driver - Safety Alert Active" + "Driver - Stop Live Sharing".
+   Pink alert hero over a white panel; every value from tokens.
    ============================================================ */
-
-.emergency-page {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface-alt);
-}
-
-/* ── Topbar ── */
-.emergency-topbar {
-  position: sticky;
-  top: 0;
-  height: 56px;
-  padding: 0 var(--space-4);
-  z-index: 10;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.emergency-topbar__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-  height: 100%;
-}
 
 /* ── Hero ── */
 .emergency-hero {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  color: white;
-  padding: var(--space-8) var(--space-5);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(180deg, var(--color-accent-400) 0%, var(--color-accent-200) 70%, var(--color-accent-100) 100%);
+  color: var(--color-accent-700);
 }
 
+.emergency-hero sd-app-header .sd-app-header__title { color: var(--color-accent-700); }
+
+/* The back arrow points toward the start edge in both directions */
+[dir='rtl'] .emergency-topbar__back-icon { transform: scaleX(-1); }
+
+.emergency-hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--page-gutter) var(--space-4);
+  text-align: center;
+}
+
+/* Shield badge in pulsing rings */
 .emergency-hero__pulse {
   position: relative;
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--space-4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 2);
+  block-size: calc(var(--icon-tile-size-lg) * 2);
+  margin-block: var(--space-4) var(--space-5);
 }
 
 .emergency-hero__pulse::before,
@@ -57,225 +39,190 @@
   content: '';
   position: absolute;
   inset: 0;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(var(--color-surface-rgb), 0.7);
   animation: radar-pulse 1.8s ease-out infinite;
 }
 
-.emergency-hero__pulse::after {
-  animation-delay: 0.9s;
-}
+.emergency-hero__pulse::after { animation-delay: 0.9s; }
 
-.emergency-hero__dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25);
+.emergency-hero__badge {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-700);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 var(--space-2) rgba(var(--color-surface-rgb), 0.35);
 }
 
 @keyframes radar-pulse {
-  0% {
-    transform: scale(0.3);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
+  0%   { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emergency-hero__pulse::before,
+  .emergency-hero__pulse::after { animation: none; opacity: 0; }
 }
 
 .emergency-hero__title {
+  margin: 0;
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
-  margin: 0 0 var(--space-2);
-  color: white;
+  line-height: var(--leading-tight);
+  color: var(--color-accent-700);
 }
 
 .emergency-hero__subtitle {
-  font-size: var(--fs-base);
-  opacity: 0.9;
   margin: 0;
-  line-height: var(--leading-relaxed);
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  color: var(--color-text-strong);
 }
 
-/* ── Content ── */
+/* ── Panel content ── */
 .emergency-content {
-  flex: 1;
-  padding: var(--space-6) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
-/* ── Call list ── */
+.emergency-section-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+/* ── Public emergency numbers (2-up cards) ── */
 .emergency-call-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
 .emergency-call {
-  width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  cursor: pointer;
-  text-align: start;
-  transition: all var(--transition-base);
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-accent-50);
+  border: 1px solid var(--color-accent-200);
+  border-radius: var(--radius-lg);
   font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .emergency-call:hover,
-.emergency-call:active,
 .emergency-call:focus-visible {
-  border-color: var(--color-primary-600);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-accent-100);
+  border-color: var(--color-accent-300);
   outline: none;
 }
 
 .emergency-call__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: white;
-}
-
-.emergency-call__icon--police {
-  background: var(--color-danger);
-}
-
-.emergency-call__icon--ambulance {
-  background: var(--color-success);
-}
-
-.emergency-call__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-200);
+  color: var(--color-accent-700);
 }
 
 .emergency-call__label {
-  font-size: var(--fs-base);
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-accent-700);
 }
 
 .emergency-call__number {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.emergency-call__chevron {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-[dir='rtl'] .emergency-call__chevron {
-  transform: scaleX(-1);
-}
-
-/* ── Timeline ── */
-.emergency-timeline {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
-}
-
-.emergency-timeline__title {
   font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-4);
+  color: var(--color-text-subtle);
+}
+
+/* ── Timeline + notified contacts ── */
+.emergency-timeline,
+.emergency-recap {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.emergency-timeline__title,
+.emergency-recap__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
 
 .emergency-step {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   padding-block: var(--space-2);
-  position: relative;
 }
 
 .emergency-step__indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: white;
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  color: var(--color-on-primary);
 }
 
-.emergency-step--active .emergency-step__indicator {
-  background: var(--color-success);
-}
+.emergency-step--active .emergency-step__indicator { background: var(--color-success); }
 
 /* Stop-sharing state: the step already happened but is no longer live. */
-.emergency-step--done .emergency-step__indicator {
-  background: var(--color-text-muted);
-}
-.emergency-step--done .emergency-step__check {
-  display: block;
-}
-.emergency-step--done:not(:last-child)::before {
-  background: var(--color-text-muted);
-}
+.emergency-step--done .emergency-step__indicator { background: var(--color-text-subtle); }
 
 .emergency-step__check,
-.emergency-step__spinner {
-  display: none;
-}
+.emergency-step__spinner { display: none; }
 
-.emergency-step--active .emergency-step__check {
-  display: block;
-}
+.emergency-step--active .emergency-step__check,
+.emergency-step--done .emergency-step__check { display: block; }
 
-.emergency-step--pending .emergency-step__spinner {
-  display: block;
-}
+.emergency-step--pending .emergency-step__spinner { display: block; }
 
 .emergency-step__spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: white;
-  border-radius: 50%;
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border: 2px solid rgba(var(--color-surface-rgb), 0.4);
+  border-block-start-color: var(--color-surface);
+  border-radius: var(--radius-full);
   animation: spin 0.8s linear infinite;
 }
 
-.emergency-step:not(:last-child)::before {
+.emergency-step:not(:last-of-type)::before {
   content: '';
   position: absolute;
-  inset-inline-start: 11px;
-  top: 32px;
-  width: 2px;
-  height: calc(100% - 16px);
+  inset-inline-start: calc(var(--space-3) - 1px);
+  inset-block-start: calc(var(--space-8) + var(--space-1));
+  inline-size: 2px;
+  block-size: calc(100% - var(--space-6));
   background: var(--color-border);
-  z-index: 0;
 }
 
-.emergency-step--active:not(:last-child)::before {
-  background: var(--color-success);
-}
+.emergency-step--active:not(:last-of-type)::before { background: var(--color-success); }
+.emergency-step--done:not(:last-of-type)::before { background: var(--color-text-subtle); }
 
 .emergency-step__text {
   flex: 1;
@@ -284,128 +231,167 @@
   line-height: var(--leading-relaxed);
 }
 
-.emergency-step--pending .emergency-step__text {
-  color: var(--color-text-muted);
-}
+.emergency-step--pending .emergency-step__text { color: var(--color-text-muted); }
 
-/* ── Notified emergency contacts (Phase 1 SOS) ── */
 .emergency-contacts-notified {
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
   margin: var(--space-3) 0 0;
   padding: var(--space-3) 0 0;
   border-block-start: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
 }
-.emergency-contacts-notified:empty {
-  display: none;
-}
+
+.emergency-contacts-notified:empty { display: none; }
+
 .emergency-contact-notified {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
+
 .emergency-contact-notified__info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   min-inline-size: 0;
 }
+
 .emergency-contact-notified__name {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
 }
+
 .emergency-contact-notified__meta {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
+
 .emergency-contact-notified__status {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
   white-space: nowrap;
-  flex-shrink: 0;
 }
-.emergency-contact-notified__status.is-sending {
-  color: var(--color-text-muted);
-  background: var(--color-surface-alt);
-}
-.emergency-contact-notified__status.is-delivered {
-  color: var(--color-success);
-  background: rgba(var(--color-success-rgb), 0.1);
-}
-.emergency-contact-notified__status.is-failed {
-  color: var(--color-danger);
-  background: rgba(var(--color-danger-rgb), 0.1);
-}
+
+.emergency-contact-notified__status.is-sending   { color: var(--color-text-muted);      background: var(--color-surface-tint); }
+.emergency-contact-notified__status.is-delivered { color: var(--color-success-strong);  background: var(--color-success-bg); }
+.emergency-contact-notified__status.is-failed    { color: var(--color-danger);          background: var(--color-danger-bg); }
+
 .emergency-no-contacts {
   margin: var(--space-3) 0 0;
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
 }
-.emergency-no-contacts[hidden] {
-  display: none;
-}
 
-/* ── Recap ── */
-.emergency-recap {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-}
-
-.emergency-recap__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-3);
-}
-
+/* ── Trip recap ── */
 .emergency-recap__row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   padding-block: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  border-block-end: 1px solid var(--color-border);
   font-size: var(--fs-sm);
 }
 
-.emergency-recap__row:last-child {
-  border-bottom: none;
-}
+.emergency-recap__row:last-child { border-block-end: none; }
 
-.emergency-recap__label {
-  color: var(--color-text-muted);
-}
+.emergency-recap__label { color: var(--color-text-muted); }
 
 .emergency-recap__value {
-  color: var(--color-text);
+  color: var(--color-text-strong);
   font-weight: var(--fw-semibold);
   text-align: end;
 }
 
-/* ── Bottom actions ── */
+.emergency-recap__value--ltr { direction: ltr; unicode-bidi: isolate; }
+
+/* ── Pinned actions ── */
 .emergency-actions {
   position: sticky;
-  bottom: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-4);
+  inset-block-end: 0;
+  z-index: var(--z-above);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  z-index: 5;
+  padding: var(--space-3) var(--page-gutter) max(var(--space-3), env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sheet);
 }
 
+.emergency-actions .btn--link { align-self: center; }
+
+/* ── Stop sharing confirmation sheet ── */
+.emergency-page .modal-backdrop {
+  z-index: var(--z-modal);
+  background: var(--color-overlay);
+}
+
+.emergency-sheet {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(100dvh - var(--space-10));
+  max-inline-size: none;
+  padding: var(--space-3) 0 0;
+}
+
+.emergency-sheet > .sheet-handle { flex-shrink: 0; }
+
+.emergency-sheet__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--page-gutter) var(--space-2);
+  text-align: center;
+}
+
+.emergency-sheet__icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-2));
+  block-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-2));
+  border-radius: var(--radius-full);
+  background: var(--color-accent-100);
+  color: var(--color-accent-700);
+}
+
+.emergency-sheet__title {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-accent-700);
+}
+
+.emergency-sheet__text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.emergency-sheet__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--page-gutter) max(var(--space-5), env(safe-area-inset-bottom));
+}
+
+.emergency-sheet__footer .btn--link { align-self: center; }
+
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }

@@ -1,278 +1,267 @@
-/* trip-detail.css — Past trip detail screen */
+/* trip-detail.css — Past trip detail screen (#1568)
+   Figma "Trip Details": the route map is the hero with round floating buttons
+   over it; a white panel with a 32px top radius overlaps the map and holds the
+   fare card, the route, the driver + rating card and the trip summary.
+   <sd-page> is the scroll container. */
 
-/* ── Page layout ────────────────────────────────────── */
+/* ── Hero: static map + floating header ─────────────── */
 
-.trip-detail-page {
-  background: var(--color-surface-alt);
+.trip-detail-hero {
+  position: relative;
+  isolation: isolate;
 }
-
-/* ── Top bar ────────────────────────────────────────── */
-
-.trip-detail-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(var(--color-surface-rgb), 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.trip-detail-topbar__inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  height: 56px;
-}
-
-.trip-detail-topbar__title-text {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-}
-
-/* ── Scrollable content area ────────────────────────── */
-
-.trip-detail-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding-bottom: var(--space-8);
-  overflow-y: auto;
-}
-
-/* ── Static route map ───────────────────────────────── */
 
 .trip-detail-map {
-  width: 100%;
-  height: 200px;
-  flex-shrink: 0;
-  background: var(--color-surface-alt);
-  position: relative;
+  inline-size: 100%;
+  block-size: calc(var(--space-16) * 4);
+  background: var(--color-primary-100);
 }
 
 .trip-detail-map .mapboxgl-map {
-  height: 100%;
-  width: 100%;
+  block-size: 100%;
+  inline-size: 100%;
+}
+
+/* A static thumbnail: no zoom buttons (interactions are disabled in the script). */
+.trip-detail-map .mapboxgl-ctrl-group {
+  display: none;
+}
+
+/* The panel overlaps the bottom of the map, so lift the attribution above it. */
+.trip-detail-map .mapboxgl-ctrl-bottom-left,
+.trip-detail-map .mapboxgl-ctrl-bottom-right {
+  inset-block-end: var(--radius-2xl);
+}
+
+.trip-detail-hero sd-app-header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-above);
+  pointer-events: none;
+}
+
+.trip-detail-hero sd-app-header .sd-app-header__bar {
+  position: relative;
+  inset: auto;
+  block-size: auto;
+  padding: var(--space-4) var(--page-gutter);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.trip-detail-hero sd-app-header .navbar-inner {
+  position: relative;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.trip-detail-hero sd-app-header .sd-button__control,
+.trip-detail-hero sd-app-header .lang-switcher {
+  pointer-events: auto;
+}
+
+.trip-detail-hero .lang-switcher {
+  box-shadow: var(--shadow-float);
+}
+
+[dir='rtl'] .trip-detail-topbar__back-icon {
+  transform: scaleX(-1);
+}
+
+/* ── Content panel ──────────────────────────────────── */
+
+.trip-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
 }
 
 /* ── Shared card ────────────────────────────────────── */
 
 .trip-detail-card {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
-  margin: 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
 }
 
-/* ── Date & time ────────────────────────────────────── */
+/* ── Fare card ──────────────────────────────────────── */
 
-.trip-detail-datetime {
+.trip-detail-fare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.trip-detail-fare__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
-.trip-detail-card__label {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
-}
-
-.trip-detail-card__value {
-  font-size: var(--fs-sm);
-  color: var(--color-text);
-  font-weight: var(--fw-semibold);
-}
-
-.trip-detail-datetime__value {
-  text-align: end;
-}
-
-/* ── Route detail ───────────────────────────────────── */
-
-.trip-detail-route {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.trip-detail-route__row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  position: relative;
-  z-index: 1;
-}
-
-.trip-detail-route__row--pickup {
-  padding-bottom: var(--space-3);
-}
-
-.trip-detail-route__connector {
-  position: absolute;
-  inset-inline-start: calc(var(--space-5) + 3px); /* center of dot */
-  top: calc(var(--space-5) + 4px);
-  width: 2px;
-  height: calc(50% - var(--space-3));
-  background: var(--color-border);
-  z-index: 0;
-}
-
-.trip-detail-route__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.trip-detail-route__dot--green {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.2);
-}
-
-.trip-detail-route__dot--magenta {
-  background: var(--color-accent-500);
-  border-radius: 2px;
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-500-rgb), 0.15);
-}
-
-.trip-detail-route__text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.trip-detail-route__label {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.trip-detail-route__address {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-/* ── Driver card (compact) ──────────────────────────── */
-
-.trip-detail-driver {
-  margin: 0 var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
-}
-
-/* ── Fare breakdown ─────────────────────────────────── */
-
 .trip-detail-fare__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
-  margin: 0 0 var(--space-4);
+}
+
+.trip-detail-fare__status {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.trip-detail-fare__total-amount {
+  margin: 0;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.trip-detail-fare__total-amount [data-i18n] {
+  font-size: var(--fs-2xl);
+}
+
+.trip-detail-fare__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.trip-detail-ref,
+.trip-detail-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.trip-detail-datetime svg {
+  flex-shrink: 0;
+}
+
+.trip-detail-fare__breakdown {
+  margin-block-start: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
 }
 
 .trip-detail-fare__row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  padding: var(--space-2) 0;
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
 }
 
-.trip-detail-fare__divider {
-  height: 1px;
-  background: var(--color-border);
-  margin: var(--space-2) 0;
+.trip-detail-fare__row > span:last-child {
+  font-weight: var(--fw-regular);
+  white-space: nowrap;
+}
+
+.trip-detail-fare__row[hidden] {
+  display: none;
 }
 
 /* Outstanding fee recovered on this trip — never folded into the fare (spec §3) */
 .trip-detail-fare__row--fee {
-  color: var(--color-danger);
-  font-weight: var(--fw-medium);
+  color: var(--color-accent-700);
+}
+
+.trip-detail-fare__row--total {
+  margin-block-start: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+}
+
+.trip-detail-fare__row--total > span:last-child {
+  font-weight: var(--fw-semibold);
 }
 
 .trip-detail-fare-note {
+  margin: 0;
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
-  margin: 0;
 }
 
-.trip-detail-fare-note[hidden] { display: none; }
-
-.trip-detail-fare__row--total {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  padding-top: var(--space-3);
+.trip-detail-fare-note[hidden] {
+  display: none;
 }
 
-.trip-detail-fare__total-amount {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
-}
+/* ── Driver + rating card ───────────────────────────── */
 
-/* ── Distance & duration (#1568) ──────────────────────── */
-
-.trip-detail-meta {
+.trip-detail-driver-card {
   display: flex;
+  flex-direction: column;
   gap: var(--space-4);
 }
 
-.trip-detail-meta__item {
-  flex: 1;
+/* The compact driver card brings its own lavender box; inside this card it is
+   just the top row. */
+.trip-detail-driver-card .driver-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.trip-detail-rating {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.trip-detail-rating__head {
+  display: flex;
   align-items: center;
-  gap: 2px;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
-
-.trip-detail-meta__value {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-}
-
-.trip-detail-meta__label {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
-
-/* ── Rating ─────────────────────────────────────────── */
 
 .trip-detail-rating__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
-  margin: 0 0 var(--space-3);
 }
 
 .trip-detail-rating__stars {
   display: flex;
   gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  direction: ltr;
 }
 
 .trip-detail-star {
   font-size: var(--fs-2xl);
-  color: var(--color-border);
+  line-height: 1;
+  color: var(--color-border-strong);
 }
 
 .trip-detail-star--filled {
-  color: var(--color-warning);
+  color: var(--color-star);
 }
 
 .trip-detail-rating__tags {
@@ -281,51 +270,109 @@
   gap: var(--space-2);
 }
 
+.trip-detail-rating__tags:empty {
+  display: none;
+}
+
+.trip-detail-rating__tags .tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
 /* ── Rate trip / rated state ────────────────────────── */
 
-/* Default (already-rated trip): hide interactive rate section */
+/* Default (already-rated trip): hide the interactive rate section */
 .state--unrated {
   display: none;
 }
 
-/* When trip is unrated: show rate section, hide static rating display */
-[data-state="unrated"] .state--unrated {
+/* Unrated trip: show the rate section, hide the static rating display */
+[data-state='unrated'] .state--unrated {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
 }
-[data-state="unrated"] .state--rated {
+
+[data-state='unrated'] .state--rated,
+.trip-detail-rate-section[hidden] {
   display: none;
 }
 
-.trip-detail-rate-section {
-  gap: var(--space-4);
+.trip-detail-rate-section .trip-detail-rating__title {
+  text-align: center;
 }
 
 .trip-detail-rated-msg {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
   text-align: center;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--color-success);
-  padding: var(--space-4) var(--space-5);
-  background: rgba(16, 185, 129, 0.08);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  margin: 0 var(--space-4);
+  color: var(--color-success-strong);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-md);
 }
 
-/* ── Trip reference ─────────────────────────────────── */
+.trip-detail-rated-msg[hidden] {
+  display: none;
+}
 
-.trip-detail-ref {
+/* ── Trip summary ───────────────────────────────────── */
+
+.trip-detail-summary {
   display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  margin: var(--space-2) var(--space-4) 0;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
 }
 
-.trip-detail-ref__id {
-  font-family: monospace;
-  color: var(--color-text-muted);
+.trip-detail-summary__title {
+  margin: 0;
+}
+
+.trip-detail-summary__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.trip-detail-summary__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+.trip-detail-summary__row + .trip-detail-summary__row {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.trip-detail-summary__row .icon-tile {
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+}
+
+.trip-detail-summary__label {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
+}
+
+.trip-detail-summary__value {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
 }

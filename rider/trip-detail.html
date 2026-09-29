@@ -5,23 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="SheDrive — تفاصيل الرحلة" />
     <title>SheDrive — تفاصيل الرحلة</title>
-
-    <!-- CSS — explicit links so the page renders when opened directly (file://). -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/styles/tokens.css" />
-    <link rel="stylesheet" href="../shared/styles/reset.css" />
-    <link rel="stylesheet" href="../shared/styles/base.css" />
-    <link rel="stylesheet" href="../shared/styles/components.css" />
-    <link rel="stylesheet" href="../shared/styles/utilities.css" />
-    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
-    <link rel="stylesheet" href="../shared/styles/web-components.css" />
-    <link rel="stylesheet" href="../shared/styles/rtl.css" />
-    <link rel="stylesheet" href="styles/rider.css" />
-    <link rel="stylesheet" href="styles/trip-detail.css" />
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
-
     <script type="module" src="../shared/components/sd-page.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
   </head>
@@ -32,37 +15,8 @@
       screen-styles="styles/rider.css, styles/trip-detail.css"
       mapbox
     >
-      <sd-app-header
-        bar-class="trip-detail-topbar"
-        inner-class="trip-detail-topbar__inner"
-        title-class="trip-detail-topbar__title"
-      >
-        <sd-button
-          data-slot="start"
-          type="button"
-          variant="ghost"
-          icon
-          id="back-btn"
-          data-i18n-aria-label="aria.back"
-          aria-label="رجوع"
-          onclick="history.back()"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-        </sd-button>
-
-        <span class="trip-detail-topbar__title-text" data-i18n="tripDetail.title">تفاصيل الرحلة</span>
-      </sd-app-header>
-
-      <main
-        class="trip-detail-content"
-        aria-label="تفاصيل الرحلة"
-        data-i18n-aria-label="aria.tripDetail"
-      >
-
-        <!-- ── Static route map ───────────────────────── -->
+      <!-- ── Route map as the hero, header floating over it (Figma "Trip Details") ── -->
+      <div class="trip-detail-hero">
         <div
           class="trip-detail-map"
           id="map"
@@ -71,118 +25,157 @@
           data-i18n-aria-label="aria.map.trip"
         ></div>
 
-        <!-- ── Date & time ────────────────────────────── -->
-        <section class="trip-detail-card trip-detail-datetime" aria-label="تاريخ ووقت الرحلة">
-          <span class="trip-detail-card__label" data-i18n="tripDetail.date">التاريخ والوقت</span>
-          <span class="trip-detail-card__value trip-detail-datetime__value" id="detail-datetime">الإثنين، ٢ يونيو ٢٠٢٦ — ٠٩:٣٤ ص</span>
-        </section>
+        <sd-app-header
+          bar-class="trip-detail-topbar"
+          inner-class="trip-detail-topbar__inner"
+          title-class="trip-detail-topbar__title"
+        >
+          <sd-button
+            data-slot="start"
+            type="button"
+            variant="ghost"
+            icon
+            id="back-btn"
+            data-i18n-aria-label="aria.back"
+            aria-label="رجوع"
+            onclick="history.back()"
+          >
+            <svg class="trip-detail-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </sd-button>
 
-        <!-- ── Route detail ───────────────────────────── -->
-        <section class="trip-detail-card trip-detail-route" aria-label="مسار الرحلة">
-          <div class="trip-detail-route__row trip-detail-route__row--pickup">
-            <span class="trip-detail-route__dot trip-detail-route__dot--green" aria-hidden="true"></span>
-            <div class="trip-detail-route__text">
-              <span class="trip-detail-route__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
-              <span class="trip-detail-route__address" id="detail-pickup">المعادي، القاهرة — شارع ٩</span>
+          <h1 class="trip-detail-topbar__title-text u-visually-hidden" data-i18n="tripDetail.title">تفاصيل الرحلة</h1>
+        </sd-app-header>
+      </div>
+
+      <main
+        class="sd-panel trip-detail-content"
+        aria-label="تفاصيل الرحلة"
+        data-i18n-aria-label="aria.tripDetail"
+      >
+
+        <!-- ── Fare: total, status, reference, date, breakdown ── -->
+        <section class="trip-detail-fare" aria-labelledby="fare-heading">
+          <div class="trip-detail-fare__head">
+            <h2 class="trip-detail-fare__title" id="fare-heading" data-i18n="history.tripFare">قيمة الرحلة</h2>
+            <span class="badge badge--success trip-detail-fare__status" data-i18n="history.completed">مكتملة</span>
+          </div>
+          <p class="trip-detail-fare__total-amount" id="detail-fare-total">٥٥ ج.م.</p>
+          <div class="trip-detail-fare__facts">
+            <p class="trip-detail-ref">
+              <span data-i18n="tripDetail.ref">رقم الرحلة</span>
+              <span class="trip-detail-ref__id" id="detail-ref-id" dir="ltr">#SDR-20260602-0041</span>
+            </p>
+            <p class="trip-detail-datetime">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span class="u-visually-hidden" data-i18n="tripDetail.date">التاريخ والوقت</span>
+              <span class="trip-detail-datetime__value" id="detail-datetime">الإثنين، ٢ يونيو ٢٠٢٦ — ٠٩:٣٤ ص</span>
+            </p>
+          </div>
+
+          <div class="trip-detail-fare__breakdown">
+            <div class="trip-detail-fare__row">
+              <span data-i18n="tripDetail.base">السعر الأساسي</span>
+              <span id="detail-fare-base">٥ ج.م.</span>
+            </div>
+            <div class="trip-detail-fare__row">
+              <span data-i18n="tripDetail.distanceFare">رسوم المسافة</span>
+              <span id="detail-fare-distance">٣٢ ج.م.</span>
+            </div>
+            <div class="trip-detail-fare__row">
+              <span data-i18n="tripDetail.durationFare">رسوم الوقت</span>
+              <span id="detail-fare-duration">١٨ ج.م.</span>
+            </div>
+
+            <!-- Outstanding fee recovered on this trip — never folded into the fare (spec §3) -->
+            <div class="trip-detail-fare__row trip-detail-fare__row--fee" id="detail-fare-fee-row" hidden>
+              <span data-i18n="fees.recoveredLine">رسوم مستحقة من رحلة سابقة</span>
+              <span id="detail-fare-fee-amount"></span>
+            </div>
+
+            <div class="trip-detail-fare__row trip-detail-fare__row--total">
+              <span data-i18n="tripDetail.total">الإجمالي</span>
+              <span id="detail-fare-total-row">٥٥ ج.م.</span>
             </div>
           </div>
-          <div class="trip-detail-route__connector" aria-hidden="true"></div>
-          <div class="trip-detail-route__row">
-            <span class="trip-detail-route__dot trip-detail-route__dot--magenta" aria-hidden="true"></span>
-            <div class="trip-detail-route__text">
-              <span class="trip-detail-route__label" data-i18n="home.destination.label">الوجهة</span>
-              <span class="trip-detail-route__address" id="detail-destination">مدينة نصر — سيتي ستارز</span>
+          <p class="trip-detail-fare-note" id="detail-fare-fee-note" hidden data-i18n="fees.recoveredNote">رسوم كانت مستحقة عليكِ من رحلة سابقة ألغيتِها متأخرة.</p>
+        </section>
+
+        <!-- ── Route ───────────────────────────────────── -->
+        <section class="trip-detail-card trip-detail-route" aria-label="مسار الرحلة" data-i18n-aria-label="aria.tripDetail.route">
+          <ol class="route">
+            <li class="route__stop route__stop--pickup">
+              <span class="route__place" id="detail-pickup">المعادي، القاهرة — شارع ٩</span>
+              <span class="route__label" data-i18n="home.pickup.label">نقطة الانطلاق</span>
+            </li>
+            <li class="route__stop route__stop--destination">
+              <span class="route__place" id="detail-destination">مدينة نصر — سيتي ستارز</span>
+              <span class="route__label" data-i18n="home.destination.label">الوجهة</span>
+            </li>
+          </ol>
+        </section>
+
+        <!-- ── Driver + your rating (one card, as in Figma) ── -->
+        <section class="trip-detail-card trip-detail-driver-card" aria-labelledby="detail-driver-name">
+          <sd-driver-card
+            class="trip-detail-driver"
+            variant="compact"
+            name-id="detail-driver-name"
+            name-fallback="نورا أحمد"
+            vehicle-id="detail-driver-vehicle"
+            vehicle-fallback="تويوتا كورولا 2023 — أبيض"
+            avatar="ن"
+            prompt-key="trip.driver"
+            prompt-fallback="سائقتك"
+          ></sd-driver-card>
+
+          <!-- Your rating (populated from the selected trip's rating — #1568) -->
+          <div class="trip-detail-rating state--rated" id="rating-display-section">
+            <div class="trip-detail-rating__head">
+              <h3 class="trip-detail-rating__title" data-i18n="tripDetail.yourRating">تقييمك</h3>
+              <div class="trip-detail-rating__stars" id="detail-rating-stars" role="img">
+                <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
+                <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
+                <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
+                <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
+                <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
+              </div>
             </div>
+            <div class="trip-detail-rating__tags" id="detail-rating-tags"></div>
           </div>
+
+          <!-- Rate this trip (she skipped the post-trip prompt — state=unrated) -->
+          <div class="trip-detail-rate-section state--unrated" id="rate-section">
+            <h3 class="trip-detail-rating__title" data-i18n="tripDetail.rateTripTitle">قيّمي هذه الرحلة</h3>
+            <sd-rating-stars id="detail-stars" value="0"></sd-rating-stars>
+            <p class="field__error" id="detail-stars-error" hidden role="alert" data-i18n="complete.starsError">يرجى اختيار تقييم أولاً</p>
+            <button type="button" class="btn btn--primary btn--full" id="detail-rate-btn" data-i18n="tripDetail.rateTripSubmit">إرسال التقييم</button>
+          </div>
+          <p class="trip-detail-rated-msg" id="rating-submitted-msg" hidden role="status" data-i18n="tripDetail.ratingSubmitted">تم إرسال تقييمك</p>
         </section>
 
-        <!-- ── Trip distance & duration (#1568) ────────── -->
-        <section class="trip-detail-card trip-detail-meta" aria-label="المسافة والمدة" role="list">
-          <div class="trip-detail-meta__item" role="listitem">
-            <span class="trip-detail-meta__value" id="detail-distance">8.2 <span data-i18n="complete.km">كم</span></span>
-            <span class="trip-detail-meta__label" data-i18n="complete.distance">المسافة</span>
-          </div>
-          <div class="trip-detail-meta__item" role="listitem">
-            <span class="trip-detail-meta__value" id="detail-duration">18 <span data-i18n="complete.minutes">دقيقة</span></span>
-            <span class="trip-detail-meta__label" data-i18n="complete.duration">المدة</span>
-          </div>
+        <!-- ── Trip summary: distance & duration (#1568) ── -->
+        <section class="trip-detail-summary" aria-labelledby="summary-heading">
+          <h2 class="section-title trip-detail-summary__title" id="summary-heading" data-i18n="tripDetail.summary">ملخص الرحلة</h2>
+          <ul class="trip-detail-summary__list" role="list">
+            <li class="trip-detail-summary__row">
+              <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 12 2 16 6"></polyline><polyline points="8 18 12 22 16 18"></polyline><line x1="12" y1="2" x2="12" y2="22"></line></svg>
+              </span>
+              <span class="trip-detail-summary__label" data-i18n="complete.distance">المسافة</span>
+              <span class="trip-detail-summary__value" id="detail-distance">8.2 <span data-i18n="complete.km">كم</span></span>
+            </li>
+            <li class="trip-detail-summary__row">
+              <span class="icon-tile icon-tile--lg" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="9" y1="2" x2="15" y2="2"></line></svg>
+              </span>
+              <span class="trip-detail-summary__label" data-i18n="complete.duration">المدة</span>
+              <span class="trip-detail-summary__value" id="detail-duration">18 <span data-i18n="complete.minutes">دقيقة</span></span>
+            </li>
+          </ul>
         </section>
-
-        <!-- ── Driver card (compact) ──────────────────── -->
-        <sd-driver-card
-          class="trip-detail-driver"
-          variant="compact"
-          name-id="detail-driver-name"
-          name-fallback="نورا أحمد"
-          vehicle-id="detail-driver-vehicle"
-          vehicle-fallback="تويوتا كورولا 2023 — أبيض"
-          avatar="ن"
-          prompt-key="trip.driver"
-          prompt-fallback="سائقتك"
-        ></sd-driver-card>
-
-        <!-- ── Fare breakdown ─────────────────────────── -->
-        <section class="trip-detail-card trip-detail-fare" aria-label="تفاصيل السعر">
-          <h3 class="trip-detail-fare__title" data-i18n="tripDetail.fareBreakdown">تفاصيل السعر</h3>
-
-          <div class="trip-detail-fare__row">
-            <span data-i18n="tripDetail.base">السعر الأساسي</span>
-            <span id="detail-fare-base">٥ ج.م.</span>
-          </div>
-          <div class="trip-detail-fare__row">
-            <span data-i18n="tripDetail.distanceFare">رسوم المسافة</span>
-            <span id="detail-fare-distance">٣٢ ج.م.</span>
-          </div>
-          <div class="trip-detail-fare__row">
-            <span data-i18n="tripDetail.durationFare">رسوم الوقت</span>
-            <span id="detail-fare-duration">١٨ ج.م.</span>
-          </div>
-
-          <!-- Outstanding fee recovered on this trip — never folded into the fare (spec §3) -->
-          <div class="trip-detail-fare__row trip-detail-fare__row--fee" id="detail-fare-fee-row" hidden>
-            <span data-i18n="fees.recoveredLine">رسوم مستحقة من رحلة سابقة</span>
-            <span id="detail-fare-fee-amount"></span>
-          </div>
-
-          <div class="trip-detail-fare__divider" role="separator" aria-hidden="true"></div>
-
-          <div class="trip-detail-fare__row trip-detail-fare__row--total">
-            <span data-i18n="tripDetail.total">الإجمالي</span>
-            <span class="trip-detail-fare__total-amount" id="detail-fare-total">٥٥ ج.م.</span>
-          </div>
-        </section>
-        <p class="trip-detail-fare-note" id="detail-fare-fee-note" hidden data-i18n="fees.recoveredNote">رسوم كانت مستحقة عليكِ من رحلة سابقة ألغيتِها متأخرة.</p>
-
-        <!-- ── Your rating (populated from the selected trip's rating, or the interactive
-             rate-section below if she skipped the post-trip prompt — #1568) ─────────── -->
-        <section class="trip-detail-card trip-detail-rating state--rated" id="rating-display-section" aria-label="تقييمك">
-          <h3 class="trip-detail-rating__title" data-i18n="tripDetail.yourRating">تقييمك</h3>
-
-          <div class="trip-detail-rating__stars" id="detail-rating-stars" role="img">
-            <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
-            <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
-            <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
-            <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
-            <span class="trip-detail-star trip-detail-star--filled" aria-hidden="true">★</span>
-          </div>
-
-          <div class="trip-detail-rating__tags" id="detail-rating-tags"></div>
-        </section>
-
-        <!-- ── Rate this trip (state=unrated) ───────────── -->
-        <section class="trip-detail-card trip-detail-rate-section state--unrated" id="rate-section" aria-label="قيّمي هذه الرحلة">
-          <h3 class="trip-detail-card__heading" data-i18n="tripDetail.rateTripTitle">قيّمي هذه الرحلة</h3>
-          <sd-rating-stars id="detail-stars" value="0"></sd-rating-stars>
-          <p class="field__error" id="detail-stars-error" hidden role="alert" data-i18n="complete.starsError">يرجى اختيار تقييم أولاً</p>
-          <button type="button" class="btn btn--primary btn--full" id="detail-rate-btn" data-i18n="tripDetail.rateTripSubmit">إرسال التقييم</button>
-        </section>
-        <p class="trip-detail-rated-msg" id="rating-submitted-msg" hidden data-i18n="tripDetail.ratingSubmitted">تم إرسال تقييمك</p>
-
-        <!-- ── Trip reference ─────────────────────────── -->
-        <p class="trip-detail-ref">
-          <span data-i18n="tripDetail.ref">رقم الرحلة</span>
-          <span class="trip-detail-ref__id" id="detail-ref-id">#SDR-20260602-0041</span>
-        </p>
 
       </main>
     </sd-page>

@@ -1,104 +1,131 @@
 /*
- * onboarding.css — Driver onboarding multi-step flow
+ * onboarding.css — Driver onboarding multi-step flow (Figma "Driver - Step 01…06",
+ * "Verification Submitted", "Account Rejected").
  * All values use tokens from tokens.css. No hardcoded colors or sizes.
+ *
+ * This page has no <sd-page>: the layout is exactly one viewport tall, the header
+ * and progress bar stay put, and #onboarding-main is the scroll container. Each
+ * step fills the scroll area so its action bar sits at the bottom of the screen
+ * (sticky while a long step scrolls underneath it).
  */
 
 /* ── Page layout ─────────────────────────────────── */
 
 .onboarding-page {
   background: var(--color-surface-alt);
-  min-block-size: 100dvh;
+  block-size: 100dvh;
+  min-block-size: 0;
+  overflow: hidden;
 }
 
 .onboarding-layout {
   display: flex;
   flex-direction: column;
-  min-block-size: 100dvh;
-  max-inline-size: 540px;
-  margin-inline: auto;
+  block-size: 100dvh;
+  inline-size: 100%;
+  background: var(--color-surface-alt);
 }
 
 /* ── Header ──────────────────────────────────────── */
 
 .onboarding-header {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border-block-end: 1px solid var(--color-border);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--page-gutter) var(--space-2);
 }
 
-.onboarding-header__logo {
-  block-size: auto;
+.onboarding-header__back {
+  flex: 0 0 auto;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  color: var(--color-primary-600);
+  background: transparent;
+  box-shadow: none;
+}
+.onboarding-header__back:disabled {
+  color: var(--color-primary-300);
+  background: transparent;
+  opacity: 1;
+}
+[dir='rtl'] .onboarding-header__back svg { transform: scaleX(-1); }
+
+.onboarding-header__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
 }
 
-/* ── Progress indicator ──────────────────────────── */
+.onboarding-header .lang-switcher { flex: 0 0 auto; }
+
+/* Status screens: no back, no step title — only the language pill */
+.onboarding-page--status .onboarding-header__back,
+.onboarding-page--status .onboarding-header__title { visibility: hidden; }
+
+/* ── Progress: "Step N of 6 · Verification" + six segments ── */
 
 .onboarding-progress {
-  padding: var(--space-4) var(--space-5) var(--space-2);
-  background: var(--color-surface);
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--page-gutter) var(--space-3);
 }
+.onboarding-progress[hidden] { display: none; }
 
-.onboarding-progress__track {
-  block-size: 4px;
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  margin-block-end: var(--space-3);
+.onboarding-progress__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
 }
+.onboarding-progress__count { color: var(--color-primary-600); }
+.onboarding-progress__label { color: var(--color-accent-700); }
 
-.onboarding-progress__fill {
-  block-size: 100%;
-  background: var(--color-primary-600);
-  border-radius: var(--radius-full);
-  transition: inline-size var(--transition-base);
-  inline-size: 20%;
-}
+/* The fill track is kept for scripts but the Figma bar is segmented */
+.onboarding-progress__track { display: none; }
 
 .onboarding-progress__dots {
   display: flex;
-  justify-content: space-between;
   gap: var(--space-2);
 }
 
 .onboarding-progress__dot {
-  inline-size: 32px;
-  block-size: 32px;
-  border-radius: var(--radius-full);
-  background: var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition-base), color var(--transition-base);
   flex: 1;
+  block-size: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-300);
+  font-size: 0;
+  color: transparent;
+  overflow: hidden;
+  transition: background var(--transition-base);
 }
+.onboarding-progress__dot.is-active,
+.onboarding-progress__dot.is-done { background: var(--color-primary-600); }
 
-.onboarding-progress__dot.is-active {
-  background: var(--color-primary-600);
-  color: var(--color-surface);
-}
-
-.onboarding-progress__dot.is-done {
-  background: var(--color-success);
-  color: var(--color-surface);
-}
-
-/* ── Main content ────────────────────────────────── */
+/* ── Main content (the scroll container) ─────────── */
 
 .onboarding-main {
-  flex: 1;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: var(--space-6) var(--space-5);
-  padding-block-end: max(var(--space-8), env(safe-area-inset-bottom));
+  overscroll-behavior-y: contain;
+  padding: var(--space-4) var(--page-gutter) 0;
 }
 
 /* ── Step container ──────────────────────────────── */
 
 .onboarding-step {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -118,32 +145,39 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   text-align: center;
-  padding-block: var(--space-2);
 }
 
 .onboarding-step__icon {
-  inline-size: 64px;
-  block-size: 64px;
+  inline-size: var(--space-12);
+  block-size: var(--space-12);
+  margin-block-end: var(--space-2);
   border-radius: var(--radius-full);
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
+  background: var(--color-primary-600);
+  color: var(--color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.onboarding-step__icon svg {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+}
 
 .onboarding-step__title {
-  font-size: var(--fs-xl);
+  margin: 0;
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
 }
 
 .onboarding-step__subtitle {
+  margin: 0;
   font-size: var(--fs-base);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+  line-height: var(--leading-snug);
 }
 
 .onboarding-step__body {
@@ -152,22 +186,56 @@
   gap: var(--space-4);
 }
 
+/* Pinned action bar: bottom of the screen on short steps, sticky on long ones */
 .onboarding-step__actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--z-above);
+  margin-block-start: auto;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-block-start: var(--space-2);
+  background: linear-gradient(to bottom, rgba(var(--color-surface-alt-rgb), 0) 0%, var(--color-surface-alt) var(--space-6));
 }
 
-/* ── Upload zone ─────────────────────────────────── */
+/* The header arrow is the back action; the old in-step Back buttons stay in the
+   DOM (the arrow clicks them) but are not shown. */
+.onboarding-step__back { display: none; }
+
+/* ── Cards (Figma white field groups) ────────────── */
+
+.onboarding-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.onboarding-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+}
+.onboarding-card__title .icon-tile { color: var(--color-primary-600); }
+
+/* ── Upload zone (Figma dashed "Upload Photo" box) ─ */
 
 .upload-zone {
   position: relative;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed var(--color-primary-400);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  min-block-size: 140px;
+  background: var(--color-surface-alt);
+  min-block-size: 132px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -178,17 +246,19 @@
 .upload-zone:hover,
 .upload-zone:focus-within {
   border-color: var(--color-primary-600);
-  background: var(--color-primary-50);
+  background: var(--color-primary-100);
 }
 
 .upload-zone.has-file {
   border-style: solid;
-  border-color: var(--color-success);
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
 }
 
 .upload-zone__input {
   position: absolute;
   inset: 0;
+  z-index: var(--z-above);
   opacity: 0;
   cursor: pointer;
   inline-size: 100%;
@@ -200,25 +270,27 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-text-muted);
+  color: var(--color-text-strong);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
+  text-align: center;
   padding: var(--space-4);
   pointer-events: none;
 }
+.upload-zone__placeholder svg { color: var(--color-primary-600); }
 
 .upload-zone__hint {
   font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
   color: var(--color-text-muted);
-  opacity: 0.7;
 }
 
 .upload-zone__preview {
   position: absolute;
-  inset: 0;
+  inset: var(--space-3);
   background-size: cover;
   background-position: center;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: none;
 }
 
@@ -230,7 +302,61 @@
   display: none;
 }
 
-/* ── Selfie zone ─────────────────────────────────── */
+/* Uploaded: tinted photo, "Uploaded" pill in the middle, "Replace photo" below */
+.upload-zone__done {
+  display: none;
+  position: absolute;
+  inset: var(--space-3);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  background: rgba(var(--color-primary-600-rgb), 0.28);
+  pointer-events: none;
+}
+.upload-zone.has-file .upload-zone__done { display: flex; }
+
+.upload-zone__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-primary-700);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  box-shadow: var(--shadow-md);
+}
+.upload-zone__badge::before {
+  content: '✓';
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+  color: var(--color-on-primary);
+  font-size: var(--fs-xs);
+}
+
+.upload-zone__replace {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(var(--color-surface-rgb), 0.9);
+  color: var(--color-primary-600);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.upload-zone .field__error {
+  position: relative;
+  padding-block-end: var(--space-2);
+}
+
+/* ── Selfie zone (Figma lavender-ringed circle) ──── */
 
 .selfie-zone {
   position: relative;
@@ -238,29 +364,34 @@
   block-size: 220px;
   margin-inline: auto;
   cursor: pointer;
+  border-radius: var(--radius-full);
+  border: var(--space-2) solid var(--color-primary-200);
+  background: var(--color-surface);
 }
+
+.selfie-zone .upload-zone__input { border-radius: var(--radius-full); }
 
 .selfie-zone__placeholder {
   inline-size: 100%;
   block-size: 100%;
   border-radius: var(--radius-full);
-  border: 2px dashed var(--color-border);
   background: var(--color-surface);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  color: var(--color-text-muted);
+  color: var(--color-primary-600);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  transition: border-color var(--transition-base), background var(--transition-base);
+  font-weight: var(--fw-semibold);
+  text-align: center;
+  padding: var(--space-6);
+  transition: background var(--transition-base);
   pointer-events: none;
 }
 
 .selfie-zone:hover .selfie-zone__placeholder,
 .selfie-zone:focus-within .selfie-zone__placeholder {
-  border-color: var(--color-primary-600);
   background: var(--color-primary-50);
 }
 
@@ -270,9 +401,9 @@
 
 .selfie-zone__frame {
   position: absolute;
-  inset: 12px;
+  inset: var(--space-3);
   border-radius: var(--radius-full);
-  border: 3px solid var(--color-primary-200);
+  border: 2px dashed var(--color-primary-300);
 }
 
 .selfie-zone__preview {
@@ -282,14 +413,23 @@
   background-size: cover;
   background-position: center;
   display: none;
-  border: 3px solid var(--color-success);
 }
 
+.selfie-zone.has-file { border-color: var(--color-primary-600); }
 .selfie-zone.has-file .selfie-zone__preview {
   display: block;
 }
 
-/* ── Tips list ───────────────────────────────────── */
+/* The error sits under the circle, not inside it */
+.selfie-zone > .field__error {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-3));
+  inset-inline: calc(-1 * var(--space-10));
+  text-align: center;
+}
+.selfie-zone:has(> .field__error:not([hidden])) { margin-block-end: var(--space-8); }
+
+/* ── Tips list (Figma guideline checklist) ───────── */
 
 .onboarding-tips {
   list-style: none;
@@ -301,124 +441,129 @@
 .onboarding-tips li {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  padding-inline-start: var(--space-1);
+  color: var(--color-text);
 }
 
 .onboarding-tips li::before {
   content: "✓";
-  color: var(--color-success);
+  color: var(--color-primary-600);
   font-weight: var(--fw-bold);
   flex-shrink: 0;
 }
 
-/* ── Pending screen ──────────────────────────────── */
+/* ── Status screens: pending (Figma "Verification Submitted") ── */
 
 .onboarding-pending {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
   text-align: center;
-  padding-block: var(--space-8);
+  padding-block: var(--space-8) calc(var(--space-6) + env(safe-area-inset-bottom));
+  flex: 1 0 auto;
 }
 
-.onboarding-pending__brand img {
-  filter: none;
-}
+/* Figma status screens carry no logo; the header keeps the language pill */
+.onboarding-pending__brand { display: none; }
 
 .onboarding-pending__icon {
-  inline-size: 88px;
-  block-size: 88px;
+  inline-size: 96px;
+  block-size: 96px;
+  margin-block-end: var(--space-2);
   border-radius: var(--radius-full);
-  background: var(--color-warning-light, var(--color-primary-50));
-  color: var(--color-warning, var(--color-primary-600));
+  background: var(--color-primary-600);
+  color: var(--color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 0 var(--space-2) var(--color-surface-alt), 0 0 0 calc(var(--space-2) + 2px) var(--color-primary-300);
 }
 
 .onboarding-pending__title {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
 }
 
 .onboarding-pending__body {
   font-size: var(--fs-base);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  max-inline-size: 320px;
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+  max-inline-size: 340px;
 }
 
 .onboarding-pending__eta {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  padding-block: var(--space-2);
-  padding-inline: var(--space-4);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-primary-600);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
 }
 
 .onboarding-pending__notify {
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  max-inline-size: 280px;
-  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+  max-inline-size: 360px;
+  line-height: var(--leading-snug);
+  inline-size: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
-/* ── Rejected state ──────────────────────────────── */
+.onboarding-pending > .btn {
+  margin-block-start: auto;
+}
+
+/* ── Rejected (Figma "Account Rejected": amber) ──── */
 
 .onboarding-pending__icon--rejected {
-  background: rgba(220, 53, 69, 0.1);
-  color: var(--color-danger);
+  background: var(--color-warning);
+  box-shadow: 0 0 0 var(--space-2) var(--color-surface-alt), 0 0 0 calc(var(--space-2) + 2px) var(--color-warning-bg);
 }
 
 .onboarding-pending__title--rejected {
-  color: var(--color-danger);
+  color: var(--color-warning);
 }
 
-/* ── Rejection reason card ───────────────────────── */
-
 .onboarding-rejection-reason {
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
   inline-size: 100%;
   max-inline-size: 360px;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+.onboarding-rejection-reason::after {
+  content: '!';
+  flex-shrink: 0;
+  color: var(--color-warning);
+  font-weight: var(--fw-bold);
 }
 
 .onboarding-rejection-reason__text {
+  flex: 1;
   font-size: var(--fs-sm);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
+  text-align: start;
   margin: 0;
-  font-style: italic;
 }
-
-/* ── Progress bar hidden attribute ──────────────── */
-
-.onboarding-progress[hidden] { display: none; }
 
 /* ── Vehicle photo zone (taller) ─────────────────── */
 
 .upload-zone--photo {
   min-block-size: 200px;
-}
-
-@media (min-width: 768px) {
-  .onboarding-main { padding: var(--space-8) var(--space-10); }
-  .onboarding-step__actions { flex-direction: row-reverse; }
-  .onboarding-step__actions .btn--ghost { order: 2; }
-  .onboarding-step__actions .btn--primary { order: 1; flex: 1; }
 }
 
 /* ── Background-check consent (#1572) ───────────────── */
@@ -432,18 +577,13 @@
 }
 
 .consent-check__box {
-  inline-size: 22px;
-  block-size: 22px;
-  flex-shrink: 0;
   margin-block-start: 2px;
-  accent-color: var(--color-primary-600);
-  cursor: pointer;
 }
 
 .consent-check__label {
   font-size: var(--fs-sm);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
 }
 
 /* ── Make/Model "Other" free-text input (#1573) ──── */
@@ -452,6 +592,19 @@
   margin-block-start: var(--space-2);
 }
 
-.onboarding-other-input[hidden] {
+.onboarding-other-input[hidden],
+.onboarding-step select[hidden] {
   display: none;
+}
+
+/* Toasts clear the pinned action bar */
+.onboarding-page .toast-container {
+  inset-block-end: calc(var(--control-height) + var(--space-10));
+}
+
+/* Keep the native dropdown chevron on the vehicle selects (Figma shows one) */
+.onboarding-step select.input {
+  appearance: auto;
+  -webkit-appearance: menulist;
+  padding-inline-end: var(--space-3);
 }

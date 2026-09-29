@@ -1,51 +1,91 @@
 /*
  * sos.css — Driver Emergency Contacts screen (Phase 1 SOS)
  * SOS = save emergency contacts + share live location with them. No control room.
- * All values use design-system tokens.
+ * Figma: "Emergency Contacts", "Emergency Contact List", "Emergency Contacts - Add Contact".
+ * The contact manager markup comes from shared/scripts/emergency-contacts.js; this file
+ * only styles it for the driver screen. All values use design-system tokens.
  */
 
-.driver-sos-page {
-  background: var(--color-surface-alt);
-  min-block-size: 100dvh;
+/* ── Hero header ─────────────────────────────────── */
+
+/* Framework7's `.navbar .title { display: inline-block }` outranks the shared
+   flex rule and stacks the icon above the text — restore the row here. */
+.driver-sos-page .navbar .sos-topbar__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
 }
+
+.sos-topbar__icon {
+  flex-shrink: 0;
+}
+
+.sos-topbar__text {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  font-weight: inherit;
+  color: inherit;
+  line-height: var(--leading-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 400px) {
+  .sos-topbar__text { font-size: var(--fs-2xl); }
+}
+
+/* The back arrow points toward the start edge in both directions */
+[dir='rtl'] .sos-topbar__back svg { transform: scaleX(-1); }
+
+/* Base paragraph margins would space out the rendered manager */
+:where(.sos-contacts) p { margin: 0; }
+
+/* ── Panel ───────────────────────────────────────── */
 
 .driver-sos-main {
-  min-block-size: calc(100dvh - 60px);
+  min-block-size: calc(100dvh - var(--space-16));
 }
 
-/* ── Shared Emergency Contacts manager (rendered by emergency-contacts.js) ── */
 .sos-contacts {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-5) var(--space-4) var(--space-10);
-  max-inline-size: 480px;
-  margin-inline: auto;
+  padding-block-end: max(var(--space-6), env(safe-area-inset-bottom));
 }
 
 .sos-contacts__intro {
   font-size: var(--fs-base);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-snug);
+  text-align: center;
   margin: 0;
 }
 
+/* Figma "How it Works" callout */
 .sos-contacts__note {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  background: rgba(var(--color-primary-600-rgb), 0.06);
-  border: 1px solid rgba(var(--color-primary-600-rgb), 0.15);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
   margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-600);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
 }
 
 .sos-contacts__section-title {
+  margin: var(--space-2) 0 0;
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  margin: var(--space-2) 0 0;
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
 }
+
+/* ── Contact cards ───────────────────────────────── */
 
 .sos-contacts__list {
   list-style: none;
@@ -55,162 +95,239 @@
   flex-direction: column;
   gap: var(--space-3);
 }
-.sos-contacts__list:empty {
-  display: none;
-}
+
+.sos-contacts__list:empty { display: none; }
 
 .sos-contact-card {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
 }
 
 .sos-contact-card__avatar {
   flex: 0 0 auto;
-  inline-size: 44px;
-  block-size: 44px;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) + var(--space-2));
+  block-size: calc(var(--icon-tile-size-lg) + var(--space-2));
   border-radius: var(--radius-full);
-  background: var(--gradient-brand);
-  color: var(--color-surface);
-  font-weight: var(--fw-bold);
+  background: var(--gradient-violet);
+  color: var(--color-on-primary);
   font-size: var(--fs-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: var(--fw-bold);
 }
 
 .sos-contact-card__info {
+  flex: 1 1 auto;
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  flex: 1 1 auto;
-  min-inline-size: 0;
 }
 
 .sos-contact-card__name {
+  font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sos-contact-card__meta {
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sos-contact-card__actions {
-  display: flex;
-  gap: var(--space-1);
   flex: 0 0 auto;
+  display: flex;
+  gap: var(--space-2);
 }
-.sos-contact-card__remove {
-  color: var(--color-danger);
+
+/* Figma: round lavender edit / delete buttons */
+.sos-contact-card__actions .btn--icon {
+  inline-size: var(--icon-btn-size);
+  min-inline-size: var(--icon-btn-size);
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
 }
+
+.sos-contact-card__actions .btn--icon:hover:not(:disabled) {
+  background: var(--color-primary-200);
+}
+
+/* ── Empty state card ────────────────────────────── */
 
 .sos-contacts__empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: var(--space-2);
-  padding: var(--space-7) var(--space-4);
+  padding: var(--space-8) var(--space-5);
   background: var(--color-surface);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-lg);
-}
-.sos-contacts__empty[hidden] {
-  display: none;
-}
-.sos-contacts__empty-icon {
-  color: var(--color-text-muted);
-}
-.sos-contacts__empty-title {
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  margin: 0;
-}
-.sos-contacts__empty-hint {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
 }
 
-.sos-contacts__add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
+.sos-contacts__empty[hidden] { display: none; }
+
+.sos-contacts__empty-icon {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-4));
+  block-size: calc(var(--icon-tile-size-lg) * 2 - var(--space-4));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.sos-contacts__empty-icon svg {
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+}
+
+.sos-contacts__empty-title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+}
+
+.sos-contacts__empty-hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+}
+
+/* ── Add contact (Figma outlined "Add Emergency Contact") ── */
+
+.sos-contacts__add.btn--primary {
+  background: var(--color-surface);
+  color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+}
+
+.sos-contacts__add.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-50);
+  box-shadow: none;
+  filter: none;
+}
+
+.sos-contacts__add.btn--primary:disabled {
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  border-color: var(--color-border-strong);
 }
 
 .sos-contacts__cap-hint {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  text-align: center;
   margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  text-align: center;
 }
+
+/* ── Add / edit form card ────────────────────────── */
 
 .sos-contacts__form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  padding: var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
 }
-.sos-contacts__form[hidden] {
-  display: none;
-}
+
+.sos-contacts__form[hidden] { display: none; }
+
 .sos-contacts__form-actions {
   display: flex;
   gap: var(--space-3);
 }
 
+/* Figma: Save (filled) at the start, Cancel (outlined) after it */
+.sos-contacts__form-actions #sos-form-save { order: -1; }
+
+.sos-contacts__form-actions #sos-form-cancel {
+  border-color: var(--color-primary-600);
+  background: var(--color-surface);
+}
+
+.sos-contacts__form-actions .btn {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+/* ── Quick emergency services ────────────────────── */
+
 .sos-contacts__public {
-  margin-block-start: var(--space-4);
-  padding-block-start: var(--space-4);
-  border-block-start: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  margin-block-start: var(--space-2);
 }
+
 .sos-contacts__public-label {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
   margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
+
 .sos-contacts__public-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
+
 .sos-contacts__public-item {
-  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  background: rgba(var(--color-danger-rgb), 0.08);
-  border: 1px solid rgba(var(--color-danger-rgb), 0.2);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
+  padding: var(--space-5) var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   text-decoration: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
+
+.sos-contacts__public-item:hover {
+  background: var(--color-primary-100);
+  border-color: var(--color-border-strong);
+}
+
 .sos-contacts__public-name {
-  font-size: var(--fs-sm);
-  color: var(--color-text);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
+
 .sos-contacts__public-num {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-danger);
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
   direction: ltr;
 }
+
 .sos-contacts__public-note {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
   margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  text-align: center;
 }

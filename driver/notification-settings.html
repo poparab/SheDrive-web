@@ -9,14 +9,17 @@
   </head>
   <body class="app-shell notifications-page">
     <sd-page body-class="app-shell notifications-page" screen-styles="styles/driver.css, ../shared/styles/notifications.css, styles/notification-settings.css">
-      <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="notif-topbar__title-text" data-i18n="notifications.settings.title">إعدادات الإشعارات</span>
-      </sd-app-header>
+      <!-- ── Purple hero band holding the header (same language as the Figma list screens) ── -->
+      <div class="sd-hero notif-hero">
+        <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg class="notif-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <h1 class="notif-topbar__title-text" data-i18n="notifications.settings.title">إعدادات الإشعارات</h1>
+        </sd-app-header>
+      </div>
 
-      <main class="notif-settings" id="main-content" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
+      <main class="sd-panel notif-settings" id="main-content" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
 
         <!-- ── OS permission status ─────────────────────────────────── -->
         <section class="notif-settings__section" aria-labelledby="notif-push-label">
@@ -33,7 +36,7 @@
           <h2 class="notif-settings__heading" id="notif-types-heading" data-i18n="notifications.settings.sectionTypes">ما يصلكِ</h2>
           <div class="notif-settings__card">
 
-                        <div class="notif-pref">
+            <div class="notif-pref">
               <span class="notif-pref__text">
                 <span class="notif-pref__title" id="pref-trip-title" data-i18n="notifications.pref.driver.trip.title">الرحلات</span>
                 <span class="notif-pref__desc" data-i18n="notifications.pref.driver.trip.desc">طلبات الرحلات الجديدة وتقييمات الراكبات.</span>

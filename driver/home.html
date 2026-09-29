@@ -6,10 +6,6 @@
     <meta name="description" content="SheDrive Driver — لوحة تحكم السائقة" />
     <title>SheDrive Driver — الرئيسية</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
 
@@ -30,77 +26,43 @@
   <body class="app-shell driver-home-page">
     <sd-page body-class="app-shell driver-home-page" screen-styles="styles/driver.css, styles/home.css" mapbox>
 
-      <!-- ── GPS denied banner (#1578 / #1580) ── -->
-      <div class="driver-gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <span data-i18n="driver.home.gps.denied">الرجاء تفعيل خدمة الموقع للعمل عبر التطبيق</span>
-        <button type="button" class="btn btn--ghost btn--sm" id="gps-settings-btn" data-i18n="driver.home.gps.settings">فتح الإعدادات</button>
-      </div>
-
-      <!-- ── GPS-lost warning toast (#1580) ── -->
-      <div class="driver-gps-lost" id="gps-lost-banner" role="alert" aria-live="assertive" hidden>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span data-i18n="driver.home.gps.lost">تعذّر تحديد موقعك</span>
-      </div>
-
       <!-- ── Full-screen map ── -->
       <main class="home-map-container" id="map" aria-label="خريطة القاهرة" data-i18n-aria-label="aria.map.cairo" role="main"></main>
 
-      <!-- ── Top control bar ── -->
-      <header class="driver-topbar" role="banner">
-        <div class="driver-topbar__inner">
-
-          <!-- Online / Offline toggle -->
-          <button
-            type="button"
-            class="toggle-pill"
-            id="online-toggle"
-            aria-pressed="false"
-            aria-label="الاتصال"
-            data-i18n-aria-label="driver.goOnline"
+      <!-- ── Top stack: floating header, then any banners flowing underneath (#3980) ── -->
+      <div class="driver-top">
+        <sd-app-header bar-class="driver-home-topbar" inner-class="driver-home-topbar__inner">
+          <!-- Profile button → driver/profile.html (#1731). The driver app has no drawer;
+               the profile screen is her menu. -->
+          <a
+            href="./profile.html"
+            class="btn btn--icon btn--ghost"
+            data-slot="start"
+            aria-label="الملف الشخصي"
+            data-i18n-aria-label="nav.profile"
+            id="profile-btn"
           >
-            <span class="toggle-pill__dot" aria-hidden="true"></span>
-            <span class="toggle-pill__label" id="online-label" data-i18n="driver.offline">
-              غير متصلة
-            </span>
-          </button>
+            <div class="avatar" aria-hidden="true">D</div>
+          </a>
 
-          <!-- Earnings chip -->
-          <div class="chip driver-earnings" id="earnings-chip" aria-label="أرباح اليوم: 0 جنيه" data-i18n-aria-label="driver.earningsToday">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>
-              <span data-i18n="driver.earningsToday">أرباح اليوم</span>:
-              <strong id="earnings-amount">0</strong>
-              <span data-i18n="driver.currency">جنيه</span>
-            </span>
-          </div>
+          <!-- Notification inbox, with unread count -->
+          <sd-notification-bell data-slot="end" href="./notifications.html" id="notif-bell"></sd-notification-bell>
+        </sd-app-header>
 
-          <!-- ── Working Zones button (second row, beside earnings) ── -->
-          <div class="driver-zones-btn-wrap">
-            <button
-              type="button"
-              class="btn btn--secondary driver-zones-btn"
-              id="working-zones-btn"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-              </svg>
-              <span data-i18n="driver.workingZones">مناطق العمل</span>
-            </button>
-          </div>
-
-          <!-- Language switcher (kept in topbar for driver; profile page has full settings) -->
-          <nav class="lang-switcher" aria-label="Language / اللغة">
-            <button class="lang-switcher__btn" data-lang-btn="ar" aria-pressed="true" type="button">AR</button>
-            <span class="lang-switcher__sep" aria-hidden="true">|</span>
-            <button class="lang-switcher__btn" data-lang-btn="en" aria-pressed="false" type="button">EN</button>
-          </nav>
+        <!-- GPS denied banner (#1578 / #1580) -->
+        <div class="driver-gps-banner" id="gps-banner" role="alert" aria-live="assertive" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <span data-i18n="driver.home.gps.denied">الرجاء تفعيل خدمة الموقع للعمل عبر التطبيق</span>
+          <button type="button" class="btn btn--ghost btn--sm" id="gps-settings-btn" data-i18n="driver.home.gps.settings">فتح الإعدادات</button>
         </div>
 
-        <!-- ── Balance-limit band (#3980): flows under the rows, never pinned over them ── -->
+        <!-- GPS-lost warning chip (#1580) -->
+        <div class="driver-gps-lost" id="gps-lost-banner" role="alert" aria-live="assertive" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span data-i18n="driver.home.gps.lost">تعذّر تحديد موقعك</span>
+        </div>
+
+        <!-- Balance-limit band (#3980): flows under the header, never pinned over it -->
         <div class="balance-warn" id="balance-warn" hidden aria-hidden="true" role="status">
           <svg class="balance-warn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -108,12 +70,89 @@
           <p class="balance-warn__msg" id="balance-warn-msg"></p>
           <a href="./settle.html" class="btn btn--sm balance-warn__action" id="balance-warn-action" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
         </div>
-      </header>
+      </div>
+
+      <!-- ── Home bottom sheet (Figma "Home" / "Waiting New Request" + "Slide Up") ── -->
+      <section class="driver-sheet" id="driver-sheet" aria-labelledby="driver-status">
+
+        <!-- Map controls ride on the sheet's top edge, so the sheet never covers them -->
+        <div class="driver-sheet__float">
+          <button type="button" class="btn btn--float btn--sm driver-zones-btn" id="working-zones-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            <span data-i18n="driver.workingZones">مناطق العمل</span>
+          </button>
+          <!-- Location loading indicator -->
+          <div class="location-status" id="location-status" role="status" aria-live="polite" aria-atomic="true">
+            <div class="spinner" aria-hidden="true"></div>
+            <span data-i18n="home.gettingLocation">جارٍ تحديد موقعك…</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="driver-sheet__handle"
+          id="sheet-handle"
+          aria-expanded="false"
+          aria-controls="driver-sheet-body"
+          aria-label="عرض المزيد"
+          data-i18n-aria-label="driver.home.sheetExpand"
+        >
+          <span class="sheet-handle" aria-hidden="true"></span>
+        </button>
+
+        <div class="driver-sheet__body" id="driver-sheet-body">
+          <!-- Status row: headline + online/offline pill -->
+          <div class="driver-sheet__head">
+            <p class="driver-sheet__status" id="driver-status" aria-live="polite" aria-atomic="true">
+              <span data-i18n="driver.status.offline">أنتِ غير متصلة</span>
+            </p>
+            <span class="toggle-pill driver-status-pill" id="online-pill">
+              <span class="toggle-pill__dot" aria-hidden="true"></span>
+              <span class="toggle-pill__label" id="online-label" data-i18n="driver.offline">غير متصلة</span>
+            </span>
+          </div>
+
+          <!-- Earnings card -->
+          <div class="card card--violet driver-earnings" id="earnings-chip">
+            <span class="driver-earnings__label" data-i18n="driver.earningsToday">أرباح اليوم</span>
+            <p class="driver-earnings__value">
+              <strong id="earnings-amount">0</strong>
+              <span data-i18n="driver.currency">جنيه</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Pinned sheet footer: the availability toggle (#1579) -->
+        <div class="driver-sheet__footer">
+          <button type="button" class="btn btn--primary btn--full driver-online-btn" id="online-toggle">
+            <svg class="driver-online-btn__icon driver-online-btn__icon--on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <svg class="driver-online-btn__icon driver-online-btn__icon--off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 0-7"/><path d="M5.6 19.4a9 9 0 0 1 0-14.8"/><path d="M15.5 7.5a5 5 0 0 1 1.3 5.6"/><path d="M18.4 4.6a9 9 0 0 1 2.2 9.8"/><circle cx="12" cy="12" r="1"/></svg>
+            <span id="online-toggle-label" data-i18n="driver.goOnline">الاتصال</span>
+          </button>
+
+          <!-- Simulate Request (demo only) -->
+          <button
+            type="button"
+            class="btn btn--sm simulate-request-btn"
+            id="simulate-request-btn"
+            aria-label="محاكاة طلب رحلة واردة (تجريبي)"
+            data-i18n-aria-label="driver.simulateRequestAria"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span data-i18n="driver.simulateRequest">محاكاة طلب</span>
+          </button>
+        </div>
+      </section>
 
       <!-- ── Go-online blocked sheet (#TBD-G) ── -->
       <div class="balance-block" id="balance-block" hidden aria-hidden="true">
         <div class="balance-block__scrim" id="balance-block-scrim"></div>
         <div class="balance-block__sheet" role="dialog" aria-modal="true" aria-labelledby="balance-block-title">
+          <span class="sheet-handle" aria-hidden="true"></span>
           <div class="balance-block__icon" aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -122,69 +161,10 @@
           <h2 class="balance-block__title" id="balance-block-title" data-i18n="driver.home.blocked.title">لا يمكنكِ الاتصال حتى تسدّدي رصيدك</h2>
           <p class="balance-block__body" id="balance-block-body"></p>
           <a href="./settle.html" class="btn btn--primary btn--full" data-i18n="driver.blocked.settleNow">سدّدي رصيدك الآن</a>
-          <a href="./balance.html" class="btn btn--ghost btn--full" data-i18n="driver.home.blocked.viewBalance">عرض الرصيد</a>
-          <button type="button" class="btn btn--ghost btn--full" id="balance-block-close" data-i18n="driver.home.blocked.dismiss">إغلاق</button>
+          <a href="./balance.html" class="btn btn--secondary btn--full" data-i18n="driver.home.blocked.viewBalance">عرض الرصيد</a>
+          <button type="button" class="btn btn--link" id="balance-block-close" data-i18n="driver.home.blocked.dismiss">إغلاق</button>
         </div>
       </div>
-
-
-      <!-- ── Bottom status bar ── -->
-      <footer class="driver-statusbar" role="contentinfo">
-        <div class="driver-statusbar__inner">
-          <img
-            src="../shared/assets/logos/shedrive-icon.svg"
-            alt="SheDrive"
-            class="driver-statusbar__logo"
-            width="32"
-            height="32"
-          />
-
-          <p class="driver-statusbar__status" id="driver-status" aria-live="polite" aria-atomic="true">
-            <span data-i18n="driver.status.offline">أنتِ غير متصلة</span>
-          </p>
-
-          <!-- Notification inbox, with unread count -->
-          <sd-notification-bell href="./notifications.html" id="notif-bell"></sd-notification-bell>
-
-          <!-- Profile button → driver/profile.html (#1731) -->
-          <a
-            href="./profile.html"
-            class="btn btn--icon btn--ghost"
-            aria-label="الملف الشخصي"
-            data-i18n-aria-label="nav.profile"
-            id="profile-btn"
-          >
-            <div class="avatar" aria-hidden="true">D</div>
-          </a>
-        </div>
-      </footer>
-
-      <!-- ── Location loading indicator ── -->
-      <div
-        class="location-status"
-        id="location-status"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <div class="spinner" aria-hidden="true"></div>
-        <span data-i18n="home.gettingLocation">جارٍ تحديد موقعك…</span>
-      </div>
-
-      <!-- ── Simulate Request button (demo only) ── -->
-      <button
-        type="button"
-        class="btn btn--secondary simulate-request-btn"
-        id="simulate-request-btn"
-        data-i18n="driver.simulateRequest"
-        aria-label="محاكاة طلب رحلة (تجريبي)"
-        data-i18n-aria-label="driver.simulateRequestAria"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        <span>محاكاة طلب</span>
-      </button>
 
       <!-- ── Working Zones modal ── -->
       <div class="modal-backdrop" id="zones-backdrop" hidden aria-hidden="true">
@@ -194,6 +174,7 @@
           aria-modal="true"
           aria-labelledby="zones-modal-title"
         >
+          <span class="sheet-handle zones-modal__handle" aria-hidden="true"></span>
           <div class="modal__header">
             <h2 class="modal__title" id="zones-modal-title" data-i18n="driver.workingZones">مناطق العمل</h2>
             <button
@@ -234,19 +215,15 @@
         </div>
       </div>
 
-      <!-- Demo only: ?state=gps-denied | gps-lost | online -->
+      <!-- Demo only: ?state=gps-denied | gps-lost | online (online is read by home.js);
+           ?sheet=expanded opens the sheet in its slide-up state. -->
       <script type="module">
         const s = new URLSearchParams(location.search).get('state');
         if (s === 'gps-denied') document.getElementById('gps-banner').hidden = false;
         if (s === 'gps-lost')   document.getElementById('gps-lost-banner').hidden = false;
-        if (s === 'online') {
-          document.body.dataset.state = 'online';
-          const t = document.getElementById('online-toggle');
-          if (t) { t.setAttribute('aria-pressed', 'true'); }
-        }
       </script>
 
-      <script type="module" src="scripts/home.js" defer></script>
+      <script type="module" src="scripts/home.js"></script>
     </sd-page>
   </body>
 </html>

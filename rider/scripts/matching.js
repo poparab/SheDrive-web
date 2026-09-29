@@ -5,7 +5,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
 
 // ── Auth guard ───────────────────────────────────────
@@ -26,14 +26,24 @@ try {
   pendingTrip = raw ? JSON.parse(raw) : null;
 } catch { pendingTrip = null; }
 
-// Populate trip chip labels
-const chipPickup = document.getElementById('chip-pickup');
-const chipDestination = document.getElementById('chip-destination');
-
-if (pendingTrip) {
-  if (chipPickup) chipPickup.textContent = pendingTrip.pickup || '—';
-  if (chipDestination) chipDestination.textContent = pendingTrip.destination || '—';
+// Populate the trip summaries (searching + confirmed states) from the handoff.
+// Without one (a deep link) the pickup reads "my current location" in the
+// current language and the destination keeps its demo fallback.
+function renderTripSummary() {
+  const pickup = pendingTrip?.pickup || translate('home.pickup.current');
+  const destination = pendingTrip?.destination;
+  ['chip-pickup', 'confirmed-chip-pickup'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = pickup;
+  });
+  if (destination) {
+    ['chip-destination', 'confirmed-chip-destination'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = destination;
+    });
+  }
 }
+renderTripSummary();
 
 // ── Map initialization ───────────────────────────────
 const map = MapService.init('map');
@@ -72,14 +82,27 @@ function populateDriverCard(nameId, ratingId, vehicleId, etaId) {
   const r  = document.getElementById(ratingId);
   const v  = document.getElementById(vehicleId);
   const e  = document.getElementById(etaId);
-  if (n) n.textContent  = mockDriver.name;
+  const en = document.documentElement.lang === 'en';
+  if (n) n.textContent  = en ? mockDriver.nameEn : mockDriver.name;
+  // The placeholder avatar shows her initial in the current language.
+  const avatar = n?.closest('sd-driver-card')?.querySelector('.driver-avatar');
+  if (avatar && n) avatar.textContent = n.textContent.trim().charAt(0);
   if (r) r.textContent  = `${'★'.repeat(Math.round(mockDriver.rating))} ${mockDriver.rating}`;
-  if (v) v.textContent  = mockDriver.vehicle;
+  if (v) v.textContent  = `${en ? mockDriver.vehicleEn : mockDriver.vehicle} | ${mockDriver.plate}`;
   if (e) e.textContent  = `${translate('trip.eta')} ${mockDriver.eta} ${translate('trip.minutes')}`;
 }
 
-populateDriverCard('matching-driver-name', 'matching-driver-rating', 'matching-driver-vehicle', 'matching-driver-eta');
-populateDriverCard('confirmed-driver-name', 'confirmed-driver-rating', 'confirmed-driver-vehicle', 'confirmed-driver-eta');
+function populateDriverCards() {
+  populateDriverCard('matching-driver-name', 'matching-driver-rating', 'matching-driver-vehicle', 'matching-driver-eta');
+  populateDriverCard('confirmed-driver-name', 'confirmed-driver-rating', 'confirmed-driver-vehicle', 'confirmed-driver-eta');
+}
+populateDriverCards();
+
+// Names, vehicle and "my current location" follow a language switch.
+document.addEventListener(I18N_EVENT, () => {
+  populateDriverCards();
+  renderTripSummary();
+});
 
 // ── Cancel dialog ────────────────────────────────────
 const cancelDialog = document.getElementById('cancel-dialog');

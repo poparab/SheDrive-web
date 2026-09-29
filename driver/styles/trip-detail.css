@@ -1,285 +1,317 @@
-/* trip-detail.css — Driver past trip detail screen */
+/* trip-detail.css — Driver past trip detail screen (#1594)
+   Figma "Driver - Trip Details": route map on top with the header floating over
+   it, a white panel overlapping the map, then fare card, route card, rider card
+   and trip summary. Tokens only. */
 
-.driver-trip-detail-page {
-  background: var(--color-surface-alt);
-}
-
-/* ── Top bar ── */
-.dtd-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(var(--color-surface-rgb), 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.dtd-topbar__inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  height: 56px;
-}
-
-.dtd-topbar__title {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-}
-
-/* ── Scrollable content ── */
-.dtd-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding-bottom: var(--space-8);
-  overflow-y: auto;
-}
-
-/* ── Route map thumbnail ── */
-.dtd-map {
-  width: 100%;
-  height: 200px;
-  flex-shrink: 0;
-  background: var(--color-surface-alt);
+/* ── Map + floating header ── */
+.dtd-top {
   position: relative;
 }
 
+.dtd-map {
+  inline-size: 100%;
+  /* Tall enough that the panel's rounded top overlaps the map, as in Figma. */
+  block-size: calc(var(--space-16) * 3 + var(--radius-2xl));
+  background: var(--color-primary-100);
+}
+
 .dtd-map .mapboxgl-map {
-  height: 100%;
-  width: 100%;
+  block-size: 100%;
+  inline-size: 100%;
 }
 
-/* ── Shared card ── */
-.dtd-card {
-  background: var(--color-surface);
+/* A static thumbnail — zoom buttons would suggest she can pan it. */
+.dtd-map .mapboxgl-ctrl-group {
+  display: none;
+}
+
+.dtd-top sd-app-header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-above);
+}
+
+.dtd-top .sd-app-header__bar {
+  padding: var(--space-4) var(--page-gutter) var(--space-3);
+  block-size: auto;
+}
+
+/* Over the map: no frosted strip, just the floating buttons. */
+.dtd-top .navbar-inner {
+  position: relative;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.dtd-title {
+  font-size: var(--fs-lg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtd-header__spacer {
+  display: block;
+  inline-size: var(--icon-btn-size);
+}
+
+/* The back arrow points "back": left in LTR, right in RTL. */
+[dir='rtl'] .dtd-back__icon {
+  transform: scaleX(-1);
+}
+
+/* ── Panel ── */
+.dtd-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+.dtd-content .card {
+  margin: 0;
+}
+
+/* ── Fare card ── */
+.dtd-fare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
-  margin: 0 var(--space-4);
 }
 
-/* ── Date & time ── */
-.dtd-datetime {
+.dtd-fare__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
-.dtd-card__label {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
+.dtd-fare__label {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
 
-.dtd-card__value {
-  font-size: var(--fs-sm);
-  color: var(--color-text);
+.dtd-fare__amount {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--color-text-strong);
+  line-height: 1.1;
+}
+
+.dtd-fare__value {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+}
+
+.dtd-fare__currency {
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
 }
 
-.dtd-datetime__value { text-align: end; }
-
-/* ── Route ── */
-.dtd-route {
+.dtd-fare__meta {
   display: flex;
-  flex-direction: column;
-  position: relative;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
 }
 
-.dtd-route__row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  position: relative;
-  z-index: 1;
-}
-
-.dtd-route__row--pickup { padding-bottom: var(--space-3); }
-
-.dtd-route__connector {
-  position: absolute;
-  inset-inline-start: calc(var(--space-5) + 3px);
-  top: calc(var(--space-5) + 4px);
-  width: 2px;
-  height: calc(50% - var(--space-3));
-  background: var(--color-border);
-  z-index: 0;
-}
-
-.dtd-route__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.dtd-route__dot--green {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.2);
-}
-
-.dtd-route__dot--magenta {
-  background: var(--color-accent-500);
-  border-radius: 2px;
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-500-rgb), 0.15);
-}
-
-.dtd-route__text {
-  display: flex;
-  flex-direction: column;
+.dtd-fare__when {
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-1);
 }
 
-.dtd-route__label {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.dtd-fare__when svg {
+  flex-shrink: 0;
+  color: var(--color-primary-600);
 }
 
-.dtd-route__address {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
+/* White breakdown box inside the lavender card */
+.dtd-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+}
+
+.dtd-breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
   color: var(--color-text);
+}
+
+.dtd-breakdown__row > span:first-child {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.dtd-breakdown__row--total {
+  margin-block-start: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+/* Net earnings row (#1766) — what she actually earned */
+.dtd-breakdown__row--net {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-success-bg);
+  font-weight: var(--fw-bold);
+  color: var(--color-success-strong);
+}
+
+.dtd-breakdown__row--net > span:first-child {
+  color: var(--color-success-strong);
+}
+
+/* ── Route card ── */
+.dtd-route .route__place {
+  font-size: var(--fs-lg);
 }
 
 /* ── Rider card ── */
 .dtd-rider {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dtd-rider__head {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-.dtd-rider__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+.dtd-rider__avatar {
+  inline-size: var(--space-12);
+  block-size: var(--space-12);
+  font-size: var(--fs-lg);
 }
 
 .dtd-rider__name {
-  font-size: var(--fs-base);
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.dtd-rider__rating {
+.dtd-rider__score {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-warning);
-  font-weight: var(--fw-medium);
-}
-
-/* ── Fare breakdown ── */
-.dtd-fare__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-4);
-}
-
-.dtd-fare__row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  padding: var(--space-2) 0;
-}
-
-.dtd-fare__divider {
-  height: 1px;
-  background: var(--color-border);
-  margin: var(--space-2) 0;
-}
-
-.dtd-fare__row--total {
-  font-size: var(--fs-base);
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  padding-top: var(--space-3);
+  color: var(--color-text-strong);
 }
 
-.dtd-fare__total-amount {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
+.dtd-rider__score svg {
+  color: var(--color-star);
 }
 
-/* ── Rating received ── */
+.dtd-rating {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
 .dtd-rating__title {
   font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-3);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
 }
 
 .dtd-rating__stars {
-  display: flex;
+  display: inline-flex;
   gap: var(--space-1);
 }
 
 .dtd-star {
   font-size: var(--fs-2xl);
-  color: var(--color-border);
+  line-height: 1;
+  color: var(--color-border-strong);
 }
 
-.dtd-star--filled { color: var(--color-warning); }
-
-/* ── Net earnings row (#1766) ── */
-.dtd-fare__row--net {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-primary-700);
-  border-top: 1px dashed var(--color-border);
-  padding-top: var(--space-3);
-  margin-top: var(--space-1);
+.dtd-star--filled {
+  color: var(--color-star);
 }
 
-.dtd-fare__net-amount {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
-}
-
-/* ── Rating placeholder for unrated trips (#1594) ── */
-.dtd-rating-placeholder {
-  display: none;
-}
-
-.dtd-rating-placeholder__msg {
+.dtd-rating__none {
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  font-style: italic;
-  margin: 0;
 }
 
-/* State-driven visibility for rated/unrated */
-[data-state="unrated"] .state--rated   { display: none; }
-[data-state="unrated"] .state--unrated { display: block; }
+/* State-driven visibility for rated/unrated (?state=unrated) */
 .state--unrated { display: none; }
+[data-state="unrated"] .state--rated   { display: none; }
+[data-state="unrated"] .state--unrated { display: flex; }
 
-/* ── Trip reference ── */
-.dtd-ref {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  margin: var(--space-2) var(--space-4) 0;
+/* ── Trip summary ── */
+.dtd-summary__title {
+  margin-block: var(--space-2) var(--space-3);
 }
 
-.dtd-ref__id {
-  font-family: monospace;
-  color: var(--color-text-muted);
+.dtd-summary__card {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--space-2);
+}
+
+.dtd-summary__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+.dtd-summary__row + .dtd-summary__row {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.dtd-summary__row .icon-tile {
+  background: var(--color-surface-tint);
+}
+
+.dtd-summary__label {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-subtle);
+}
+
+.dtd-summary__value {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  white-space: nowrap;
+}
+
+/* Framework7 gives every <p> a 1em block margin. */
+.dtd-content p {
+  margin: 0;
 }

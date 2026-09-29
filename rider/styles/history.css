@@ -1,44 +1,70 @@
-/* history.css — Rider trip history screen */
+/* history.css — Rider trip history screen (#1567)
+   Figma "Trip History": purple hero band with the header, white panel with a
+   32px top radius, lavender trip cards (date + status, pickup → destination,
+   fare + driver, chevron). <sd-page> is the scroll container. */
 
 /* ── Page layout ────────────────────────────────────── */
 
-.history-page {
-  background: var(--color-surface-alt);
-}
-
-/* ── Top bar ────────────────────────────────────────── */
-
-.history-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-nav);
-  background: rgba(var(--color-surface-rgb), 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.history-topbar__inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  height: 56px;
-}
-
-.history-topbar__title-text {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-}
-
-/* ── Content area ───────────────────────────────────── */
-
-.history-content {
-  flex: 1;
+/* Stack hero + panel so the panel reaches the bottom of the screen even when
+   the list is short or empty. sd-page keeps its overflow-y:auto scroll. */
+.history-page sd-page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+}
+
+.history-hero {
+  flex: none;
+}
+
+.history-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+/* ── Header (inside the hero) ───────────────────────── */
+
+.history-topbar__title-text {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: inherit;
+  line-height: var(--leading-tight);
+  text-align: center;
+  /* Wrap between words (never inside one) when the language toggle leaves
+     little room. */
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+/* The title icon only fits beside the title on wider phones. */
+.history-topbar__icon {
+  display: none;
+}
+
+@media (min-width: 400px) {
+  .history-topbar__title-text {
+    font-size: var(--fs-2xl);
+  }
+
+  .history-topbar__icon {
+    display: block;
+  }
+}
+
+/* Framework7's `.navbar .title { display: inline-block }` outranks the shared
+   flex rule, which stacks the icon above the text — restore the row here. */
+.history-page .navbar .history-topbar__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+
+[dir='rtl'] .history-topbar__back-icon {
+  transform: scaleX(-1);
 }
 
 /* ── Trip list ──────────────────────────────────────── */
@@ -46,132 +72,141 @@
 .history-list {
   display: flex;
   flex-direction: column;
-  padding: var(--space-4);
-  gap: var(--space-3);
+}
+
+.history-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 /* ── Trip card ──────────────────────────────────────── */
 
-.history-card {
+.history-card__link {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: var(--space-2) var(--space-3);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'date   status chevron'
+    'route  fare   chevron'
+    'route  driver chevron';
   align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.history-card:hover,
-.history-card:focus-visible {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-  outline: none;
-}
-
-.history-card:active {
-  transform: translateY(0);
+.history-card__link:hover {
+  border-color: var(--color-border-strong);
   box-shadow: var(--shadow-sm);
+}
+
+.history-card__link:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
 .history-card__meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  grid-column: 1;
-}
-
-.history-card__chevron {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
+  display: contents;
 }
 
 .history-card__date {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
+  grid-area: date;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.history-card__date svg {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
 }
 
 .history-card__status {
-  font-size: var(--fs-xs);
-  padding: 2px var(--space-2);
-}
-
-.history-card__body {
-  grid-column: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  grid-area: status;
+  justify-self: end;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 .history-card__route {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  grid-area: route;
+  align-self: start;
+  min-inline-size: 0;
 }
 
-.history-card__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.history-card__route .route__place {
+  overflow-wrap: anywhere;
+}
+
+.history-card__fare {
+  grid-area: fare;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: end;
+}
+
+.history-card__amount {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.history-card__fare-label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+}
+
+.history-card__driver {
+  grid-area: driver;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: calc(var(--space-16) * 2);
+}
+
+.history-card__avatar {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  color: var(--color-on-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  display: inline-grid;
+  place-items: center;
   flex-shrink: 0;
 }
 
-.history-card__dot--green {
-  background: var(--color-success);
-}
-
-.history-card__destination {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
+.history-card__driver-name {
+  font-size: var(--fs-sm);
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.history-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.history-card__driver {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.history-card__avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--gradient-brand);
-  color: #fff;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.history-card__chevron {
+  grid-area: chevron;
+  color: var(--color-text-subtle);
   flex-shrink: 0;
 }
 
-.history-card__driver-name {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-}
-
-.history-card__fare {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
+[dir='rtl'] .history-card__chevron {
+  transform: scaleX(-1);
 }
 
 /* ── State visibility ───────────────────────────────── */
@@ -181,69 +216,68 @@
   display: none;
 }
 
-[data-state="empty"] .state--has-trips {
+[data-state='empty'] .state--has-trips,
+[data-state='loading'] .history-list__items {
   display: none;
 }
-[data-state="empty"] .state--empty {
+
+[data-state='empty'] .state--empty {
   display: flex;
 }
 
-[data-state="loading"] .state--has-trips {
-  display: none;
-}
-[data-state="loading"] .state--loading {
+[data-state='loading'] .state--loading {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: var(--space-4);
 }
 
-/* ── Empty state ────────────────────────────────────── */
+/* ── Empty state (Figma "No trips yet") ─────────────── */
 
 .history-empty {
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-10) var(--space-6);
+  gap: var(--space-2);
+  padding: var(--space-10) var(--space-2);
   text-align: center;
 }
 
 .history-empty__icon {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  background: var(--color-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
+  inline-size: calc(var(--space-16) + var(--space-6));
+  block-size: calc(var(--space-16) + var(--space-6));
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-200);
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-700);
 }
 
 .history-empty__title {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
   margin: 0;
 }
 
 .history-empty__body {
   font-size: var(--fs-base);
   color: var(--color-text-muted);
+  line-height: var(--leading-snug);
   margin: 0;
 }
 
 .history-empty__cta {
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-6);
   text-decoration: none;
 }
 
 /* ── Skeleton loading cards ─────────────────────────── */
 
 .skeleton-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: var(--space-4);
   display: flex;
@@ -254,19 +288,19 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--color-surface-alt) 25%,
+    var(--color-primary-100) 25%,
     var(--color-border) 50%,
-    var(--color-surface-alt) 75%
+    var(--color-primary-100) 75%
   );
   background-size: 200% 100%;
   border-radius: var(--radius-md);
   animation: shimmer 1.4s ease-in-out infinite;
-  height: 14px;
+  block-size: var(--space-3);
 }
 
-.skeleton--sm  { width: 35%; }
-.skeleton--md  { width: 55%; }
-.skeleton--lg  { width: 80%; }
+.skeleton--sm { inline-size: 35%; }
+.skeleton--md { inline-size: 55%; }
+.skeleton--lg { inline-size: 80%; }
 
 @keyframes shimmer {
   0%   { background-position: 200% 0; }

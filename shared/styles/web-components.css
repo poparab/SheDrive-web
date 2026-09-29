@@ -15,8 +15,11 @@ sd-app-header .navbar-inner {
   width: 100%;
 }
 
+/* `.navbar` in the selector outranks Framework7's `.navbar .title
+   { display: inline-block }`, which otherwise drops a title icon above the text. */
 sd-app-header .home-topbar__title,
-sd-app-header .sd-app-header__title {
+sd-app-header .sd-app-header__title,
+sd-app-header .navbar .sd-app-header__title {
   flex: 1;
   display: flex;
   align-items: center;
@@ -26,6 +29,53 @@ sd-app-header .sd-app-header__title {
 
 sd-app-header .sd-app-header__title > * {
   min-inline-size: 0;
+}
+
+/* Figma header: centred deep-purple title between round white floating buttons.
+   Every icon button placed in the header (menu, back, bell, profile) renders as
+   the floating button, whatever variant the page gave it. */
+sd-app-header .sd-app-header__title {
+  color: var(--color-text-strong);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+sd-app-header .sd-app-header__inner .btn--icon {
+  background: var(--color-surface);
+  color: var(--color-primary-600);
+  border-color: transparent;
+  box-shadow: var(--shadow-float);
+}
+
+sd-app-header .sd-app-header__inner .btn--icon:hover {
+  background: var(--color-primary-50);
+}
+
+/* The profile button wraps an avatar that already fills the circle */
+sd-app-header .sd-app-header__inner .btn--icon:has(> .avatar) {
+  padding: 0;
+}
+
+/* Inside a purple hero band the header sits in flow on the gradient (no fixed
+   positioning, no frosted blur) and the title turns white and grows. */
+.sd-hero sd-app-header .sd-app-header__bar {
+  position: relative;
+  inset: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: var(--space-4) var(--page-gutter) var(--space-3);
+  block-size: auto;
+}
+.sd-hero sd-app-header .navbar-inner {
+  position: relative;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.sd-hero sd-app-header .sd-app-header__title {
+  color: var(--color-on-primary);
+  font-size: var(--fs-2xl);
 }
 
 sd-app-header .home-topbar__actions,
@@ -64,29 +114,42 @@ sd-toast-host {
 }
 
 /* ── sd-otp-input ── */
+/* Figma OTP: six separate square lavender boxes spanning the form width. */
 sd-otp-input {
   display: block;
 }
 
 sd-otp-input .otp-boxes {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: var(--space-2);
-  justify-content: center;
+  inline-size: 100%;
+  max-inline-size: calc(var(--control-height) * 6 + var(--space-3) * 5);
+  margin-inline: auto;
+  direction: ltr;
 }
 
 sd-otp-input .otp-box {
-  width: 44px;
-  height: 52px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: var(--control-height);
+  padding: 0;
   text-align: center;
   font-size: var(--fs-xl);
-  font-weight: var(--fw-semibold);
-  border: 1.5px solid var(--color-border);
+  font-weight: var(--fw-bold);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-surface-tint);
+  color: var(--color-text-strong);
   caret-color: var(--color-primary-600);
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background var(--transition-fast);
   -moz-appearance: textfield;
+}
+
+sd-otp-input .otp-box:hover {
+  border-color: var(--color-border-strong);
 }
 
 sd-otp-input .otp-box::-webkit-outer-spin-button,
@@ -97,16 +160,23 @@ sd-otp-input .otp-box::-webkit-inner-spin-button {
 sd-otp-input .otp-box:focus {
   outline: none;
   border-color: var(--color-primary-600);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb, 107, 43, 217), 0.15);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-600-rgb), 0.12);
 }
 
-sd-otp-input .otp-box--error {
+sd-otp-input .otp-box.otp-box--filled {
+  border-color: var(--color-primary-400);
+  background: var(--color-surface);
+}
+
+sd-otp-input .otp-box--error,
+sd-otp-input .otp-box.otp-box--error {
   border-color: var(--color-danger);
-  background: rgba(var(--color-danger-rgb, 220, 53, 69), 0.05);
+  background: rgba(var(--color-danger-rgb), 0.05);
 }
 
 sd-otp-input .otp-box--error:focus {
-  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb, 220, 53, 69), 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb), 0.15);
 }
 
 /* ── sd-confirm-dialog ── */
@@ -121,8 +191,10 @@ sd-confirm-dialog[hidden] {
 sd-confirm-dialog .confirm-dialog__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: var(--z-modal-backdrop, 400);
+  background: var(--color-overlay);
+  /* Backdrop and panel sit just above --z-modal sheets, below toasts. The old
+     --z-modal-backdrop token never existed, so the backdrop (400) covered the panel. */
+  z-index: calc(var(--z-modal) + 1);
   cursor: pointer;
 }
 
@@ -131,7 +203,7 @@ sd-confirm-dialog .confirm-dialog__panel {
   inset-inline: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  z-index: var(--z-modal, 401);
+  z-index: calc(var(--z-modal) + 2);
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
@@ -144,9 +216,9 @@ sd-confirm-dialog .confirm-dialog__panel {
 }
 
 sd-confirm-dialog .confirm-dialog__title {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--color-text-strong);
   margin: 0;
   text-align: center;
 }
@@ -160,22 +232,26 @@ sd-confirm-dialog .confirm-dialog__body {
 }
 
 /* ── sd-driver-card (compact variant) — shared across trip-complete and trip-detail ── */
+/* Figma "Driver Found" / "Rate Your Driver" card: lavender fill, thin border,
+   large round avatar with a white ring. */
 .driver-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  box-shadow: var(--shadow-sm);
 }
 
 .driver-card__avatar {
-  width: 56px;
-  height: 56px;
+  width: calc(var(--icon-tile-size-lg) + var(--space-6));
+  height: calc(var(--icon-tile-size-lg) + var(--space-6));
   border-radius: var(--radius-full);
   background: var(--gradient-brand);
   color: var(--color-surface);
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +268,7 @@ sd-confirm-dialog .confirm-dialog__body {
 
 .driver-card__name {
   font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
   margin: 0;
 }
@@ -229,7 +305,7 @@ sd-confirm-dialog .confirm-dialog__actions {
 
 .sd-notification-bell__link {
   position: relative;
-  color: var(--color-text);
+  color: var(--color-primary-600);
 }
 
 .sd-notification-bell__badge {
@@ -242,7 +318,7 @@ sd-confirm-dialog .confirm-dialog__actions {
   display: grid;
   place-items: center;
   border-radius: var(--radius-full);
-  background: var(--color-danger);
+  background: var(--color-accent-600);
   color: var(--color-on-primary);
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
@@ -252,4 +328,54 @@ sd-confirm-dialog .confirm-dialog__actions {
 
 .sd-notification-bell__badge[hidden] {
   display: none;
+}
+
+/* ── sd-rating-stars ── */
+/* Figma: large solid orange stars; unselected stars are solid lavender. */
+sd-rating-stars.star-rating__stars {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+sd-rating-stars .star-btn {
+  padding: var(--space-1);
+  line-height: 0;
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast);
+}
+
+sd-rating-stars .star-btn:hover {
+  transform: scale(1.08);
+}
+
+sd-rating-stars .star-btn svg {
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  transition: fill var(--transition-base), stroke var(--transition-base);
+}
+
+sd-rating-stars .star-btn.is-active svg {
+  fill: var(--color-star);
+  stroke: var(--color-star);
+}
+
+sd-rating-stars .star-btn:not(.is-active) svg {
+  fill: var(--color-border-strong);
+  stroke: var(--color-border-strong);
+}
+
+/* ── sd-bottom-sheet ── */
+/* Figma sheets: white, 32px top radius, short lavender grab handle. */
+sd-bottom-sheet.sd-bottom-sheet {
+  --f7-sheet-border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sheet);
+}
+
+sd-bottom-sheet .ride-sheet__handle {
+  inline-size: var(--sheet-handle-width);
+  block-size: var(--sheet-handle-height);
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  margin-inline: auto;
 }

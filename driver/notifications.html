@@ -9,22 +9,29 @@
   </head>
   <body class="app-shell notifications-page">
     <sd-page body-class="app-shell notifications-page" screen-styles="styles/driver.css, ../shared/styles/notifications.css, styles/notifications.css">
-      <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
-        <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </sd-button>
-        <span class="notif-topbar__title-text" data-i18n="notifications.title">الإشعارات</span>
-        <a data-slot="end" href="./notification-settings.html" class="btn btn--icon btn--ghost notif-topbar__settings" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-        </a>
-      </sd-app-header>
+      <!-- ── Purple hero band holding the header (same language as the Figma list screens) ── -->
+      <div class="sd-hero notif-hero">
+        <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+            <svg class="notif-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </sd-button>
+          <h1 class="notif-topbar__title-text" data-i18n="notifications.title">الإشعارات</h1>
+          <a data-slot="end" href="./notification-settings.html" class="btn btn--icon btn--ghost notif-topbar__settings" data-i18n-aria-label="notifications.settings.title" aria-label="إعدادات الإشعارات">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          </a>
+        </sd-app-header>
+      </div>
 
-      <main class="notif-content" id="main-content" data-i18n-aria-label="notifications.title" aria-label="الإشعارات">
+      <main class="sd-panel notif-content" id="main-content" data-i18n-aria-label="notifications.title" aria-label="الإشعارات">
 
         <!-- ── Error state (?state=error) ───────────────────────── -->
         <div class="notif-error" id="notif-error" hidden aria-hidden="true">
+          <div class="notif-error__icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <h2 class="notif-error__title" data-i18n="common.error">حدث خطأ ما</h2>
           <p class="notif-error__msg" data-i18n="notifications.error">تعذّر تحميل الإشعارات. تحقّقي من اتصالك.</p>
-          <button type="button" class="btn btn--ghost" id="notif-retry" data-i18n="common.retry">حاولي مجدداً</button>
+          <button type="button" class="btn btn--primary btn--full" id="notif-retry" data-i18n="common.retry">حاولي مجدداً</button>
         </div>
 
         <!-- ── Loading state (?state=loading) ───────────────────── -->
@@ -85,7 +92,7 @@
           <p class="notif-prime__body" data-i18n="notifications.prime.body.driver">تصلكِ طلبات الرحلات كإشعارات حتى والتطبيق في الخلفية. بدونها لن تستقبلي رحلات.</p>
           <div class="notif-prime__actions">
             <sd-button variant="primary" full type="button" id="notif-prime-allow" data-i18n="notifications.prime.allow">السماح بالإشعارات</sd-button>
-            <sd-button variant="ghost" full type="button" id="notif-prime-later" data-i18n="notifications.prime.later">ليس الآن</sd-button>
+            <sd-button variant="link" type="button" id="notif-prime-later" data-i18n="notifications.prime.later">ليس الآن</sd-button>
           </div>
         </div>
       </sd-bottom-sheet>

@@ -1,123 +1,130 @@
 /*
- * profile.css — Driver profile screen
- * All values use tokens. No hardcoded colors or sizes.
+ * profile.css — Driver profile screen (#1731)
+ * Follows the Figma "Driver - Menu" look: identity in the purple hero, then a
+ * white panel with an uppercase-labelled form card, lavender list rows and an
+ * outlined logout action. All values use tokens.
  */
 
-/* ── Page ────────────────────────────────────────── */
+/* ── Hero ────────────────────────────────────────── */
 
-.driver-profile-page {
-  background: var(--color-surface-alt);
-  min-block-size: 100dvh;
+[dir='rtl'] .dprofile-back__icon {
+  transform: scaleX(-1);
 }
 
-/* ── Main scroll area ────────────────────────────── */
+.dprofile-hero__title {
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dprofile-hero__spacer {
+  display: block;
+  inline-size: var(--icon-btn-size);
+}
+
+.dprofile-id {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--page-gutter) 0;
+}
+
+.dprofile-id p {
+  margin: 0;
+}
+
+.dprofile-id__avatar {
+  inline-size: calc(var(--space-16) + var(--space-4));
+  block-size: calc(var(--space-16) + var(--space-4));
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  border: 3px solid rgba(var(--color-surface-rgb), 0.6);
+}
+
+.dprofile-id__info {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dprofile-id__name {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-on-primary);
+  line-height: var(--leading-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dprofile-id__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-lg);
+  color: var(--color-star);
+}
+
+/* ── Panel ───────────────────────────────────────── */
 
 .driver-profile-main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-4) max(var(--space-8), env(safe-area-inset-bottom));
-  max-inline-size: 540px;
-  margin-inline: auto;
+  gap: var(--space-6);
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
 }
-
-/* ── Hero header ─────────────────────────────────── */
-
-.dprofile-hero {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-}
-
-.dprofile-hero__info {
-  flex: 1;
-}
-
-.dprofile-hero__name {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
-}
-
-.dprofile-hero__rating {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-warning, var(--color-primary-600));
-  font-weight: var(--fw-medium);
-  margin-block-start: var(--space-1);
-}
-
-/* ── Sections ────────────────────────────────────── */
 
 .dprofile-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dprofile-form {
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-.dprofile-section.card {
-  padding: var(--space-5);
-}
-
-/* ── Language row ────────────────────────────────── */
+/* ── Language switch ─────────────────────────────── */
 
 .dprofile-lang-row {
-  display: flex;
-  gap: var(--space-3);
+  border-color: var(--color-surface);
 }
 
-.dprofile-lang-btn {
-  flex: 1;
+/* F7 stretches plain buttons to 100% — the segments share the row instead. */
+.dprofile-lang-row .sd-segmented__btn {
+  inline-size: auto;
+  min-inline-size: 0;
   font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  border: 1px solid var(--color-border);
-  transition: border-color var(--transition-base), background var(--transition-base);
-}
-
-.dprofile-lang-btn[aria-pressed="true"] {
-  border-color: var(--color-primary-600);
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
-  font-weight: var(--fw-semibold);
 }
 
 /* ── Quick links ─────────────────────────────────── */
 
-.dprofile-links {
-  gap: 0;
+.dprofile-link .icon-tile {
+  background: var(--color-primary-200);
 }
 
-.dprofile-links .profile-sheet__link {
-  border-block-end: 1px solid var(--color-border);
+/* ── Account actions ─────────────────────────────── */
+
+.dprofile-actions {
+  align-items: center;
 }
 
-.dprofile-links .profile-sheet__link:last-child {
-  border-block-end: none;
+.dprofile-logout {
+  gap: var(--space-2);
+  font-size: var(--fs-lg);
 }
-
-.dprofile-links__arrow {
-  margin-inline-start: auto;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-@media (min-width: 768px) {
-  .driver-profile-main { padding: var(--space-8) var(--space-6); }
-}
-
-/* ── Delete account ──────────────────────────────────── */
 
 /* The colour sits on the label: f7-overrides.css forces color: inherit on every
    plain <a> with a selector no single class can outrank. */
 .dprofile-delete-link {
   display: block;
-  margin-inline: auto;
   padding: var(--space-2) var(--space-4);
   text-align: center;
 }

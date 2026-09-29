@@ -6,7 +6,7 @@
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 
 auth.requireAuth();
@@ -16,18 +16,8 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
-// ── If ?status=pending|rejected, the inline demo script handles visibility.
+// Demo entry points: ?status=pending|rejected opens a status screen, ?step=2…6 opens a step.
 const params = new URLSearchParams(location.search);
-if (params.get('status')) {
-  qs('#pending-done-btn')?.addEventListener('click', () => window.location.assign('./index.html'));
-  qs('#rejected-retry-btn')?.addEventListener('click', () => {
-    qs('#onboarding-progress')?.removeAttribute('hidden');
-    qs('#step-rejected')?.classList.add('onboarding-step--hidden');
-    qs('#step-1')?.classList.remove('onboarding-step--hidden');
-  });
-} else {
-  runWizard();
-}
 
 // ── Common Egypt-market vehicle makes → models (#1573) ──
 const VEHICLE_MODELS = {
@@ -49,39 +39,76 @@ const VEHICLE_MODELS = {
   BMW: ['3 Series', '5 Series', 'X3', 'X1'],
 };
 
+runWizard();
+
 function runWizard() {
   let currentStep = 1;
   const TOTAL_STEPS = 6;
 
+  // Header title per step (the step's own <h2> carries the longer hero heading).
+  const STEP_TITLES = {
+    1: 'onboarding.step1.title',
+    2: 'onboarding.idCapture.title',
+    3: 'onboarding.step2.title',
+    4: 'onboarding.step4.title',
+    5: 'onboarding.step3.title',
+    6: 'onboarding.step5.title',
+  };
+
   const progressFill = qs('#progress-fill');
   const progressDots = qsa('.onboarding-progress__dot');
+  const progressCount = qs('#progress-count');
+  const headerTitle = qs('#onboarding-title');
+  const headerBack = qs('#onboarding-back');
+  const main = qs('#onboarding-main');
 
-  function goToStep(n) {
-    const prev = qs(`#step-${currentStep}`);
-    prev?.classList.add('onboarding-step--hidden');
-    const dotPrev = progressDots[currentStep - 1];
-    if (dotPrev) {
-      dotPrev.classList.remove('is-active');
-      if (n > currentStep) dotPrev.classList.add('is-done');
+  function renderChrome() {
+    if (headerTitle) {
+      headerTitle.setAttribute('data-i18n', STEP_TITLES[currentStep]);
+      headerTitle.textContent = translate(STEP_TITLES[currentStep]);
     }
+    if (progressCount) progressCount.textContent = translate('onboarding.stepOf', { n: currentStep, total: TOTAL_STEPS });
+    if (headerBack) headerBack.disabled = currentStep === 1;
+  }
+  document.addEventListener(I18N_EVENT, renderChrome);
+
+  function goToStep(n, { smooth = true } = {}) {
+    qsa('.onboarding-step').forEach((sec) => sec.classList.add('onboarding-step--hidden'));
+    document.body.classList.remove('onboarding-page--status');
+    qs('#onboarding-progress')?.removeAttribute('hidden');
 
     currentStep = n;
+    qs(`#step-${currentStep}`)?.classList.remove('onboarding-step--hidden');
 
-    const next = qs(`#step-${currentStep}`);
-    next?.classList.remove('onboarding-step--hidden');
-    const dotNext = progressDots[currentStep - 1];
-    if (dotNext) { dotNext.classList.add('is-active'); dotNext.classList.remove('is-done'); }
-
+    progressDots.forEach((dot, i) => {
+      dot.classList.toggle('is-done', i < currentStep - 1);
+      dot.classList.toggle('is-active', i === currentStep - 1);
+    });
     if (progressFill) progressFill.style.inlineSize = `${(currentStep / TOTAL_STEPS) * 100}%`;
     qs('.onboarding-progress')?.setAttribute('aria-valuenow', String(currentStep));
-    qs('#onboarding-main')?.scrollTo({ top: 0, behavior: 'smooth' });
+    renderChrome();
+    main?.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
   }
 
   function showStatus(status) {
     qs('#onboarding-progress')?.setAttribute('hidden', '');
-    qsa('.onboarding-step').forEach((s) => s.classList.add('onboarding-step--hidden'));
+    document.body.classList.add('onboarding-page--status');
+    qsa('.onboarding-step').forEach((sec) => sec.classList.add('onboarding-step--hidden'));
     qs(`#step-${status}`)?.classList.remove('onboarding-step--hidden');
+    main?.scrollTo({ top: 0 });
   }
+
+  // Header back arrow = the current step's own Back action (step 1 has none).
+  headerBack?.addEventListener('click', () => qs(`#step${currentStep}-back`)?.click());
+
+  // Status screens (#1576): a pending driver has no way into the app — "Got it"
+  // signs her out rather than sending her to the login page, which would bounce
+  // a signed-in driver straight to home.
+  qs('#pending-done-btn')?.addEventListener('click', () => {
+    auth.logout();
+    window.location.assign('./index.html');
+  });
+  qs('#rejected-retry-btn')?.addEventListener('click', () => goToStep(1));
 
   // ── Step 1: Personal details + NID + consent (#1572) ──
   qs('#step1-next')?.addEventListener('click', () => {
@@ -97,17 +124,24 @@ function runWizard() {
     const name = nameEl?.value.trim() || '';
     if (!name || !/^[\p{L}\s'-]+$/u.test(name)) {
       if (nameErr) { nameErr.textContent = translate('onboarding.error.name'); nameErr.hidden = false; }
-      if (!name) { nameEl?.focus(); ok = false; }
+      nameEl?.focus();
+      ok = false;
     } else { if (nameErr) nameErr.hidden = true; }
 
+    const showDobErr = (key) => {
+      if (!dobErr) return;
+      dobErr.setAttribute('data-i18n', key);
+      dobErr.textContent = translate(key);
+      dobErr.hidden = false;
+    };
     const dob = dobEl?.value || '';
     if (!dob) {
-      if (dobErr) dobErr.hidden = false;
+      showDobErr('onboarding.error.dob');
       if (ok) { dobEl?.focus(); ok = false; }
     } else {
       const age = (Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
       if (age < 18) {
-        if (dobErr) dobErr.hidden = false;
+        showDobErr('onboarding.error.age');
         if (ok) { dobEl?.focus(); ok = false; }
       } else { if (dobErr) dobErr.hidden = true; }
     }
@@ -238,10 +272,16 @@ function runWizard() {
     const numOk = !!num && /^[A-Za-z0-9]{6,20}$/.test(num.value.trim());
     const licExpOk = !!licExp && !!licExp.value && new Date(licExp.value) > today;
     const regExpOk = !!regExp && !!regExp.value && new Date(regExp.value) > today;
-    const toggleErr = (id, ok) => { const el = qs(`#${id}`); if (el) el.hidden = ok; };
-    toggleErr('licence-number-error', numOk);
-    toggleErr('licence-expiry-error', licExpOk);
-    toggleErr('reg-expiry-error', regExpOk);
+    const toggleErr = (id, ok, key) => {
+      const el = qs(`#${id}`);
+      if (!el) return;
+      if (!ok && key) { el.setAttribute('data-i18n', key); el.textContent = translate(key); }
+      el.hidden = ok;
+    };
+    const expiryKey = (el, base) => `${base}.error.${el?.value ? 'expired' : 'empty'}`;
+    toggleErr('licence-number-error', numOk, `onboarding.licenceNumber.error.${num?.value.trim() ? 'format' : 'empty'}`);
+    toggleErr('licence-expiry-error', licExpOk, expiryKey(licExp, 'onboarding.licenceExpiry'));
+    toggleErr('reg-expiry-error', regExpOk, expiryKey(regExp, 'onboarding.regExpiry'));
 
     if (!allUploaded) { if (allErr) allErr.hidden = false; return; }
     if (allErr) allErr.hidden = true;
@@ -273,11 +313,14 @@ function runWizard() {
 
     const btn = qs('#step6-submit');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>'; }
-    setTimeout(() => {
-      showStatus('pending');
-      qs('#pending-done-btn')?.addEventListener('click', () => window.location.assign('./index.html'));
-    }, 1200);
+    setTimeout(() => showStatus('pending'), 1200);
   });
+
+  // ── Initial screen ──
+  const status = params.get('status');
+  const stepParam = parseInt(params.get('step') || '', 10);
+  if (status === 'pending' || status === 'rejected') showStatus(status);
+  else goToStep(stepParam >= 1 && stepParam <= TOTAL_STEPS ? stepParam : 1, { smooth: false });
 }
 
 // ── Make/Model dependent dropdowns (#1573) ─────────
@@ -367,6 +410,15 @@ function setupUploadZone(inputId, previewId, placeholderId, zoneId) {
     }
     if (placeholder) placeholder.style.display = 'none';
     zone.classList.add('has-file');
+
+    // A filled slot clears its own "missing" error, and the step-level one once
+    // every slot in the step is filled.
+    zone.querySelectorAll('.field__error').forEach((el) => { el.hidden = true; });
+    const step = zone.closest('.onboarding-step');
+    const slots = step ? qsa('.upload-zone, .selfie-zone', step) : [];
+    if (slots.every((s) => s.classList.contains('has-file'))) {
+      step?.querySelectorAll('#nid-docs-error, #docs-all-error').forEach((el) => { el.hidden = true; });
+    }
   });
 }
 
