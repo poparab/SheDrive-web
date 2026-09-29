@@ -2,14 +2,14 @@
  * account-deletion.js — account deletion, rider and driver.
  *
  * App Store and Google Play both refuse an app that lets people create an account
- * without letting them delete it from inside the app. Google Play also requires a
- * web page where someone who no longer has the app can ask for the same thing
- * (`/delete-account/`). All three surfaces run on the helpers in this file.
+ * without letting them delete it from inside the app. Both apps' delete-account
+ * screens and the restore step on both login screens run on the helpers here.
  *
  * Product rules the mockup demonstrates:
  * - Deleting starts a 30-day window. The account is deactivated and signed out at
  *   once; signing in again inside the window offers to restore it. After the
- *   window the deletion is final.
+ *   window the deletion is final, and the number can never sign up to that app
+ *   again (`isDeletedNumber`).
  * - The phone number is re-confirmed with a one-time code before anything happens.
  * - An active trip blocks the request. A driver who owes SheDrive cash blocks it
  *   too — she can settle, so there is a way through. A rider's outstanding fee does
@@ -17,10 +17,11 @@
  *   your account" is the same deadlock that got the rider booking gate rejected.
  *
  * Storage: localStorage `shedrive.accountDeletion` = { rider?: {...}, driver?: {...} }
- * with each entry { phone, requestedAt, deleteOn, reason }.
+ * with each entry { phone, requestedAt, deleteOn }. An entry past `deleteOn` is a
+ * completed deletion: no longer pending, but its number stays blocked.
  *
  * Page scripts call `mountAccountDeletion(role)`; the login screens call
- * `getPendingDeletion` / `cancelDeletion`; the public page uses `wireOtpStep`.
+ * `getPendingDeletion` / `cancelDeletion` / `isDeletedNumber`.
  */
 
 import { auth } from './auth.js';
@@ -48,9 +49,9 @@ export function getPendingDeletion(role) {
   return entry;
 }
 
-export function scheduleDeletion(role, { phone = '', reason = '' } = {}) {
+export function scheduleDeletion(role, { phone = '' } = {}) {
   const requestedAt = Date.now();
-  const entry = { phone, requestedAt, deleteOn: requestedAt + GRACE_DAYS * DAY_MS, reason };
+  const entry = { phone, requestedAt, deleteOn: requestedAt + GRACE_DAYS * DAY_MS };
   storage.set(DELETION_STORAGE_KEY, { ...readAll(), [role]: entry });
   return entry;
 }
@@ -64,7 +65,18 @@ export function cancelDeletion(role) {
 /** A sample entry for design-review deep links, never written to storage. */
 export function previewDeletion() {
   const requestedAt = Date.now();
-  return { phone: '', requestedAt, deleteOn: requestedAt + GRACE_DAYS * DAY_MS, reason: '' };
+  return { phone: '', requestedAt, deleteOn: requestedAt + GRACE_DAYS * DAY_MS };
+}
+
+// Mock: 0150… stands for a number whose account was deleted, so reviewers can see
+// the sign-up refusal without waiting out a 30-day window.
+export const DELETED_NUMBER_PREFIX = '0150';
+
+/** True once a deletion for this number has completed: it can never sign up again. */
+export function isDeletedNumber(role, phone) {
+  if (phone.startsWith(DELETED_NUMBER_PREFIX)) return true;
+  const entry = readAll()[role];
+  return Boolean(entry && entry.phone === phone && entry.deleteOn <= Date.now());
 }
 
 /** "27 October 2026" in the page's current language. */
@@ -154,7 +166,8 @@ export function wireOtpStep({ input, error, submit, resend, resendLabel, onVerif
 /**
  * Drive `rider|driver/delete-account.html`.
  *
- * Steps: review → verify → done, or blocked in place of review.
+ * Steps: review → verify → done, or blocked in place of review. The review step is
+ * one short confirmation; the code on the next step is what confirms the request.
  * ?state= review (default) | fee | owed | blocked-trip | blocked-balance | verify | done
  */
 export function mountAccountDeletion(role) {
@@ -182,12 +195,7 @@ export function mountAccountDeletion(role) {
     return;
   }
 
-  // Review: Continue stays disabled until she ticks the acknowledgement.
-  const ack = qs('#del-ack');
   const continueBtn = qs('#del-continue');
-  const syncContinue = () => { if (continueBtn) continueBtn.disabled = !ack?.checked; };
-  ack?.addEventListener('change', syncContinue);
-  syncContinue();
 
   const phoneEl = qs('#del-verify-phone');
   if (phoneEl) phoneEl.textContent = phone ? `+20 ${phone.replace(/^0/, '')}` : '';
@@ -198,15 +206,10 @@ export function mountAccountDeletion(role) {
     submit: qs('#del-confirm'),
     resend: qs('#del-resend'),
     resendLabel: qs('#del-resend-countdown'),
-    onVerified: () => {
-      const reason = qs('input[name="del-reason"]:checked')?.value || '';
-      const entry = scheduleDeletion(role, { phone, reason });
-      finish(entry);
-    },
+    onVerified: () => finish(scheduleDeletion(role, { phone })),
   });
 
   continueBtn?.addEventListener('click', () => {
-    if (continueBtn.disabled) return;
     show('verify');
     otp.start();
   });
@@ -221,7 +224,6 @@ export function mountAccountDeletion(role) {
   }
 
   if (state === 'verify') {
-    if (ack) ack.checked = true;
     show('verify');
     otp.start();
     return;

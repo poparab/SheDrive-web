@@ -9,7 +9,7 @@ import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { storage } from '../../shared/scripts/storage.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
-import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion } from '../../shared/scripts/account-deletion.js';
+import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion, isDeletedNumber } from '../../shared/scripts/account-deletion.js';
 
 await initI18n();
 
@@ -150,6 +150,11 @@ function verifyOtp(value) {
       startRestoreStep(pending);
       return;
     }
+    // A number whose account was deleted can never sign up again (#5036).
+    if (isDeletedNumber('rider', currentPhone)) {
+      refuseDeletedNumber();
+      return;
+    }
     if (isNewRider(currentPhone)) {
       startNameStep();
       return;
@@ -205,6 +210,12 @@ resendBtn?.addEventListener('click', () => {
     if (verifyBtn) verifyBtn.disabled = true;
   }, 90_000);
 });
+
+function refuseDeletedNumber() {
+  showStep('phone');
+  if (phoneInput) phoneInput.value = currentPhone;
+  showPhoneError('deleteAccount.deletedNumber');
+}
 
 // ── Name step (new riders only) ───────────────────────
 function startNameStep() {
@@ -272,13 +283,17 @@ qs('#restore-decline-btn')?.addEventListener('click', () => window.location.repl
 
 // ── Design review deep links ──────────────────────────
 // ?state=otp opens the code step; ?state=name opens the new-rider name step;
-// ?state=restore opens the restore step for an account awaiting deletion.
+// ?state=restore opens the restore step for an account awaiting deletion;
+// ?state=deleted-number shows the refusal for a number whose account was deleted.
 const previewState = new URLSearchParams(window.location.search).get('state');
 if (previewState === 'otp') {
   startOtpStep('01012345678');
 } else if (previewState === 'restore') {
   currentPhone = '01001234567';
   startRestoreStep(previewDeletion());
+} else if (previewState === 'deleted-number') {
+  currentPhone = '01501234567';
+  refuseDeletedNumber();
 } else if (previewState === 'name') {
   currentPhone = '01112345678';
   startNameStep();

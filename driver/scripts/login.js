@@ -8,9 +8,10 @@ import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { startResendCountdown, MAX_ATTEMPTS } from '../../shared/scripts/otp-flow.js';
-import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion } from '../../shared/scripts/account-deletion.js';
+import { getPendingDeletion, cancelDeletion, bindDeletionDate, previewDeletion, isDeletedNumber } from '../../shared/scripts/account-deletion.js';
 
-// ?state=restore opens the restore step for an account awaiting deletion.
+// ?state=restore opens the restore step for an account awaiting deletion;
+// ?state=deleted-number shows the refusal for a number whose account was deleted.
 const previewState = new URLSearchParams(window.location.search).get('state');
 
 // Skip login if already authenticated (not while a design-review state is open)
@@ -217,6 +218,11 @@ function verifyOtp(value) {
       startRestoreStep(pending);
       return;
     }
+    // A number whose account was deleted can never sign up again (#5037).
+    if (isDeletedNumber('driver', currentPhone)) {
+      refuseDeletedNumber();
+      return;
+    }
     auth.login('driver', currentPhone);
     routeAfterLogin(currentPhone);
     return;
@@ -264,6 +270,12 @@ resendBtn?.addEventListener('click', () => {
   }, 90_000);
 });
 
+function refuseDeletedNumber() {
+  showStep('phone');
+  if (phoneInput) phoneInput.value = currentPhone;
+  showPhoneError('deleteAccount.deletedNumber');
+}
+
 // ── Restore step (account inside its deletion window) ──
 function startRestoreStep(entry) {
   if (formTitle) {
@@ -289,4 +301,7 @@ qs('#restore-decline-btn')?.addEventListener('click', () => window.location.repl
 if (previewState === 'restore') {
   currentPhone = '01098765432';
   startRestoreStep(previewDeletion());
+} else if (previewState === 'deleted-number') {
+  currentPhone = '01501234567';
+  refuseDeletedNumber();
 }
