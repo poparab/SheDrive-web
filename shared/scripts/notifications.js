@@ -1,5 +1,5 @@
 /**
- * notifications.js — the notification inbox, preferences and push permission.
+ * notifications.js — the notification inbox and push permission.
  *
  * One store serves both apps; `role` is 'rider' or 'driver'. The feed is a mock
  * of what the backend returns: every item carries i18n keys rather than text, so
@@ -7,46 +7,21 @@
  * params come as {ar, en} pairs for the same reason.
  *
  * The inbox is the durable record. A push is only a copy of an inbox item, so
- * turning a category off (or denying push at the OS level) never removes it
- * from the inbox — she can always come back to it.
+ * denying push at the OS level never removes it from the inbox — she can always
+ * come back to it. Every item carries the `href` of the screen it is about.
  *
  * Storage (localStorage):
  *   shedrive.notificationsRead   {rider: [id], driver: [id]}   read ids
- *   shedrive.notificationPrefs   {rider: {key: bool}, driver: {…}}
  *   shedrive.pushPermission      'default' | 'granted' | 'denied'
  */
 
 import { storage } from './storage.js';
 
 const READ_KEY = 'shedrive.notificationsRead';
-const PREFS_KEY = 'shedrive.notificationPrefs';
 const PUSH_KEY = 'shedrive.pushPermission';
 
 const HOUR = 60;
 const DAY = 24 * HOUR;
-
-/* ── Categories ─────────────────────────────────────────────────────────── */
-
-/**
- * `locked` categories cannot be switched off: they carry the trip itself or her
- * safety, and a missed one leaves her waiting at the kerb or unaware of an SOS.
- */
-export const CATEGORIES = {
-  rider: [
-    { key: 'trip', locked: true },
-    { key: 'safety', locked: true },
-    { key: 'payment', locked: false, default: true },
-    { key: 'offers', locked: false, default: false },
-  ],
-  driver: [
-    { key: 'trip', locked: true },
-    { key: 'safety', locked: true },
-    { key: 'account', locked: true },
-    { key: 'earnings', locked: false, default: true },
-    { key: 'offers', locked: false, default: true },
-    { key: 'requestSound', locked: false, default: true },
-  ],
-};
 
 /* ── Mock feed ──────────────────────────────────────────────────────────── */
 
@@ -121,23 +96,6 @@ export function markRead(role, id) {
 
 export function markAllRead(role) {
   writeRead(role, FEED[role].map((n) => n.id));
-}
-
-/* ── Preferences ────────────────────────────────────────────────────────── */
-
-export function getPrefs(role) {
-  const saved = (storage.get(PREFS_KEY) || {})[role] || {};
-  return Object.fromEntries(
-    CATEGORIES[role].map((c) => [c.key, c.locked ? true : saved[c.key] ?? c.default])
-  );
-}
-
-export function setPref(role, key, value) {
-  const cat = CATEGORIES[role].find((c) => c.key === key);
-  if (!cat || cat.locked) return;
-  const all = storage.get(PREFS_KEY) || {};
-  all[role] = { ...(all[role] || {}), [key]: Boolean(value) };
-  storage.set(PREFS_KEY, all);
 }
 
 /* ── Push permission (mock of the OS prompt) ───────────────────────────── */

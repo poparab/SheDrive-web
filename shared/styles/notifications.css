@@ -1,12 +1,12 @@
-/* notifications.css — notification inbox + notification settings, rider and driver.
-   Both apps render the same two screens (shared/scripts/notification-inbox.js);
+/* notifications.css — notification inbox, rider and driver.
+   Both apps render the same screen (shared/scripts/notification-inbox.js);
    each app's own notifications.css only adjusts for its shell.
 
-   There is no Figma frame for these screens, so they follow the language of the
+   There is no Figma frame for this screen, so it follows the language of the
    Figma list screens: a purple .sd-hero band holding the header, a white
    .sd-panel with a 32px top radius, lavender list-row cards with round icon
-   tiles, a segmented filter, and F7 toggles on white setting cards. A screen
-   whose markup has no hero (a plain sd-app-header) still lays out correctly. */
+   tiles and a segmented filter. A screen whose markup has no hero (a plain
+   sd-app-header) still lays out correctly. */
 
 /* ── Page layout ──────────────────────────────────────────────────────── */
 
@@ -50,15 +50,8 @@
   color: inherit;
 }
 
-/* The inbox header also carries the settings button, so on narrow phones its
-   title steps down a size to stay on one line. */
-.sd-hero .notif-topbar__inner:has(.notif-topbar__settings) .notif-topbar__title-text {
-  font-size: var(--fs-base);
-}
-
 @media (min-width: 400px) {
-  .sd-hero .notif-topbar__title-text,
-  .sd-hero .notif-topbar__inner:has(.notif-topbar__settings) .notif-topbar__title-text {
+  .sd-hero .notif-topbar__title-text {
     font-size: var(--fs-2xl);
   }
 }
@@ -578,150 +571,4 @@ body.notifications-page sd-bottom-sheet .sheet-modal-inner {
 
 .notif-prime__actions sd-button[full] {
   align-self: stretch;
-}
-
-/* ── Settings screen ──────────────────────────────────────────────────── */
-
-.notif-settings {
-  flex: 1 0 auto;
-  padding: var(--space-4) var(--page-gutter) calc(var(--space-10) + env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.sd-panel.notif-settings {
-  padding-block-start: var(--space-6);
-}
-
-.notif-settings__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-/* Uppercase group label, as .section-label */
-.notif-settings__heading {
-  margin: 0;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  color: var(--color-text-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: var(--leading-tight);
-}
-
-.notif-settings__card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-/* OS permission status: a lavender list-row card */
-.notif-push {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface-alt);
-}
-
-.notif-push__label {
-  flex: 1 1 auto;
-  margin: 0;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-#notif-push-status {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-}
-
-.notif-push__hint {
-  flex: 1 1 100%;
-  margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--leading-snug);
-  color: var(--color-text-muted);
-}
-
-.notif-push .btn {
-  margin-block-start: var(--space-2);
-}
-
-.notif-push .btn[hidden] {
-  display: none;
-}
-
-.notif-pref {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-
-.notif-pref + .notif-pref {
-  border-block-start: 1px solid var(--color-border);
-}
-
-.notif-pref__text {
-  flex: 1 1 auto;
-  min-inline-size: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.notif-pref__title {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-.notif-pref__desc {
-  font-size: var(--fs-sm);
-  line-height: var(--leading-snug);
-  color: var(--color-text-muted);
-}
-
-.notif-pref__locked {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-block-start: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  background: var(--color-primary-100);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-primary-700);
-}
-
-.notif-pref .toggle {
-  flex: none;
-}
-
-/* A locked toggle reads as on, not as broken. */
-.notif-pref .toggle.disabled,
-.notif-pref .toggle:has(input:disabled) {
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-/* With push denied at OS level, the switches still save — they just can't reach
-   the lock screen until she turns push back on. */
-.notif-settings.is-push-off .notif-settings__types .notif-settings__card {
-  opacity: 0.7;
-}
-
-.notif-settings__note {
-  margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--leading-snug);
-  color: var(--color-text-muted);
 }

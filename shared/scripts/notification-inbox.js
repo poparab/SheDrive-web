@@ -1,10 +1,10 @@
 /**
- * notification-inbox.js — controllers for the notification inbox and the
- * notification settings screen, shared by the rider and driver apps.
+ * notification-inbox.js — controller for the notification inbox, shared by the
+ * rider and driver apps.
  *
- * The two apps render the same screens; only the feed, the categories and a few
- * strings differ, and those come from notifications.js by role. Each app's page
- * script just calls mountInbox(role) or mountNotificationSettings(role).
+ * The two apps render the same screen; only the feed and a few strings differ,
+ * and those come from notifications.js by role. Each item opens the part of the
+ * app it is about. Each app's page script just calls mountInbox(role).
  *
  * Design-review switches (query string), inbox:
  *   ?state=empty    nothing yet
@@ -14,19 +14,14 @@
  *   ?state=error    the request fails
  *   ?state=push-off OS permission denied — banner above the list
  *   ?state=prime    first-run permission explainer sheet
- * Settings:
- *   ?state=push-off OS permission denied — every row still shown, status row warns
  */
 
 import { translate, applyTranslations, getLanguage, I18N_EVENT } from './i18n.js';
 import { qs, qsa } from './utils.js';
 import {
-  CATEGORIES,
   getFeed,
   markRead,
   markAllRead,
-  getPrefs,
-  setPref,
   getPushPermission,
   setPushPermission,
   dayGroup,
@@ -101,7 +96,7 @@ function showToast(msg, type = 'info') {
 
 /** The mock's stand-in for sending her to the OS notification settings. */
 function openPhoneSettings(after) {
-  showToast(translate('notifications.settings.pushEnabled'), 'success');
+  showToast(translate('notifications.pushEnabled'), 'success');
   setPermission('granted');
   after?.();
 }
@@ -239,7 +234,7 @@ export function mountInbox(role) {
     setPermission('granted');
     closePrime();
     render();
-    showToast(translate('notifications.settings.pushEnabled'), 'success');
+    showToast(translate('notifications.pushEnabled'), 'success');
   });
   qs('#notif-prime-later')?.addEventListener('click', () => {
     setPermission('denied');
@@ -258,41 +253,4 @@ export function mountInbox(role) {
 
   document.addEventListener(I18N_EVENT, render);
   render();
-}
-
-/* ── Settings ───────────────────────────────────────────────────────────── */
-
-export function mountNotificationSettings(role) {
-  const statusEl = qs('#notif-push-status');
-  const openBtn = qs('#notif-push-open');
-
-  function renderStatus() {
-    const off = permission !== 'granted';
-    if (statusEl) {
-      const k = off ? 'notifications.settings.push.off' : 'notifications.settings.push.on';
-      statusEl.setAttribute('data-i18n', k);
-      statusEl.textContent = translate(k);
-      statusEl.classList.toggle('badge--success', !off);
-      statusEl.classList.toggle('badge--danger', off);
-    }
-    show(openBtn, off);
-    qs('.notif-settings')?.classList.toggle('is-push-off', off);
-  }
-
-  const prefs = getPrefs(role);
-  CATEGORIES[role].forEach((cat) => {
-    const input = qs(`[data-pref="${cat.key}"]`);
-    if (!input) return;
-    input.checked = prefs[cat.key];
-    input.disabled = cat.locked;
-    input.addEventListener('change', () => {
-      setPref(role, cat.key, input.checked);
-      showToast(translate('notifications.settings.saved'), 'success');
-    });
-  });
-
-  openBtn?.addEventListener('click', () => openPhoneSettings(renderStatus));
-
-  document.addEventListener(I18N_EVENT, renderStatus);
-  renderStatus();
 }
