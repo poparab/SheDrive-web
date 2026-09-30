@@ -12,8 +12,6 @@
  *   ?state=long     24 items across the three day groups
  *   ?state=loading  skeleton rows
  *   ?state=error    the request fails
- *   ?state=push-off OS permission denied — banner above the list
- *   ?state=prime    first-run permission explainer sheet
  */
 
 import { translate, applyTranslations, getLanguage, I18N_EVENT } from './i18n.js';
@@ -22,23 +20,11 @@ import {
   getFeed,
   markRead,
   markAllRead,
-  getPushPermission,
-  setPushPermission,
   dayGroup,
 } from './notifications.js';
 
 const params = new URLSearchParams(window.location.search);
 const demoState = params.get('state');
-
-/* Permission is held here so a design-review state never leaks into storage and
-   greets the next plain visit with a "notifications are off" banner. */
-const DEMO_PERMISSION = { 'push-off': 'denied', prime: 'default' };
-let permission = DEMO_PERMISSION[demoState] || getPushPermission();
-
-function setPermission(value) {
-  permission = value;
-  if (!DEMO_PERMISSION[demoState]) setPushPermission(value);
-}
 
 /* ── Icons, one per category ────────────────────────────────────────────── */
 
@@ -94,13 +80,6 @@ function showToast(msg, type = 'info') {
   setTimeout(() => t.remove(), 4000);
 }
 
-/** The mock's stand-in for sending her to the OS notification settings. */
-function openPhoneSettings(after) {
-  showToast(translate('notifications.pushEnabled'), 'success');
-  setPermission('granted');
-  after?.();
-}
-
 /* ── Inbox ──────────────────────────────────────────────────────────────── */
 
 export function mountInbox(role) {
@@ -111,10 +90,7 @@ export function mountInbox(role) {
   const errorEl = qs('#notif-error');
   const loadingEl = qs('#notif-loading');
   const bodyEl = qs('#notif-body');
-  const bannerEl = qs('#notif-push-banner');
   const markAllBtn = qs('#notif-mark-all');
-  const primeSheet = qs('#notif-prime-sheet');
-  const primeScrim = qs('#notif-prime-scrim');
 
   let filter = 'all';
 
@@ -132,7 +108,6 @@ export function mountInbox(role) {
     }
     show(loadingEl, false);
 
-    show(bannerEl, permission === 'denied');
 
     const feed = getFeed(role, demoState);
     const unread = feed.filter((n) => !n.read);
@@ -221,35 +196,7 @@ export function mountInbox(role) {
     showToast(translate('notifications.allRead'), 'success');
   });
 
-  qs('#notif-push-enable')?.addEventListener('click', () => openPhoneSettings(render));
   qs('#notif-retry')?.addEventListener('click', () => { window.location.search = ''; });
-
-  /* First-run explainer: shown before the OS prompt, so a "no" here costs nothing
-     and she can still be asked again later. */
-  function closePrime() {
-    primeSheet?.close();
-    show(primeScrim, false);
-  }
-  qs('#notif-prime-allow')?.addEventListener('click', () => {
-    setPermission('granted');
-    closePrime();
-    render();
-    showToast(translate('notifications.pushEnabled'), 'success');
-  });
-  qs('#notif-prime-later')?.addEventListener('click', () => {
-    setPermission('denied');
-    closePrime();
-    render();
-  });
-
-  customElements.whenDefined('sd-bottom-sheet').then(() => {
-    if (permission === 'default') {
-      primeSheet?.open();
-      show(primeScrim, true);
-    } else {
-      primeSheet?.close();
-    }
-  });
 
   document.addEventListener(I18N_EVENT, render);
   render();

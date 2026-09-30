@@ -1,5 +1,5 @@
 /**
- * notifications.js — the notification inbox and push permission.
+ * notifications.js — the notification inbox.
  *
  * One store serves both apps; `role` is 'rider' or 'driver'. The feed is a mock
  * of what the backend returns: every item carries i18n keys rather than text, so
@@ -7,18 +7,15 @@
  * params come as {ar, en} pairs for the same reason.
  *
  * The inbox is the durable record. A push is only a copy of an inbox item, so
- * denying push at the OS level never removes it from the inbox — she can always
- * come back to it. Every item carries the `href` of the screen it is about.
+ * whatever she misses on the lock screen is still here. Every item carries the `href` of the screen it is about.
  *
  * Storage (localStorage):
  *   shedrive.notificationsRead   {rider: [id], driver: [id]}   read ids
- *   shedrive.pushPermission      'default' | 'granted' | 'denied'
  */
 
 import { storage } from './storage.js';
 
 const READ_KEY = 'shedrive.notificationsRead';
-const PUSH_KEY = 'shedrive.pushPermission';
 
 const HOUR = 60;
 const DAY = 24 * HOUR;
@@ -96,16 +93,6 @@ export function markRead(role, id) {
 
 export function markAllRead(role) {
   writeRead(role, FEED[role].map((n) => n.id));
-}
-
-/* ── Push permission (mock of the OS prompt) ───────────────────────────── */
-
-export function getPushPermission() {
-  return storage.get(PUSH_KEY) || 'granted';
-}
-
-export function setPushPermission(value) {
-  storage.set(PUSH_KEY, value);
 }
 
 /* ── Time grouping ──────────────────────────────────────────────────────── */
