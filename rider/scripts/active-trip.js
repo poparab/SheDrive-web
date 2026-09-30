@@ -126,7 +126,7 @@ const etaInterval = setInterval(() => {
     updateEtaDisplay();
   } else {
     clearInterval(etaInterval);
-    window.location.assign('./trip-complete.html');
+    window.location.replace('./trip-complete.html');
   }
 }, 60_000);
 
@@ -295,7 +295,7 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
   }));
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.removeItem('shedrive.tripMatchedAt');
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 
 // ── Side drawer ───────────────────────────────────────
@@ -323,5 +323,5 @@ qs('#demo-advance-btn')?.addEventListener('click', () => {
     return;
   }
   clearInterval(etaInterval);
-  window.location.assign('./trip-complete.html');
+  window.location.replace('./trip-complete.html');
 });

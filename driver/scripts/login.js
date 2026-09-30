@@ -226,9 +226,9 @@ function routeAfterLogin(phone) {
     : 'approved';
   sessionStorage.setItem('shedrive.driverStatus', status);
   if (status === 'approved') {
-    window.location.assign('./home.html');
+    window.location.replace('./home.html');
   } else {
-    window.location.assign('./onboarding.html?status=' + status);
+    window.location.replace('./onboarding.html?status=' + status);
   }
 }
 
@@ -242,7 +242,7 @@ function verifyOtp(value) {
   if (value === '123456') {
     clearTimeout(expireTimer);
     // An account inside its 30-day deletion window is offered back first.
-    const pending = getPendingDeletion('driver');
+    const pending = getPendingDeletion('driver', currentPhone);
     if (pending) {
       startRestoreStep(pending);
       return;
@@ -302,7 +302,7 @@ resendBtn?.addEventListener('click', () => {
 function refuseDeletedNumber() {
   showStep('phone');
   if (phoneInput) phoneInput.value = currentPhone;
-  showPhoneError('deleteAccount.deletedNumber');
+  showPhoneError('deleteAccount.driver.deletedNumber');
 }
 
 // ── Restore step (account inside its deletion window) ──
@@ -320,7 +320,7 @@ function startRestoreStep(entry) {
 }
 
 qs('#restore-btn')?.addEventListener('click', () => {
-  cancelDeletion('driver');
+  cancelDeletion('driver', currentPhone);
   auth.login('driver', currentPhone);
   routeAfterLogin(currentPhone);
 });

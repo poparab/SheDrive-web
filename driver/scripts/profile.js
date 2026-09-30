@@ -80,7 +80,7 @@ saveBtn?.addEventListener('click', () => {
 // ── Logout ────────────────────────────────────────
 qs('#dprofile-logout-btn')?.addEventListener('click', () => {
   auth.logout();
-  window.location.assign('./index.html');
+  window.location.replace('./index.html');
 });
 
 // ── Toast helper ──────────────────────────────────

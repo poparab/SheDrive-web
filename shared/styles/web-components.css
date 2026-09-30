@@ -6,13 +6,33 @@ sd-app-header {
   display: block;
 }
 
+/* Figma header: the title sits in the true centre of the bar whatever sits on each
+   side — a back arrow on one, a language pill and a bell on the other. Two equal
+   outer columns keep it there; a side only grows past its share when its buttons
+   need the room, so they never run into the title. */
 sd-app-header .sd-app-header__inner,
 sd-app-header .navbar-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
+}
+
+sd-app-header .sd-app-header__inner > * {
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: start;
+}
+
+sd-app-header .sd-app-header__inner > .sd-app-header__title {
+  grid-column: 2;
+  justify-self: stretch;
+}
+
+sd-app-header .sd-app-header__inner > .sd-app-header__actions {
+  grid-column: 3;
+  justify-self: end;
 }
 
 /* `.navbar` in the selector outranks Framework7's `.navbar .title
@@ -93,6 +113,17 @@ sd-button {
 
 sd-bottom-sheet {
   display: block;
+}
+
+/* A closed sheet stays out of the page until the component upgrades it. */
+sd-bottom-sheet[closed]:not(.sd-bottom-sheet) {
+  display: none;
+}
+
+/* Screen styles give sheets their own transitions at high specificity; until the
+   first open()/close() a sheet must not animate (see sd-bottom-sheet.js). */
+sd-bottom-sheet.not-animated {
+  transition: none !important;
 }
 
 sd-driver-card,

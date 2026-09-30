@@ -246,7 +246,7 @@ qs('#verify-fail-confirm')?.addEventListener('click', () => {
 });
 
 // Online status is preserved — she returns to home still available (#1588 S6).
-qs('#verify-fail-done-btn')?.addEventListener('click', () => window.location.assign('./home.html'));
+qs('#verify-fail-done-btn')?.addEventListener('click', () => window.location.replace('./home.html'));
 
 // ── Cancel trip with reason + fee (#1722) ─────────
 const CANCEL_FEE = { ar: '20 جنيه', en: 'EGP 20' };
@@ -337,7 +337,7 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
     ? translate('driver.cancel.cancelledNoFee')
     : translate('driver.cancel.cancelledFee', { amount: feeAmount() });
   showToast(msg || 'تم إلغاء الرحلة', noFee ? 'success' : 'danger');
-  setTimeout(() => window.location.assign('./home.html'), 1800);
+  setTimeout(() => window.location.replace('./home.html'), 1800);
 });
 
 // ── Cancel preview scenarios (#1850) ──────────────
@@ -400,7 +400,7 @@ qs('#msg-rider-btn')?.addEventListener('click', () =>
 // ── Complete trip (#1591) → cash-collection ───────
 qs('#complete-btn')?.addEventListener('click', () => {
   if (timerInterval) clearInterval(timerInterval);
-  window.location.assign('./cash-collection.html');
+  window.location.replace('./cash-collection.html');
 });
 
 // ── SOS ───────────────────────────────────────────

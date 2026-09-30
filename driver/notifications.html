@@ -12,7 +12,7 @@
       <!-- ── Purple hero band holding the header (same language as the Figma list screens) ── -->
       <div class="sd-hero notif-hero">
         <sd-app-header bar-class="notif-topbar" inner-class="notif-topbar__inner" title-class="notif-topbar__title">
-          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" data-back="./home.html">
             <svg class="notif-topbar__back-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </sd-button>
           <h1 class="notif-topbar__title-text" data-i18n="notifications.title">الإشعارات</h1>
@@ -83,7 +83,7 @@
 
       <!-- ── First-run permission explainer (?state=prime) ─────────── -->
       <div class="notif-prime-scrim" id="notif-prime-scrim" hidden aria-hidden="true"></div>
-      <sd-bottom-sheet id="notif-prime-sheet" height="auto" role="dialog" aria-modal="true" aria-labelledby="notif-prime-title">
+      <sd-bottom-sheet id="notif-prime-sheet" closed height="auto" role="dialog" aria-modal="true" aria-labelledby="notif-prime-title">
         <div class="notif-prime">
           <div class="notif-prime__icon" aria-hidden="true">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>

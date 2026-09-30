@@ -8,10 +8,10 @@
     <script type="module" src="../shared/components/sd-page.js"></script>
   </head>
   <body class="app-shell delete-account-page">
-    <sd-page body-class="app-shell delete-account-page" screen-styles="/rider/styles/rider.css, /shared/styles/account-deletion.css, /rider/styles/delete-account.css">
+    <sd-page body-class="app-shell delete-account-page" screen-styles="styles/rider.css, ../shared/styles/account-deletion.css, styles/delete-account.css">
       <div class="sd-hero del-hero-band">
         <sd-app-header bar-class="del-topbar" inner-class="del-topbar__inner" title-class="del-topbar__title" hide-lang-toggle>
-          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" onclick="history.back()">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" data-back="./profile.html">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </sd-button>
           <span class="del-topbar__title-text" data-i18n="deleteAccount.title">حذف الحساب</span>
@@ -37,12 +37,12 @@
 
           <div class="del-notice del-notice--info" id="del-notice-fee" role="note" hidden>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <p data-i18n="deleteAccount.rider.feeNotice">عليكِ رسوم إلغاء بقيمة 25 ج.م. لا تمنعكِ من حذف حسابكِ.</p>
+            <p data-deletion-amount="deleteAccount.rider.feeNotice" data-amount="25">عليكِ رسوم إلغاء بقيمة 25 ج.م. لا تمنعكِ من حذف حسابكِ.</p>
           </div>
 
           <div class="del-actions">
             <button type="button" class="btn btn--danger btn--full" id="del-continue" data-i18n="deleteAccount.continue">متابعة</button>
-            <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+            <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
           </div>
 
           <p class="del-footnote" data-i18n="deleteAccount.keptNote">نحتفظ بسجلات الرحلات والمدفوعات والأمان فقط للمدة التي يفرضها القانون.</p>
@@ -58,7 +58,7 @@
             <p class="del-hero__body" data-i18n="deleteAccount.blocked.trip.body">لا يمكن حذف الحساب أثناء رحلة جارية. يمكنكِ المتابعة بعد انتهائها أو إلغائها.</p>
             <a class="btn btn--primary btn--full" href="./active-trip.html" data-i18n="deleteAccount.blocked.trip.action">العودة إلى رحلتي</a>
           </div>
-          <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="common.back">رجوع</button>
+          <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="common.back">رجوع</button>
         </section>
 
         <!-- ── Step 2: confirm it's her ────────────────────────────────── -->
@@ -83,7 +83,7 @@
 
           <div class="del-actions">
             <button type="button" class="btn btn--danger btn--full" id="del-confirm" data-i18n="deleteAccount.confirm">حذف حسابي</button>
-            <button type="button" class="btn btn--ghost btn--full" onclick="history.back()" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+            <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
           </div>
         </section>
 

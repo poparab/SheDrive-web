@@ -9,16 +9,18 @@
  * - Deleting starts a 30-day window. The account is deactivated and signed out at
  *   once; signing in again inside the window offers to restore it. After the
  *   window the deletion is final, and the number can never sign up to that app
- *   again (`isDeletedNumber`).
+ *   again (`isDeletedNumber`). The other app is not affected.
+ * - The account's status (active, under review, suspended) is untouched by a
+ *   deletion; restoring only clears the due date.
  * - The phone number is re-confirmed with a one-time code before anything happens.
  * - An active trip blocks the request. A driver who owes SheDrive cash blocks it
  *   too — she can settle, so there is a way through. A rider's outstanding fee does
  *   NOT block it: she can only pay it by taking a ride, and "take a ride to delete
  *   your account" is the same deadlock that got the rider booking gate rejected.
  *
- * Storage: localStorage `shedrive.accountDeletion` = { rider?: {...}, driver?: {...} }
- * with each entry { phone, requestedAt, deleteOn }. An entry past `deleteOn` is a
- * completed deletion: no longer pending, but its number stays blocked.
+ * Storage: localStorage `shedrive.accountDeletion` = { rider?: [...], driver?: [...] }
+ * with each entry { phone, requestedAt, deleteOn }, one per number. An entry past
+ * `deleteOn` is a completed deletion: no longer pending, but its number stays blocked.
  *
  * Page scripts call `mountAccountDeletion(role)`; the login screens call
  * `getPendingDeletion` / `cancelDeletion` / `isDeletedNumber`.
@@ -28,6 +30,7 @@ import { auth } from './auth.js';
 import { translate, I18N_EVENT } from './i18n.js';
 import { qs, qsa } from './utils.js';
 import { storage } from './storage.js';
+import { goBack } from './navigation.js';
 import { startResendCountdown, MAX_ATTEMPTS } from './otp-flow.js';
 
 export const DELETION_STORAGE_KEY = 'shedrive.accountDeletion';
@@ -42,24 +45,36 @@ function readAll() {
   return all && typeof all === 'object' ? all : {};
 }
 
-/** The pending deletion for this app, or null. Expired entries count as gone. */
-export function getPendingDeletion(role) {
-  const entry = readAll()[role];
+/** This app's entries. An older single-object entry is read as a list of one. */
+function entriesFor(role) {
+  const list = readAll()[role];
+  if (Array.isArray(list)) return list;
+  return list && typeof list === 'object' ? [list] : [];
+}
+
+function writeEntries(role, list) {
+  storage.set(DELETION_STORAGE_KEY, { ...readAll(), [role]: list });
+}
+
+/** The pending deletion for this number in this app, or null. Expired entries count as gone. */
+export function getPendingDeletion(role, phone) {
+  const entry = entriesFor(role).find((e) => e.phone === phone);
   if (!entry || entry.deleteOn <= Date.now()) return null;
   return entry;
 }
 
 export function scheduleDeletion(role, { phone = '' } = {}) {
+  // A retry for a number already waiting keeps its date (#5036 Scenario 5).
+  const existing = getPendingDeletion(role, phone);
+  if (existing) return existing;
   const requestedAt = Date.now();
   const entry = { phone, requestedAt, deleteOn: requestedAt + GRACE_DAYS * DAY_MS };
-  storage.set(DELETION_STORAGE_KEY, { ...readAll(), [role]: entry });
+  writeEntries(role, [...entriesFor(role).filter((e) => e.phone !== phone), entry]);
   return entry;
 }
 
-export function cancelDeletion(role) {
-  const all = readAll();
-  delete all[role];
-  storage.set(DELETION_STORAGE_KEY, all);
+export function cancelDeletion(role, phone) {
+  writeEntries(role, entriesFor(role).filter((e) => e.phone !== phone));
 }
 
 /** A sample entry for design-review deep links, never written to storage. */
@@ -75,8 +90,27 @@ export const DELETED_NUMBER_PREFIX = '0150';
 /** True once a deletion for this number has completed: it can never sign up again. */
 export function isDeletedNumber(role, phone) {
   if (phone.startsWith(DELETED_NUMBER_PREFIX)) return true;
-  const entry = readAll()[role];
-  return Boolean(entry && entry.phone === phone && entry.deleteOn <= Date.now());
+  return entriesFor(role).some((e) => e.phone === phone && e.deleteOn <= Date.now());
+}
+
+/** "+20 10 •••• 5678": the number the code went to, masked as the API returns it. */
+export function maskPhone(phone) {
+  const digits = (phone || '').replace(/\D/g, '').replace(/^0/, '');
+  if (digits.length < 6) return '';
+  return `+20 ${digits.slice(0, 2)} •••• ${digits.slice(-4)}`;
+}
+
+/**
+ * Fill every `[data-deletion-amount]` element with its key, interpolated with the
+ * element's `data-amount`. Amounts come from the API, so they are never part of
+ * the translation itself. Re-runs on a language switch.
+ */
+function bindAmounts() {
+  const render = () => qsa('[data-deletion-amount]').forEach((el) => {
+    el.textContent = translate(el.getAttribute('data-deletion-amount'), { amount: el.dataset.amount || '' });
+  });
+  render();
+  document.addEventListener(I18N_EVENT, render);
 }
 
 /** "27 October 2026" in the page's current language. */
@@ -179,12 +213,17 @@ export function wireOtpStep({ input, error, submit, resend, resendLabel, onVerif
  */
 export function mountAccountDeletion(role) {
   const state = new URLSearchParams(window.location.search).get('state') || '';
-  const session = auth.getSession();
-  const phone = session?.phone || '';
+  const phone = auth.getSession()?.phone || '';
+  bindAmounts();
 
   const steps = qsa('[data-del-step]');
+  const backBtn = qs('#back-btn');
+  let current = '';
   const show = (name) => {
+    current = name;
     steps.forEach((el) => { el.hidden = el.getAttribute('data-del-step') !== name; });
+    // Once the request is in she is signed out: nothing to go back to. "Done" is the way out.
+    if (backBtn) backBtn.hidden = name === 'done';
     (document.querySelector('sd-page') || document.scrollingElement)?.scrollTo(0, 0);
   };
 
@@ -192,9 +231,10 @@ export function mountAccountDeletion(role) {
   if (state === 'fee') qs('#del-notice-fee')?.removeAttribute('hidden');
   if (state === 'owed') qs('#del-notice-owed')?.removeAttribute('hidden');
 
-  // Blockers. An active trip is read from the real handoff key too, so the
+  // Blockers. An active trip is read from each app's real handoff key too, so the
   // mockup refuses for the same reason the app would.
-  const onTrip = state === 'blocked-trip' || Boolean(sessionStorage.getItem('shedrive.activeTrip'));
+  const tripKey = role === 'driver' ? 'shedrive.activeDriverTrip' : 'shedrive.activeTrip';
+  const onTrip = state === 'blocked-trip' || Boolean(sessionStorage.getItem(tripKey));
   const owesBalance = role === 'driver' && state === 'blocked-balance';
   if (onTrip || owesBalance) {
     qs(onTrip ? '#del-blocked-trip' : '#del-blocked-balance')?.removeAttribute('hidden');
@@ -205,7 +245,7 @@ export function mountAccountDeletion(role) {
   const continueBtn = qs('#del-continue');
 
   const phoneEl = qs('#del-verify-phone');
-  if (phoneEl) phoneEl.textContent = phone ? `+20 ${phone.replace(/^0/, '')}` : '';
+  if (phoneEl) phoneEl.textContent = maskPhone(phone);
 
   const otp = wireOtpStep({
     input: qs('#del-otp'),
@@ -216,9 +256,46 @@ export function mountAccountDeletion(role) {
     onVerified: () => finish(scheduleDeletion(role, { phone })),
   });
 
+  // ── Back through the steps ──
+  // The code step gets its own history entry, so the header arrow and the phone's back
+  // button both return to the confirmation instead of leaving the screen. "Keep my
+  // account" still leaves: it pops that entry first, then goes back as usual.
+  let codeEntry = false;
+  let leaving = null;
+
   continueBtn?.addEventListener('click', () => {
     show('verify');
+    history.pushState({ delStep: 'verify' }, '');
+    codeEntry = true;
     otp.start();
+  });
+
+  window.addEventListener('popstate', () => {
+    if (!codeEntry) return;
+    codeEntry = false;
+    if (current === 'done') { window.location.replace('./index.html'); return; }
+    if (leaving) { goBack(leaving); return; }
+    show('review');
+  });
+
+  backBtn?.addEventListener('click', (event) => {
+    if (current !== 'verify') return; // review / blocked: the shared data-back handles it
+    event.stopPropagation();
+    if (codeEntry) history.back();
+    else show('review'); // opened straight on the code step (?state=verify)
+  });
+
+  qsa('[data-del-step="verify"] [data-back]').forEach((btn) => btn.addEventListener('click', (event) => {
+    if (!codeEntry) return;
+    event.stopPropagation();
+    leaving = btn.getAttribute('data-back');
+    history.back();
+  }));
+
+  // "Done" replaces the page: the phone's back button must not reopen a deleted account.
+  qs('[data-del-step="done"] a[href]')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.location.replace(event.currentTarget.href);
   });
 
   function finish(entry) {

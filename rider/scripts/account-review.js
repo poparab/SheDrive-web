@@ -47,5 +47,5 @@ document.addEventListener(I18N_EVENT, renderMeta);
 // ── Sign out ──────────────────────────────────────
 qs('#review-logout-btn')?.addEventListener('click', () => {
   auth.logout();
-  window.location.assign('./index.html');
+  window.location.replace('./index.html');
 });

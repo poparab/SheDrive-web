@@ -85,5 +85,5 @@ qs('#collected-btn')?.addEventListener('click', () => {
     route: { ar: `${trip.pickup?.ar ?? ''} ← ${trip.dest?.ar ?? ''}`, en: `${trip.pickup?.en ?? ''} → ${trip.dest?.en ?? ''}` },
   });
   sessionStorage.removeItem('shedrive.activeDriverTrip');
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });

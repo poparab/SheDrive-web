@@ -1,6 +1,7 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate, getLanguage, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
+import { goBack } from '../../shared/scripts/navigation.js';
 import { getEmergencyContacts, relationshipLabel } from '../../shared/scripts/emergency-contacts.js';
 
 auth.requireAuth();
@@ -211,8 +212,10 @@ qs('#stop-confirm')?.addEventListener('click', () => {
 });
 
 // ── Navigation ──
-qs('#return-btn').addEventListener('click', () => window.location.assign('./active-trip.html'));
-qs('#back-btn')?.addEventListener('click', () => window.location.assign('./active-trip.html'));
+// The header arrow is a data-back control (shared/scripts/navigation.js). Going back
+// through history returns her to the live trip as she left it, without stacking a
+// second copy of it that the system back button would then land on.
+qs('#return-btn').addEventListener('click', () => goBack('./active-trip.html'));
 
 // ── Cancel alert: she confirms it was a false alarm; sharing stops (#3968 S10) ──
 const alarmDialog = qs('#alarm-dialog');
@@ -222,7 +225,7 @@ qs('#alarm-confirm')?.addEventListener('click', () => {
   closeSheet(alarmDialog);
   stopSharing();
   showToast(translate('emergency.cancelToast'), 'success');
-  setTimeout(() => window.location.assign('./active-trip.html'), 800);
+  setTimeout(() => goBack('./active-trip.html'), 800);
 });
 
 // ── Toast helper ──

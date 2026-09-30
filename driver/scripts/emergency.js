@@ -8,6 +8,7 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
+import { goBack } from '../../shared/scripts/navigation.js';
 import { getEmergencyContacts, relationshipLabel } from '../../shared/scripts/emergency-contacts.js';
 
 auth.requireAuth();
@@ -197,13 +198,15 @@ document.addEventListener('keydown', (e) => {
 if (new URLSearchParams(location.search).get('sheet') === 'stop') openStopSheet();
 
 // ── Navigation ──
-qs('#return-btn').addEventListener('click', () => window.location.assign('./trip.html'));
-qs('#back-btn')?.addEventListener('click', () => window.location.assign('./trip.html'));
+// The header arrow is a data-back control (shared/scripts/navigation.js). Going back
+// through history returns her to the live trip as she left it, without stacking a
+// second copy of it that the system back button would then land on.
+qs('#return-btn').addEventListener('click', () => goBack('./trip.html'));
 
 // ── Cancel alert — false alarm stand-down ──
 qs('#cancel-btn').addEventListener('click', () => {
   showToast(translate('emergency.cancelToast'), 'success');
-  setTimeout(() => window.location.assign('./trip.html'), 800);
+  setTimeout(() => goBack('./trip.html'), 800);
 });
 
 // ── Toast helper ──

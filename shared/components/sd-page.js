@@ -9,6 +9,7 @@ import './sd-confirm-dialog.js';
 import './sd-notification-bell.js';
 import { Drawer } from '../scripts/drawer.js';
 import { applyTranslations, isI18nReady } from '../scripts/i18n.js';
+import { wireBackControls } from '../scripts/navigation.js';
 
 const FONT_STYLESHEET = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap';
 const MAPBOX_STYLESHEET = 'https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css';
@@ -84,6 +85,7 @@ class SdPage extends HTMLElement {
     this.applyBodyClasses();
     this.ensureHeadAssets();
     this.ensureToastHost();
+    wireBackControls();
 
     if (this.hasAttribute('drawer')) {
       Drawer.mount();

@@ -39,8 +39,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  /* Room for the pinned action so the last trip is never hidden behind it. */
-  padding-block-end: calc(var(--control-height) + var(--space-10) + env(safe-area-inset-bottom));
+  /* Room for the pinned action (its fade, the button, its bottom padding) plus a gap,
+     so the last trip is never hidden behind it. */
+  padding-block-end: calc(var(--space-6) + var(--control-height) + var(--space-4) + var(--space-4) + env(safe-area-inset-bottom));
 }
 
 /* ── Summary card ────────────────────────────────── */
@@ -304,8 +305,14 @@
   inset-inline: 0;
   inset-block-end: 0;
   z-index: var(--z-nav);
-  padding: var(--space-3) var(--page-gutter) calc(var(--space-4) + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--color-surface) 70%, rgba(var(--color-surface-rgb), 0));
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-4) + env(safe-area-inset-bottom));
+  /* Solid behind the button; the trip cards only fade out in the gap above it,
+     so no half-hidden card text runs into the button's edge. */
+  background: linear-gradient(
+    to top,
+    var(--color-surface) calc(100% - var(--space-6)),
+    rgba(var(--color-surface-rgb), 0)
+  );
 }
 
 .earnings-balance-link {

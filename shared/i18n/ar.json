@@ -1006,15 +1006,15 @@
   "deleteAccount.title": "حذف الحساب",
   "deleteAccount.review.title": "حذف حسابكِ في شي درايف؟",
   "deleteAccount.review.body": "سيُغلق حسابكِ فوراً ويُحذف نهائياً بعد 30 يوماً. سجّلي الدخول قبل ذلك لاستعادته.",
-  "deleteAccount.rider.feeNotice": "عليكِ رسوم إلغاء بقيمة 25 ج.م. لا تمنعكِ من حذف حسابكِ.",
-  "deleteAccount.driver.owedNotice": "لكِ عند شي درايف 320 ج.م. سيتواصل معكِ فريق المالية على هذا الرقم لتحويلها، حتى بعد حذف حسابكِ.",
+  "deleteAccount.rider.feeNotice": "عليكِ رسوم إلغاء بقيمة {{amount}} ج.م. لا تمنعكِ من حذف حسابكِ.",
+  "deleteAccount.driver.owedNotice": "لكِ عند شي درايف {{amount}} ج.م. سيتواصل معكِ فريق المالية على هذا الرقم لتحويلها، حتى بعد حذف حسابكِ.",
   "deleteAccount.continue": "متابعة",
   "deleteAccount.keep": "الاحتفاظ بحسابي",
   "deleteAccount.blocked.trip.title": "أنهي رحلتكِ أولاً",
   "deleteAccount.blocked.trip.body": "لا يمكن حذف الحساب أثناء رحلة جارية. يمكنكِ المتابعة بعد انتهائها أو إلغائها.",
   "deleteAccount.blocked.trip.action": "العودة إلى رحلتي",
   "deleteAccount.blocked.balance.title": "سدّدي رصيدكِ أولاً",
-  "deleteAccount.blocked.balance.body": "عليكِ لشي درايف 245 ج.م من عمولات رحلات نقدية. بعد تسجيل التسوية يمكنكِ حذف حسابكِ.",
+  "deleteAccount.blocked.balance.body": "عليكِ لشي درايف {{amount}} ج.م من عمولات رحلات نقدية. بعد تسجيل التسوية يمكنكِ حذف حسابكِ.",
   "deleteAccount.blocked.balance.action": "كيف أسدّد رصيدي",
   "deleteAccount.verify.title": "تأكيد هويتكِ",
   "deleteAccount.verify.body": "أرسلنا رمزاً مكوّناً من 6 أرقام إلى",
@@ -1032,5 +1032,6 @@
   "deleteAccount.numberNotice": "لن تتمكني من التسجيل مرة أخرى بهذا الرقم.",
   "deleteAccount.keptNote": "نحتفظ بسجلات الرحلات والمدفوعات والأمان فقط للمدة التي يفرضها القانون.",
   "deleteAccount.driver.keptNote": "نحتفظ بسجلات الرحلات والأرباح والأمان ومستنداتكِ الرسمية فقط للمدة التي يفرضها القانون.",
-  "deleteAccount.deletedNumber": "هذا الرقم كان لحساب محذوف في شي درايف ولا يمكن استخدامه للتسجيل مرة أخرى."
+  "deleteAccount.deletedNumber": "هذا الرقم كان لحساب محذوف في شي درايف ولا يمكن استخدامه للتسجيل مرة أخرى.",
+  "deleteAccount.driver.deletedNumber": "هذا الرقم كان لحساب سائقة محذوف في شي درايف ولا يمكن استخدامه للتسجيل مرة أخرى."
 }

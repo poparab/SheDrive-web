@@ -1,25 +1,19 @@
-/* delete-account.css — driver shell adjustments for the shared deletion screen
-   (shared/styles/account-deletion.css). */
+/* delete-account.css — driver shell for the shared deletion screen
+   (shared/styles/account-deletion.css). Like the driver's other account screens
+   (profile, history), it sits in the kit's hero band + white panel
+   (.sd-hero / .sd-panel), the same shell as the rider app's version. */
 
 .delete-account-page {
-  background: var(--color-surface-alt);
-}
-
-/* Pin the whole header element: a sticky bar nested inside <sd-app-header> can
-   only stick within the header itself, so it scrolled away with the content. */
-.delete-account-page sd-app-header {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--z-nav);
-}
-
-.delete-account-page .del-topbar {
   background: var(--color-surface);
-  border-block-end: 1px solid var(--color-border);
 }
 
-.delete-account-page .del-topbar__inner {
-  padding: 0 var(--space-4);
-  block-size: calc(var(--space-12) + var(--space-2));
+/* White title on the purple band (account-deletion.css paints it for a white bar) */
+.del-hero-band .del-topbar__title-text {
+  color: var(--color-on-primary);
+  font-size: var(--fs-xl);
 }
 
+/* The panel keeps the kit's gutters and clears the home indicator */
+.delete-account-page main.del-content {
+  padding: var(--space-6) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
+}

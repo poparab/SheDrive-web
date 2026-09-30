@@ -156,7 +156,7 @@ function verifyOtp(value) {
     clearTimeout(expireTimer);
     // An account inside its 30-day deletion window still exists — offer it back
     // before anything else, including the new-rider name step.
-    const pending = getPendingDeletion('rider');
+    const pending = getPendingDeletion('rider', currentPhone);
     if (pending) {
       startRestoreStep(pending);
       return;
@@ -171,7 +171,7 @@ function verifyOtp(value) {
       return;
     }
     auth.login('rider', currentPhone);
-    window.location.assign('./home.html');
+    window.location.replace('./home.html');
     return;
   }
 
@@ -263,7 +263,7 @@ function submitName() {
   // The account is only created once she has a name — leaving here means no account.
   storage.set('shedrive.profile', { ...(storage.get('shedrive.profile') || {}), name: value });
   auth.login('rider', currentPhone);
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 }
 
 nameInput?.addEventListener('input', () => {
@@ -286,9 +286,9 @@ function startRestoreStep(entry) {
 }
 
 qs('#restore-btn')?.addEventListener('click', () => {
-  cancelDeletion('rider');
+  cancelDeletion('rider', currentPhone);
   auth.login('rider', currentPhone);
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 // Declining changes nothing: no session, and the deletion keeps its date.
 qs('#restore-decline-btn')?.addEventListener('click', () => window.location.replace('./index.html'));

@@ -106,13 +106,13 @@ function showExpired() {
 function autoExpire() {
   showExpired();
   // Auto-dismiss after 2.5s (#1585)
-  setTimeout(() => window.location.assign('./home.html'), 2500);
+  setTimeout(() => window.location.replace('./home.html'), 2500);
 }
 
 // ── Buttons ───────────────────────────────────────────
 qs('#decline-btn').addEventListener('click', () => {
   if (timer) clearInterval(timer);
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 
 qs('#accept-btn').addEventListener('click', () => {
@@ -133,12 +133,12 @@ qs('#accept-btn').addEventListener('click', () => {
     duration: mockRequest.duration,
     startedAt: Date.now(),
   }));
-  setTimeout(() => window.location.assign('./trip.html?state=en-route'), 800);
+  setTimeout(() => window.location.replace('./trip.html?state=en-route'), 800);
 });
 
 // Conflict ok button (#1583)
 qs('#conflict-ok-btn')?.addEventListener('click', () => {
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 
 // ── Demo states ──────────────────────────────────────

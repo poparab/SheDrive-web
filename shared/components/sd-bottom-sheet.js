@@ -5,7 +5,17 @@ class SdBottomSheet extends HTMLElement {
     if (this.dataset.sdMounted === 'true') return;
 
     this.dataset.sdMounted = 'true';
-    this.classList.add('sd-bottom-sheet', 'ride-sheet', 'sheet-modal', 'sheet-modal-bottom', 'modal-in');
+    // A sheet marked `closed` mounts closed. Without it, a dialog sheet would slide up on
+    // every page load and slide back down once the page script closed it, catching taps
+    // on whatever sits under it for the length of both animations.
+    this.classList.add(
+      'sd-bottom-sheet',
+      'ride-sheet',
+      'sheet-modal',
+      'sheet-modal-bottom',
+      this.hasAttribute('closed') ? 'modal-out' : 'modal-in',
+      'not-animated',
+    );
     this.style.setProperty('--f7-sheet-height', this.getAttribute('height') || 'auto');
 
     if (!this.hasAttribute('role')) {
@@ -41,13 +51,27 @@ class SdBottomSheet extends HTMLElement {
   }
 
   open() {
+    this.removeAttribute('closed');
+    if (this.classList.contains('modal-in')) return;
+    this.enableAnimation();
     this.classList.remove('modal-out');
     this.classList.add('modal-in');
   }
 
   close() {
+    if (this.classList.contains('modal-out')) return;
+    this.enableAnimation();
     this.classList.remove('modal-in');
     this.classList.add('modal-out');
+  }
+
+  // The sheet mounts `not-animated`: screen stylesheets can land after it mounts and
+  // would otherwise slide it into its start position. Animation starts with the first
+  // real open() or close().
+  enableAnimation() {
+    if (!this.classList.contains('not-animated')) return;
+    this.classList.remove('not-animated');
+    void this.offsetHeight;
   }
 }
 

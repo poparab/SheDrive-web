@@ -123,7 +123,7 @@ function cancelRequest() {
   }
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.removeItem('shedrive.tripMatchedAt');
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 }
 
 cancelDialog?.addEventListener('sd-confirm', cancelRequest);
@@ -140,7 +140,7 @@ document.getElementById('retry-btn')?.addEventListener('click', () => {
 
 document.getElementById('home-btn')?.addEventListener('click', () => {
   clearTimers();
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 
 // ── Timer management ──────────────────────────────────
@@ -180,7 +180,7 @@ function startSearch() {
 
     // After 2 more s: navigate to active trip
     confirmTimer = setTimeout(() => {
-      window.location.assign('./active-trip.html');
+      window.location.replace('./active-trip.html');
     }, 2000);
   }, 3500);
 }

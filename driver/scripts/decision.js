@@ -28,7 +28,7 @@ if (banner && bannerText) {
 
 // ── Approved CTA ──────────────────────────────────────
 qs('#start-btn')?.addEventListener('click', () => {
-  window.location.assign('./home.html');
+  window.location.replace('./home.html');
 });
 
 // ── Rejected: show admin-provided rejection reason ────

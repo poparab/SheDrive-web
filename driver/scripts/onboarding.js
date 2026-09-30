@@ -106,7 +106,7 @@ function runWizard() {
   // a signed-in driver straight to home.
   qs('#pending-done-btn')?.addEventListener('click', () => {
     auth.logout();
-    window.location.assign('./index.html');
+    window.location.replace('./index.html');
   });
   qs('#rejected-retry-btn')?.addEventListener('click', () => goToStep(1));
 

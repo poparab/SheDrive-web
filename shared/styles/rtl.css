@@ -21,6 +21,12 @@
   transform: scaleX(-1);
 }
 
+/* Back arrows are drawn pointing left; in RTL "back" points right.
+   Every back control carries data-back (shared/scripts/navigation.js). */
+[dir='rtl'] [data-back] svg {
+  transform: scaleX(-1);
+}
+
 /* OTP boxes keep LTR order even in RTL (numeric sequence) */
 [dir='rtl'] .otp-group {
   direction: ltr;

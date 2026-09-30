@@ -110,18 +110,8 @@ render();
 document.addEventListener(I18N_EVENT, render);
 
 // ── Back: return to the list at the same scroll position (#1594 S3) ──
-// Going back through history keeps the list page (and its scroll) as she left it.
-const back = qs('#dtd-back');
-back?.addEventListener('click', (e) => {
-  let fromApp = false;
-  try {
-    fromApp = document.referrer && new URL(document.referrer).origin === location.origin;
-  } catch { /* no referrer */ }
-  if (fromApp && history.length > 1) {
-    e.preventDefault();
-    history.back();
-  }
-});
+// #dtd-back is a data-back control (shared/scripts/navigation.js): going back through
+// history keeps the list page (and its scroll) as she left it.
 
 // ── Static route map (non-interactive thumbnail) ──────
 const map = MapService.init('map', { zoom: 12, center: [31.2407, 30.0494] });

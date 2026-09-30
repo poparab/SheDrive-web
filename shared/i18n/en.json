@@ -1006,15 +1006,15 @@
   "deleteAccount.title": "Delete account",
   "deleteAccount.review.title": "Delete your SheDrive account?",
   "deleteAccount.review.body": "Your account closes straight away and is deleted for good after 30 days. Sign in before then to get it back.",
-  "deleteAccount.rider.feeNotice": "You owe a 25 EGP cancellation fee. It doesn't stop you deleting your account.",
-  "deleteAccount.driver.owedNotice": "SheDrive owes you 320 EGP. The finance team will contact you on this number to transfer it, even after your account is deleted.",
+  "deleteAccount.rider.feeNotice": "You owe a {{amount}} EGP cancellation fee. It doesn't stop you deleting your account.",
+  "deleteAccount.driver.owedNotice": "SheDrive owes you {{amount}} EGP. The finance team will contact you on this number to transfer it, even after your account is deleted.",
   "deleteAccount.continue": "Continue",
   "deleteAccount.keep": "Keep my account",
   "deleteAccount.blocked.trip.title": "Finish your trip first",
   "deleteAccount.blocked.trip.body": "You can't delete your account during a trip. You can continue once it has ended or been cancelled.",
   "deleteAccount.blocked.trip.action": "Back to my trip",
   "deleteAccount.blocked.balance.title": "Settle your balance first",
-  "deleteAccount.blocked.balance.body": "You owe SheDrive 245 EGP in commission from cash trips. Once the settlement is recorded, you can delete your account.",
+  "deleteAccount.blocked.balance.body": "You owe SheDrive {{amount}} EGP in commission from cash trips. Once the settlement is recorded, you can delete your account.",
   "deleteAccount.blocked.balance.action": "How to settle",
   "deleteAccount.verify.title": "Confirm it's you",
   "deleteAccount.verify.body": "We sent a 6-digit code to",
@@ -1032,5 +1032,6 @@
   "deleteAccount.numberNotice": "You won't be able to sign up again with this phone number.",
   "deleteAccount.keptNote": "We keep trip, payment and safety records only for as long as the law requires.",
   "deleteAccount.driver.keptNote": "We keep trip, earnings and safety records, and your official documents, only for as long as the law requires.",
-  "deleteAccount.deletedNumber": "This number belonged to a deleted SheDrive account and can't be used to sign up again."
+  "deleteAccount.deletedNumber": "This number belonged to a deleted SheDrive account and can't be used to sign up again.",
+  "deleteAccount.driver.deletedNumber": "This number belonged to a deleted SheDrive Driver account and can't be used to sign up again."
 }
