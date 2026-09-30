@@ -237,7 +237,8 @@ export function mountAccountDeletion(role) {
   const onTrip = state === 'blocked-trip' || Boolean(sessionStorage.getItem(tripKey));
   const owesBalance = role === 'driver' && state === 'blocked-balance';
   if (onTrip || owesBalance) {
-    qs(onTrip ? '#del-blocked-trip' : '#del-blocked-balance')?.removeAttribute('hidden');
+    // The blocker's explanation and its own way through (back to the trip, how to settle)
+    qsa(`[data-del-blocked="${onTrip ? 'trip' : 'balance'}"]`).forEach((el) => el.removeAttribute('hidden'));
     show('blocked');
     return;
   }

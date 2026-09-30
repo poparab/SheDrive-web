@@ -77,12 +77,6 @@
 
         <!-- Map controls ride on the sheet's top edge, so the sheet never covers them -->
         <div class="driver-sheet__float">
-          <button type="button" class="btn btn--float btn--sm driver-zones-btn" id="working-zones-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-            </svg>
-            <span data-i18n="driver.workingZones">مناطق العمل</span>
-          </button>
           <!-- Location loading indicator -->
           <div class="location-status" id="location-status" role="status" aria-live="polite" aria-atomic="true">
             <div class="spinner" aria-hidden="true"></div>
@@ -166,54 +160,6 @@
         </div>
       </div>
 
-      <!-- ── Working Zones modal ── -->
-      <div class="modal-backdrop" id="zones-backdrop" hidden aria-hidden="true">
-        <div
-          class="modal zones-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="zones-modal-title"
-        >
-          <span class="sheet-handle zones-modal__handle" aria-hidden="true"></span>
-          <div class="modal__header">
-            <h2 class="modal__title" id="zones-modal-title" data-i18n="driver.workingZones">مناطق العمل</h2>
-            <button
-              type="button"
-              class="btn btn--icon btn--ghost"
-              id="zones-close"
-              aria-label="إغلاق"
-              data-i18n-aria-label="aria.close"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-          <div class="zones-list">
-            <div class="zones-list__item">
-              <div class="zones-list__info">
-                <span class="zones-list__name" data-i18n="zones.maadi">المعادي</span>
-                <span class="zones-list__desc" data-i18n="zones.maadi.desc">جنوب القاهرة</span>
-              </div>
-              <span class="badge badge--success" data-i18n="zones.active">نشط</span>
-            </div>
-            <div class="zones-list__item">
-              <div class="zones-list__info">
-                <span class="zones-list__name" data-i18n="zones.nasrCity">مدينة نصر</span>
-                <span class="zones-list__desc" data-i18n="zones.nasrCity.desc">شرق القاهرة</span>
-              </div>
-              <span class="badge badge--success" data-i18n="zones.active">نشط</span>
-            </div>
-            <div class="zones-list__item">
-              <div class="zones-list__info">
-                <span class="zones-list__name" data-i18n="zones.newCairo">القاهرة الجديدة</span>
-                <span class="zones-list__desc" data-i18n="zones.newCairo.desc">شرق القاهرة الكبرى</span>
-              </div>
-              <span class="badge badge--success" data-i18n="zones.active">نشط</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Demo only: ?state=gps-denied | gps-lost | online (online is read by home.js);
            ?sheet=expanded opens the sheet in its slide-up state. -->

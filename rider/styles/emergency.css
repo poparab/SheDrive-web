@@ -170,7 +170,8 @@
   flex-direction: column;
   gap: var(--space-6);
   margin-block-start: calc(var(--radius-2xl) * -1);
-  padding: var(--space-3) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
+  /* No bottom padding: the pinned action dock supplies it */
+  padding: var(--space-3) var(--page-gutter) 0;
   background: var(--color-surface);
   border-start-start-radius: var(--radius-2xl);
   border-start-end-radius: var(--radius-2xl);

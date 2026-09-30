@@ -342,21 +342,6 @@
   gap: var(--space-2);
 }
 
-/* Working Zones floating button */
-.driver-zones-btn-wrap {
-  position: fixed;
-  inset-block-start: 80px;
-  inset-inline-start: var(--space-4);
-  z-index: var(--z-nav);
-}
-
-.driver-zones-btn {
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-}
-
 /* Bottom status bar */
 .driver-statusbar {
   position: fixed;
@@ -423,7 +408,6 @@
 @media (min-width: 768px) {
   .driver-topbar { padding: var(--space-4) var(--space-6); }
   .driver-topbar__inner { flex-wrap: nowrap; }
-  .driver-zones-btn-wrap { inset-block-start: 90px; inset-inline-start: var(--space-6); }
 }
 
 /* ── Simulate request button ────────────────────── */
@@ -554,41 +538,6 @@
 
 .profile-sheet__link:hover {
   background: var(--color-surface-alt);
-}
-
-/* ── Working zones modal ────────────────────────── */
-
-.zones-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.zones-list__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg);
-}
-
-.zones-list__info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.zones-list__name {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-
-.zones-list__desc {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
 }
 
 /* ── Avatar sizes ───────────────────────────────── */

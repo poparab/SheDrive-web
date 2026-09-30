@@ -83,11 +83,9 @@
 /* ── Content ─────────────────────────────────────────── */
 
 .schedule-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: calc(100dvh - var(--icon-btn-size) - var(--space-8));
-  padding: var(--space-6) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
+  /* .fill-screen: the card sits in the space above the action dock, which holds
+     "Back" at the bottom of the screen and supplies the bottom padding. */
+  padding: var(--space-6) var(--page-gutter) 0;
 }
 
 .coming-soon-card {
@@ -98,6 +96,7 @@
   gap: var(--space-3);
   inline-size: 100%;
   max-inline-size: calc(var(--space-16) * 6);
+  margin: auto;
 }
 
 .coming-soon-card__icon {
@@ -124,8 +123,4 @@
   font-size: var(--fs-base);
   color: var(--color-text-muted);
   line-height: var(--leading-snug);
-}
-
-.coming-soon-card__back {
-  margin-block-start: var(--space-4);
 }

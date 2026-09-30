@@ -169,13 +169,6 @@
   visibility: hidden;
 }
 
-.driver-home-page .driver-zones-btn {
-  inline-size: auto;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-primary-700);
-}
-
 /* Grab handle — a real button so the slide-up state is keyboard reachable. The
    pill is small, but the button is a full control height so it is easy to hit;
    the extra height sits under the pill, where the body's top padding used to be. */
@@ -302,33 +295,6 @@
   border: 1px dashed var(--color-primary-400);
   color: var(--color-primary-600);
   font-size: var(--fs-xs);
-}
-
-/* ── Working zones modal ─────────────────────────── */
-
-.driver-home-page .modal-backdrop[hidden] {
-  display: none;
-}
-
-.driver-home-page .zones-modal {
-  max-block-size: 85dvh;
-  overflow-y: auto;
-  padding-block-start: var(--space-3);
-}
-
-.zones-modal__handle {
-  display: block;
-  margin-block-end: var(--space-4);
-}
-
-.driver-home-page .zones-modal .modal__title {
-  margin-block-end: 0;
-}
-
-/* Framework7 stretches every <button> to 100% — keep the close button round. */
-.driver-home-page .zones-modal .modal__header .btn--icon {
-  flex: none;
-  inline-size: auto;
 }
 
 /* ── Balance-limit band (#3980) ───────────────────── */

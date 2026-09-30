@@ -1,6 +1,6 @@
 /**
  * home.js — Driver home page controller
- * Auth guard, map init, online/offline toggle, earnings chip, working zones.
+ * Auth guard, map init, online/offline toggle, earnings chip.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -168,37 +168,6 @@ sheet.addEventListener('pointerup', (event) => {
 });
 
 setSheetExpanded(new URLSearchParams(location.search).get('sheet') === 'expanded');
-
-// ── Working Zones modal ───────────────────────────
-const zonesBackdrop = qs('#zones-backdrop');
-
-// The shared .modal-backdrop is transparent and the .modal off-screen until
-// .is-open is set — without it the modal opened invisibly and swallowed taps.
-function openZones() {
-  zonesBackdrop.hidden = false;
-  zonesBackdrop.setAttribute('aria-hidden', 'false');
-  void zonesBackdrop.offsetWidth; // commit the closed frame so the slide-up animates
-  zonesBackdrop.classList.add('is-open');
-  qs('#zones-close').focus();
-}
-
-function closeZones() {
-  zonesBackdrop.classList.remove('is-open');
-  zonesBackdrop.hidden = true;
-  zonesBackdrop.setAttribute('aria-hidden', 'true');
-  qs('#working-zones-btn').focus();
-}
-
-qs('#working-zones-btn').addEventListener('click', openZones);
-qs('#zones-close').addEventListener('click', closeZones);
-
-zonesBackdrop.addEventListener('click', (e) => {
-  if (e.target === zonesBackdrop) closeZones();
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !zonesBackdrop.hidden) closeZones();
-});
 
 // ── Simulate request (demo) ───────────────────────
 qs('#simulate-request-btn').addEventListener('click', () => {

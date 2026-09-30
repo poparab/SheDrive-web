@@ -15,14 +15,17 @@
         <span class="schedule-topbar__title-text" data-i18n="schedule.title">جدولة رحلة</span>
       </sd-app-header>
 
-      <main class="schedule-content">
+      <main class="schedule-content fill-screen">
         <div class="coming-soon-card">
           <div class="coming-soon-card__icon" aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
           <h2 class="coming-soon-card__title" data-i18n="schedule.comingSoon">هذه الميزة قريباً</h2>
           <p class="coming-soon-card__body" data-i18n="schedule.body">ستتمكنين قريباً من حجز رحلاتك مسبقاً</p>
-          <a href="./home.html" class="btn btn--primary btn--full coming-soon-card__back" data-i18n="schedule.back">رجوع</a>
+        </div>
+
+        <div class="action-dock">
+          <a href="./home.html" class="btn btn--primary btn--full" data-back data-i18n="schedule.back">رجوع</a>
         </div>
       </main>
     </sd-page>

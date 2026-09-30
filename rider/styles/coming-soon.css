@@ -14,13 +14,10 @@
   color: var(--color-on-primary);
 }
 
-/* The panel fills the rest of the screen so the card sits in its middle */
+/* The panel fills the rest of the screen (.fill-screen): the card sits in the space
+   above the action dock, and the dock holds "Back" at the bottom of the screen. */
 main.stub-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: calc(100% - var(--icon-btn-size) - var(--space-10));
-  padding-block: var(--space-10) calc(var(--space-10) + env(safe-area-inset-bottom));
+  padding-block: var(--space-10) 0;
 }
 
 .coming-soon-card {
@@ -30,6 +27,7 @@ main.stub-content {
   gap: var(--space-3);
   inline-size: 100%;
   max-inline-size: 22rem;
+  margin: auto;
   text-align: center;
 }
 
@@ -57,8 +55,4 @@ main.stub-content {
   font-size: var(--fs-sm);
   line-height: var(--leading-relaxed);
   color: var(--color-text-muted);
-}
-
-.coming-soon-card__back {
-  margin-block-start: var(--space-4);
 }

@@ -12,7 +12,8 @@
   font-size: var(--fs-xl);
 }
 
-/* The panel keeps the kit's gutters and clears the home indicator */
+/* The panel keeps the kit's gutters; each step's action dock supplies the bottom
+   padding and clears the home indicator. */
 .delete-account-page main.del-content {
-  padding: var(--space-6) var(--page-gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
+  padding: var(--space-6) var(--page-gutter) 0;
 }
