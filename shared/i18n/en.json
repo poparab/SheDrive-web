@@ -977,7 +977,7 @@
   "deleteAccount.driver.review.body": "You go offline and your account closes straight away. It is deleted for good after 30 days. Sign in before then to get it back.",
   "deleteAccount.numberNotice": "You won't be able to sign up again with this phone number.",
   "deleteAccount.keptNote": "We keep trip, payment and safety records only for as long as the law requires.",
-  "deleteAccount.driver.keptNote": "We keep trip, earnings and safety records, and your official documents, only for as long as the law requires.",
+  "deleteAccount.driver.keptNote": "We keep trip, earnings and safety records only for as long as the law requires.",
   "deleteAccount.deletedNumber": "This number belonged to a deleted SheDrive account and can't be used to sign up again.",
   "deleteAccount.driver.deletedNumber": "This number belonged to a deleted SheDrive Driver account and can't be used to sign up again."
 }
