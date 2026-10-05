@@ -1,8 +1,8 @@
 /*
- * profile.css — Driver profile screen (#1731)
- * Follows the Figma "Driver - Menu" look: identity in the purple hero, then a
- * white panel with an uppercase-labelled form card, lavender list rows and an
- * outlined logout action. All values use tokens.
+ * profile.css — Driver menu screen (design #1827)
+ * Follows the Figma "Driver - Menu" look: identity in the purple hero (a link to
+ * her profile, my-profile.html), then a white panel with lavender list rows and
+ * an outlined logout action. All values use tokens.
  */
 
 /* ── Hero ────────────────────────────────────────── */
@@ -31,11 +31,31 @@
   padding: var(--space-2) var(--page-gutter) 0;
 }
 
-.dprofile-id p {
-  margin: 0;
+.dprofile-id,
+.dprofile-id:hover {
+  text-decoration: none;
+}
+
+.dprofile-id__name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  color: var(--color-on-primary);
+}
+
+.dprofile-id__chevron {
+  flex-shrink: 0;
+}
+
+[dir='rtl'] .dprofile-id__chevron {
+  transform: scaleX(-1);
 }
 
 .dprofile-id__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
   inline-size: calc(var(--space-16) + var(--space-4));
   block-size: calc(var(--space-16) + var(--space-4));
   font-size: var(--fs-3xl);
@@ -82,26 +102,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-.dprofile-form {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* ── Language switch ─────────────────────────────── */
-
-.dprofile-lang-row {
-  border-color: var(--color-surface);
-}
-
-/* F7 stretches plain buttons to 100% — the segments share the row instead. */
-.dprofile-lang-row .sd-segmented__btn {
-  inline-size: auto;
-  min-inline-size: 0;
-  font-size: var(--fs-base);
 }
 
 /* ── Quick links ─────────────────────────────────── */

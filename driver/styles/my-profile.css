@@ -1,0 +1,233 @@
+/*
+ * my-profile.css — Driver profile screen (#1801)
+ * Centred identity in the purple hero (as the Figma rider "Profile" frame), then
+ * read-only cards of label / value rows on the white panel. All values use tokens.
+ */
+
+/* ── Hero ────────────────────────────────────────── */
+
+.dmp-hero__title {
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dmp-hero__spacer {
+  display: block;
+  inline-size: var(--icon-btn-size);
+}
+
+.dmp-id {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--page-gutter) 0;
+  text-align: center;
+}
+
+.dmp-id__avatar {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--space-16) + var(--space-8));
+  block-size: calc(var(--space-16) + var(--space-8));
+  border-radius: var(--radius-full);
+  border: var(--space-1) solid rgba(var(--color-surface-rgb), 0.85);
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  box-shadow: var(--shadow-float);
+}
+
+.dmp-id__name {
+  margin: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-on-primary);
+}
+
+.dmp-id__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.dmp-id__badge {
+  font-size: var(--fs-sm);
+}
+
+.dmp-id__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-star);
+  font-size: var(--fs-base);
+}
+
+.dmp-id__score {
+  font-weight: var(--fw-semibold);
+}
+
+.dmp-id__count {
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+.dmp-id__count::before {
+  content: '·';
+  margin-inline-end: var(--space-1);
+}
+
+/* ── Panel ───────────────────────────────────────── */
+
+.dmp-content {
+  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+.dmp-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.dmp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ── Label / value rows ──────────────────────────── */
+
+.dmp-rows {
+  margin: 0;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-4);
+}
+
+.dmp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-block-size: var(--menu-row-height);
+  padding-block: var(--space-3);
+}
+
+.dmp-row + .dmp-row {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.dmp-row dt {
+  min-inline-size: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.dmp-row dd {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+/* Egyptian plate: Arabic letters and digits, framed like the plate itself. */
+.dmp-plate {
+  display: inline-block;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  letter-spacing: 0.08em;
+}
+
+.dmp-expiry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.dmp-expiry__date {
+  white-space: nowrap;
+}
+
+/* ── Language switch ─────────────────────────────── */
+
+/* F7 stretches plain buttons to 100% — the segments share the row instead. */
+.dmp-lang-row .sd-segmented__btn {
+  inline-size: auto;
+  min-inline-size: 0;
+  font-size: var(--fs-base);
+}
+
+.dmp-note {
+  margin: 0;
+}
+
+/* ── Load failed ─────────────────────────────────── */
+
+.dmp-error__message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-10);
+  text-align: center;
+}
+
+.dmp-error p {
+  margin: 0;
+}
+
+.dmp-error__icon {
+  inline-size: var(--icon-tile-size-lg);
+  block-size: var(--icon-tile-size-lg);
+  border-radius: var(--radius-full);
+}
+
+.dmp-error__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.dmp-error__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Demo states ─────────────────────────────────── */
+
+.state--error,
+.state--expiring {
+  display: none;
+}
+
+[data-state='error'] .state--loaded,
+[data-state='error'] .dmp-id {
+  display: none;
+}
+
+[data-state='error'] .state--error {
+  display: flex;
+}
+
+/* The action dock supplies the bottom padding. */
+[data-state='error'] .dmp-content {
+  padding-block-end: 0;
+}
+
+.is-expiring .state--expiring {
+  display: inline-flex;
+}

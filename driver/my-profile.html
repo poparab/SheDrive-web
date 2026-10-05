@@ -1,0 +1,167 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — الملف الشخصي للسائقة" />
+    <title>SheDrive Driver — ملفي الشخصي</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link rel="stylesheet" href="../shared/styles/tokens.css" />
+    <link rel="stylesheet" href="../shared/styles/reset.css" />
+    <link rel="stylesheet" href="../shared/styles/base.css" />
+    <link rel="stylesheet" href="../shared/styles/components.css" />
+    <link rel="stylesheet" href="../shared/styles/utilities.css" />
+    <link rel="stylesheet" href="../shared/styles/f7-overrides.css" />
+    <link rel="stylesheet" href="../shared/styles/web-components.css" />
+    <link rel="stylesheet" href="../shared/styles/rtl.css" />
+    <link rel="stylesheet" href="styles/driver.css" />
+    <link rel="stylesheet" href="styles/my-profile.css" />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+
+  <!--
+    Driver profile (#1801, data #1800) — reached by tapping her name on the menu.
+    Read-only: everything was verified during onboarding; corrections go through support.
+    Demo states: ?state=expiring (licence expires soon) | error (load failed, retry)
+  -->
+  <body class="app-shell driver-my-profile-page">
+    <sd-page body-class="app-shell driver-my-profile-page" screen-styles="styles/driver.css, styles/my-profile.css">
+
+      <!-- ── Hero: photo, name, status, rating ── -->
+      <div class="sd-hero dmp-hero">
+        <sd-app-header hide-lang-toggle>
+          <a href="./profile.html" class="btn btn--icon btn--ghost" data-back data-slot="start" aria-label="رجوع" data-i18n-aria-label="aria.back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </a>
+          <span class="dmp-hero__title" data-i18n="driverProfile.title">ملفي الشخصي</span>
+          <span class="dmp-hero__spacer" data-slot="end" aria-hidden="true"></span>
+        </sd-app-header>
+
+        <section class="dmp-id" aria-labelledby="dmp-name">
+          <div class="dmp-id__avatar" id="dmp-avatar" aria-hidden="true">س</div>
+          <h1 class="dmp-id__name" id="dmp-name">سارة محمد</h1>
+          <div class="dmp-id__meta">
+            <span class="badge badge--success dmp-id__badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span data-i18n="driverProfile.verified">سائقة موثّقة</span>
+            </span>
+            <span class="dmp-id__rating">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span class="u-visually-hidden" data-i18n="earnings.avgRating">متوسط التقييم</span>
+              <span class="dmp-id__score" id="dmp-rating">4.9</span>
+              <span class="dmp-id__count" id="dmp-rating-count">156 تقييم</span>
+            </span>
+          </div>
+        </section>
+      </div>
+
+      <main class="sd-panel dmp-content fill-screen">
+
+        <!-- ── Loaded content ── -->
+        <div class="dmp-details state--loaded">
+
+          <section class="dmp-section" aria-labelledby="dmp-personal-title">
+            <h2 class="section-label" id="dmp-personal-title" data-i18n="driverProfile.section.personal">البيانات الشخصية</h2>
+            <dl class="card dmp-rows">
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.phone.label">رقم الهاتف</dt>
+                <dd><bdi id="dmp-phone" dir="ltr">+20 0100 000 0000</bdi></dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.dob.label">تاريخ الميلاد</dt>
+                <dd><bdi id="dmp-dob" dir="ltr">14/03/1994</bdi></dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.nationalId.label">الرقم القومي</dt>
+                <dd><bdi id="dmp-national-id" dir="ltr">•••• 4821</bdi></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="dmp-section" aria-labelledby="dmp-vehicle-title">
+            <h2 class="section-label" id="dmp-vehicle-title" data-i18n="driverProfile.section.vehicle">السيارة</h2>
+            <dl class="card dmp-rows">
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.vehicle.model">الطراز</dt>
+                <dd id="dmp-model">هيونداي إلنترا</dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.vehicle.year">سنة الصنع</dt>
+                <dd id="dmp-year">2022</dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.vehicle.color">اللون</dt>
+                <dd id="dmp-color">فضي</dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.vehicle.type">النوع</dt>
+                <dd id="dmp-type">سيدان</dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.vehicle.plate">رقم اللوحة</dt>
+                <dd><span class="dmp-plate" id="dmp-plate" dir="rtl" lang="ar">ق د و ٤٥٦</span></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="dmp-section" aria-labelledby="dmp-licences-title">
+            <h2 class="section-label" id="dmp-licences-title" data-i18n="driverProfile.section.licences">التراخيص</h2>
+            <dl class="card dmp-rows">
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.licence.driving">انتهاء رخصة القيادة</dt>
+                <dd class="dmp-expiry">
+                  <bdi class="dmp-expiry__date" id="dmp-licence-expiry" dir="ltr">12/08/2028</bdi>
+                  <span class="badge badge--warning state--expiring" data-i18n="driverProfile.licence.expiresSoon">تنتهي قريباً</span>
+                </dd>
+              </div>
+              <div class="dmp-row">
+                <dt data-i18n="driverProfile.licence.registration">انتهاء تسجيل السيارة</dt>
+                <dd class="dmp-expiry">
+                  <bdi class="dmp-expiry__date" id="dmp-registration-expiry" dir="ltr">03/02/2027</bdi>
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- Language — live switch (#1731) -->
+          <section class="dmp-section" aria-labelledby="dmp-lang-title">
+            <h2 class="section-label" id="dmp-lang-title" data-i18n="driverProfile.language.label">اللغة</h2>
+            <div class="sd-segmented dmp-lang-row" role="group" aria-labelledby="dmp-lang-title">
+              <button type="button" class="sd-segmented__btn" data-lang-btn="ar" aria-pressed="true" data-i18n="driverProfile.language.ar">العربية</button>
+              <button type="button" class="sd-segmented__btn" data-lang-btn="en" aria-pressed="false" data-i18n="driverProfile.language.en">English</button>
+            </div>
+          </section>
+
+          <!-- Read-only note (#1801 Scenario 2) -->
+          <p class="callout dmp-note" id="dmp-note">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span data-i18n="driverProfile.readonlyNote">تم التحقق من هذه البيانات عند انضمامكِ. لتعديل أي منها تواصلي مع فريق الدعم.</span>
+          </p>
+        </div>
+
+        <!-- ── Load failed (?state=error) ── -->
+        <div class="dmp-error state--error fill-screen">
+          <div class="dmp-error__message" role="alert">
+            <span class="icon-tile icon-tile--warning dmp-error__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <p class="dmp-error__title" data-i18n="driverProfile.error.title">تعذّر تحميل ملفكِ الشخصي</p>
+            <p class="dmp-error__body" data-i18n="driverProfile.error.body">تحقّقي من اتصالكِ وحاولي مرة أخرى.</p>
+          </div>
+          <div class="action-dock">
+            <button type="button" class="btn btn--primary btn--full" id="dmp-retry" data-i18n="common.retry">حاولي مرة أخرى</button>
+          </div>
+        </div>
+
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/my-profile.js"></script>
+  </body>
+</html>

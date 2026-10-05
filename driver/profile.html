@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SheDrive — الملف الشخصي للسائقة" />
-    <title>SheDrive Driver — الملف الشخصي</title>
+    <meta name="description" content="SheDrive — قائمة السائقة" />
+    <title>SheDrive Driver — القائمة</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,58 +34,29 @@
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </a>
-          <span class="dprofile-hero__title" data-i18n="driverProfile.title">ملفي الشخصي</span>
+          <span class="dprofile-hero__title" data-i18n="nav.menu">القائمة</span>
           <span class="dprofile-hero__spacer" data-slot="end" aria-hidden="true"></span>
         </sd-app-header>
 
-        <div class="dprofile-id">
-          <div class="avatar dprofile-id__avatar" aria-hidden="true" id="hero-avatar">س</div>
-          <div class="dprofile-id__info">
-            <p class="dprofile-id__name" id="hero-name">سارة محمد</p>
-            <p class="dprofile-id__rating">
+        <!-- Tapping her name opens the profile (#1801), as the Figma "Sandi Khalid >" -->
+        <a class="dprofile-id" href="./my-profile.html" aria-label="عرض ملفي الشخصي" data-i18n-aria-label="driverProfile.open">
+          <span class="avatar dprofile-id__avatar" aria-hidden="true" id="hero-avatar">س</span>
+          <span class="dprofile-id__info">
+            <span class="dprofile-id__name-row">
+              <span class="dprofile-id__name" id="hero-name">سارة محمد</span>
+              <svg class="dprofile-id__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+            <span class="dprofile-id__rating">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <span class="u-visually-hidden" data-i18n="earnings.avgRating">متوسط التقييم</span>
-              <span class="dprofile-id__score">4.9</span>
-            </p>
-          </div>
-        </div>
+              <span class="dprofile-id__score" id="hero-rating">4.9</span>
+            </span>
+          </span>
+        </a>
       </div>
 
       <main class="sd-panel driver-profile-main">
-
-        <!-- ── Editable fields ── -->
-        <section class="dprofile-section" aria-labelledby="dprofile-personal-title">
-          <h2 class="section-label" id="dprofile-personal-title" data-i18n="driverProfile.section.personal">البيانات الشخصية</h2>
-          <div class="card dprofile-form">
-
-            <!-- Phone (read-only) -->
-            <div class="field">
-              <label class="field__label" for="dprofile-phone" data-i18n="driverProfile.phone.label">رقم الهاتف</label>
-              <input type="tel" id="dprofile-phone" class="input" readonly aria-readonly="true" value="+20 0100 000 0000" dir="ltr" aria-describedby="dprofile-phone-hint" />
-              <span class="field__hint" id="dprofile-phone-hint" data-i18n="driverProfile.phone.hint">لا يمكن تغيير رقم الهاتف</span>
-            </div>
-
-            <!-- Full name (editable) -->
-            <div class="field">
-              <label class="field__label" for="dprofile-name" data-i18n="driverProfile.name.label">الاسم الكامل</label>
-              <input type="text" id="dprofile-name" class="input" dir="auto" autocomplete="name" aria-required="true" aria-describedby="dprofile-name-error" value="سارة محمد" />
-              <span id="dprofile-name-error" class="field__error" role="alert" hidden></span>
-            </div>
-
-            <!-- Language selector — live switch (#1731) -->
-            <div class="field">
-              <span class="field__label" id="dprofile-lang-label" data-i18n="driverProfile.language.label">اللغة</span>
-              <div class="sd-segmented dprofile-lang-row" role="group" aria-labelledby="dprofile-lang-label">
-                <button type="button" class="sd-segmented__btn dprofile-lang-btn" data-lang-btn="ar" aria-pressed="true" data-i18n="driverProfile.language.ar">العربية</button>
-                <button type="button" class="sd-segmented__btn dprofile-lang-btn" data-lang-btn="en" aria-pressed="false" data-i18n="driverProfile.language.en">English</button>
-              </div>
-            </div>
-
-            <button type="button" class="btn btn--primary btn--full" id="dprofile-save-btn" data-i18n="driverProfile.save">حفظ التغييرات</button>
-          </div>
-        </section>
 
         <!-- ── Quick links ── -->
         <section class="dprofile-section" aria-labelledby="dprofile-links-title">
