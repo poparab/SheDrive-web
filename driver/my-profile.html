@@ -26,7 +26,7 @@
   <!--
     Driver profile (#1801, data #1800) — reached by tapping her name on the menu.
     Read-only: everything was verified during onboarding; corrections go through support.
-    Demo states: ?state=expiring (licence expires soon) | error (load failed, retry)
+    Demo state: ?state=error (load failed, retry)
   -->
   <body class="app-shell driver-my-profile-page">
     <sd-page body-class="app-shell driver-my-profile-page" screen-styles="styles/driver.css, styles/my-profile.css">
@@ -110,25 +110,6 @@
             </dl>
           </section>
 
-          <section class="dmp-section" aria-labelledby="dmp-licences-title">
-            <h2 class="section-label" id="dmp-licences-title" data-i18n="driverProfile.section.licences">التراخيص</h2>
-            <dl class="card dmp-rows">
-              <div class="dmp-row">
-                <dt data-i18n="driverProfile.licence.driving">انتهاء رخصة القيادة</dt>
-                <dd class="dmp-expiry">
-                  <bdi class="dmp-expiry__date" id="dmp-licence-expiry" dir="ltr">12/08/2028</bdi>
-                  <span class="badge badge--warning state--expiring" data-i18n="driverProfile.licence.expiresSoon">تنتهي قريباً</span>
-                </dd>
-              </div>
-              <div class="dmp-row">
-                <dt data-i18n="driverProfile.licence.registration">انتهاء تسجيل السيارة</dt>
-                <dd class="dmp-expiry">
-                  <bdi class="dmp-expiry__date" id="dmp-registration-expiry" dir="ltr">03/02/2027</bdi>
-                </dd>
-              </div>
-            </dl>
-          </section>
-
           <!-- Language — live switch (#1731) -->
           <section class="dmp-section" aria-labelledby="dmp-lang-title">
             <h2 class="section-label" id="dmp-lang-title" data-i18n="driverProfile.language.label">اللغة</h2>
@@ -143,6 +124,9 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             <span data-i18n="driverProfile.readonlyNote">تم التحقق من هذه البيانات عند انضمامكِ. لتعديل أي منها تواصلي مع فريق الدعم.</span>
           </p>
+
+          <!-- Account deletion — required by App Store and Google Play (design #5015) -->
+          <a class="dmp-delete-link" href="./delete-account.html"><span class="dmp-delete-link__label" data-i18n="deleteAccount.entry">حذف الحساب</span></a>
         </div>
 
         <!-- ── Load failed (?state=error) ── -->

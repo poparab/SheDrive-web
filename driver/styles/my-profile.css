@@ -151,17 +151,6 @@
   letter-spacing: 0.08em;
 }
 
-.dmp-expiry {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-1);
-}
-
-.dmp-expiry__date {
-  white-space: nowrap;
-}
-
 /* ── Language switch ─────────────────────────────── */
 
 /* F7 stretches plain buttons to 100% — the segments share the row instead. */
@@ -173,6 +162,29 @@
 
 .dmp-note {
   margin: 0;
+}
+
+/* ── Delete account ──────────────────────────────── */
+
+/* The colour sits on the label: f7-overrides.css forces color: inherit on every
+   plain <a> with a selector no single class can outrank. */
+.dmp-delete-link {
+  align-self: center;
+  padding: var(--space-2) var(--space-4);
+  text-align: center;
+}
+
+.dmp-delete-link__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-danger);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.dmp-delete-link:hover .dmp-delete-link__label,
+.dmp-delete-link:focus-visible .dmp-delete-link__label {
+  color: var(--color-danger-strong);
 }
 
 /* ── Load failed ─────────────────────────────────── */
@@ -209,8 +221,7 @@
 
 /* ── Demo states ─────────────────────────────────── */
 
-.state--error,
-.state--expiring {
+.state--error {
   display: none;
 }
 
@@ -226,8 +237,4 @@
 /* The action dock supplies the bottom padding. */
 [data-state='error'] .dmp-content {
   padding-block-end: 0;
-}
-
-.is-expiring .state--expiring {
-  display: inline-flex;
 }

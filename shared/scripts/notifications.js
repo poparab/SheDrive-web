@@ -33,7 +33,7 @@ const FEED = {
   ],
   driver: [
     { id: 'd1', category: 'earnings', key: 'settled', params: { amount: 250 }, ago: 12, href: './balance.html' },
-    { id: 'd2', category: 'account', key: 'licenceExpiring', params: { date: '15/10/2026' }, ago: 48, href: './my-profile.html?state=expiring' },
+    { id: 'd2', category: 'account', key: 'licenceExpiring', params: { date: '15/10/2026' }, ago: 48, href: './my-profile.html' },
     { id: 'd3', category: 'trip', key: 'rated', params: { rating: '4.9' }, ago: 4 * HOUR, href: './history.html' },
     { id: 'd4', category: 'earnings', key: 'nearLimit', params: { owed: 420, limit: 500 }, ago: DAY + 5 * HOUR, href: './settle.html' },
     { id: 'd5', category: 'offers', key: 'hours', params: {}, ago: 3 * DAY, href: './home.html' },

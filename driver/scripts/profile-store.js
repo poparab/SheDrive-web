@@ -19,10 +19,6 @@ export const DRIVER_PROFILE = {
     plate: 'ق د و ٤٥٦',
     type: { ar: 'سيدان', en: 'Sedan' },
   },
-  licenceExpiry: '12/08/2028',
-  // ?state=expiring — the date the "licence expires soon" notification carries.
-  licenceExpirySoon: '15/10/2026',
-  registrationExpiry: '03/02/2027',
 };
 
 /** The current UI language, as the key into the bilingual fields above. */

@@ -2,7 +2,7 @@
  * my-profile.js — Driver profile screen controller (#1801, data #1800)
  * Read-only verified details, rating, live language switch (#1731).
  *
- * Demo only: ?state=expiring | error
+ * Demo only: ?state=error
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -14,7 +14,6 @@ auth.requireAuth();
 await initI18n();
 
 const state = new URLSearchParams(location.search).get('state');
-const expiring = state === 'expiring';
 setState(state === 'error' ? 'error' : 'loaded');
 
 // ── Fill the screen from the profile ──────────────
@@ -37,9 +36,6 @@ function render() {
   qs('#dmp-color').textContent = P.vehicle.color[lang];
   qs('#dmp-type').textContent = P.vehicle.type[lang];
   qs('#dmp-plate').textContent = P.vehicle.plate;
-
-  qs('#dmp-licence-expiry').textContent = expiring ? P.licenceExpirySoon : P.licenceExpiry;
-  qs('#dmp-registration-expiry').textContent = P.registrationExpiry;
 }
 
 render();
@@ -64,7 +60,6 @@ syncLangButtons();
 // ── Load failure + retry (#1801 Scenario 4) ───────
 function setState(next) {
   document.body.dataset.state = next;
-  document.body.classList.toggle('is-expiring', expiring && next === 'loaded');
 }
 
 if (state === 'error') showToast(translate('driverProfile.error.title'), 'danger');

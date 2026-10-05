@@ -11,7 +11,7 @@
     <sd-page body-class="app-shell delete-account-page" screen-styles="styles/driver.css, ../shared/styles/account-deletion.css, styles/delete-account.css">
       <div class="sd-hero del-hero-band">
         <sd-app-header bar-class="del-topbar" inner-class="del-topbar__inner" title-class="del-topbar__title" hide-lang-toggle>
-          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" data-back="./profile.html">
+          <sd-button data-slot="start" type="button" variant="ghost" icon id="back-btn" data-i18n-aria-label="aria.back" aria-label="رجوع" data-back="./my-profile.html">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </sd-button>
           <span class="del-topbar__title-text" data-i18n="deleteAccount.title">حذف الحساب</span>
@@ -44,7 +44,7 @@
 
           <div class="del-actions action-dock">
             <button type="button" class="btn btn--danger btn--full" id="del-continue" data-i18n="deleteAccount.continue">متابعة</button>
-            <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+            <button type="button" class="btn btn--ghost btn--full" data-back="./my-profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
           </div>
         </section>
 
@@ -67,7 +67,7 @@
           <div class="del-actions action-dock">
             <a data-del-blocked="trip" hidden class="btn btn--primary btn--full" href="./trip.html" data-i18n="deleteAccount.blocked.trip.action">العودة إلى رحلتي</a>
             <a data-del-blocked="balance" hidden class="btn btn--primary btn--full" href="./settle.html" data-i18n="deleteAccount.blocked.balance.action">كيف أسدّد رصيدي</a>
-            <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="common.back">رجوع</button>
+            <button type="button" class="btn btn--ghost btn--full" data-back="./my-profile.html" data-i18n="common.back">رجوع</button>
           </div>
         </section>
 
@@ -93,7 +93,7 @@
 
           <div class="del-actions action-dock">
             <button type="button" class="btn btn--danger btn--full" id="del-confirm" data-i18n="deleteAccount.confirm">حذف حسابي</button>
-            <button type="button" class="btn btn--ghost btn--full" data-back="./profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
+            <button type="button" class="btn btn--ghost btn--full" data-back="./my-profile.html" data-i18n="deleteAccount.keep">الاحتفاظ بحسابي</button>
           </div>
         </section>
 
