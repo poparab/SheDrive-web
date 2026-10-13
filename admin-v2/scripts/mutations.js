@@ -30,6 +30,14 @@ const EMPTY = {
   policies: null,
   ledgerAdded: [],      // driver balance ledger entries posted this session (#TBD-A)
   riderLedgerAdded: [], // rider fee ledger entries posted this session (financial core §2.2)
+  // Payouts, settlement imports and maker-checker (2026-10-14 spec)
+  approvalsAdded: [],
+  approvals: {},        // id -> patched fields (status, checker, decidedAt, rejectReason)
+  batchesAdded: [],
+  batches: {},          // id -> patched fields (status, lines, timestamps)
+  importsAdded: [],
+  imports: {},          // id -> patched fields
+  entryMeta: {},        // driver ledger entry id -> { paidRef }
 };
 
 function read() {
@@ -96,6 +104,43 @@ export function recordRiderLedgerEntry(entry) {
   write(state);
 }
 
+/** Append a new record to one of the finance collections (approvals, batches, imports). */
+export function recordAdded(collection, record) {
+  state[collection] = state[collection] ?? [];
+  state[collection].push(record);
+  write(state);
+}
+
+/** Replay this session's finance changes onto the finance seed (2026-10-14 spec). */
+export function applyFinanceMutations({
+  APPROVALS,
+  APPROVALS_BY_ID,
+  PAYOUT_BATCHES,
+  PAYOUT_BATCHES_BY_ID,
+  SETTLEMENT_IMPORTS,
+  LEDGER_ENTRIES,
+}) {
+  const replay = (list, byId, added, patches, sortKey) => {
+    added.forEach((record) => {
+      if (list.some((r) => r.id === record.id)) return;
+      list.push(record);
+      if (byId) byId.set(record.id, record);
+    });
+    Object.entries(patches).forEach(([id, fields]) => {
+      const record = list.find((r) => r.id === id);
+      if (record) Object.assign(record, fields);
+    });
+    list.sort((a, b) => b[sortKey] - a[sortKey]);
+  };
+  replay(APPROVALS, APPROVALS_BY_ID, state.approvalsAdded, state.approvals, 'madeAt');
+  replay(PAYOUT_BATCHES, PAYOUT_BATCHES_BY_ID, state.batchesAdded, state.batches, 'createdAt');
+  replay(SETTLEMENT_IMPORTS, null, state.importsAdded, state.imports, 'createdAt');
+  Object.entries(state.entryMeta).forEach(([id, fields]) => {
+    const entry = LEDGER_ENTRIES.find((e) => e.id === id);
+    if (entry) Object.assign(entry, fields);
+  });
+}
+
 export function recordPolicies(policies) {
   state.policies = policies;
   write(state);
@@ -124,7 +169,12 @@ export function hasMutations() {
     state.auditAdded.length > 0 ||
     state.policies !== null ||
     state.ledgerAdded.length > 0 ||
-    state.riderLedgerAdded.length > 0
+    state.riderLedgerAdded.length > 0 ||
+    state.approvalsAdded.length > 0 ||
+    Object.keys(state.approvals).length > 0 ||
+    state.batchesAdded.length > 0 ||
+    Object.keys(state.batches).length > 0 ||
+    state.importsAdded.length > 0
   );
 }
 

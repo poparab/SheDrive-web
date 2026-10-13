@@ -35,6 +35,8 @@ export const NAV_SECTIONS = [
   {
     labelKey: 'nav.money',
     items: [
+      // Maker-checker queue (2026-10-14 spec §1): every finance action waits here.
+      { key: 'approvals', labelKey: 'nav.approvals', href: 'approvals.html', icon: 'checked-2.svg', count: 'pendingApprovals' },
       {
         key: 'pricing-zones',
         labelKey: 'nav.pricingZones',
@@ -59,6 +61,13 @@ export const NAV_SECTIONS = [
         labelKey: 'nav.balances',
         href: 'balances.html',
         icon: 'reports.svg',
+      },
+      { key: 'payouts', labelKey: 'nav.payouts', href: 'payouts.html', icon: 'wallet.svg' },
+      {
+        key: 'settlement-imports',
+        labelKey: 'nav.settlementImports',
+        href: 'settlement-imports.html',
+        icon: 'upload-file.svg',
       },
       {
         key: 'rider-balances',

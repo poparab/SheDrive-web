@@ -19,8 +19,13 @@ import * as lists from './lists.js';
 import * as details from './details.js';
 import * as config from './config.js';
 import * as auth from './auth.js';
+import * as finance from './finance.js';
+import * as approvals from './approvals.js';
+import * as payouts from './payouts.js';
+import * as settlementImports from './settlement-imports.js';
+import * as financeEdits from './finance-edits.js';
 
-const AREAS = [core, components, lists, details, config, auth];
+const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits];
 
 function merge(code) {
   const out = {};

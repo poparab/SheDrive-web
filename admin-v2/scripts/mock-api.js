@@ -51,7 +51,28 @@ import {
   recordZoneCreate,
   recordZoneDelete,
   recordRiderLedgerEntry,
+  recordAdded,
+  applyFinanceMutations,
 } from './mutations.js';
+import {
+  APPROVALS,
+  APPROVALS_BY_ID,
+  APPROVAL_TYPES,
+  BANKS,
+  PAYABLE_TYPES,
+  PAYOUT_BATCHES,
+  PAYOUT_BATCHES_BY_ID,
+  PAYOUT_HOLD_DAYS,
+  PAYOUT_TYPES,
+  SETTLEMENT_CHANNELS,
+  SETTLEMENT_IMPORTS,
+  WALLET_PROVIDERS,
+  dueAtOf,
+  makeApproval,
+  makeBatchRef,
+  makeLine,
+  nextImportId,
+} from './finance-seed.js';
 
 // Replay this session's recorded actions onto the seed before any screen reads
 // it, so a decision made on one screen is visible on the next.
@@ -73,6 +94,14 @@ applyMutations({
   RIDER_LEDGER_ENTRIES,
   RIDER_LEDGER_BY_RIDER,
   recomputeRiderBalances,
+});
+applyFinanceMutations({
+  APPROVALS,
+  APPROVALS_BY_ID,
+  PAYOUT_BATCHES,
+  PAYOUT_BATCHES_BY_ID,
+  SETTLEMENT_IMPORTS,
+  LEDGER_ENTRIES,
 });
 
 const LATENCY_MS = 380;
@@ -253,6 +282,369 @@ function postRiderLedgerEntry(rider, type, amount, at, extra = {}) {
 /** Build an audit entry without appending it twice — addAuditEntry does that. */
 function makeAuditEntry(actionType, targetType, targetId, before, after) {
   return addAuditEntry(actionType, targetType, targetId, before, after, Date.now());
+}
+
+// ── Maker-checker, payouts, settlement imports (2026-10-14 spec) ──
+
+const ACTING_KEY = 'shedrive.adminActingAs';
+
+/**
+ * Who is acting. The mockup has one signed-in admin, so the Approvals screen
+ * offers a demo switch to act as a second admin and show the checker side.
+ */
+function actingAdmin() {
+  try {
+    const email = sessionStorage.getItem(ACTING_KEY);
+    const admin = email && ADMINS.find((a) => a.email === email && a.status === 'active');
+    if (admin) return admin;
+  } catch {
+    // storage blocked — fall back to the signed-in admin
+  }
+  return CURRENT_ADMIN;
+}
+
+const isOpenBatch = (b) => ['pending_approval', 'ready', 'sent_to_bank', 'result_pending'].includes(b.status);
+
+/** The open-batch line an entry is in, if any. */
+function openLineFor(entryId) {
+  for (const batch of PAYOUT_BATCHES) {
+    if (!isOpenBatch(batch)) continue;
+    const line = batch.lines.find((l) => l.entryIds.includes(entryId));
+    if (line) return { batch, line };
+  }
+  return null;
+}
+
+/** §3 — on_hold → due → in_batch → sent → paid. Null for non-payable entries. */
+function entryPayoutStatus(entry, now = Date.now()) {
+  if (!PAYABLE_TYPES.includes(entry.type)) return null;
+  if (entry.paidRef) return 'paid';
+  const open = openLineFor(entry.id);
+  if (open) return open.line.status === 'sent' ? 'sent' : 'in_batch';
+  return dueAtOf(entry) <= now ? 'due' : 'on_hold';
+}
+
+function payoutPosition(driver) {
+  const entries = ledgerFor(driver.id).filter((e) => PAYABLE_TYPES.includes(e.type));
+  const sum = (status) => round2(entries.filter((e) => entryPayoutStatus(e) === status).reduce((t, e) => t + e.amount, 0));
+  return { due: sum('due'), onHold: sum('on_hold'), inBatch: sum('in_batch'), sent: sum('sent') };
+}
+
+function pendingFor(kind, id, type = null) {
+  return APPROVALS.find(
+    (a) => a.status === 'pending' && a.subject.kind === kind && a.subject.id === String(id) && (!type || a.type === type),
+  ) ?? null;
+}
+
+const pendingSummary = (request) =>
+  request ? { id: request.id, type: request.type, maker: request.maker, madeAt: request.madeAt, after: request.after } : null;
+
+/** Create a pending request. Nothing changes until another admin approves it (§1). */
+function createRequest(type, subject, { before = {}, after = {}, amount = null, payload = {} } = {}) {
+  const request = makeApproval(type, subject, {
+    before,
+    after,
+    amount,
+    payload,
+    maker: actingAdmin().email,
+    madeAt: Date.now(),
+  });
+  APPROVALS.unshift(request);
+  APPROVALS_BY_ID.set(request.id, request);
+  recordAdded('approvalsAdded', request);
+  addAuditEntry('approval requested', subject.kind, subject.id, {}, { request: request.id, type }, request.madeAt);
+  return request;
+}
+
+function patchApproval(request, fields) {
+  Object.assign(request, fields);
+  patch('approvals', request.id, fields);
+}
+
+function patchBatch(batch, fields) {
+  Object.assign(batch, fields);
+  patch('batches', batch.id, { ...fields, lines: batch.lines });
+}
+
+function markEntryPaid(entry, ref) {
+  entry.paidRef = ref;
+  patch('entryMeta', entry.id, { paidRef: ref });
+}
+
+/** Today-or-earlier date rule shared by settlement and payout (unchanged). */
+function resolveDate(date) {
+  const now = Date.now();
+  if (!date) return { at: now };
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return { error: 'Invalid date format.' };
+  const chosenDay = new Date(parsed).setHours(0, 0, 0, 0);
+  const today = new Date(now).setHours(0, 0, 0, 0);
+  if (chosenDay > today) return { error: 'Date cannot be in the future.' };
+  return { at: chosenDay === today ? now : parsed.getTime() };
+}
+
+function postSettlement(driver, { amount, at, method, note, proof = null, paymentRef = null, importId = null }) {
+  const before = driver.balance;
+  const entry = postLedgerEntry(driver, 'settlement', amount, at, {
+    method,
+    ref: nextSettlementReceipt(),
+    note: note || 'Cash received from driver',
+    proof,
+    paymentRef,
+    importId,
+    actor: actingAdmin().email,
+  });
+  makeAuditEntry('settlement', 'driver', driver.id, { balance: before }, { balance: driver.balance });
+  return entry;
+}
+
+function postPayout(driver, { amount, at, ref, note, proof = null, lineRef = null, batchId = null }) {
+  const before = driver.balance;
+  const entry = postLedgerEntry(driver, 'payout', -amount, at, {
+    ref,
+    note: note || 'Payout sent by Finance',
+    proof,
+    lineRef,
+    batchId,
+    actor: actingAdmin().email,
+  });
+  makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
+  return entry;
+}
+
+const MASK = (n) => (n ? `•••• ${String(n).slice(-4)}` : '');
+
+/** §2 field rules. Returns an error string or null. */
+function validatePayoutMethod(m) {
+  if (!m || !PAYOUT_TYPES.includes(m.type)) return 'Choose a payout method.';
+  const holder = String(m.holderName ?? '').trim();
+  const number = String(m.number ?? '').replace(/\s+/g, '');
+  if (m.type === 'MOBILE_WALLET') {
+    if (!WALLET_PROVIDERS.includes(m.provider)) return 'Choose the wallet provider.';
+    if (!/^01[0125]\d{8}$/.test(number)) return 'Enter a valid Egyptian mobile number (01 + 9 digits).';
+  } else if (m.type === 'BANK_ACCOUNT') {
+    if (!BANKS.includes(m.provider)) return 'Choose the bank.';
+    if (holder.length < 3 || holder.length > 100) return 'Enter the account holder name (3–100 characters).';
+    if (!/^\d{10,20}$/.test(number) && !/^EG\d{27}$/i.test(number)) return 'Enter a 10–20 digit account number or an IBAN (EG + 27 digits).';
+  } else {
+    if (holder.length < 3 || holder.length > 100) return 'Enter the name on the card (3–100 characters).';
+    if (!/^\d{16}$/.test(number)) return 'Enter the 16-digit card number.';
+  }
+  return null;
+}
+
+// CSV — the three Finance files (§3, §4).
+function csvCell(value) {
+  const s = value === null || value === undefined ? '' : String(value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function toCsv(headers, rows) {
+  return [headers.join(','), ...rows.map((r) => headers.map((h) => csvCell(r[h])).join(','))].join('\r\n');
+}
+function parseCsv(text) {
+  const src = String(text ?? '').replace(/^﻿/, '');
+  const records = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < src.length; i += 1) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"' && src[i + 1] === '"') { cell += '"'; i += 1; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && src[i + 1] === '\n') i += 1;
+      row.push(cell); records.push(row); row = []; cell = '';
+    } else cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); records.push(row); }
+  const nonEmpty = records.filter((r) => r.some((v) => v.trim() !== ''));
+  if (!nonEmpty.length) return { headers: [], rows: [] };
+  const headers = nonEmpty[0].map((h) => h.trim().toLowerCase());
+  const rows = nonEmpty.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, (r[i] ?? '').trim()])));
+  return { headers, rows };
+}
+
+const EXPORT_HEADERS = ['batch_ref', 'line_ref', 'national_id', 'driver_name', 'payout_type', 'provider_or_bank', 'account_number', 'account_holder', 'amount_egp'];
+const RESULT_HEADERS = [...EXPORT_HEADERS, 'status', 'bank_reference', 'failure_reason'];
+const SETTLEMENT_HEADERS = ['national_id', 'driver_name', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+
+const exportRow = (batch, l) => ({
+  batch_ref: batch.ref,
+  line_ref: l.lineRef,
+  national_id: l.nationalId,
+  driver_name: l.driverName,
+  payout_type: l.payoutType,
+  provider_or_bank: l.provider ?? '',
+  account_number: l.number,
+  account_holder: l.holderName,
+  amount_egp: l.amount.toFixed(2),
+});
+
+function validationError(message, details) {
+  const err = new MockApiError(message, 422);
+  err.details = details;
+  return Promise.reject(err);
+}
+
+/** What approving each request type does (§1). */
+const EXECUTE = {
+  payout_batch(request) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
+    if (batch) patchBatch(batch, { status: 'ready', approvedBy: actingAdmin().email, approvedAt: Date.now() });
+  },
+  payout_result(request) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
+    if (!batch || !batch.result) return;
+    const now = Date.now();
+    batch.lines.forEach((line, i) => {
+      const res = batch.result.find((r) => r.lineRef === line.lineRef);
+      const driver = DRIVERS_BY_ID.get(line.driverId);
+      if (!res || !driver) return;
+      if (res.status === 'SUCCESS') {
+        // Keyed on the line: importing the same result twice posts nothing new.
+        if (!LEDGER_ENTRIES.some((e) => e.lineRef === line.lineRef)) {
+          postPayout(driver, { amount: line.amount, at: now + i, ref: res.bankReference || line.lineRef, lineRef: line.lineRef, batchId: batch.id });
+        }
+        line.entryIds.forEach((id) => {
+          const entry = LEDGER_ENTRIES.find((e) => e.id === id);
+          if (entry) markEntryPaid(entry, line.lineRef);
+        });
+        line.status = 'paid';
+        line.bankReference = res.bankReference || null;
+        if (driver.lastPayoutFailure) patch('drivers', driver.id, { lastPayoutFailure: null });
+        driver.lastPayoutFailure = null;
+      } else {
+        // FAILED — her entries go back to Due and join the next batch.
+        line.status = 'failed';
+        line.failureReason = res.failureReason || 'Transfer failed';
+        driver.lastPayoutFailure = { at: now, reason: line.failureReason, batchId: batch.id, lineRef: line.lineRef };
+        patch('drivers', driver.id, { lastPayoutFailure: driver.lastPayoutFailure });
+      }
+    });
+    patchBatch(batch, { status: 'completed', completedAt: now });
+  },
+  payout(request) {
+    const { driverId, amount, at, reference, proof } = request.payload;
+    const driver = DRIVERS_BY_ID.get(driverId);
+    if (!driver) return;
+    postPayout(driver, { amount, at, ref: reference, proof });
+    // A manual payout pays her oldest due entries first, up to the amount (§3).
+    let left = amount;
+    ledgerFor(driver.id)
+      .filter((e) => entryPayoutStatus(e) === 'due')
+      .reverse()
+      .forEach((e) => {
+        if (left >= e.amount - 0.005) {
+          markEntryPaid(e, reference);
+          left = round2(left - e.amount);
+        }
+      });
+  },
+  settlement(request) {
+    const { driverId, amount, at, method, note, proof } = request.payload;
+    const driver = DRIVERS_BY_ID.get(driverId);
+    if (driver) postSettlement(driver, { amount, at: at ?? Date.now(), method, note, proof });
+  },
+  settlement_import(request) {
+    const imp = SETTLEMENT_IMPORTS.find((i) => i.id === request.payload.importId);
+    if (!imp) return;
+    const now = Date.now();
+    imp.rows.forEach((row, i) => {
+      const driver = DRIVERS_BY_ID.get(row.driverId);
+      if (!driver) return;
+      const at = row.paymentDate ? new Date(`${row.paymentDate}T12:00:00`).getTime() + i : now + i;
+      const entry = postSettlement(driver, {
+        amount: row.amount,
+        at,
+        method: row.channel,
+        note: `Imported from ${imp.fileName}`,
+        paymentRef: row.paymentRef,
+        importId: imp.id,
+      });
+      row.receipt = entry.ref;
+    });
+    Object.assign(imp, { status: 'approved', decidedAt: now, decidedBy: actingAdmin().email });
+    patch('imports', imp.id, { status: imp.status, decidedAt: imp.decidedAt, decidedBy: imp.decidedBy, rows: imp.rows });
+  },
+  fee_waiver(request) {
+    const { riderId, entryId } = request.payload;
+    const rider = RIDERS_BY_ID.get(riderId);
+    const fee = RIDER_LEDGER_ENTRIES.find((e) => e.id === entryId);
+    if (!rider || !fee) return;
+    const now = Date.now();
+    postRiderLedgerEntry(rider, 'fee_waived', -fee.amount, now, {
+      tripId: fee.tripId,
+      reversesEntryId: fee.id,
+      note: `Fee waived — ${request.payload.reason}`,
+      actor: actingAdmin().email,
+    });
+    // §5 — the driver's share of that fee is removed too.
+    const credit = LEDGER_ENTRIES.find(
+      (e) => e.type === 'rider_cancellation_fee_credit' && e.tripId === fee.tripId && e.riderId === String(riderId),
+    );
+    const driver = credit && DRIVERS_BY_ID.get(credit.driverId);
+    if (driver) {
+      postLedgerEntry(driver, 'fee_credit_reversed', -credit.amount, now, {
+        tripId: fee.tripId,
+        riderId: String(riderId),
+        reversesEntryId: credit.id,
+        note: `${rider.name}'s cancellation fee was waived`,
+        actor: actingAdmin().email,
+      });
+    }
+    makeAuditEntry('fee waived', 'rider', rider.id, { fee: -fee.amount }, { fee: 0, entry: fee.id });
+  },
+  payout_method(request) {
+    const driver = DRIVERS_BY_ID.get(request.payload.driverId);
+    if (!driver) return;
+    driver.payoutMethod = { ...request.payload.method, updatedAt: Date.now(), updatedBy: request.maker };
+    patch('drivers', driver.id, { payoutMethod: driver.payoutMethod });
+    makeAuditEntry('payout method changed', 'driver', driver.id, { type: request.before.type ?? '—' }, { type: driver.payoutMethod.type });
+  },
+  rate_card(request) {
+    const zone = ZONES_BY_ID.get(request.payload.zoneId);
+    if (!zone) return;
+    const card = request.payload.rateCard;
+    zone.rateCard = card ? { ...card, updatedAt: Date.now() } : null;
+    patch('zones', zone.id, { rateCard: zone.rateCard });
+  },
+  commission(request) {
+    Object.assign(GLOBAL_POLICIES.commission, {
+      percentage: request.payload.percentage,
+      updatedAt: Date.now(),
+      updatedBy: request.maker,
+    });
+    recordPolicies(structuredClone(GLOBAL_POLICIES));
+  },
+};
+
+/** What rejecting a request undoes (§1). */
+const ON_REJECT = {
+  payout_batch(request) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
+    // Her entries are released back to Due.
+    if (batch) patchBatch(batch, { status: 'rejected', completedAt: Date.now() });
+  },
+  payout_result(request) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
+    if (batch) patchBatch(batch, { status: 'sent_to_bank', result: null, resultImportedAt: null, resultImportedBy: null });
+  },
+  settlement_import(request) {
+    const imp = SETTLEMENT_IMPORTS.find((i) => i.id === request.payload.importId);
+    if (!imp) return;
+    Object.assign(imp, { status: 'rejected', decidedAt: Date.now(), decidedBy: actingAdmin().email });
+    patch('imports', imp.id, { status: imp.status, decidedAt: imp.decidedAt, decidedBy: imp.decidedBy });
+  },
+};
+
+function decorateRequest(r) {
+  const me = actingAdmin().email;
+  const before = r.type === 'payout_method' && r.before?.number ? { ...r.before, number: MASK(r.before.number) } : r.before;
+  return { ...r, before, madeByYou: r.maker === me, canDecide: r.status === 'pending' && r.maker !== me };
 }
 
 // ── Generic query helpers ─────────────────────────────
@@ -1184,31 +1576,65 @@ export const mockApi = {
         new MockApiError('Minimum fare cannot be less than base fare.', 422),
       );
     }
-    zone.rateCard = {
+    if (pendingFor('zone', zone.id, 'rate_card')) {
+      return Promise.reject(new MockApiError('A rate card change for this zone is already awaiting approval.', 409));
+    }
+    const card = {
       baseFare: Number(rateCard.baseFare),
       perKm: Number(rateCard.perKm),
       perMin: Number(rateCard.perMin),
       minFare: Number(rateCard.minFare),
       cancellationFee: Number(rateCard.cancellationFee ?? 0),
-      updatedAt: Date.now(),
     };
-    patch('zones', id, { rateCard: zone.rateCard });
-    return respond({ ok: true, status: zone.status });
+    // Maker-checker (§1): the card applies only once another admin approves.
+    const { updatedAt, ...current } = zone.rateCard ?? {};
+    const request = createRequest('rate_card', { kind: 'zone', id: String(zone.id), label: zone.name }, {
+      before: zone.rateCard ? current : {},
+      after: card,
+      payload: { zoneId: String(zone.id), rateCard: card },
+    });
+    return respond({ ok: true, pending: true, request: decorateRequest(request), status: zone.status });
   },
 
   removeRateCard(id) {
     const zone = ZONES_BY_ID.get(String(id));
     if (!zone) return Promise.reject(new MockApiError('Zone not found.', 404));
-    zone.rateCard = null;
-    patch('zones', id, { rateCard: null });
-    return respond({ ok: true, status: zone.status });
+    if (pendingFor('zone', zone.id, 'rate_card')) {
+      return Promise.reject(new MockApiError('A rate card change for this zone is already awaiting approval.', 409));
+    }
+    const { updatedAt, ...current } = zone.rateCard ?? {};
+    const request = createRequest('rate_card', { kind: 'zone', id: String(zone.id), label: zone.name }, {
+      before: current,
+      after: { removed: true },
+      payload: { zoneId: String(zone.id), rateCard: null },
+    });
+    return respond({ ok: true, pending: true, request: decorateRequest(request), status: zone.status });
   },
 
   getPolicies() {
-    return respond(structuredClone(GLOBAL_POLICIES), { emptyValue: structuredClone(GLOBAL_POLICIES) });
+    const payload = {
+      ...structuredClone(GLOBAL_POLICIES),
+      // A commission change waits for approval (§1); the screen shows it as pending.
+      pendingCommission: pendingSummary(pendingFor('policy', 'commission', 'commission')),
+    };
+    return respond(payload, { emptyValue: payload });
   },
 
   savePolicies(next) {
+    let request = null;
+    if (next.commission && Number(next.commission.percentage) !== Number(GLOBAL_POLICIES.commission.percentage)) {
+      if (pendingFor('policy', 'commission', 'commission')) {
+        return Promise.reject(new MockApiError('A commission change is already awaiting approval.', 409));
+      }
+      const percentage = Number(next.commission.percentage);
+      request = createRequest('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
+        before: { percentage: GLOBAL_POLICIES.commission.percentage },
+        after: { percentage },
+        payload: { percentage },
+      });
+    }
+    // Commission never applies on save — only through the request above.
+    next = { ...next, commission: undefined };
     if (next.cancellation) {
       Object.assign(GLOBAL_POLICIES.cancellation, next.cancellation, {
         updatedAt: Date.now(),
@@ -1228,7 +1654,7 @@ export const mockApi = {
       });
     }
     recordPolicies(structuredClone(GLOBAL_POLICIES));
-    return respond({ ok: true });
+    return respond({ ok: true, pending: Boolean(request), request: request ? decorateRequest(request) : null });
   },
 
   // ── Driver balance ledger (#TBD-A / #1813) ──────────
@@ -1280,6 +1706,10 @@ export const mockApi = {
           lastSettlementAt: lastSettlement ? lastSettlement.at : null,
           // The go-online gate reads the live balance (#TBD-F).
           goOnlineBlocked: isGoOnlineBlocked(d),
+          // A settlement or payout awaiting another admin (maker-checker §1).
+          pendingSettlement: Boolean(pendingFor('driver', d.id, 'settlement')),
+          pendingPayout: Boolean(pendingFor('driver', d.id, 'payout')),
+          hasPayoutMethod: Boolean(d.payoutMethod),
         };
       });
 
@@ -1293,7 +1723,11 @@ export const mockApi = {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
-    const entries = ledgerFor(driverId);
+    // Each payable entry carries its payout status and due date (§3).
+    const entries = ledgerFor(driverId).map((e) => {
+      const payoutStatus = entryPayoutStatus(e);
+      return payoutStatus ? { ...e, payoutStatus, dueAt: dueAtOf(e) } : e;
+    });
     const payload = {
       driver: {
         id: driver.id,
@@ -1301,6 +1735,13 @@ export const mockApi = {
         status: driver.status,
         balance: driver.balance,
         goOnlineBlocked: isGoOnlineBlocked(driver),
+        payoutMethod: driver.payoutMethod
+          ? { type: driver.payoutMethod.type, provider: driver.payoutMethod.provider, masked: MASK(driver.payoutMethod.number) }
+          : null,
+        lastPayoutFailure: driver.lastPayoutFailure ?? null,
+        position: payoutPosition(driver),
+        pendingSettlement: pendingSummary(pendingFor('driver', driver.id, 'settlement')),
+        pendingPayout: pendingSummary(pendingFor('driver', driver.id, 'payout')),
       },
       ...paginate(entries, page, pageSize),
     };
@@ -1322,55 +1763,29 @@ export const mockApi = {
     if (driver.balance >= 0) {
       return Promise.reject(new MockApiError('This driver has nothing outstanding to settle.', 409));
     }
-    // A driver may hand back MORE than she owes (#3982, 2026-09-17). The surplus
-    // is not refused at the counter — it crosses zero and becomes an available
-    // balance, which Finance later pays out like any other available balance.
+    // A driver may hand back MORE than she owes (#3982, 2026-09-17) — the surplus
+    // crosses zero and becomes an available balance. The sheet import (§4) is stricter.
     if (!method) return Promise.reject(new MockApiError('Select a settlement method.', 422));
-
-    // A settlement dated today is valid at any hour, so the future check compares
-    // calendar days. Today is stamped at the current time; an earlier date at local
-    // noon, which keeps it on the intended day in any timezone.
-    const now = Date.now();
-    let at = now;
-    if (date) {
-      const parsed = new Date(`${date}T12:00:00`);
-      if (Number.isNaN(parsed.getTime())) {
-        return Promise.reject(new MockApiError('Invalid date format.', 422));
-      }
-      const chosenDay = new Date(parsed).setHours(0, 0, 0, 0);
-      const today = new Date(now).setHours(0, 0, 0, 0);
-      if (chosenDay > today) {
-        return Promise.reject(new MockApiError('Date cannot be in the future.', 422));
-      }
-      at = chosenDay === today ? now : parsed.getTime();
+    const { at, error } = resolveDate(date);
+    if (error) return Promise.reject(new MockApiError(error, 422));
+    if (pendingFor('driver', driver.id, 'settlement')) {
+      return Promise.reject(new MockApiError('A settlement for this driver is already awaiting approval.', 409));
     }
 
-    const before = driver.balance;
-    // Every settlement generates a receipt number, shown to the admin and
-    // visible in the driver's own statement (spec §5).
-    const entry = postLedgerEntry(driver, 'settlement', value, at, {
-      method,
-      ref: nextSettlementReceipt(),
-      note: note || 'Cash received from driver',
-      proof: proof ?? null,
-      actor: CURRENT_ADMIN.email,
+    // Maker-checker (§1): nothing posts until another admin approves.
+    const request = createRequest('settlement', { kind: 'driver', id: String(driver.id), label: driver.name }, {
+      before: { balance: driver.balance },
+      after: { balance: round2(driver.balance + value) },
+      amount: value,
+      payload: { driverId: String(driver.id), amount: value, at, method, note: note || 'Cash received from driver', proof: proof ?? null },
     });
-
-    // before/after must be plain objects — audit-log.js diffs them by key with
-    // `key in before`, which throws if before/after are formatted strings.
-    // makeAuditEntry already persists the entry; no separate recordAuditEntry call.
-    makeAuditEntry('settlement', 'driver', driver.id, { balance: before }, { balance: driver.balance });
-    return respond({ ok: true, entry, balance: driver.balance });
+    return respond({ ok: true, pending: true, request: decorateRequest(request), balance: driver.balance });
   },
 
   /**
-   * Financial core spec §5 — a driver never requests a payout. Finance
-   * transfers the money on its own cycle and this records that transfer
-   * after the fact, in the same place a settlement is recorded. Posts a
-   * `payout` debit; never edits the balance directly. The platform holds no
-   * payout destination — getting the money to her is a manual, off-platform
-   * process, so recording is only refused for an amount above what SheDrive
-   * currently owes her.
+   * Manual payout for one-off cases (§3) — Finance has already sent the money.
+   * Becomes a `payout` request; on approval it posts the debit and pays her
+   * oldest due entries first, up to the amount.
    */
   recordPayout(driverId, { amount, date, reference, proof = null } = {}) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
@@ -1379,47 +1794,29 @@ export const mockApi = {
     if (driver.balance <= 0) {
       return Promise.reject(new MockApiError('This driver has nothing available to pay out.', 409));
     }
-
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) {
       return Promise.reject(new MockApiError('Enter a valid amount.', 422));
     }
     if (value > driver.balance) {
-      return Promise.reject(
-        new MockApiError('Amount must not exceed what the platform owes the driver.', 422),
-      );
+      return Promise.reject(new MockApiError('Amount must not exceed what the platform owes the driver.', 422));
     }
     if (!reference || !String(reference).trim()) {
       return Promise.reject(new MockApiError('Enter a payout reference.', 422));
     }
-
-    // Same today-or-earlier date rule as recordSettlement.
-    const now = Date.now();
-    let at = now;
-    if (date) {
-      const parsed = new Date(`${date}T12:00:00`);
-      if (Number.isNaN(parsed.getTime())) {
-        return Promise.reject(new MockApiError('Invalid date format.', 422));
-      }
-      const chosenDay = new Date(parsed).setHours(0, 0, 0, 0);
-      const today = new Date(now).setHours(0, 0, 0, 0);
-      if (chosenDay > today) {
-        return Promise.reject(new MockApiError('Date cannot be in the future.', 422));
-      }
-      at = chosenDay === today ? now : parsed.getTime();
+    const { at, error } = resolveDate(date);
+    if (error) return Promise.reject(new MockApiError(error, 422));
+    if (pendingFor('driver', driver.id, 'payout')) {
+      return Promise.reject(new MockApiError('A payout for this driver is already awaiting approval.', 409));
     }
 
-    const before = driver.balance;
-    const entry = postLedgerEntry(driver, 'payout', -value, at, {
-      ref: String(reference).trim(),
-      note: 'Payout sent by Finance',
-      proof: proof ?? null,
-      actor: CURRENT_ADMIN.email,
+    const request = createRequest('payout', { kind: 'driver', id: String(driver.id), label: driver.name }, {
+      before: { balance: driver.balance },
+      after: { balance: round2(driver.balance - value) },
+      amount: value,
+      payload: { driverId: String(driver.id), amount: value, at, reference: String(reference).trim(), proof: proof ?? null },
     });
-
-    // before/after must be plain objects — see the note on recordSettlement.
-    makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
-    return respond({ ok: true, entry, balance: driver.balance });
+    return respond({ ok: true, pending: true, request: decorateRequest(request), balance: driver.balance });
   },
 
   // ── Rider fee ledger (financial core spec §2.2, FIN-11) ────
@@ -1431,7 +1828,11 @@ export const mockApi = {
   listRiderBalances({ search = '', filter = 'owing', page = 1, pageSize = 20, sort = null } = {}) {
     const term = search.trim().toLowerCase();
 
-    const rows = RIDERS.filter((r) => (filter === 'owing' ? r.outstanding > 0 : true))
+    const rows = RIDERS.filter((r) => {
+      if (filter === 'owing') return r.outstanding > 0;
+      if (filter === 'credit') return (r.balance ?? 0) > 0;
+      return true;
+    })
       .filter((r) => !term || r.name.toLowerCase().includes(term) || r.phone.includes(term))
       .map((r) => {
         const entries = riderLedgerFor(r.id);
@@ -1443,6 +1844,7 @@ export const mockApi = {
           status: r.status,
           balance: r.balance ?? 0,
           outstanding: r.outstanding ?? 0,
+          credit: (r.balance ?? 0) > 0 ? r.balance : 0,
           lastFeeAt: lastFee ? lastFee.at : null,
         };
       });
@@ -1456,7 +1858,14 @@ export const mockApi = {
     const rider = RIDERS_BY_ID.get(String(riderId));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
 
-    const entries = riderLedgerFor(riderId);
+    // §5 — each fee says whether it was waived or has a waiver awaiting approval.
+    const all = riderLedgerFor(riderId);
+    const entries = all.map((e) => {
+      if (e.type !== 'cancellation_fee') return e;
+      const waived = all.some((w) => w.type === 'fee_waived' && w.reversesEntryId === e.id);
+      const pending = APPROVALS.find((a) => a.status === 'pending' && a.type === 'fee_waiver' && a.payload.entryId === e.id);
+      return { ...e, waived, waiverPending: pendingSummary(pending ?? null) };
+    });
     const payload = {
       rider: {
         id: rider.id,
@@ -1464,10 +1873,521 @@ export const mockApi = {
         status: rider.status,
         balance: rider.balance ?? 0,
         outstanding: rider.outstanding ?? 0,
+        // A waived fee she had already paid leaves a credit — shown, not spent, this phase.
+        credit: (rider.balance ?? 0) > 0 ? rider.balance : 0,
       },
       ...paginate(entries, page, pageSize),
     };
     return respond(payload, { emptyValue: { ...payload, ...emptyPage(pageSize) } });
+  },
+
+  // ── Maker-checker (2026-10-14 spec §1) ──────────────
+
+  /** Demo only: who is acting, and the switch to act as a second admin. */
+  getActingAdmin() {
+    const admin = actingAdmin();
+    return { email: admin.email, isSignedInAdmin: admin.email === CURRENT_ADMIN.email, signedIn: CURRENT_ADMIN.email };
+  },
+
+  setActingAdmin(email = null) {
+    try {
+      if (email && email !== CURRENT_ADMIN.email) sessionStorage.setItem(ACTING_KEY, email);
+      else sessionStorage.removeItem(ACTING_KEY);
+    } catch {
+      // storage blocked — the switch simply does not stick
+    }
+    return this.getActingAdmin();
+  },
+
+  /** Other active admins the demo switch can act as. */
+  listCheckers() {
+    return ADMINS.filter((a) => a.status === 'active' && a.email !== CURRENT_ADMIN.email).map((a) => a.email);
+  },
+
+  /** Sync — the sidebar badge reads it on every render (ad-shell NAV_COUNTS). */
+  pendingApprovalCount() {
+    return APPROVALS.filter((a) => a.status === 'pending').length;
+  },
+
+  /**
+   * status: 'pending' (default) | 'decided'. type: an APPROVAL_TYPES value or 'all'.
+   */
+  listApprovals({ status = 'pending', type = 'all', page = 1, pageSize = 20, sort = null } = {}) {
+    const rows = APPROVALS.filter((a) => (status === 'pending' ? a.status === 'pending' : a.status !== 'pending'))
+      .filter((a) => type === 'all' || a.type === type)
+      .map(decorateRequest);
+    const key = status === 'pending' ? 'madeAt' : 'decidedAt';
+    const sorted = sortRows(rows, sort, { key, dir: 'desc' });
+    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
+  },
+
+  approvalTypes() {
+    return APPROVAL_TYPES.slice();
+  },
+
+  getApproval(id) {
+    const request = APPROVALS_BY_ID.get(String(id));
+    if (!request) return respond(null, { emptyValue: null });
+    const out = decorateRequest(request);
+    // Enough context for the checker to decide without leaving the screen.
+    if (request.subject.kind === 'batch') {
+      const batch = PAYOUT_BATCHES_BY_ID.get(request.subject.id);
+      if (batch) {
+        out.batch = {
+          id: batch.id,
+          ref: batch.ref,
+          status: batch.status,
+          lines: batch.lines.map((l) => ({ ...l, number: MASK(l.number) })),
+          result: batch.result ?? null,
+        };
+      }
+    }
+    if (request.type === 'settlement_import') {
+      const imp = SETTLEMENT_IMPORTS.find((i) => i.id === request.payload.importId);
+      if (imp) out.import = structuredClone(imp);
+    }
+    if (request.type === 'payout_method') {
+      out.methodBefore = request.before.number ? { ...request.before, masked: MASK(request.before.number) } : null;
+      out.methodAfter = { ...request.payload.method, masked: MASK(request.payload.method.number) };
+    }
+    return respond(out, { emptyValue: null });
+  },
+
+  approveRequest(id) {
+    const request = APPROVALS_BY_ID.get(String(id));
+    if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
+    if (request.status !== 'pending') {
+      return Promise.reject(new MockApiError('This request has already been decided.', 409));
+    }
+    const actor = actingAdmin();
+    if (request.maker === actor.email) {
+      return Promise.reject(new MockApiError('You made this request, so another admin must approve it.', 403));
+    }
+    EXECUTE[request.type]?.(request);
+    patchApproval(request, { status: 'approved', checker: actor.email, decidedAt: Date.now() });
+    addAuditEntry('approval approved', request.subject.kind, request.subject.id, { request: request.id, status: 'pending' }, { request: request.id, status: 'approved' }, Date.now());
+    return respond({ ok: true, request: decorateRequest(request) });
+  },
+
+  rejectRequest(id, reason) {
+    const request = APPROVALS_BY_ID.get(String(id));
+    if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
+    if (request.status !== 'pending') {
+      return Promise.reject(new MockApiError('This request has already been decided.', 409));
+    }
+    const actor = actingAdmin();
+    if (request.maker === actor.email) {
+      return Promise.reject(new MockApiError('You made this request, so another admin must decide it.', 403));
+    }
+    const text = String(reason ?? '').trim();
+    if (text.length < 10 || text.length > 500) {
+      return Promise.reject(new MockApiError('Give a reason of 10–500 characters.', 422));
+    }
+    ON_REJECT[request.type]?.(request);
+    patchApproval(request, { status: 'rejected', checker: actor.email, decidedAt: Date.now(), rejectReason: text });
+    addAuditEntry('approval rejected', request.subject.kind, request.subject.id, { request: request.id, status: 'pending' }, { request: request.id, status: 'rejected', reason: text }, Date.now());
+    return respond({ ok: true, request: decorateRequest(request) });
+  },
+
+  // ── Driver payout method (§2) ───────────────────────
+
+  getPayoutOptions() {
+    const payload = {
+      payoutTypes: PAYOUT_TYPES.slice(),
+      walletProviders: WALLET_PROVIDERS.slice(),
+      banks: BANKS.slice(),
+      settlementChannels: SETTLEMENT_CHANNELS.slice(),
+      holdDays: PAYOUT_HOLD_DAYS,
+    };
+    return respond(payload, { emptyValue: payload, latency: 120 });
+  },
+
+  /** The driver's payout method (number masked), last failure, and any pending admin edit. */
+  getDriverPayout(driverId) {
+    const driver = DRIVERS_BY_ID.get(String(driverId));
+    if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
+    const m = driver.payoutMethod;
+    return respond({
+      method: m ? { type: m.type, provider: m.provider, holderName: m.holderName, masked: MASK(m.number), updatedAt: m.updatedAt, updatedBy: m.updatedBy } : null,
+      lastFailure: driver.lastPayoutFailure ?? null,
+      pendingChange: pendingSummary(pendingFor('driver', driver.id, 'payout_method')),
+      position: payoutPosition(driver),
+    }, { emptyValue: { method: null, lastFailure: null, pendingChange: null, position: { due: 0, onHold: 0, inBatch: 0, sent: 0 } } });
+  },
+
+  /** An admin editing it on her behalf is a request (§2); her own change in the app is not. */
+  requestPayoutMethodChange(driverId, method) {
+    const driver = DRIVERS_BY_ID.get(String(driverId));
+    if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
+    const clean = {
+      type: method?.type,
+      provider: method?.type === 'PREPAID_CARD' ? null : method?.provider ?? null,
+      holderName: String(method?.holderName ?? driver.name).trim(),
+      number: String(method?.number ?? '').replace(/\s+/g, '').toUpperCase(),
+    };
+    const error = validatePayoutMethod(clean);
+    if (error) return Promise.reject(new MockApiError(error, 422));
+    if (pendingFor('driver', driver.id, 'payout_method')) {
+      return Promise.reject(new MockApiError('A payout method change for this driver is already awaiting approval.', 409));
+    }
+    const m = driver.payoutMethod;
+    const request = createRequest('payout_method', { kind: 'driver', id: String(driver.id), label: driver.name }, {
+      before: m ? { type: m.type, provider: m.provider ?? '—', number: m.number } : {},
+      after: { type: clean.type, provider: clean.provider ?? '—' },
+      payload: { driverId: String(driver.id), method: clean },
+    });
+    return respond({ ok: true, pending: true, request: decorateRequest(request) });
+  },
+
+  // ── Payout batches (§3) ─────────────────────────────
+
+  /** Who a batch generated now would pay, and who it leaves out and why. */
+  previewPayoutBatch() {
+    const now = Date.now();
+    const lines = [];
+    const skipped = [];
+    DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status)).forEach((driver) => {
+      const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
+      const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
+      if (dueNet <= 0) return;
+      const base = { driverId: String(driver.id), driverName: driver.name, nationalId: driver.nid, dueNet, balance: driver.balance };
+      if (driver.balance <= 0) {
+        skipped.push({ ...base, reason: 'owes' });
+        return;
+      }
+      if (!driver.payoutMethod) {
+        skipped.push({ ...base, reason: 'no_method' });
+        return;
+      }
+      lines.push({
+        ...base,
+        payoutType: driver.payoutMethod.type,
+        provider: driver.payoutMethod.provider,
+        masked: MASK(driver.payoutMethod.number),
+        // §3 — the smaller of her due net and her whole balance.
+        amount: round2(Math.min(dueNet, driver.balance)),
+        entryIds: due.map((e) => e.id),
+      });
+    });
+    lines.sort((a, b) => b.amount - a.amount);
+    const payload = { lines, skipped, count: lines.length, total: round2(lines.reduce((t, l) => t + l.amount, 0)) };
+    return respond(payload, { emptyValue: { lines: [], skipped: [], count: 0, total: 0 } });
+  },
+
+  createPayoutBatch() {
+    const now = Date.now();
+    const drivers = DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status));
+    const ref = makeBatchRef(now);
+    const lines = [];
+    drivers.forEach((driver) => {
+      const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
+      const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
+      if (dueNet <= 0 || driver.balance <= 0 || !driver.payoutMethod) return;
+      lines.push(makeLine(driver, ref, lines.length + 1, Math.min(dueNet, driver.balance), due.map((e) => e.id)));
+    });
+    if (!lines.length) {
+      return Promise.reject(new MockApiError('No driver is due a payout right now.', 409));
+    }
+    const total = round2(lines.reduce((t, l) => t + l.amount, 0));
+    const batch = {
+      id: ref,
+      ref,
+      status: 'pending_approval',
+      createdAt: now,
+      createdBy: actingAdmin().email,
+      approvedBy: null,
+      approvedAt: null,
+      exportedAt: null,
+      exportedBy: null,
+      resultImportedAt: null,
+      resultImportedBy: null,
+      completedAt: null,
+      lines,
+    };
+    PAYOUT_BATCHES.unshift(batch);
+    PAYOUT_BATCHES_BY_ID.set(batch.id, batch);
+    recordAdded('batchesAdded', batch);
+    const request = createRequest('payout_batch', { kind: 'batch', id: batch.id, label: batch.ref }, {
+      after: { lines: lines.length, total },
+      amount: total,
+      payload: { batchId: batch.id },
+    });
+    return respond({ ok: true, batch: { id: batch.id, ref: batch.ref }, request: decorateRequest(request) });
+  },
+
+  /** status: 'all' | a batch status. */
+  listPayoutBatches({ status = 'all', page = 1, pageSize = 20, sort = null } = {}) {
+    const rows = PAYOUT_BATCHES.filter((b) => status === 'all' || b.status === status).map((b) => ({
+      id: b.id,
+      ref: b.ref,
+      status: b.status,
+      createdAt: b.createdAt,
+      createdBy: b.createdBy,
+      lineCount: b.lines.length,
+      total: round2(b.lines.reduce((t, l) => t + l.amount, 0)),
+      paidCount: b.lines.filter((l) => l.status === 'paid').length,
+      failedCount: b.lines.filter((l) => l.status === 'failed').length,
+      exportedAt: b.exportedAt,
+      completedAt: b.completedAt,
+    }));
+    const sorted = sortRows(rows, sort, { key: 'createdAt', dir: 'desc' });
+    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
+  },
+
+  getPayoutBatch(id) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
+    if (!batch) return respond(null, { emptyValue: null });
+    const requests = APPROVALS.filter((a) => a.subject.kind === 'batch' && a.subject.id === batch.id).map(decorateRequest);
+    return respond({
+      ...structuredClone(batch),
+      lines: batch.lines.map((l) => ({ ...l, masked: MASK(l.number), number: undefined })),
+      total: round2(batch.lines.reduce((t, l) => t + l.amount, 0)),
+      paidTotal: round2(batch.lines.filter((l) => l.status === 'paid').reduce((t, l) => t + l.amount, 0)),
+      requests,
+    }, { emptyValue: null });
+  },
+
+  /** The bank file (§3). Exporting an approved batch moves it to Sent to bank; later downloads are copies. */
+  exportPayoutBatch(id) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
+    if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
+    if (['pending_approval', 'rejected'].includes(batch.status)) {
+      return Promise.reject(new MockApiError('The batch must be approved before it can be exported.', 409));
+    }
+    if (batch.status === 'ready') {
+      batch.lines.forEach((l) => { l.status = 'sent'; });
+      patchBatch(batch, { status: 'sent_to_bank', exportedAt: Date.now(), exportedBy: actingAdmin().email });
+      addAuditEntry('payout batch exported', 'batch', batch.id, { status: 'ready' }, { status: 'sent_to_bank', lines: batch.lines.length }, Date.now());
+    }
+    const csv = toCsv(EXPORT_HEADERS, batch.lines.map((l) => exportRow(batch, l)));
+    return respond({ ok: true, csv, fileName: `${batch.ref}-payouts.csv`, status: batch.status });
+  },
+
+  /** Demo helper: a result file as Finance would return it — every line SUCCESS but the last. */
+  buildSampleResult(id) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
+    if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
+    const rows = batch.lines.map((l, i) => {
+      const failed = batch.lines.length > 1 && i === batch.lines.length - 1;
+      return {
+        ...exportRow(batch, l),
+        status: failed ? 'FAILED' : 'SUCCESS',
+        bank_reference: failed ? '' : `BNK${String(10000000 + Math.floor(Math.random() * 89999999))}`,
+        failure_reason: failed ? 'Wallet number not registered' : '',
+      };
+    });
+    return respond({ csv: toCsv(RESULT_HEADERS, rows), fileName: `${batch.ref}-result.csv` });
+  },
+
+  /**
+   * Finance's result file (§3). Every line must appear exactly once with
+   * SUCCESS or FAILED. A valid file becomes a `payout_result` request.
+   */
+  importPayoutResult(id, csvText) {
+    const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
+    if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
+    if (batch.status !== 'sent_to_bank') {
+      return Promise.reject(new MockApiError('A result can only be imported for a batch that was sent to the bank.', 409));
+    }
+    const { headers, rows } = parseCsv(csvText);
+    const missingCols = ['line_ref', 'status'].filter((h) => !headers.includes(h));
+    if (missingCols.length) {
+      return validationError('The file is missing required columns.', missingCols.map((c) => ({ code: 'missing_column', column: c })));
+    }
+    const errors = [];
+    const seen = new Set();
+    const result = [];
+    rows.forEach((row, i) => {
+      const rowNo = i + 2;
+      const line = batch.lines.find((l) => l.lineRef === row.line_ref);
+      const status = String(row.status).toUpperCase();
+      if (!line) errors.push({ code: 'unknown_line', rowNo, lineRef: row.line_ref });
+      else if (seen.has(row.line_ref)) errors.push({ code: 'duplicate_line', rowNo, lineRef: row.line_ref });
+      else if (!['SUCCESS', 'FAILED'].includes(status)) errors.push({ code: 'bad_status', rowNo, lineRef: row.line_ref, value: row.status });
+      else {
+        seen.add(row.line_ref);
+        result.push({ lineRef: row.line_ref, status, bankReference: row.bank_reference || null, failureReason: row.failure_reason || null });
+      }
+    });
+    batch.lines.filter((l) => !seen.has(l.lineRef) && !errors.some((e) => e.lineRef === l.lineRef)).forEach((l) => {
+      errors.push({ code: 'missing_line', lineRef: l.lineRef });
+    });
+    if (errors.length) return validationError('The result file does not match this batch.', errors);
+
+    const success = result.filter((r) => r.status === 'SUCCESS');
+    const amount = round2(success.reduce((t, r) => t + batch.lines.find((l) => l.lineRef === r.lineRef).amount, 0));
+    patchBatch(batch, { status: 'result_pending', result, resultImportedAt: Date.now(), resultImportedBy: actingAdmin().email });
+    addAuditEntry('payout result imported', 'batch', batch.id, { status: 'sent_to_bank' }, { status: 'result_pending', success: success.length, failed: result.length - success.length }, Date.now());
+    const request = createRequest('payout_result', { kind: 'batch', id: batch.id, label: batch.ref }, {
+      after: { success: success.length, failed: result.length - success.length },
+      amount,
+      payload: { batchId: batch.id },
+    });
+    return respond({ ok: true, request: decorateRequest(request), success: success.length, failed: result.length - success.length });
+  },
+
+  // ── Settlement import (§4) ──────────────────────────
+
+  getSettlementTemplate() {
+    const example = {
+      national_id: '29801011234567',
+      driver_name: 'Mona Adel',
+      amount_egp: '245.50',
+      payment_date: new Date().toISOString().slice(0, 10),
+      payment_channel: 'Bank transfer',
+      payment_reference: 'FT123456789',
+    };
+    return respond({ csv: toCsv(SETTLEMENT_HEADERS, [example]), fileName: 'shedrive-settlement-template.csv', headers: SETTLEMENT_HEADERS.slice() });
+  },
+
+  /** Demo helper: a sheet with three good rows and one of each common mistake. */
+  buildSampleSettlementSheet() {
+    const busy = new Set(APPROVALS.filter((a) => a.status === 'pending' && a.type === 'settlement').map((a) => a.subject.id));
+    const owing = DRIVERS.filter((d) => d.balance < 0 && !busy.has(String(d.id))).slice(0, 4);
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = owing.slice(0, 3).map((d, i) => ({
+      national_id: d.nid,
+      driver_name: d.name,
+      amount_egp: (-d.balance).toFixed(2),
+      payment_date: today,
+      payment_channel: SETTLEMENT_CHANNELS[i % SETTLEMENT_CHANNELS.length],
+      payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}`,
+    }));
+    if (owing[3]) {
+      rows.push({ national_id: owing[3].nid, driver_name: owing[3].name, amount_egp: (Math.floor(-owing[3].balance / 2)).toFixed(2), payment_date: today, payment_channel: 'Fawry', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
+    }
+    rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
+    const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
+    if (used && owing[0]) {
+      rows.push({ national_id: owing[0].nid, driver_name: owing[0].name, amount_egp: (-owing[0].balance).toFixed(2), payment_date: today, payment_channel: 'Bank transfer', payment_reference: used.paymentRef });
+    }
+    return respond({ csv: toCsv(SETTLEMENT_HEADERS, rows), fileName: `finance-settlements-${today}.csv` });
+  },
+
+  /** Check each row of Finance's sheet, in the §4 order. Nothing is stored. */
+  checkSettlementSheet(csvText) {
+    const { headers, rows } = parseCsv(csvText);
+    const missingCols = SETTLEMENT_HEADERS.filter((h) => !headers.includes(h));
+    if (missingCols.length) {
+      return validationError('The sheet is missing required columns.', missingCols.map((c) => ({ code: 'missing_column', column: c })));
+    }
+    if (!rows.length) return validationError('The sheet has no rows.', [{ code: 'empty' }]);
+
+    const usedRefs = new Set(LEDGER_ENTRIES.filter((e) => e.paymentRef).map((e) => e.paymentRef));
+    SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => usedRefs.add(r.paymentRef)));
+    const busy = new Set(APPROVALS.filter((a) => a.status === 'pending' && a.type === 'settlement').map((a) => a.subject.id));
+    SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => busy.add(r.driverId)));
+    const fileRefs = new Set();
+    const fileDrivers = new Set();
+
+    const checked = rows.map((row, i) => {
+      const driver = DRIVERS.find((d) => d.nid === row.national_id);
+      const amount = round2(Number(row.amount_egp));
+      const out = {
+        rowNo: i + 1,
+        nationalId: row.national_id,
+        driverName: row.driver_name,
+        driverId: driver ? String(driver.id) : null,
+        systemName: driver ? driver.name : null,
+        amount: Number.isFinite(amount) ? amount : null,
+        owed: driver && driver.balance < 0 ? round2(-driver.balance) : 0,
+        paymentDate: row.payment_date,
+        channel: row.payment_channel,
+        paymentRef: row.payment_reference,
+        status: 'ready',
+      };
+      if (!driver) out.status = 'unknown_driver';
+      else if (driver.balance >= 0) out.status = 'nothing_owed';
+      else if (!row.payment_reference || usedRefs.has(row.payment_reference) || fileRefs.has(row.payment_reference)) out.status = 'duplicate';
+      else if (out.amount !== out.owed) out.status = 'amount_mismatch';
+      else if (busy.has(String(driver.id)) || fileDrivers.has(String(driver.id))) out.status = 'pending_approval';
+      if (row.payment_reference) fileRefs.add(row.payment_reference);
+      if (out.status === 'ready') fileDrivers.add(String(driver.id));
+      return out;
+    });
+    const ready = checked.filter((r) => r.status === 'ready');
+    return respond({
+      rows: checked,
+      total: checked.length,
+      readyCount: ready.length,
+      readyAmount: round2(ready.reduce((t, r) => t + r.amount, 0)),
+    });
+  },
+
+  /** Submit the ready rows as one `settlement_import` request. */
+  submitSettlementImport({ fileName = 'settlements.csv', rows = [] } = {}) {
+    const ready = rows.filter((r) => r.status === 'ready');
+    if (!ready.length) return Promise.reject(new MockApiError('There are no ready rows to import.', 422));
+    const imp = {
+      id: nextImportId(),
+      fileName,
+      status: 'pending',
+      createdAt: Date.now(),
+      createdBy: actingAdmin().email,
+      decidedAt: null,
+      decidedBy: null,
+      totalRows: rows.length,
+      readyRows: ready.length,
+      rows: ready.map((r) => ({ ...r, receipt: null })),
+      amount: round2(ready.reduce((t, r) => t + r.amount, 0)),
+    };
+    SETTLEMENT_IMPORTS.unshift(imp);
+    recordAdded('importsAdded', imp);
+    const request = createRequest('settlement_import', { kind: 'import', id: imp.id, label: fileName }, {
+      after: { rows: ready.length },
+      amount: imp.amount,
+      payload: { importId: imp.id },
+    });
+    return respond({ ok: true, import: { id: imp.id }, request: decorateRequest(request) });
+  },
+
+  listSettlementImports({ page = 1, pageSize = 20 } = {}) {
+    const rows = SETTLEMENT_IMPORTS.map((i) => ({
+      id: i.id,
+      fileName: i.fileName,
+      status: i.status,
+      createdAt: i.createdAt,
+      createdBy: i.createdBy,
+      decidedAt: i.decidedAt,
+      decidedBy: i.decidedBy,
+      totalRows: i.totalRows,
+      readyRows: i.readyRows,
+      amount: i.amount,
+    }));
+    return respond(paginate(rows, page, pageSize), { emptyValue: emptyPage(pageSize) });
+  },
+
+  getSettlementImport(id) {
+    const imp = SETTLEMENT_IMPORTS.find((i) => i.id === String(id));
+    return respond(imp ? structuredClone(imp) : null, { emptyValue: null });
+  },
+
+  // ── Fee waiver (§5) ─────────────────────────────────
+
+  requestFeeWaiver(riderId, entryId, reason) {
+    const rider = RIDERS_BY_ID.get(String(riderId));
+    if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
+    const fee = RIDER_LEDGER_ENTRIES.find((e) => e.id === entryId && e.riderId === String(riderId));
+    if (!fee || fee.type !== 'cancellation_fee') {
+      return Promise.reject(new MockApiError('Only a cancellation fee can be waived.', 422));
+    }
+    if (RIDER_LEDGER_ENTRIES.some((e) => e.type === 'fee_waived' && e.reversesEntryId === fee.id)) {
+      return Promise.reject(new MockApiError('This fee has already been waived.', 409));
+    }
+    if (APPROVALS.some((a) => a.status === 'pending' && a.type === 'fee_waiver' && a.payload.entryId === fee.id)) {
+      return Promise.reject(new MockApiError('A waiver for this fee is already awaiting approval.', 409));
+    }
+    const text = String(reason ?? '').trim();
+    if (text.length < 10 || text.length > 500) {
+      return Promise.reject(new MockApiError('Give a reason of 10–500 characters.', 422));
+    }
+    const request = createRequest('fee_waiver', { kind: 'rider', id: String(rider.id), label: rider.name }, {
+      before: { fee: -fee.amount },
+      after: { fee: 0 },
+      amount: -fee.amount,
+      payload: { riderId: String(rider.id), entryId: fee.id, tripId: fee.tripId, reason: text },
+    });
+    return respond({ ok: true, pending: true, request: decorateRequest(request) });
   },
 
   // ── Settlement export (financial core spec §5, §10) ───
@@ -1690,6 +2610,8 @@ function serialiseZone(zone) {
     centre: zone.centre,
     createdBy: zone.createdBy,
     createdAt: zone.createdAt,
+    // A rate card change awaiting another admin's approval (§1), or null.
+    pendingChange: pendingSummary(pendingFor('zone', zone.id, 'rate_card')),
   };
 }
 
@@ -1708,7 +2630,8 @@ function addAuditEntry(actionType, targetType, targetId, before, after, at) {
   const entry = {
     id: `AUD-${targetType}-${targetId}-${at}`,
     at,
-    actor: CURRENT_ADMIN.email,
+    // The demo "act as another admin" switch (maker-checker) changes who acts.
+    actor: actingAdmin().email,
     actionType,
     targetType,
     targetId,

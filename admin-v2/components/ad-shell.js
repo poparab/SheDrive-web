@@ -59,6 +59,7 @@ import './ad-map-panel.js';
 /** Live sidebar counters, keyed by a nav item's `count`. */
 const NAV_COUNTS = {
   openSos: { read: () => mockApi.openSosCount(), labelKey: 'nav.sosOpenCount' },
+  pendingApprovals: { read: () => mockApi.pendingApprovalCount(), labelKey: 'nav.approvalsPendingCount' },
 };
 
 /** Counts above this read as "99+" so a badge never widens the menu. */
