@@ -2,11 +2,14 @@
  * rider-balances.js — SheDrive admin rider fee balances (FIN-11)
  *
  * The rider side of the financial core ledger model (spec §2.2): a late
- * cancellation posts a debit, recovered in full as a cash surcharge on her
- * next trip. Nobody writes it off — there is no waive here or anywhere. This
- * screen is read-only: a filterable list, a ledger drawer, and a link into
- * the existing rider-suspension flow for persistent abuse, which is the only
- * human decision that touches a rider's account (spec §3, §7.3).
+ * cancellation posts a debit, recovered as a cash surcharge on her next trip.
+ *
+ * One cancellation fee at a time can be waived (2026-10-14 spec §5). Waiving
+ * is a maker-checker request (§1): nothing changes until a different admin
+ * approves it, and then the rider ledger posts `fee_waived` and the credited
+ * driver's ledger posts `fee_credit_reversed`. A waived fee she had already
+ * paid leaves her a credit — shown, not spent, this phase. Persistent abuse
+ * stays a human decision, handled from her profile.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -20,6 +23,8 @@ if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
+const shell = qs('ad-shell');
+const waiveModal = qs('#waive-modal');
 const filters = qs('#rider-balance-filters');
 const table = qs('#rider-balance-table');
 const ledgerPanel = qs('#ledger-panel');
@@ -33,7 +38,28 @@ let selected = null;
 const ENTRY_LABEL_KEYS = {
   cancellation_fee: 'riderBalances.entryCancellationFee',
   fee_collected: 'riderBalances.entryFeeCollected',
+  fee_waived: 'riderBalancesFinance.entryFeeWaived',
 };
+
+const approvalHref = (id) => `approvals.html?id=${encodeURIComponent(id)}`;
+
+function chip(text, tone) {
+  const span = document.createElement('span');
+  span.className = `badge badge--${tone}`;
+  span.textContent = text;
+  return span;
+}
+
+/** The maker-checker toast: what happened, plus a link to the request. */
+function toastSentForApproval(request) {
+  const toast = shell.showToast(t('riderBalancesFinance.sentForApproval'), 'success', 8000);
+  if (!toast || !request?.id) return;
+  const link = document.createElement('a');
+  link.className = 'toast__link';
+  link.href = approvalHref(request.id);
+  link.textContent = t('riderBalancesFinance.openRequest');
+  toast.append(' ', link);
+}
 
 // ── Filters ──────────────────────────────────────────
 filters.fields = [
@@ -45,6 +71,7 @@ filters.fields = [
     value: 'owing',
     options: [
       { value: 'owing', label: t('riderBalances.owing') },
+      { value: 'credit', label: t('riderBalancesFinance.filterCredit') },
       { value: 'all', label: t('common.all') },
     ],
   },
@@ -62,12 +89,14 @@ filters.actions = [
           t('common.name'),
           t('common.phone'),
           t('riderBalances.colOutstanding'),
+          t('riderBalancesFinance.colCredit'),
           t('riderBalances.colLastFee'),
         ],
         all.rows.map((r) => [
           r.name,
           r.phone,
           r.outstanding.toFixed(2),
+          (r.credit ?? 0).toFixed(2),
           r.lastFeeAt ? formatDate(r.lastFeeAt) : '',
         ]),
       );
@@ -103,6 +132,14 @@ table.columns = [
     sortable: true,
     numeric: true,
     render: (row) => (row.outstanding > 0 ? formatEgp(row.outstanding) : null),
+  },
+  {
+    // §5 — a waived fee she had already paid. Blank when 0.
+    key: 'credit',
+    label: t('riderBalancesFinance.colCredit'),
+    sortable: true,
+    numeric: true,
+    render: (row) => (row.credit > 0 ? formatEgp(row.credit) : null),
   },
   {
     key: 'lastFeeAt',
@@ -172,6 +209,29 @@ ledgerTable.columns = [
     },
   },
   { key: 'note', label: t('riderBalances.colNote'), render: (row) => row.note ?? null },
+  {
+    // §5 — one fee at a time, never twice: a waived fee says so, a fee with a
+    // waiver awaiting approval links to it, every other fee can be waived.
+    key: 'action',
+    label: t('riderBalancesFinance.colAction'),
+    render: (row) => {
+      if (row.type !== 'cancellation_fee') return null;
+      if (row.waived) return chip(t('riderBalancesFinance.waived'), 'success');
+      if (row.waiverPending) {
+        const link = document.createElement('a');
+        link.className = 'badge badge--warning rider-waiver-pending';
+        link.href = approvalHref(row.waiverPending.id);
+        link.textContent = t('riderBalancesFinance.waiverPending');
+        return link;
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn--ghost btn--sm';
+      button.textContent = t('riderBalancesFinance.waive');
+      button.addEventListener('click', () => openWaiver(row));
+      return button;
+    },
+  },
 ];
 ledgerTable.emptyState = {
   icon: '☐',
@@ -205,6 +265,7 @@ function renderLedgerSummary(rider) {
   const summary = qs('#ledger-summary');
   summary.textContent = '';
   const pairs = [[t('riderBalances.statOutstanding'), formatEgp(rider.outstanding)]];
+  if (rider.credit > 0) pairs.push([t('riderBalancesFinance.statCredit'), formatEgp(rider.credit)]);
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
     cell.className = 'balance-ledger__stat';
@@ -216,6 +277,56 @@ function renderLedgerSummary(rider) {
     v.textContent = value;
     cell.append(l, v);
     summary.appendChild(cell);
+  });
+
+  // §5 — the credit is shown, not spent, in this phase.
+  const credit = qs('#ledger-credit');
+  credit.hidden = !(rider.credit > 0);
+  credit.textContent = rider.credit > 0
+    ? t('riderBalancesFinance.creditNote', { amount: formatEgp(rider.credit) })
+    : '';
+}
+
+// ── Waive fee (2026-10-14 spec §5) ───────────────────
+function openWaiver(entry) {
+  if (!selected) return;
+  const rider = selected;
+  waiveModal.open({
+    title: t('riderBalancesFinance.waiveTitle', { name: rider.name }),
+    description: t('riderBalancesFinance.waiveDescription'),
+    confirmLabel: t('riderBalancesFinance.waiveConfirm'),
+    fields: [
+      {
+        key: 'amount',
+        type: 'readonly',
+        label: t('riderBalancesFinance.waiveAmount'),
+        value: formatEgp(Math.abs(entry.amount)),
+        ltr: true,
+      },
+      {
+        key: 'trip',
+        type: 'readonly',
+        label: t('riderBalancesFinance.waiveTrip'),
+        value: entry.tripId ?? '—',
+        ltr: true,
+      },
+      {
+        key: 'reason',
+        type: 'textarea',
+        label: t('riderBalancesFinance.waiveReason'),
+        hint: t('riderBalancesFinance.waiveReasonHint'),
+        required: true,
+        minLength: 10,
+        maxLength: 500,
+        emptyError: t('riderBalancesFinance.errReasonEmpty'),
+        lengthError: t('riderBalancesFinance.errReasonLength'),
+      },
+    ],
+    onConfirm: async (values) => {
+      const result = await mockApi.requestFeeWaiver(rider.id, entry.id, values.reason);
+      toastSentForApproval(result.request);
+      await Promise.all([load(), loadLedger()]);
+    },
   });
 }
 

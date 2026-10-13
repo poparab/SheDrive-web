@@ -1,0 +1,98 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SheDrive — وسيلة استلام الأرباح" />
+    <title>SheDrive Driver — وسيلة استلام الأرباح</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <script type="module" src="../shared/components/sd-page.js"></script>
+  </head>
+
+  <!--
+    Payout method (payouts spec §2) — reached from My profile and from Balance.
+    She can change it any time; her own change needs no approval and applies at once.
+    Demo states: ?state=failed (last payout failed) · ?state=none (no method yet)
+  -->
+  <body class="app-shell payout-method-page">
+    <sd-page body-class="app-shell payout-method-page" screen-styles="styles/driver.css, styles/payout-method.css">
+
+      <div class="sd-hero pm-hero">
+        <sd-app-header hide-lang-toggle>
+          <a href="./my-profile.html" class="btn btn--icon btn--ghost" data-back data-slot="start" aria-label="رجوع" data-i18n-aria-label="aria.back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </a>
+          <span class="pm-hero__title" data-i18n="driver.payout.title">وسيلة استلام الأرباح</span>
+          <span class="pm-hero__spacer" data-slot="end" aria-hidden="true"></span>
+        </sd-app-header>
+      </div>
+
+      <main class="sd-panel pm-content fill-screen">
+
+        <!-- ── View: her current method (or the empty state) ── -->
+        <section class="pm-view fill-screen" id="pm-view" aria-labelledby="pm-current-title">
+
+          <!-- Last payout failed (?state=failed) — spec §3 FAILED result line -->
+          <div class="pm-failed" id="pm-failed" role="alert" hidden>
+            <svg class="pm-failed__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <p class="pm-failed__msg" id="pm-failed-msg">فشل تحويل آخر مبلغ لكِ (54 جنيه): رقم الحساب غير موجود. راجعي وسيلة استلام الأرباح.</p>
+          </div>
+
+          <h2 class="section-label" id="pm-current-title" data-i18n="driver.payout.current">وسيلتكِ الحالية</h2>
+
+          <!-- Current method -->
+          <div class="card pm-method" id="pm-method">
+            <span class="icon-tile icon-tile--lg icon-tile--round pm-method__icon" id="pm-method-icon" aria-hidden="true"></span>
+            <div class="pm-method__body">
+              <span class="pm-method__type" id="pm-method-type">محفظة إلكترونية</span>
+              <span class="pm-method__provider" id="pm-method-provider">فودافون كاش</span>
+              <span class="pm-method__holder" id="pm-method-holder" hidden></span>
+            </div>
+            <bdi class="pm-method__number" id="pm-method-number" dir="ltr">•••• 4821</bdi>
+          </div>
+
+          <!-- No method yet (?state=none) -->
+          <div class="pm-empty" id="pm-empty" hidden>
+            <span class="icon-tile icon-tile--xl icon-tile--round icon-tile--warning" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+            </span>
+            <p class="pm-empty__title" data-i18n="driver.payout.empty.title">لم تضيفي وسيلة لاستلام الأرباح بعد</p>
+            <p class="pm-empty__body" data-i18n="driver.payout.empty.body">أضيفي وسيلة حتى تتمكن شي درايف من إرسال أرباحكِ إليكِ.</p>
+          </div>
+
+          <p class="callout pm-explain">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span data-i18n="driver.payout.explain">هنا ترسل شي درايف أرباحكِ. تُصرف الأرباح بعد 7 أيام من كل رحلة.</span>
+          </p>
+
+          <div class="action-dock">
+            <button type="button" class="btn btn--primary btn--full" id="pm-change" data-i18n="driver.payout.change">تغيير وسيلة الاستلام</button>
+            <button type="button" class="btn btn--primary btn--full" id="pm-add" hidden data-i18n="driver.payout.add">إضافة وسيلة استلام</button>
+          </div>
+        </section>
+
+        <!-- ── Edit: the shared payout form ── -->
+        <section class="pm-edit fill-screen" id="pm-edit" hidden aria-labelledby="pm-edit-title">
+          <h2 class="section-label" id="pm-edit-title" data-i18n="driver.payout.editTitle">وسيلة الاستلام الجديدة</h2>
+          <p class="pm-edit__note" data-i18n="driver.payout.editNote">يُطبَّق التغيير فوراً، ويُرسل التحويل القادم إلى الوسيلة الجديدة.</p>
+
+          <!-- Rendered by scripts/payout-form.js -->
+          <div id="pm-form-host"></div>
+
+          <div class="action-dock">
+            <button type="button" class="btn btn--primary btn--full" id="pm-save" data-i18n="driver.payout.save">حفظ</button>
+            <button type="button" class="btn btn--ghost btn--full" id="pm-cancel" data-i18n="driver.payout.cancel">إلغاء</button>
+          </div>
+        </section>
+
+      </main>
+    </sd-page>
+
+    <script type="module" src="scripts/payout-method.js"></script>
+  </body>
+</html>

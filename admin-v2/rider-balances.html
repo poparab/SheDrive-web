@@ -16,10 +16,11 @@
       screen-styles="styles/detail.css, styles/balances.css, styles/rider-balances.css"
     >
       <section class="ad-section">
-        <p class="ad-section__hint" data-i18n="riderBalances.lead">
-          A rider who cancels after the grace period owes a fee. It is recovered in full as
-          a surcharge on her next cash trip — nobody writes it off. Persistent abuse is a
-          human decision, handled from her profile.
+        <p class="ad-section__hint" data-i18n="riderBalancesFinance.lead">
+          A rider who cancels after the grace period owes a fee. It is recovered as a
+          surcharge on her next cash trip. An admin can waive one fee with a reason — the
+          waiver needs another admin's approval. Persistent abuse is a human decision,
+          handled from her profile.
         </p>
       </section>
 
@@ -38,12 +39,15 @@
         </div>
         <div class="ad-section__body">
           <div class="balance-ledger__summary" id="ledger-summary"></div>
+          <p class="rider-credit-note" id="ledger-credit" hidden></p>
           <div class="balance-ledger__actions">
             <a class="btn btn--ghost btn--sm" id="btn-view-profile" href="rider-profile.html" data-i18n="riderBalances.viewProfile">View profile</a>
           </div>
           <ad-data-table id="ledger-table"></ad-data-table>
         </div>
       </section>
+
+      <ad-form-modal id="waive-modal"></ad-form-modal>
     </ad-shell>
     <script type="module" src="scripts/rider-balances.js"></script>
   </body>

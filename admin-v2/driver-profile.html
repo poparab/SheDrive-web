@@ -60,6 +60,27 @@
             <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
             <ad-detail-section id="stats" icon="chart.svg" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading"></ad-detail-section>
 
+            <!-- 2026-10-14 spec §2 — payout method; an admin edit is a maker-checker request -->
+            <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading">
+              <div class="ad-stack" id="payout-extra">
+                <div class="ad-stack" id="payout-notices"></div>
+                <p class="ad-section__hint" id="payout-hint" data-i18n="driverPayout.editHint">
+                  An edit made here needs another admin's approval. The driver's own change in the app applies immediately.
+                </p>
+                <button class="btn btn-primary-outline btn--full" type="button" id="payout-edit-btn" data-i18n="driverPayout.editBtn">
+                  Edit payout method
+                </button>
+              </div>
+            </ad-detail-section>
+
+            <!-- §3 — where her earnings stand in the payout cycle -->
+            <ad-detail-section id="payout-position" icon="deposit-wallet.svg" section-title="Payout position" data-i18n-section-title="driverPayout.positionHeading">
+              <div class="ad-stack">
+                <p class="ad-section__hint" id="payout-position-hint"></p>
+                <a class="btn btn-tertiary btn--sm" href="balances.html" data-i18n="driverPayout.openBalances">Open driver balances</a>
+              </div>
+            </ad-detail-section>
+
             <section class="ad-section" aria-labelledby="actions-heading">
               <div class="ad-section__header">
                 <h2 class="ad-section__title" id="actions-heading" data-i18n="driverProfile.actionsHeading">Account actions</h2>

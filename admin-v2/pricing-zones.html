@@ -68,6 +68,11 @@
         <div class="ad-section__header">
           <h2 class="ad-section__title" id="zones-heading" data-i18n="zones.zonesHeading">Zones</h2>
         </div>
+        <!-- 2026-10-14 §1 — rate card changes wait for a second admin -->
+        <div class="alert info mb-0" id="zones-pending" role="status" hidden>
+          <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+          <div class="details"><p id="zones-pending-text"></p></div>
+        </div>
         <ad-filter-bar id="zone-filters"></ad-filter-bar>
         <ad-data-table id="zone-table"></ad-data-table>
       </section>

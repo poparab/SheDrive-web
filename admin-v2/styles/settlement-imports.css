@@ -1,0 +1,228 @@
+/*
+ * settlement-imports.css — settlement sheet import (spec 2026-10-14 §4)
+ * Screen owner: admin-v2/settlement-imports.html
+ * Every value comes from a token; logical properties only (RTL-safe).
+ */
+
+.si-lead {
+  max-inline-size: 100ch;
+  margin-block: 0 var(--space-4);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.si-steps { margin-block-end: var(--space-5); }
+
+.si-card { block-size: 100%; }
+
+.si-columns td,
+.si-columns th { vertical-align: top; white-space: normal; }
+.si-columns td:first-child { white-space: nowrap; }
+
+.si-mono {
+  font-family: var(--font-latin);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.si-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-block-start: var(--space-4);
+}
+
+.si-actions--end { justify-content: flex-end; }
+
+.si-actions .btn i { margin-inline-end: var(--space-2); }
+
+/* ── Demo sample sheet ────────────────────────────── */
+
+.si-demo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-4);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+}
+
+.si-demo .field__hint {
+  flex: 1 0 100%;
+  margin: 0;
+}
+
+.si-checking {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block: var(--space-4) 0;
+  color: var(--color-text-muted);
+}
+
+/* ── Whole-sheet rejection (missing column / empty) ── */
+
+.si-sheet-error {
+  margin-block-start: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 3px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-text);
+}
+
+.si-sheet-error h6 {
+  margin-block-end: var(--space-2);
+  font-weight: var(--fw-bold);
+  color: var(--color-danger);
+}
+
+.si-sheet-error ul {
+  margin: 0 0 var(--space-2);
+  padding-inline-start: var(--space-5);
+}
+
+/* ── Check result ─────────────────────────────────── */
+
+.si-result { margin-block-end: var(--space-5); }
+
+.si-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.si-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-primary-500);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.si-stat--success { border-inline-start-color: var(--color-success); }
+.si-stat--danger { border-inline-start-color: var(--color-danger); }
+
+.si-stat__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.si-stat__value {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.si-note {
+  margin-block-end: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-info-soft);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.si-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.si-amount--off {
+  font-weight: var(--fw-bold);
+  color: var(--color-danger);
+}
+
+.si-muted { color: var(--color-text-muted); font-style: italic; }
+
+.si-submitted {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-success-soft);
+}
+
+.si-submitted > i {
+  font-size: var(--fs-xl);
+  color: var(--color-success-strong);
+}
+
+.si-submitted__text {
+  margin: 0;
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.si-submitted .field__hint { margin-block: var(--space-1) var(--space-2); }
+
+/* ── History + detail ─────────────────────────────── */
+
+.si-history { block-size: auto; }
+
+#imports-table tbody tr[data-row-link] { cursor: pointer; }
+
+.si-who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.si-who__when {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.si-modal .modal-header { align-items: center; }
+.si-modal .modal-title { margin: 0; }
+
+.si-detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.si-detail .result-message { grid-column: 1 / -1; }
+
+.si-detail__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.si-detail__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.si-detail__value {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .si-stats,
+  .si-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Long check-result labels wrap rather than widen the grid. */
+#check-table td:last-child ad-status-pill > div,
+#check-table td:last-child { white-space: normal; }
+#check-table td:last-child { min-inline-size: 14rem; }

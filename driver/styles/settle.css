@@ -216,3 +216,9 @@
 .settle-error__retry {
   min-inline-size: 50%;
 }
+
+/* ── National-ID match note (payouts spec §4) ─────── */
+
+.settle-match-note {
+  margin: var(--space-3) 0 0;
+}

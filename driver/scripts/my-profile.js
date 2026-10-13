@@ -9,6 +9,8 @@ import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { DRIVER_PROFILE as P, profileLang } from './profile-store.js';
+import { PAYOUT_TYPES, getPayoutMethod, maskNumber, providerKey } from './payout-store.js';
+import { payoutIcon } from './payout-form.js';
 
 auth.requireAuth();
 await initI18n();
@@ -36,6 +38,25 @@ function render() {
   qs('#dmp-color').textContent = P.vehicle.color[lang];
   qs('#dmp-type').textContent = P.vehicle.type[lang];
   qs('#dmp-plate').textContent = P.vehicle.plate;
+
+  renderPayout();
+}
+
+// ── Payout method row (payouts spec §2) ───────────
+function renderPayout() {
+  const method = getPayoutMethod();
+  const type = qs('#dmp-payout-type');
+  const number = qs('#dmp-payout-number');
+  if (!method) {
+    type.textContent = translate('driver.payout.notAdded');
+    number.textContent = translate('driver.payout.add');
+    return;
+  }
+  qs('#dmp-payout-icon').innerHTML = payoutIcon(method.type);
+  const parts = [translate(PAYOUT_TYPES[method.type].key)];
+  if (method.provider) parts.push(translate(providerKey(method.provider)));
+  type.textContent = parts.join(' · ');
+  number.textContent = maskNumber(method.last4);
 }
 
 render();

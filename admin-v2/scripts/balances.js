@@ -4,11 +4,17 @@
  * Same controller as admin/, with every user-visible string routed through t()
  * — admin-v2 is bilingual (see I18N-PORT.md).
  *
- * The balance is never edited. Recording a settlement or a payout appends an
- * immutable entry to the driver's ledger (#TBD-A) and the balance is recomputed
- * from it — which is also what unblocks her go-online (#TBD-F). The Phase 1
- * ledger has no correction mechanism: the post-adjustment action was cut
- * deliberately (spec §10) to keep Phase 1 simple.
+ * The balance is never edited. Recording a settlement or a payout is a
+ * maker-checker request (2026-10-14 spec §1): nothing changes until a different
+ * admin approves it on approvals.html, and only then is an immutable entry
+ * appended to her ledger (#TBD-A) and the balance recomputed — which is also
+ * what unblocks her go-online (#TBD-F). While a request is pending, its button
+ * is replaced by a notice that links to it (one pending request per subject).
+ *
+ * The ledger shows her payout method, her last failed payout, and where each
+ * payable entry is in the payout cycle (§3: on hold → due → in a batch → sent
+ * to bank → paid). The ledger's one correction is a rider fee waiver (§5),
+ * which posts `fee_credit_reversed` here.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -85,7 +91,44 @@ const ENTRY_LABEL_KEYS = {
   rider_cancellation_fee_credit: 'balances.entryRiderCancellationFeeCredit',
   settlement: 'balances.entrySettlement',
   payout: 'balances.entryPayout',
+  fee_credit_reversed: 'balancesFinance.entryFeeCreditReversed',
 };
+
+/** §3 payout status of a payable entry → [label key, badge tone]. */
+const PAYOUT_STATUS = {
+  on_hold: ['balancesFinance.statusOnHold', 'brand'],
+  due: ['balancesFinance.statusDue', 'warning'],
+  in_batch: ['balancesFinance.statusInBatch', 'info'],
+  sent: ['balancesFinance.statusSent', 'info'],
+  paid: ['balancesFinance.statusPaid', 'success'],
+  reversed: ['balancesFinance.statusReversed', 'danger'],
+};
+
+function chip(text, tone) {
+  const span = document.createElement('span');
+  span.className = `badge badge--${tone} balance-chip`;
+  span.textContent = text;
+  return span;
+}
+
+function payoutStatusChip(row) {
+  const [key, tone] = PAYOUT_STATUS[row.payoutStatus] ?? [];
+  if (!key) return null;
+  return chip(t(key, { date: row.dueAt ? formatDate(row.dueAt) : '' }), tone);
+}
+
+const approvalHref = (id) => `approvals.html?id=${encodeURIComponent(id)}`;
+
+/** The maker-checker toast: what happened, plus a link to the request. */
+function toastSentForApproval(request) {
+  const toast = shell.showToast(t('balancesFinance.sentForApproval'), 'success', 8000);
+  if (!toast || !request?.id) return;
+  const link = document.createElement('a');
+  link.className = 'toast__link';
+  link.href = approvalHref(request.id);
+  link.textContent = t('balancesFinance.openRequest');
+  toast.append(' ', link);
+}
 
 // ── Filters ──────────────────────────────────────────
 filters.fields = [
@@ -170,7 +213,25 @@ filters.addEventListener('change', (event) => {
 table.pageSize = query.pageSize;
 table.sort = query.sort;
 table.columns = [
-  { key: 'name', label: t('common.name'), sortable: true, render: (row) => row.name },
+  {
+    key: 'name',
+    label: t('common.name'),
+    sortable: true,
+    render: (row) => {
+      const wrap = document.createElement('span');
+      wrap.className = 'balance-name';
+      const name = document.createElement('span');
+      name.textContent = row.name;
+      wrap.appendChild(name);
+      // A settlement or payout waiting on a second admin (§1).
+      if (row.pendingSettlement || row.pendingPayout) {
+        wrap.appendChild(chip(t('balancesFinance.chipAwaitingApproval'), 'warning'));
+      }
+      // Without one she is left out of every batch (§3).
+      if (!row.hasPayoutMethod) wrap.appendChild(chip(t('balancesFinance.chipNoPayoutMethod'), 'brand'));
+      return wrap;
+    },
+  },
   {
     // One signed balance, never two columns: negative means she owes the
     // platform, positive means the platform owes her (#1813).
@@ -241,6 +302,12 @@ ledgerTable.columns = [
       return span;
     },
   },
+  {
+    // §3 — only payable entries (trip earnings, rider fee credits) have one.
+    key: 'payoutStatus',
+    label: t('balancesFinance.colPayout'),
+    render: (row) => (row.payoutStatus ? payoutStatusChip(row) : null),
+  },
   { key: 'source', label: t('balances.colSource'), render: (row) => row.tripId ?? row.ref ?? null },
   {
     // The note column was dropped (#4381) — the entry type already names the
@@ -278,10 +345,67 @@ async function openLedger(row) {
   await loadLedger();
 }
 
+function renderPayoutMethod(driver) {
+  const line = qs('#ledger-method');
+  line.textContent = '';
+  const label = document.createElement('span');
+  label.className = 'balance-ledger__method-label';
+  label.textContent = t('balancesFinance.payoutMethodLabel');
+  line.appendChild(label);
+  const m = driver.payoutMethod;
+  if (!m) {
+    line.appendChild(chip(t('balancesFinance.noPayoutMethod'), 'brand'));
+    return;
+  }
+  const type = document.createElement('span');
+  type.textContent = t(`balancesFinance.type${m.type}`);
+  const provider = document.createElement('span');
+  provider.textContent = m.provider ?? '';
+  const masked = document.createElement('span');
+  masked.className = 'ad-ltr';
+  masked.textContent = m.masked ?? '';
+  line.append(type, provider, masked);
+}
+
+function renderPayoutFailure(driver) {
+  const band = qs('#ledger-failure');
+  const failure = driver.lastPayoutFailure;
+  band.hidden = !failure;
+  if (!failure) return;
+  qs('#ledger-failure-text').textContent = t('balancesFinance.lastPayoutFailed', {
+    reason: failure.reason,
+    batchId: failure.batchId,
+  });
+  qs('#ledger-failure-link').href = `payout-batch.html?id=${encodeURIComponent(failure.batchId)}`;
+}
+
+/** One pending request per subject (§1): its button gives way to a notice. */
+function renderPending(buttonId, noticeId, pending, key) {
+  const button = qs(buttonId);
+  const notice = qs(noticeId);
+  button.hidden = Boolean(pending);
+  notice.hidden = !pending;
+  if (!pending) return;
+  notice.textContent = t(key, { maker: pending.maker, time: formatDateTime(pending.madeAt) });
+  notice.href = approvalHref(pending.id);
+}
+
 function renderLedgerSummary(driver) {
+  renderPayoutMethod(driver);
+  renderPayoutFailure(driver);
+  renderPending('#btn-settle', '#settle-pending', driver.pendingSettlement, 'balancesFinance.pendingSettlement');
+  renderPending('#btn-payout', '#payout-pending', driver.pendingPayout, 'balancesFinance.pendingPayout');
+
   const summary = qs('#ledger-summary');
   summary.textContent = '';
-  const pairs = [[t('balances.statBalance'), signedEgp(driver.balance)]];
+  const position = driver.position ?? { onHold: 0, due: 0, inBatch: 0, sent: 0 };
+  const pairs = [
+    [t('balances.statBalance'), signedEgp(driver.balance)],
+    [t('balancesFinance.statOnHold'), formatEgp(position.onHold)],
+    [t('balancesFinance.statDue'), formatEgp(position.due)],
+    [t('balancesFinance.statInBatch'), formatEgp(position.inBatch)],
+    [t('balancesFinance.statSent'), formatEgp(position.sent)],
+  ];
   pairs.forEach(([label, value]) => {
     const cell = document.createElement('div');
     cell.className = 'balance-ledger__stat';
@@ -298,8 +422,8 @@ function renderLedgerSummary(driver) {
   // Settling is only meaningful when the balance is negative (#1813 S7).
   qs('#btn-settle').disabled = driver.balance >= 0;
 
-  // A payout only needs money owed — the platform holds no payout destination
-  // and getting the money to her is a manual, off-platform process (spec §5).
+  // A manual payout only needs money owed (§3: amount ≤ her balance). Routine
+  // payouts go out in batches from payouts.html.
   qs('#btn-payout').disabled = !(driver.balance > 0);
 }
 
@@ -328,7 +452,7 @@ qs('#btn-settle').addEventListener('click', () => {
   const max = amountOwed(selected);
   modal.open({
     title: t('balances.settleTitle', { name: selected.name }),
-    description: t('balances.settleDescription', { amount: formatEgp(max) }),
+    description: `${t('balances.settleDescription', { amount: formatEgp(max) })} ${t('balancesFinance.needsApproval')}`,
     confirmLabel: t('balances.recordSettlement'),
     fields: [
       {
@@ -379,32 +503,25 @@ qs('#btn-settle').addEventListener('click', () => {
       },
     ],
     onConfirm: async (values) => {
-      const paid = Number(values.amount);
-      await mockApi.recordSettlement(selected.id, values);
-      // She may pay more than she owed; say so, because her row flips from
-      // outstanding to available the moment the entry posts.
-      const surplus = paid > max ? paid - max : 0;
-      shell.showToast(
-        surplus
-          ? t('balances.settleDoneSurplus', { amount: formatEgp(surplus) })
-          : t('balances.settleDone'),
-        'success',
-      );
+      // A request, not a posting (§1): the balance stays as it is until a
+      // second admin approves it, so there is no surplus to announce yet.
+      const result = await mockApi.recordSettlement(selected.id, values);
+      toastSentForApproval(result.request);
       await Promise.all([load(), loadLedger()]);
     },
   });
 });
 
 // ── Record payout (spec §5/§6) ───────────────────────
-// The mirror of a settlement, in the opposite direction: Finance has already
-// sent the money, and this only writes it down. There is no request, no
-// approval and nothing for the driver to have initiated.
+// The mirror of a settlement, in the opposite direction, for one-off cases
+// outside a batch (§3): Finance has already sent the money. It is a `payout`
+// request — on approval it posts the debit and pays her oldest due entries.
 qs('#btn-payout').addEventListener('click', () => {
   if (!selected) return;
   const max = amountOwedToHer(selected);
   modal.open({
     title: t('balances.payoutTitle', { name: selected.name }),
-    description: t('balances.payoutDescription', { amount: formatEgp(max) }),
+    description: `${t('balancesFinance.payoutDescription', { amount: formatEgp(max) })} ${t('balancesFinance.needsApproval')}`,
     confirmLabel: t('balances.recordPayout'),
     fields: [
       {
@@ -447,8 +564,8 @@ qs('#btn-payout').addEventListener('click', () => {
       },
     ],
     onConfirm: async (values) => {
-      await mockApi.recordPayout(selected.id, values);
-      shell.showToast(t('balances.payoutDone'), 'success');
+      const result = await mockApi.recordPayout(selected.id, values);
+      toastSentForApproval(result.request);
       await Promise.all([load(), loadLedger()]);
     },
   });

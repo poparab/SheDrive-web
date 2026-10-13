@@ -38,6 +38,9 @@ const FEED = {
     { id: 'd4', category: 'earnings', key: 'nearLimit', params: { owed: 420, limit: 500 }, ago: DAY + 5 * HOUR, href: './settle.html' },
     { id: 'd5', category: 'offers', key: 'hours', params: {}, ago: 3 * DAY, href: './home.html' },
     { id: 'd6', category: 'account', key: 'approved', params: {}, ago: 6 * DAY, href: './home.html' },
+    // Payout result lines (payouts spec §3): SUCCESS → sent, FAILED → check the method.
+    { id: 'd7', category: 'earnings', key: 'payoutSent', params: { amount: '245.50', provider: { ar: 'فودافون كاش', en: 'Vodafone Cash' } }, ago: 2 * DAY + 3 * HOUR, href: './balance.html' },
+    { id: 'd8', category: 'earnings', key: 'payoutFailed', params: {}, ago: 95, href: './payout-method.html?state=failed' },
   ],
 };
 

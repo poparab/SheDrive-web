@@ -21,6 +21,10 @@ import { t, hasKey } from './admin-i18n.js';
  * `humanize()`, which is what every value rendered as before this pass.
  */
 function enumLabel(namespace, value) {
+  // The 2026-10-14 finance actions, targets and fields live in their own
+  // namespace (i18n/profile-pricing.js) — `audit.action` merges one level deep.
+  const financeKey = `auditFinance.${namespace}.${value}`;
+  if (hasKey(financeKey)) return t(financeKey);
   const key = `audit.${namespace}.${value}`;
   return hasKey(key) ? t(key) : humanize(value);
 }

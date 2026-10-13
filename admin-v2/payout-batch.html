@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Payout batch</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="payouts"
+      page-title-key="payoutBatch.title"
+      breadcrumb-keys="nav.money > nav.payouts|payouts.html > payoutBatch.crumb"
+      back="payouts.html"
+      screen-styles="styles/detail.css, styles/list.css, styles/payout-batch.css"
+    >
+      <div id="batch-missing" hidden>
+        <ad-empty-state
+          icon="not-found.svg"
+          heading="Payout batch not found"
+          data-i18n-heading="payoutBatch.notFoundHeading"
+          message="This payout batch does not exist."
+          data-i18n-message="payoutBatch.notFoundMessage"
+        >
+          <a class="btn btn-primary-rounded-outline" href="payouts.html" data-i18n="payoutBatch.backToPayouts">Back to payouts</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="batch-error" hidden>
+        <ad-empty-state
+          icon="cloud-connection-off.svg"
+          tone="danger"
+          heading="Could not load the batch"
+          data-i18n-heading="payoutBatch.errorHeading"
+          message=""
+          id="batch-error-state"
+        >
+          <button type="button" class="btn btn-primary-rounded-outline" id="batch-retry" data-i18n="payoutBatch.retry">Try again</button>
+        </ad-empty-state>
+      </div>
+
+      <div id="batch-loading" class="batch-loading">
+        <span class="spinner"></span>
+      </div>
+
+      <div id="batch-body" hidden>
+        <div class="ad-split">
+          <div class="ad-stack">
+            <ad-detail-section id="batch-summary" icon="wallet.svg" section-title="Batch" data-i18n-section-title="payoutBatch.summaryHeading"></ad-detail-section>
+            <ad-detail-section id="batch-progress" icon="timeline.svg" section-title="Progress" data-i18n-section-title="payoutBatch.timelineHeading"></ad-detail-section>
+          </div>
+
+          <aside class="ad-split__aside">
+            <ad-detail-section id="batch-actions" icon="upload-file.svg" section-title="Next step" data-i18n-section-title="payoutBatch.actionsHeading"></ad-detail-section>
+            <ad-detail-section id="batch-columns" icon="file-checked.svg" section-title="Bank file columns" data-i18n-section-title="payoutBatch.columnsHeading"></ad-detail-section>
+          </aside>
+        </div>
+
+        <!-- Full width: eight columns do not fit beside the rail at 1280 px. -->
+        <section class="ad-section ad-section--flush batch-lines" aria-labelledby="lines-heading">
+          <div class="ad-section__header">
+            <h2 class="ad-section__title" id="lines-heading" data-i18n="payoutBatch.linesHeading">Lines</h2>
+          </div>
+          <ad-data-table id="lines-table"></ad-data-table>
+        </section>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/payout-batch.js"></script>
+  </body>
+</html>

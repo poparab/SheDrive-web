@@ -60,13 +60,25 @@
           <div class="ad-section__body">
             <form class="pricing__form" id="commission-form" novalidate>
               <div class="ad-form-error" id="commission-error" role="alert"></div>
+              <!-- 2026-10-14 §1 — a commission change waits for a second admin -->
+              <div class="alert info mb-0" id="commission-pending" role="status" hidden>
+                <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                <div class="details">
+                  <h6 id="commission-pending-title"></h6>
+                  <p id="commission-pending-meta"></p>
+                  <a id="commission-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+                </div>
+              </div>
               <div id="commission-fields"></div>
+              <p class="pricing__meta" id="commission-approval-hint" data-i18n="pricingApproval.commissionHint">
+                Commission changes need another admin's approval. Cancellation and balance settings save immediately.
+              </p>
               <p class="pricing__meta" id="commission-example"></p>
               <div class="ad-row ad-row--end">
                 <button class="btn btn-tertiary btn--sm" type="button" id="commission-reset" data-i18n="policies.revert">
                   Revert changes
                 </button>
-                <button class="btn btn-primary btn--sm" type="submit" data-i18n="policies.saveCommission">Save commission</button>
+                <button class="btn btn-primary btn--sm" type="submit" id="commission-submit" data-i18n="pricingApproval.sendForApproval">Send for approval</button>
               </div>
             </form>
           </div>

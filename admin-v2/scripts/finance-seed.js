@@ -22,6 +22,7 @@ import {
   RIDER_LEDGER_BY_RIDER,
   SEED_META,
   ZONES,
+  recomputeBalances,
 } from './seed.js';
 
 const { generatedAt: NOW, MINUTE, HOUR, DAY } = SEED_META;
@@ -92,12 +93,19 @@ for (const driver of DRIVERS) {
     });
 }
 
-let batchSeq = 0;
+// Ids are derived from what already exists — including records replayed from
+// this session after a reload — so a new one can never collide with an old one.
+const maxSeq = (ids, pattern) =>
+  ids.reduce((max, id) => {
+    const m = pattern.exec(String(id));
+    return m ? Math.max(max, Number(m[1])) : max;
+  }, 0);
+
 export function makeBatchRef(at) {
   const d = new Date(at);
   const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-  batchSeq += 1;
-  return `PB-${ymd}-${String(batchSeq).padStart(2, '0')}`;
+  const seq = maxSeq(PAYOUT_BATCHES.map((b) => b.ref), /-(\d+)$/) + 1;
+  return `PB-${ymd}-${String(seq).padStart(2, '0')}`;
 }
 
 export function makeLine(driver, ref, n, amount, entryIds) {
@@ -127,9 +135,9 @@ export const PAYOUT_BATCHES = [];
 // Two completed batches, built from payouts already on the ledger so a paid
 // line and its `payout` entry agree.
 [
-  { from: 16, to: 9, maker: ADMINS[1], checker: ADMINS[2], failed: 'Wallet number not registered' },
-  { from: 9, to: 2, maker: ADMINS[2], checker: ADMINS[1], failed: 'Account closed' },
-].forEach(({ from, to, maker, checker, failed }) => {
+  { from: 16, to: 9, maker: ADMINS[1], checker: ADMINS[2] },
+  { from: 9, to: 2, maker: ADMINS[2], checker: ADMINS[1] },
+].forEach(({ from, to, maker, checker }) => {
   const payouts = LEDGER_ENTRIES.filter(
     (e) => e.type === 'payout' && e.at <= NOW - to * DAY && e.at > NOW - from * DAY && findDriver(e.driverId)?.payoutMethod,
   );
@@ -150,6 +158,8 @@ export const PAYOUT_BATCHES = [];
     (d) => d.status === 'approved' && d.payoutMethod && !d.lastPayoutFailure && !lines.some((l) => l.driverId === String(d.id)),
   );
   if (unlucky) {
+    // The failure reason matches the method it was sent to.
+    const failed = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' }[unlucky.payoutMethod.type];
     const line = makeLine(unlucky, ref, lines.length + 1, intBetween(80, 260), []);
     line.status = 'failed';
     line.failureReason = failed;
@@ -210,6 +220,35 @@ export const PAYOUT_BATCHES = [];
 }
 PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
 
+// A few platform-held trip earnings past their hold, so a batch generated in
+// the demo has several lines (and its sample result one failed line). Drivers
+// already in the open batch are left out so nothing is paid twice.
+{
+  const inOpen = new Set(PAYOUT_BATCHES.filter((b) => b.status !== 'completed').flatMap((b) => b.lines.map((l) => l.driverId)));
+  DRIVERS.filter((d) => d.status === 'approved' && d.payoutMethod && !inOpen.has(String(d.id)) && d.balance > -150)
+    .slice(0, 3)
+    .forEach((driver, i) => {
+      const amount = round2(Math.max(0, -driver.balance) + 140 + i * 55.25);
+      const entry = {
+        id: `led-demo-due-${driver.id}`,
+        driverId: String(driver.id),
+        type: 'trip_earnings',
+        amount,
+        at: NOW - (8 + i) * DAY - 3 * HOUR,
+        tripId: null,
+        note: 'Net earnings — card trips this week',
+      };
+      LEDGER_ENTRIES.push(entry);
+      const list = LEDGER_BY_DRIVER.get(String(driver.id));
+      if (list) list.push(entry);
+      else LEDGER_BY_DRIVER.set(String(driver.id), [entry]);
+    });
+  LEDGER_ENTRIES.sort((a, b) => b.at - a.at);
+  LEDGER_BY_DRIVER.forEach((list) => list.sort((a, b) => b.at - a.at));
+  recomputeBalances();
+}
+
+
 // ── Settlement imports (§4) ───────────────────────────
 export const SETTLEMENT_IMPORTS = [];
 {
@@ -262,10 +301,10 @@ export const APPROVAL_TYPES = [
   'commission',
 ];
 
-let approvalSeq = 0;
-export const nextApprovalId = () => `APR-${String(++approvalSeq).padStart(4, '0')}`;
-let importSeq = 1;
-export const nextImportId = () => `IMP-${String(++importSeq).padStart(4, '0')}`;
+export const nextApprovalId = () =>
+  `APR-${String(maxSeq(APPROVALS.map((a) => a.id), /^APR-(\d+)$/) + 1).padStart(4, '0')}`;
+export const nextImportId = () =>
+  `IMP-${String(maxSeq(SETTLEMENT_IMPORTS.map((i) => i.id), /^IMP-(\d+)$/) + 1).padStart(4, '0')}`;
 
 /**
  * A request: `before`/`after` are plain objects the Approvals screen diffs;

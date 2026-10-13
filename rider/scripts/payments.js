@@ -7,7 +7,9 @@
  * cash surcharge on her next trip, so this screen only ever shows what is still
  * unpaid, oldest first.
  *
- * Demo switches are documented in fee-store.js (?fees=N, ?zero, ?error).
+ * Demo switches are documented in fee-store.js (?fees=N, ?zero, ?error), plus
+ * ?state=credit — she has a credit from a waived fee she had already paid
+ * (payouts spec §5). The credit is shown, not spent, in this phase.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -30,6 +32,9 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
 const isAr = () => document.documentElement.lang === 'ar';
 
 let failed = shouldFailRequest;
+
+/** Credit left by a waived cancellation fee she had already paid (demo: ?state=credit). */
+const CREDIT = new URLSearchParams(location.search).get('state') === 'credit' ? 20 : 0;
 
 function showError(on) {
   const box = qs('#payments-error');
@@ -123,8 +128,16 @@ function renderFees() {
   });
 }
 
+function renderCredit() {
+  const section = qs('#credit-section');
+  section.hidden = CREDIT <= 0;
+  if (CREDIT <= 0) return;
+  qs('#credit-amount').textContent = translate('payments.credit', { amount: CREDIT.toFixed(2) });
+}
+
 function render() {
   if (failed) return;
+  renderCredit();
   renderRecoveryNotice();
   renderFees();
 }

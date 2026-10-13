@@ -45,9 +45,9 @@
       </header>
 
       <!-- ── Progress bar (hidden in pending/rejected states) ── -->
-      <div class="onboarding-progress" id="onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="خطوات التسجيل" data-i18n-aria-label="onboarding.progressAria">
+      <div class="onboarding-progress" id="onboarding-progress" role="progressbar" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1" aria-label="خطوات التسجيل" data-i18n-aria-label="onboarding.progressAria">
         <div class="onboarding-progress__meta">
-          <span class="onboarding-progress__count" id="progress-count">الخطوة 1 من 6</span>
+          <span class="onboarding-progress__count" id="progress-count">الخطوة 1 من 7</span>
           <span class="onboarding-progress__label" data-i18n="onboarding.verification">التحقق</span>
         </div>
         <div class="onboarding-progress__track">
@@ -60,6 +60,7 @@
           <span class="onboarding-progress__dot" data-step="4">4</span>
           <span class="onboarding-progress__dot" data-step="5">5</span>
           <span class="onboarding-progress__dot" data-step="6">6</span>
+          <span class="onboarding-progress__dot" data-step="7">7</span>
         </div>
       </div>
 
@@ -477,7 +478,7 @@
           </div>
         </section>
 
-        <!-- ── Step 6: Profile selfie + Submit (#1686) ── -->
+        <!-- ── Step 6: Profile selfie (#1686) ── -->
         <section class="onboarding-step onboarding-step--hidden" id="step-6" data-step="6" aria-label="صورة شخصية للملف">
           <div class="onboarding-step__header">
             <div class="onboarding-step__icon" aria-hidden="true">
@@ -524,7 +525,30 @@
 
           <div class="onboarding-step__actions">
             <button type="button" class="btn btn--ghost btn--full onboarding-step__back" id="step6-back" data-i18n="onboarding.back">رجوع</button>
-            <button type="button" class="btn btn--primary btn--full" id="step6-submit" data-i18n="onboarding.submit">إرسال الطلب</button>
+            <button type="button" class="btn btn--primary btn--full" id="step6-next" data-i18n="onboarding.next">متابعة</button>
+          </div>
+        </section>
+
+        <!-- ── Step 7: Payout method + Submit (payouts spec §2) ── -->
+        <section class="onboarding-step onboarding-step--hidden" id="step-7" data-step="7" aria-label="وسيلة استلام الأرباح" data-i18n-aria-label="driver.payout.onboarding.title">
+          <div class="onboarding-step__header">
+            <div class="onboarding-step__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>
+              </svg>
+            </div>
+            <h2 class="onboarding-step__title" data-i18n="driver.payout.onboarding.heading">كيف تستلمين أرباحك؟</h2>
+            <p class="onboarding-step__subtitle" data-i18n="driver.payout.onboarding.subtitle">اختاري وسيلة واحدة. يمكنكِ تغييرها لاحقاً من ملفكِ الشخصي.</p>
+          </div>
+
+          <div class="onboarding-step__body">
+            <!-- Rendered by scripts/payout-form.js -->
+            <div id="payout-form-host"></div>
+          </div>
+
+          <div class="onboarding-step__actions">
+            <button type="button" class="btn btn--ghost btn--full onboarding-step__back" id="step7-back" data-i18n="onboarding.back">رجوع</button>
+            <button type="button" class="btn btn--primary btn--full" id="step7-submit" data-i18n="onboarding.submit">إرسال الطلب</button>
           </div>
         </section>
 
@@ -596,6 +620,6 @@
 
     <script type="module" src="scripts/onboarding.js"></script>
 
-    <!-- Demo: ?status=pending | rejected, ?step=2…6 — handled in scripts/onboarding.js -->
+    <!-- Demo: ?status=pending | rejected, ?step=2…7 — handled in scripts/onboarding.js -->
   </body>
 </html>

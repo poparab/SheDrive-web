@@ -51,6 +51,21 @@
             </div>
           </section>
 
+          <!-- ── Credit from a waived fee she already paid (payouts spec §5, ?state=credit) ──
+               Shown, never spent, in this phase. -->
+          <section class="payments-section payments-credit" id="credit-section" hidden aria-labelledby="credit-heading">
+            <h2 class="section-title payments-section__title" id="credit-heading" data-i18n="payments.creditTitle">رصيدكِ</h2>
+            <div class="credit-row" role="status">
+              <span class="icon-tile icon-tile--round icon-tile--success credit-row__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="credit-row__text">
+                <span class="credit-row__amount" id="credit-amount">رصيد: 20.00 ج.م.</span>
+                <span class="credit-row__note" data-i18n="payments.creditNote">من رسوم إلغاء تم إعفاؤكِ منها. لا يُستخدم في الرحلات حالياً.</span>
+              </span>
+            </div>
+          </section>
+
           <!-- ── Outstanding fees ─────────────────────── -->
           <section class="payments-section" aria-labelledby="fees-heading">
             <div class="section-head payments-section__head">

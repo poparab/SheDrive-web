@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Payouts</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="payouts"
+      page-title-key="payouts.title"
+      breadcrumb-keys="nav.money > nav.payouts"
+      screen-styles="styles/list.css, styles/payouts.css"
+    >
+      <section class="ad-section payouts-intro">
+        <p class="ad-section__hint" data-i18n="payouts.lead">
+          Trip earnings and cancellation-fee credits become due 7 calendar days after they happen.
+          On working days an admin generates a payout batch; another admin approves it before the
+          bank file can be exported.
+        </p>
+        <button type="button" class="btn btn-primary" id="btn-generate">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span data-i18n="payouts.generate">Generate payout batch</span>
+        </button>
+      </section>
+
+      <div class="ad-stats" id="payouts-stats">
+        <ad-stat-card id="card-due" label="Due now" data-i18n-label="payouts.kpiDue" value="—" tone="warning" icon="deposit-wallet.svg"></ad-stat-card>
+        <ad-stat-card id="card-open" label="In open batches" data-i18n-label="payouts.kpiOpen" value="—" tone="blue" icon="withdrawal-wallet.svg"></ad-stat-card>
+        <ad-stat-card id="card-paid" label="Paid this month" data-i18n-label="payouts.kpiPaid" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
+      </div>
+
+      <ad-filter-bar id="batch-filters"></ad-filter-bar>
+      <ad-data-table id="batches-table"></ad-data-table>
+    </ad-shell>
+    <script type="module" src="scripts/payouts.js"></script>
+  </body>
+</html>

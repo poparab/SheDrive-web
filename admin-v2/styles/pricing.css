@@ -103,3 +103,21 @@
   font-size: calc(1rem + 0.35vw);
   white-space: nowrap;
 }
+
+/* ── Pending rate-card change (2026-10-14 maker-checker) ── */
+
+.pricing__pending {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+}
+
+.pricing__pending-summary {
+  font-size: var(--admin-fs-label);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+

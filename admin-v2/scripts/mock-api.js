@@ -318,6 +318,8 @@ function openLineFor(entryId) {
 /** §3 — on_hold → due → in_batch → sent → paid. Null for non-payable entries. */
 function entryPayoutStatus(entry, now = Date.now()) {
   if (!PAYABLE_TYPES.includes(entry.type)) return null;
+  // A credit reversed by a fee waiver (§5) is no longer owed to her.
+  if (LEDGER_ENTRIES.some((e) => e.type === 'fee_credit_reversed' && e.reversesEntryId === entry.id)) return 'reversed';
   if (entry.paidRef) return 'paid';
   const open = openLineFor(entry.id);
   if (open) return open.line.status === 'sent' ? 'sent' : 'in_batch';
@@ -410,6 +412,11 @@ function postPayout(driver, { amount, at, ref, note, proof = null, lineRef = nul
   });
   makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
   return entry;
+}
+
+/** YYYY-MM-DD in the viewer's local day (Cairo), not UTC. */
+function localDay(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 const MASK = (n) => (n ? `•••• ${String(n).slice(-4)}` : '');
@@ -602,7 +609,9 @@ const EXECUTE = {
     const driver = DRIVERS_BY_ID.get(request.payload.driverId);
     if (!driver) return;
     driver.payoutMethod = { ...request.payload.method, updatedAt: Date.now(), updatedBy: request.maker };
-    patch('drivers', driver.id, { payoutMethod: driver.payoutMethod });
+    // A new method answers the failed-payout warning (§3).
+    driver.lastPayoutFailure = null;
+    patch('drivers', driver.id, { payoutMethod: driver.payoutMethod, lastPayoutFailure: null });
     makeAuditEntry('payout method changed', 'driver', driver.id, { type: request.before.type ?? '—' }, { type: driver.payoutMethod.type });
   },
   rate_card(request) {
@@ -1507,9 +1516,10 @@ export const mockApi = {
     );
     const sorted = sortRows(filtered, sort, { key: 'name', dir: 'asc' });
     const page1 = paginate(sorted, page, pageSize);
-    // The map needs every matching zone, not just the current page.
+    // The map needs every matching zone, not just the current page. Rows are
+    // serialised too, so they carry `pendingChange` (maker-checker §1).
     return respond(
-      { ...page1, allMatching: sorted.map(serialiseZone) },
+      { ...page1, rows: page1.rows.map(serialiseZone), allMatching: sorted.map(serialiseZone) },
       { emptyValue: { ...emptyPage(pageSize), allMatching: [] } },
     );
   },
@@ -1965,7 +1975,7 @@ export const mockApi = {
     }
     EXECUTE[request.type]?.(request);
     patchApproval(request, { status: 'approved', checker: actor.email, decidedAt: Date.now() });
-    addAuditEntry('approval approved', request.subject.kind, request.subject.id, { request: request.id, status: 'pending' }, { request: request.id, status: 'approved' }, Date.now());
+    addAuditEntry('approval approved', request.subject.kind, request.subject.id, { status: 'pending' }, { request: request.id, status: 'approved' }, Date.now());
     return respond({ ok: true, request: decorateRequest(request) });
   },
 
@@ -1985,7 +1995,7 @@ export const mockApi = {
     }
     ON_REJECT[request.type]?.(request);
     patchApproval(request, { status: 'rejected', checker: actor.email, decidedAt: Date.now(), rejectReason: text });
-    addAuditEntry('approval rejected', request.subject.kind, request.subject.id, { request: request.id, status: 'pending' }, { request: request.id, status: 'rejected', reason: text }, Date.now());
+    addAuditEntry('approval rejected', request.subject.kind, request.subject.id, { status: 'pending' }, { request: request.id, status: 'rejected', reason: text }, Date.now());
     return respond({ ok: true, request: decorateRequest(request) });
   },
 
@@ -2233,7 +2243,7 @@ export const mockApi = {
       national_id: '29801011234567',
       driver_name: 'Mona Adel',
       amount_egp: '245.50',
-      payment_date: new Date().toISOString().slice(0, 10),
+      payment_date: localDay(),
       payment_channel: 'Bank transfer',
       payment_reference: 'FT123456789',
     };
@@ -2243,8 +2253,9 @@ export const mockApi = {
   /** Demo helper: a sheet with three good rows and one of each common mistake. */
   buildSampleSettlementSheet() {
     const busy = new Set(APPROVALS.filter((a) => a.status === 'pending' && a.type === 'settlement').map((a) => a.subject.id));
+    SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => busy.add(r.driverId)));
     const owing = DRIVERS.filter((d) => d.balance < 0 && !busy.has(String(d.id))).slice(0, 4);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDay();
     const rows = owing.slice(0, 3).map((d, i) => ({
       national_id: d.nid,
       driver_name: d.name,
@@ -2255,6 +2266,11 @@ export const mockApi = {
     }));
     if (owing[3]) {
       rows.push({ national_id: owing[3].nid, driver_name: owing[3].name, amount_egp: (Math.floor(-owing[3].balance / 2)).toFixed(2), payment_date: today, payment_channel: 'Fawry', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
+    }
+    // A driver who owes nothing — the "nothing owed" result.
+    const clear = DRIVERS.find((d) => ['approved', 'suspended'].includes(d.status) && d.balance >= 0);
+    if (clear) {
+      rows.push({ national_id: clear.nid, driver_name: clear.name, amount_egp: '75.00', payment_date: today, payment_channel: 'Field agent', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
     }
     rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
     const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
@@ -2355,6 +2371,12 @@ export const mockApi = {
       amount: i.amount,
     }));
     return respond(paginate(rows, page, pageSize), { emptyValue: emptyPage(pageSize) });
+  },
+
+  /** The approval request behind a subject (batch / import / driver …), newest first, or null. */
+  findRequestFor(kind, id, type = null) {
+    const r = APPROVALS.find((a) => a.subject.kind === kind && a.subject.id === String(id) && (!type || a.type === type));
+    return r ? decorateRequest(r) : null;
   },
 
   getSettlementImport(id) {

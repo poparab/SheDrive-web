@@ -226,7 +226,294 @@ async function load() {
   }
 
   renderActions(driver);
+  await loadPayout(driver);
   loadTrips();
+}
+
+// ── Payout method (2026-10-14 spec §2) ────────────────
+
+const payoutEditBtn = qs('#payout-edit-btn');
+const payoutHint = qs('#payout-hint');
+let payoutOptions = null;
+let currentDriver = null;
+let currentPayout = null;
+
+const typeLabel = (type) => t(`driverPayout.type${type}`);
+
+/** The kit's inline alert: `.alert.<tone> > i + .details > h6 + p (+ a)`. */
+function kitAlert(tone, icon, heading, text, link) {
+  const box = document.createElement('div');
+  box.className = `alert ${tone} mb-0`;
+  box.setAttribute('role', 'status');
+  const i = document.createElement('i');
+  i.className = `fa-solid ${icon}`;
+  i.setAttribute('aria-hidden', 'true');
+  const details = document.createElement('div');
+  details.className = 'details';
+  const h = document.createElement('h6');
+  h.textContent = heading;
+  details.appendChild(h);
+  if (text) {
+    const p = document.createElement('p');
+    p.textContent = text;
+    details.appendChild(p);
+  }
+  if (link) {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.textContent = link.label;
+    details.appendChild(a);
+  }
+  box.append(i, details);
+  return box;
+}
+
+function updatedByText(method) {
+  const when = formatDateTime(method.updatedAt);
+  return method.updatedBy && method.updatedBy !== 'driver'
+    ? t('driverPayout.updatedByAdmin', { when, who: method.updatedBy })
+    : t('driverPayout.updatedByDriver', { when });
+}
+
+async function loadPayout(driver) {
+  currentDriver = driver;
+  let payout;
+  try {
+    [payout, payoutOptions] = await Promise.all([
+      mockApi.getDriverPayout(driver.id),
+      payoutOptions ? Promise.resolve(payoutOptions) : mockApi.getPayoutOptions(),
+    ]);
+  } catch (error) {
+    qs('#payout').items = [{ label: t('driverPayout.type'), value: error.message, muted: true, wide: true }];
+    payoutEditBtn.disabled = true;
+    return;
+  }
+  currentPayout = payout;
+
+  const method = payout.method;
+  if (method) {
+    const isCard = method.type === 'PREPAID_CARD';
+    const numberLabel = {
+      MOBILE_WALLET: t('driverPayout.walletNumber'),
+      BANK_ACCOUNT: t('driverPayout.accountNumber'),
+      PREPAID_CARD: t('driverPayout.cardNumber'),
+    }[method.type];
+    const items = [{ label: t('driverPayout.type'), value: typeLabel(method.type) }];
+    if (!isCard) {
+      items.push({
+        label: method.type === 'MOBILE_WALLET' ? t('driverPayout.walletProvider') : t('driverPayout.bank'),
+        value: method.provider,
+        ltr: true,
+      });
+    }
+    items.push(
+      { label: isCard ? t('driverPayout.cardName') : t('driverPayout.holderName'), value: method.holderName },
+      { label: numberLabel, value: method.masked, ltr: true },
+      { label: t('driverPayout.lastUpdated'), value: updatedByText(method), wide: true },
+    );
+    qs('#payout').items = items;
+  } else {
+    qs('#payout').items = [];
+  }
+
+  const notices = qs('#payout-notices');
+  notices.textContent = '';
+  if (!method) {
+    notices.appendChild(kitAlert('warning', 'fa-wallet', t('driverPayout.none')));
+  }
+  if (payout.lastFailure) {
+    const f = payout.lastFailure;
+    notices.appendChild(
+      kitAlert(
+        'danger',
+        'fa-circle-exclamation',
+        t('driverPayout.lastFailed', { reason: f.reason }),
+        t('driverPayout.lastFailedMeta', { when: formatDateTime(f.at), lineRef: f.lineRef ?? '—' }),
+        f.batchId
+          ? { href: `payout-batch.html?id=${encodeURIComponent(f.batchId)}`, label: t('driverPayout.viewBatch') }
+          : null,
+      ),
+    );
+  }
+  if (payout.pendingChange) {
+    const p = payout.pendingChange;
+    notices.appendChild(
+      kitAlert(
+        'info',
+        'fa-hourglass-half',
+        t('driverPayout.pendingHeading'),
+        t('driverPayout.pendingMeta', { who: p.maker, when: formatDateTime(p.madeAt) }),
+        { href: `approvals.html?id=${encodeURIComponent(p.id)}`, label: t('driverPayout.viewRequest') },
+      ),
+    );
+  }
+
+  // An admin edit is a request (§1); one pending request per driver.
+  const editable = ['approved', 'suspended', 'pending_suspension', 'pending'].includes(driver.status);
+  payoutEditBtn.hidden = !editable;
+  payoutEditBtn.disabled = Boolean(payout.pendingChange);
+  payoutHint.textContent = payout.pendingChange ? t('driverPayout.editLockedHint') : t('driverPayout.editHint');
+
+  const pos = payout.position;
+  qs('#payout-position').items = [
+    { label: t('driverPayout.positionDue'), value: formatEgp(pos.due), ltr: true },
+    { label: t('driverPayout.positionOnHold'), value: formatEgp(pos.onHold), ltr: true },
+    { label: t('driverPayout.positionInBatch'), value: formatEgp(pos.inBatch), ltr: true },
+    { label: t('driverPayout.positionSent'), value: formatEgp(pos.sent), ltr: true },
+  ];
+  qs('#payout-position-hint').textContent = t('driverPayout.positionHint', { days: payoutOptions.holdDays });
+}
+
+payoutEditBtn.addEventListener('click', () => {
+  if (!currentDriver || currentPayout?.pendingChange) return;
+  let chosen = null;
+  modal.open({
+    title: t('driverPayout.chooseTitle', { name: currentDriver.name }),
+    description: t('driverPayout.chooseDescription'),
+    confirmLabel: t('driverPayout.continue'),
+    tone: 'primary',
+    icon: 'fa-solid fa-wallet',
+    fields: [
+      {
+        key: 'type',
+        type: 'select',
+        label: t('driverPayout.type'),
+        required: true,
+        value: currentPayout?.method?.type ?? '',
+        options: payoutOptions.payoutTypes.map((type) => ({ value: type, label: typeLabel(type) })),
+        emptyError: t('driverPayout.typeEmpty'),
+      },
+    ],
+    onConfirm: async (values) => {
+      chosen = values.type;
+    },
+    // The kit modal has one form per open, so the details are a second step.
+    onClose: () => {
+      if (chosen) window.setTimeout(() => openPayoutDetails(chosen), 0);
+    },
+  });
+});
+
+const digitsOnly = (value) => String(value ?? '').replace(/\s+/g, '').toUpperCase();
+
+function holderField(key, label, emptyError) {
+  return {
+    key,
+    type: 'text',
+    label,
+    required: true,
+    value: currentDriver.name,
+    minLength: 3,
+    maxLength: 100,
+    emptyError,
+    lengthError: t('driverPayout.holderLength'),
+    validate: (value) => {
+      const length = String(value).trim().length;
+      return length < 3 || length > 100 ? t('driverPayout.holderLength') : null;
+    },
+  };
+}
+
+function payoutDetailFields(type) {
+  const current = currentPayout?.method?.type === type ? currentPayout.method : null;
+  if (type === 'MOBILE_WALLET') {
+    return [
+      {
+        key: 'provider',
+        type: 'select',
+        label: t('driverPayout.walletProvider'),
+        required: true,
+        value: current?.provider ?? '',
+        options: payoutOptions.walletProviders.map((p) => ({ value: p, label: p })),
+        emptyError: t('driverPayout.providerEmpty'),
+      },
+      {
+        key: 'number',
+        type: 'text',
+        label: t('driverPayout.walletNumber'),
+        required: true,
+        ltr: true,
+        placeholder: '01XXXXXXXXX',
+        hint: t('driverPayout.walletNumberHint'),
+        emptyError: t('driverPayout.walletNumberEmpty'),
+        validate: (value) => (/^01[0125]\d{8}$/.test(digitsOnly(value)) ? null : t('driverPayout.walletNumberInvalid')),
+      },
+    ];
+  }
+  if (type === 'BANK_ACCOUNT') {
+    return [
+      {
+        key: 'provider',
+        type: 'select',
+        label: t('driverPayout.bank'),
+        required: true,
+        value: current?.provider ?? '',
+        options: payoutOptions.banks.map((b) => ({ value: b, label: b })),
+        emptyError: t('driverPayout.bankEmpty'),
+      },
+      holderField('holderName', t('driverPayout.holderName'), t('driverPayout.holderEmpty')),
+      {
+        key: 'number',
+        type: 'text',
+        label: t('driverPayout.accountNumber'),
+        required: true,
+        ltr: true,
+        hint: t('driverPayout.accountHint'),
+        emptyError: t('driverPayout.accountEmpty'),
+        validate: (value) => {
+          const n = digitsOnly(value);
+          return /^\d{10,20}$/.test(n) || /^EG\d{27}$/.test(n) ? null : t('driverPayout.accountInvalid');
+        },
+      },
+    ];
+  }
+  return [
+    holderField('holderName', t('driverPayout.cardName'), t('driverPayout.cardNameEmpty')),
+    {
+      key: 'number',
+      type: 'text',
+      label: t('driverPayout.cardNumber'),
+      required: true,
+      ltr: true,
+      hint: t('driverPayout.cardNumberHint'),
+      emptyError: t('driverPayout.cardNumberEmpty'),
+      validate: (value) => (/^\d{16}$/.test(digitsOnly(value)) ? null : t('driverPayout.cardNumberInvalid')),
+    },
+  ];
+}
+
+function openPayoutDetails(type) {
+  modal.open({
+    title: t('driverPayout.detailsTitle', { type: typeLabel(type), name: currentDriver.name }),
+    description: t('driverPayout.detailsDescription'),
+    confirmLabel: t('driverPayout.sendForApproval'),
+    tone: 'primary',
+    icon: 'fa-solid fa-wallet',
+    fields: payoutDetailFields(type),
+    onConfirm: async (values) => {
+      const result = await mockApi.requestPayoutMethodChange(currentDriver.id, {
+        type,
+        provider: values.provider ?? null,
+        // A wallet carries no holder field; the data layer defaults it to her name.
+        holderName: values.holderName ?? currentDriver.name,
+        number: digitsOnly(values.number),
+      });
+      toastWithLink(t('driverPayout.toastSent'), result.request?.id);
+      await loadPayout(currentDriver);
+    },
+  });
+}
+
+/** Toasts are plain text; the request link rides along so the maker can follow it. */
+function toastWithLink(message, requestId) {
+  const toast = shell.showToast(message, 'success', 6000);
+  if (toast && requestId) {
+    const link = document.createElement('a');
+    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
+    link.className = 'text-reset text-decoration-underline';
+    link.textContent = t('driverPayout.viewRequest');
+    toast.append(' ', link);
+  }
 }
 
 // ── #1742 suspend / #1743 reinstate ───────────────────

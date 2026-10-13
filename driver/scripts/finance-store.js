@@ -27,6 +27,7 @@
  *   ?zero         zero balance, no transactions
  *   ?error        the balance request fails
  *   ?riderfee=N   (cash-collection.html only) rider fee recovered on this trip
+ *   ?state=payout-failed  the last payout line failed (balance.html banner)
  */
 
 const STORAGE_KEY = 'shedrive.driverFinance';
@@ -94,15 +95,68 @@ function seedEntries() {
     // A payout Finance already sent her — recorded on admin-v2/balances.html,
     // never requested by her (spec §5).
     { id: 'e22', type: 'payout',                       amount: -180, at: '2026-05-10', ref: 'PO-2201' },
+  ].concat(payableSeed());
+}
+
+/**
+ * Payable entries (payouts spec §3): `trip_earnings` and
+ * `rider_cancellation_fee_credit` are what SheDrive owes her, so each carries
+ * `dueAt` (= `at` + 7 days) and a `payoutStatus`. The demo's "today" is DEMO_TODAY.
+ * The three paid trips are the 245.50 EGP batch line sent to her Vodafone Cash
+ * wallet (payout PO-2245, and the "Payout sent" notification).
+ */
+export const DEMO_TODAY = '2026-06-23';
+
+/** Payout status of a payable entry — label key and badge tone. */
+export const PAYOUT_STATUS = {
+  on_hold:     { key: 'driver.payoutStatus.onHold',     tone: 'neutral' },
+  due:         { key: 'driver.payoutStatus.due',        tone: 'brand' },
+  in_transfer: { key: 'driver.payoutStatus.inTransfer', tone: 'info' },
+  paid:        { key: 'driver.payoutStatus.paid',       tone: 'success' },
+  failed:      { key: 'driver.payoutStatus.failed',     tone: 'danger' },
+};
+
+const PAYABLE_TYPES = new Set(['trip_earnings', 'rider_cancellation_fee_credit']);
+
+function payableSeed() {
+  return [
+    { id: 'p1', type: 'trip_earnings', amount: 72.5,   at: '2026-06-20', dueAt: '2026-06-27', payoutStatus: 'on_hold',     tripId: 't-896', route: { ar: 'مدينة نصر ← الزمالك',  en: 'Nasr City → Zamalek' } },
+    { id: 'p2', type: 'trip_earnings', amount: 46,     at: '2026-06-15', dueAt: '2026-06-22', payoutStatus: 'due',         tripId: 't-879', route: { ar: 'المعادي ← الدقي',       en: 'Maadi → Dokki' } },
+    { id: 'p3', type: 'trip_earnings', amount: 54,     at: '2026-06-12', dueAt: '2026-06-19', payoutStatus: 'in_transfer', tripId: 't-869', route: { ar: 'التجمع ← مصر الجديدة',  en: 'New Cairo → Heliopolis' } },
+    { id: 'p4', type: 'payout',        amount: -245.5, at: '2026-06-16', ref: 'PO-2245' },
+    { id: 'p5', type: 'trip_earnings', amount: 65,     at: '2026-06-07', dueAt: '2026-06-14', payoutStatus: 'paid',        tripId: 't-843', route: { ar: 'الهرم ← المهندسين',     en: 'Haram → Mohandessin' } },
+    { id: 'p6', type: 'trip_earnings', amount: 82,     at: '2026-06-05', dueAt: '2026-06-12', payoutStatus: 'paid',        tripId: 't-832', route: { ar: 'الزمالك ← المعادي',     en: 'Zamalek → Maadi' } },
+    { id: 'p7', type: 'trip_earnings', amount: 98.5,   at: '2026-06-03', dueAt: '2026-06-10', payoutStatus: 'paid',        tripId: 't-826', route: { ar: 'الشيخ زايد ← التجمع',   en: 'Sheikh Zayed → New Cairo' } },
   ];
+}
+
+/** Give a payable entry without payout fields (an older seed or saved session) its dueAt + status. */
+function withPayoutFields(entry) {
+  if (!PAYABLE_TYPES.has(entry.type) || entry.payoutStatus) return entry;
+  const due = new Date(`${entry.at}T00:00:00Z`);
+  due.setUTCDate(due.getUTCDate() + 7);
+  const dueAt = due.toISOString().slice(0, 10);
+  return { ...entry, dueAt, payoutStatus: dueAt > DEMO_TODAY ? 'on_hold' : 'due' };
+}
+
+/** Newest first, the way the statement reads (stable for same-day entries). */
+function sortEntries(entries) {
+  return entries
+    .map(withPayoutFields)
+    .map((e, i) => [e, i])
+    .sort(([a, ia], [b, ib]) => (a.at < b.at ? 1 : a.at > b.at ? -1 : ia - ib))
+    .map(([e]) => e);
 }
 
 function load() {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      return { ...saved, entries: sortEntries(saved.entries || []) };
+    }
   } catch { /* fall through to a fresh seed */ }
-  return { entries: seedEntries() };
+  return { entries: sortEntries(seedEntries()) };
 }
 
 function save(state) {
@@ -144,6 +198,13 @@ if (params.has('zero')) {
   forceBalance(Math.abs(Number(params.get('available')) || 0));
 }
 
+// ?state=payout-failed — the batch line carrying p3 came back FAILED (payouts
+// spec §3): its entry is due again, and balance.html shows the failed banner.
+export const payoutFailed = params.get('state') === 'payout-failed';
+if (payoutFailed) {
+  state.entries = state.entries.map((e) => (e.payoutStatus === 'in_transfer' ? { ...e, payoutStatus: 'failed' } : e));
+}
+
 export const shouldFailRequest = params.has('error');
 
 // ── Reads ────────────────────────────────────────────
@@ -169,6 +230,17 @@ export function getAvailable() {
  * cause she could read, so it never reaches the screen — the balance still counts it. */
 export function getEntries() {
   return state.entries.filter((e) => e.type !== 'demo_override');
+}
+
+/** What is on hold and what is due for payout, from the payable entries (payouts spec §3). */
+export function getPayoutSummary() {
+  let onHold = 0;
+  let due = 0;
+  state.entries.forEach((e) => {
+    if (e.payoutStatus === 'on_hold') onHold += e.amount;
+    if (e.payoutStatus === 'due' || e.payoutStatus === 'failed') due += e.amount;
+  });
+  return { onHold: round2(onHold), due: round2(due) };
 }
 
 export function getLastSettlement() {
@@ -239,6 +311,6 @@ export function isGoOnlineBlocked() {
 }
 
 export function resetStore() {
-  state = { entries: seedEntries() };
+  state = { entries: sortEntries(seedEntries()) };
   save(state);
 }

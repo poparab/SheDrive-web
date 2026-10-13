@@ -216,7 +216,42 @@ function render() {
     `Last changed ${formatDateTime(policies.commission.updatedAt)} by ${policies.commission.updatedBy}`;
 
   updateCommissionExample();
+  renderCommissionPending();
   renderBalanceSection();
+}
+
+// ── Commission maker-checker (2026-10-14 §1) ──────────
+
+/** While a change waits for a second admin, the field is locked and the proposal shown. */
+function renderCommissionPending() {
+  const pending = policies.pendingCommission;
+  const banner = qs('#commission-pending');
+  banner.hidden = !pending;
+  commissionControl.input.disabled = Boolean(pending);
+  qs('#commission-submit').disabled = Boolean(pending);
+  qs('#commission-reset').disabled = Boolean(pending);
+  if (!pending) return;
+  qs('#commission-pending-title').textContent = t('pricingApproval.commissionPending', {
+    pct: formatPercent(pending.after?.percentage),
+  });
+  qs('#commission-pending-meta').textContent = t('pricingApproval.commissionPendingMeta', {
+    who: pending.maker,
+    when: formatDateTime(pending.madeAt),
+    current: formatPercent(policies.commission.percentage),
+  });
+  qs('#commission-pending-link').href = `approvals.html?id=${encodeURIComponent(pending.id)}`;
+}
+
+/** Toasts are plain text; the request link rides along so the maker can follow it. */
+function toastWithLink(message, requestId) {
+  const toast = shell.showToast(message, 'success', 6000);
+  if (toast && requestId) {
+    const link = document.createElement('a');
+    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
+    link.className = 'text-reset text-decoration-underline';
+    link.textContent = t('pricingApproval.viewRequest');
+    toast.append(' ', link);
+  }
 }
 
 /** A worked example makes the percentage concrete for whoever sets it. */
@@ -323,14 +358,16 @@ qs('#commission-form').addEventListener('submit', async (event) => {
 
   if (!validate(commissionControl)) return;
 
+  const percentage = Number(commissionControl.input.value);
+  if (percentage === Number(policies.commission.percentage)) {
+    shell.showToast(t('pricingApproval.commissionUnchanged'), 'info');
+    return;
+  }
+
   try {
-    await mockApi.savePolicies({
-      commission: { percentage: Number(commissionControl.input.value) },
-    });
-    shell.showToast(
-      `Platform commission set to ${formatPercent(commissionControl.input.value)}.`,
-      'success',
-    );
+    // A commission change never applies on save — it becomes a request (§1).
+    const result = await mockApi.savePolicies({ commission: { percentage } });
+    toastWithLink(t('pricingApproval.commissionSent'), result.request?.id);
     policies = await mockApi.getPolicies();
     render();
   } catch (error) {

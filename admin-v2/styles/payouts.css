@@ -1,0 +1,173 @@
+/*
+ * payouts.css — payout batches list and the generate-batch preview
+ * Screen owner: admin-v2/payouts.html
+ *
+ * The grid, KPI row and filter bar are kit/shared. What is local: the intro
+ * row with its primary action, the paid/failed counts cell, and the preview
+ * modal (summary, notices, the skipped-drivers list).
+ */
+
+/* ── Intro row ────────────────────────────────────────── */
+
+.payouts-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.payouts-intro .ad-section__hint {
+  margin: 0;
+  max-inline-size: 70ch;
+}
+
+.payouts-intro .btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Grid cells ───────────────────────────────────────── */
+
+.payouts-counts {
+  font-variant-numeric: tabular-nums;
+}
+
+.payouts-counts__paid {
+  color: var(--color-success-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.payouts-counts__failed {
+  color: var(--color-danger);
+  font-weight: var(--fw-semibold);
+}
+
+/* ── Preview modal ────────────────────────────────────── */
+
+.payouts-preview .modal-header {
+  align-items: center;
+}
+
+.payouts-preview .modal-title {
+  margin: 0;
+  color: var(--color-text-strong);
+}
+
+/* The kit centres popup bodies; a preview is tabular, so it reads from the start. */
+.payouts-preview__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: start;
+}
+
+/* The body scrolls; its children must not shrink (an overflow:auto table
+   wrapper would otherwise collapse to zero height). */
+.payouts-preview__body > * {
+  flex-shrink: 0;
+}
+
+.payouts-preview__summary {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.payouts-preview__loading {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.payouts-preview__empty {
+  margin: 0;
+}
+
+.payouts-preview__amount,
+.payouts-preview__total td {
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-700);
+}
+
+.payouts-preview__table td,
+.payouts-preview__table th {
+  font-variant-numeric: tabular-nums;
+}
+
+.payouts-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  background: rgba(var(--color-info-rgb), 0.08);
+  border-inline-start: 3px solid var(--color-info);
+  color: var(--color-text);
+}
+
+.payouts-notice--warning {
+  background: rgba(var(--color-warning-rgb), 0.1);
+  border-inline-start-color: var(--color-warning);
+}
+
+/* ── Not included ─────────────────────────────────────── */
+
+.payouts-skipped__title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-base);
+  color: var(--color-text-strong);
+}
+
+.payouts-skipped__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.payouts-skipped__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.payouts-skipped__who {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.payouts-skipped__due {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.payouts-skipped__reason {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.payouts-skipped__reason--owes {
+  color: var(--color-danger-strong);
+  background: var(--color-danger-soft);
+}
+
+.payouts-skipped__reason--no_method {
+  color: var(--color-warning-strong);
+  background: var(--color-warning-soft);
+}

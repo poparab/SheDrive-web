@@ -73,6 +73,11 @@
           <section class="settle-channels" id="settle-channels" data-i18n-aria-label="driver.settle.channelsAria" aria-label="قنوات التسوية">
             <h2 class="section-label settle-section__title" data-i18n="driver.settle.channelsTitle">طرق التسوية</h2>
             <div class="list-stack" id="channels-list"><!-- rendered by JS --></div>
+            <!-- Finance matches the payment by national ID (settlement import, payouts spec §4) -->
+            <p class="callout settle-match-note">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span data-i18n="driver.settle.matchNote">يطابق فريق المالية دفعتكِ باستخدام رقمكِ القومي. احتفظي برقم مرجع التحويل.</span>
+            </p>
           </section>
 
           <!-- ── Office address + hours ── -->

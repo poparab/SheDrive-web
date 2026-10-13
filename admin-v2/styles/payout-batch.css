@@ -1,0 +1,192 @@
+/*
+ * payout-batch.css — one payout batch: summary, progress, next step, lines
+ * Screen owner: admin-v2/payout-batch.html
+ *
+ * Reuses the shared detail layout (detail.css) and kit cards. What is local:
+ * the status notices, the result-file import block, the bank-file column list
+ * and the two-line line-status cell.
+ */
+
+.batch-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+/* ── Notices ──────────────────────────────────────────── */
+
+.batch-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-relaxed);
+  background: rgba(var(--color-info-rgb), 0.08);
+  border-inline-start: 3px solid var(--color-info);
+  color: var(--color-text);
+}
+
+.batch-notice--warning {
+  background: rgba(var(--color-warning-rgb), 0.1);
+  border-inline-start-color: var(--color-warning);
+}
+
+.batch-notice--success {
+  background: rgba(var(--color-success-rgb), 0.1);
+  border-inline-start-color: var(--color-success);
+}
+
+.batch-notice--danger {
+  background: rgba(var(--color-danger-rgb), 0.08);
+  border-inline-start-color: var(--color-danger);
+}
+
+#batch-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.batch-again {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.batch-again .ad-section__hint {
+  margin: 0;
+}
+
+/* ── Result import ────────────────────────────────────── */
+
+.batch-import {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-block: 1px solid var(--color-border);
+}
+
+.batch-import__title {
+  margin: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-strong);
+}
+
+.batch-import .ad-section__hint {
+  margin: 0;
+}
+
+.batch-import label.btn {
+  cursor: pointer;
+  margin: 0;
+}
+
+.batch-import__sample {
+  align-self: flex-start;
+  padding-inline: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-primary-600);
+  text-decoration: none;
+}
+
+.batch-demo-tag {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-warning-strong);
+  background: var(--color-warning-soft);
+}
+
+.batch-import__status {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.batch-import__errors {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger-strong);
+  font-size: var(--fs-sm);
+}
+
+.batch-import__errors p {
+  margin: var(--space-1) 0;
+}
+
+.batch-import__errors-list {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+/* ── Bank file columns ────────────────────────────────── */
+
+.batch-columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.batch-columns + .batch-columns {
+  margin-block-start: var(--space-3);
+}
+
+.batch-columns__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.batch-columns__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.batch-columns__list li {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  font-family: var(--font-latin);
+  font-size: var(--fs-xs);
+  color: var(--color-text);
+}
+
+/* ── Lines grid ───────────────────────────────────────── */
+
+.batch-line-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.batch-line-status__meta {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  white-space: normal;
+}
+
+.batch-line-status__meta--failed {
+  color: var(--color-danger);
+}
+
+.batch-loading[hidden],
+.batch-import__status[hidden] {
+  display: none;
+}
+
+.batch-lines {
+  margin-block-start: var(--space-5);
+}

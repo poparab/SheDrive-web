@@ -1,13 +1,12 @@
 /*
- * rider-balances.css — rider fee balances ledger, read-only (FIN-11)
+ * rider-balances.css — rider fee balances ledger and fee waiver (FIN-11, 2026-10-14 §5)
  * Every value comes from a token; see admin-tokens.css. The ledger drawer and
  * signed-amount styling are shared with the driver side via balances.css —
  * this file only carries what is specific here.
  */
 
 /*
- * balances.css (frozen — owned by the balances.html track, not this screen)
- * styles the shared `.balance-ledger` drawer with `--ad-space-*` / `--ad-fs-*` /
+ * balances.css styles the shared `.balance-ledger` drawer with `--ad-space-*` / `--ad-fs-*` /
  * `--ad-radius` / `--ad-leading-relaxed` custom properties that are never
  * defined anywhere in the token stack, so they resolve to nothing on this
  * page. This screen loads balances.css for that shared drawer, so — without
@@ -43,3 +42,19 @@
   overflow-wrap: anywhere;
   min-inline-size: 12rem;
 }
+
+/* §5 — a credit left by a waived fee she had already paid: shown, not spent. */
+.rider-credit-note {
+  margin-block: 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-info-soft);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+}
+
+.rider-credit-note[hidden] { display: none; }
+
+.rider-waiver-pending { text-decoration: none; }
+.rider-waiver-pending:hover,
+.rider-waiver-pending:focus-visible { text-decoration: underline; }

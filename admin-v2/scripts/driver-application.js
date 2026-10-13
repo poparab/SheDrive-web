@@ -72,6 +72,8 @@ async function load() {
     { label: t('field.registrationExpiry'), value: expiryValue(application.registrationExpiry) },
   ];
 
+  renderPayoutMethod(application);
+
   // Kit artwork stands in for the seed's flat placeholders (presentation only).
   qs('#docs').docs = withKitArt(
     application.documents.map((doc) => ({
@@ -99,6 +101,40 @@ async function load() {
   ];
 
   return application;
+}
+
+// ── Payout method (2026-10-14 spec §2) — read-only, number masked ──
+
+const maskNumber = (number) => (number ? `•••• ${String(number).slice(-4)}` : '—');
+
+function renderPayoutMethod(application) {
+  const section = qs('#payout');
+  section.setAttribute('hint', t('driverPayout.applicationHint'));
+  const method = application.payoutMethod;
+  if (!method) {
+    section.items = [{ label: t('driverPayout.type'), value: t('driverPayout.none'), muted: true, wide: true }];
+    return;
+  }
+  const items = [{ label: t('driverPayout.type'), value: t(`driverPayout.type${method.type}`) }];
+  if (method.type === 'MOBILE_WALLET') {
+    items.push({ label: t('driverPayout.walletProvider'), value: method.provider, ltr: true });
+  } else if (method.type === 'BANK_ACCOUNT') {
+    items.push({ label: t('driverPayout.bank'), value: method.provider, ltr: true });
+  }
+  const isCard = method.type === 'PREPAID_CARD';
+  items.push(
+    { label: isCard ? t('driverPayout.cardName') : t('driverPayout.holderName'), value: method.holderName },
+    {
+      label: {
+        MOBILE_WALLET: t('driverPayout.walletNumber'),
+        BANK_ACCOUNT: t('driverPayout.accountNumber'),
+        PREPAID_CARD: t('driverPayout.cardNumber'),
+      }[method.type],
+      value: maskNumber(method.number),
+      ltr: true,
+    },
+  );
+  section.items = items;
 }
 
 // ── #1659 approve ─────────────────────────────────────

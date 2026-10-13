@@ -1,13 +1,15 @@
 /**
  * onboarding.js — Driver onboarding multi-step flow controller (#1572–#1576, #1686, #1854)
  * Steps: 1=Personal+NID → 2=National ID photos → 3=Vehicle details → 4=Documents
- *        → 5=Vehicle photo → 6=Selfie+Submit
+ *        → 5=Vehicle photo → 6=Selfie → 7=Payout method+Submit (payouts spec §2)
  * Status screens: pending / rejected (reached via ?status= or after submit)
  */
 
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
+import { mountPayoutForm } from './payout-form.js';
+import { savePayoutMethod } from './payout-store.js';
 
 auth.requireAuth();
 await initI18n();
@@ -16,7 +18,7 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
   btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang-btn')))
 );
 
-// Demo entry points: ?status=pending|rejected opens a status screen, ?step=2…6 opens a step.
+// Demo entry points: ?status=pending|rejected opens a status screen, ?step=2…7 opens a step.
 const params = new URLSearchParams(location.search);
 
 // ── Common Egypt-market vehicle makes → models (#1573) ──
@@ -43,7 +45,7 @@ runWizard();
 
 function runWizard() {
   let currentStep = 1;
-  const TOTAL_STEPS = 6;
+  const TOTAL_STEPS = 7;
 
   // Header title per step (the step's own <h2> carries the longer hero heading).
   const STEP_TITLES = {
@@ -53,6 +55,7 @@ function runWizard() {
     4: 'onboarding.step4.title',
     5: 'onboarding.step3.title',
     6: 'onboarding.step5.title',
+    7: 'driver.payout.onboarding.title',
   };
 
   const progressFill = qs('#progress-fill');
@@ -301,17 +304,30 @@ function runWizard() {
     goToStep(6);
   });
 
-  // ── Step 6: Selfie + Submit (#1686) ──
+  // ── Step 6: Selfie (#1686) ──
   setupUploadZone('selfie-input', 'selfie-preview', 'selfie-placeholder', 'selfie-zone');
 
   qs('#step6-back')?.addEventListener('click', () => goToStep(5));
-  qs('#step6-submit')?.addEventListener('click', () => {
+  qs('#step6-next')?.addEventListener('click', () => {
     const zone = qs('#selfie-zone');
     const err = qs('#selfie-error');
     if (!zone?.classList.contains('has-file')) { if (err) err.hidden = false; return; }
     if (err) err.hidden = true;
+    goToStep(7);
+  });
 
-    const btn = qs('#step6-submit');
+  // ── Step 7: Payout method + Submit (payouts spec §2) ──
+  // Required to submit. Only the format is checked; the method is saved with the
+  // application and SheDrive pays her earnings to it.
+  const payoutForm = mountPayoutForm(qs('#payout-form-host'), { idPrefix: 'onb-payout' });
+
+  qs('#step7-back')?.addEventListener('click', () => goToStep(6));
+  qs('#step7-submit')?.addEventListener('click', () => {
+    const payout = payoutForm.validate();
+    if (!payout) return;
+    savePayoutMethod(payout.type, payout);
+
+    const btn = qs('#step7-submit');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>'; }
     setTimeout(() => showStatus('pending'), 1200);
   });

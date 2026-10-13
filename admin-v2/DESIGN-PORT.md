@@ -270,3 +270,23 @@ Phase 1 simple. `admin/` (v1) never had any of this, so there is nothing to cut 
 
 `nav.js`, `screens.js`, `_verify.html` and every EN/AR i18n key that existed only for
 the withdrawal queue, the day book or post-adjustment were removed with them.
+
+## Intentional divergence from `admin/` — payouts, settlement import, maker-checker (2026-10-14)
+
+Same rule, same deliberate exception. `admin/` (v1) has none of this.
+
+| File | What was added |
+|---|---|
+| `scripts/finance-seed.js` (new) | Payout method per driver, paid markers on historical payable entries, `PAYOUT_BATCHES`, `SETTLEMENT_IMPORTS`, `APPROVALS`, the bank/wallet lists, a few due earnings so a demo batch has lines. Kept apart so `seed.js` is unchanged. |
+| `scripts/mock-api.js` | Maker-checker (`listApprovals`, `getApproval`, `approveRequest`, `rejectRequest`, `pendingApprovalCount`, demo `setActingAdmin`), payout batches (`previewPayoutBatch`, `createPayoutBatch`, `exportPayoutBatch`, `importPayoutResult`, …), settlement import (`checkSettlementSheet`, `submitSettlementImport`, …), `requestFeeWaiver`, payout method (`getDriverPayout`, `requestPayoutMethodChange`). `recordSettlement`, `recordPayout`, `saveRateCard`, `removeRateCard` and the commission part of `savePolicies` now create a request instead of applying. |
+| `scripts/mutations.js` | `approvals*`, `batches*`, `imports*`, `entryMeta` collections and `applyFinanceMutations` |
+| `scripts/nav.js`, `components/ad-shell.js` | Approvals (with the `pendingApprovals` counter), Payouts, Settlement imports |
+| `i18n/finance.js`, `approvals.js`, `payouts.js`, `settlement-imports.js`, `finance-edits.js`, `profile-pricing.js` | EN + AR, one area per screen group |
+| New screens | `approvals.html`, `payouts.html`, `payout-batch.html`, `settlement-imports.html` |
+
+The 2026-09-17 cuts above are partly reversed: payout details are collected, a single
+rider fee can be waived (with the driver's share reversed), and payouts run in batches.
+Ids (`APR-`, `IMP-`, `PB-`) are derived from the records that exist, so they stay unique
+after a reload replays the session.
+
+Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`.

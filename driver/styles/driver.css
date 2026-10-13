@@ -611,3 +611,116 @@
 }
 
 .driver-gps-lost[hidden] { display: none; }
+
+/* ── Payout method form (payouts spec §2) ─────────────────
+   Rendered by scripts/payout-form.js on onboarding step 7 and on
+   payout-method.html, so it lives in the app stylesheet both load.
+   The type cards follow the trip cancel-reason radio rows. */
+
+.payout-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.payout-types {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.payout-types__legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
+}
+
+.payout-type {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--control-height);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.payout-type:hover {
+  background: var(--color-surface-alt);
+}
+
+.payout-type:has(input:checked) {
+  background: var(--color-surface-tint);
+  border-color: var(--color-primary-400);
+}
+
+.payout-type:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+.payout-type input {
+  order: 3;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary-600);
+  cursor: inherit;
+}
+
+.payout-type__icon {
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+}
+
+.payout-type__text {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.payout-type__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.payout-type__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+}
+
+.payout-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+/* Numbers read left to right in both languages; the placeholder follows. */
+.payout-form__number {
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+[dir='rtl'] .payout-form__number {
+  text-align: end;
+}
+
+.payout-form__explain {
+  margin: 0;
+}

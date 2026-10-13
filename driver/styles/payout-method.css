@@ -1,0 +1,148 @@
+/*
+ * payout-method.css — Driver payout method (payouts spec §2)
+ * Same shell as My profile: purple hero with the header, white panel with the
+ * current-method card, the explainer callout and a pinned action dock. The form
+ * itself is styled in driver.css ("Payout method form"). All values use tokens.
+ */
+
+.pm-hero__title {
+  min-inline-size: 0;
+  font-size: var(--fs-xl);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-hero__spacer {
+  display: block;
+  inline-size: var(--icon-btn-size);
+}
+
+/* The action dock supplies the bottom padding. */
+.pm-content {
+  padding-block-end: 0;
+}
+
+.pm-view,
+.pm-edit {
+  gap: var(--space-4);
+}
+
+.pm-view[hidden],
+.pm-edit[hidden] {
+  display: none;
+}
+
+/* ── Last payout failed ──────────────────────────── */
+
+.pm-failed {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger-strong);
+}
+
+.pm-failed__icon {
+  flex: none;
+  color: var(--color-danger);
+}
+
+.pm-failed__msg {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Current method card ─────────────────────────── */
+
+.pm-method {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.pm-method__icon {
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+}
+
+.pm-method__body {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pm-method__type {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.pm-method__provider,
+.pm-method__holder {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.pm-method__holder {
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-sm);
+}
+
+.pm-method__number {
+  flex-shrink: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── Empty state ─────────────────────────────────── */
+
+.pm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-8);
+  text-align: center;
+}
+
+.pm-empty p {
+  margin: 0;
+}
+
+.pm-empty__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.pm-empty__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.pm-explain {
+  margin: 0;
+}
+
+/* ── Edit ────────────────────────────────────────── */
+
+.pm-edit__note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}

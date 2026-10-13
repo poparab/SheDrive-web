@@ -90,6 +90,8 @@ table.columns = [
         warn.textContent = t('zones.noRateCardWarning');
         wrap.appendChild(warn);
       }
+      // Maker-checker (2026-10-14 §1): the proposed card waits for another admin.
+      if (zone.pendingChange) wrap.appendChild(pendingNotice(zone));
       return wrap;
     },
   },
@@ -148,11 +150,17 @@ table.columns = [
       const wrap = document.createElement('span');
       wrap.className = 'pricing__actions';
 
-      wrap.appendChild(
-        actionButton(zone.rateCard ? t('zones.rateCard') : t('zones.setRateCard'), 'primary-outline', () =>
-          openRateCard(zone),
-        ),
+      const rateBtn = actionButton(zone.rateCard ? t('zones.rateCard') : t('zones.setRateCard'), 'primary-outline', () =>
+        openRateCard(zone),
       );
+      // One pending request per zone: the card is locked until it is decided.
+      if (zone.pendingChange) lockButton(rateBtn);
+      wrap.appendChild(rateBtn);
+      if (zone.rateCard) {
+        const removeBtn = actionButton(t('pricingApproval.removeBtn'), 'warning-outline', () => openRemoveRateCard(zone));
+        if (zone.pendingChange) lockButton(removeBtn);
+        wrap.appendChild(removeBtn);
+      }
       wrap.appendChild(actionButton(t('zones.rename'), 'tertiary', () => openRename(zone)));
       wrap.appendChild(actionButton(t('zones.redraw'), 'tertiary', () => startDraw({ id: zone.id, name: zone.name }, zone.polygon)));
       wrap.appendChild(actionButton(t('common.delete'), 'danger', () => openDelete(zone)));
@@ -161,6 +169,79 @@ table.columns = [
     },
   },
 ];
+
+function lockButton(btn) {
+  btn.disabled = true;
+  btn.title = t('pricingApproval.lockedTitle');
+}
+
+/** "Per km 4.50 EGP → 5.00 EGP · Min 30.00 EGP → 35.00 EGP" — only the fields that change. */
+function proposedSummary(current, after) {
+  const fields = [
+    ['baseFare', t('zones.rateBase')],
+    ['perKm', t('zones.ratePerKm')],
+    ['perMin', t('zones.ratePerMin')],
+    ['minFare', t('zones.rateMin')],
+    ['cancellationFee', t('zones.rateCancel')],
+  ];
+  return fields
+    .filter(([key]) => after[key] !== undefined && Number(after[key]) !== Number(current?.[key]))
+    .map(([key, label]) =>
+      current && current[key] !== undefined
+        ? `${label} ${formatEgp(current[key])} → ${formatEgp(after[key])}`
+        : `${label} ${formatEgp(after[key])}`,
+    )
+    .join(' · ');
+}
+
+function pendingNotice(zone) {
+  const pending = zone.pendingChange;
+  const removal = Boolean(pending.after?.removed);
+  const box = document.createElement('span');
+  box.className = 'pricing__pending';
+
+  const chip = document.createElement('span');
+  chip.className = 'status-pending';
+  const icon = document.createElement('span');
+  icon.className = 'icon';
+  const glyph = document.createElement('i');
+  glyph.className = 'fa-solid fa-hourglass-half';
+  glyph.setAttribute('aria-hidden', 'true');
+  icon.appendChild(glyph);
+  chip.append(icon, document.createTextNode(removal ? t('pricingApproval.pendingRemovalChip') : t('pricingApproval.pendingChip')));
+
+  const summary = document.createElement('span');
+  summary.className = 'pricing__pending-summary';
+  summary.textContent = removal
+    ? t('pricingApproval.proposedRemoval')
+    : t('pricingApproval.proposed', { summary: proposedSummary(zone.rateCard, pending.after) || '—' });
+
+  const meta = document.createElement('span');
+  meta.className = 'pricing__pending-summary';
+  meta.append(
+    document.createTextNode(`${t('pricingApproval.pendingMeta', { who: pending.maker, when: formatDateTime(pending.madeAt) })} · `),
+  );
+  const link = document.createElement('a');
+  link.href = `approvals.html?id=${encodeURIComponent(pending.id)}`;
+  link.textContent = t('pricingApproval.viewRequest');
+  link.addEventListener('click', (event) => event.stopPropagation());
+  meta.appendChild(link);
+
+  box.append(chip, summary, meta);
+  return box;
+}
+
+/** Toasts are plain text; the request link rides along so the maker can follow it. */
+function toastWithLink(message, requestId) {
+  const toast = shell.showToast(message, 'success', 6000);
+  if (toast && requestId) {
+    const link = document.createElement('a');
+    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
+    link.className = 'text-reset text-decoration-underline';
+    link.textContent = t('pricingApproval.viewRequest');
+    toast.append(' ', link);
+  }
+}
 
 function actionButton(label, variant, onClick) {
   const btn = document.createElement('button');
@@ -196,11 +277,9 @@ table.addEventListener('pagechange', (event) => {
 function openRateCard(zone) {
   const card = zone.rateCard;
   modal.open({
-    title: `Rate card — ${zone.name}`,
-    description: card
-      ? t('zones.rateCardDescEdit')
-      : t('zones.rateCardDescNew'),
-    confirmLabel: card ? t('zones.rateCardConfirmEdit') : t('zones.rateCardConfirmNew'),
+    title: t('pricingApproval.rateCardTitle', { zone: zone.name }),
+    description: card ? t('pricingApproval.rateCardDescApproval') : t('pricingApproval.rateCardDescNewApproval'),
+    confirmLabel: t('pricingApproval.sendForApproval'),
     fields: [
       money('baseFare', t('zones.baseFare'), card?.baseFare, 0.01, t('zones.baseFareEmpty'), t('zones.baseFareRange')),
       money('perKm', t('zones.perKm'), card?.perKm, 0.01, t('zones.perKmEmpty'), t('zones.perKmRange')),
@@ -220,11 +299,9 @@ function openRateCard(zone) {
       },
     ],
     onConfirm: async (values) => {
-      await mockApi.saveRateCard(zone.id, values);
-      shell.showToast(
-        card ? t('zones.rateCardUpdatedToast') : `${zone.name} is now Active.`,
-        'success',
-      );
+      // Nothing changes until another admin approves (2026-10-14 §1).
+      const result = await mockApi.saveRateCard(zone.id, values);
+      toastWithLink(t('pricingApproval.rateSent'), result.request?.id);
       await load();
     },
   });
@@ -243,6 +320,21 @@ function money(key, label, value, min, emptyError, rangeError) {
     invalidError: t('zones.amountInvalid'),
     rangeError,
   };
+}
+
+function openRemoveRateCard(zone) {
+  modal.open({
+    title: t('pricingApproval.removeTitle', { zone: zone.name }),
+    description: t('pricingApproval.removeDescription'),
+    confirmLabel: t('pricingApproval.removeConfirm'),
+    danger: true,
+    fields: [],
+    onConfirm: async () => {
+      const result = await mockApi.removeRateCard(zone.id);
+      toastWithLink(t('pricingApproval.removeSent'), result.request?.id);
+      await load();
+    },
+  });
 }
 
 // ── #1830 rename / delete ─────────────────────────────
@@ -381,6 +473,16 @@ qs('#draw-finish').addEventListener('click', () => {
   }
 });
 
+// ── Pending rate-card changes ─────────────────────────
+
+const pendingBanner = qs('#zones-pending');
+
+function renderPendingNotice(zones) {
+  const count = zones.filter((z) => z.pendingChange).length;
+  pendingBanner.hidden = count === 0;
+  qs('#zones-pending-text').textContent = t('pricingApproval.zonesPendingNotice', { n: count });
+}
+
 // ── Load ──────────────────────────────────────────────
 
 const guard = createRequestGuard();
@@ -391,7 +493,16 @@ async function load() {
   try {
     const result = await mockApi.listZones(query);
     if (!isCurrent()) return;
+    // listZones serialises `pendingChange` onto allMatching only — page rows are the
+    // raw zone records — so carry it across by id.
+    const pendingById = new Map((result.allMatching ?? []).map((z) => [String(z.id), z.pendingChange ?? null]));
+    result.rows = result.rows.map((zone) => ({
+      ...zone,
+      status: zone.status,
+      pendingChange: zone.pendingChange ?? pendingById.get(String(zone.id)) ?? null,
+    }));
     table.setData(result);
+    renderPendingNotice(result.allMatching ?? []);
 
     // The map shows every matching zone, not just the current page.
     if (mapReady) {

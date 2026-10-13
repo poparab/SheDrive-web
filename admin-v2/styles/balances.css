@@ -3,6 +3,23 @@
  * Every value comes from a token; see admin-tokens.css.
  */
 
+/*
+ * The `--ad-space-*` / `--ad-fs-*` / `--ad-radius` names this file uses are not
+ * defined anywhere in the token stack — alias them onto the real tokens here
+ * (rider-balances.css carries the same block for the same reason).
+ */
+:root {
+  --ad-space-2: var(--space-2);
+  --ad-space-3: var(--space-3);
+  --ad-space-4: var(--space-4);
+  --ad-space-5: var(--space-5);
+  --ad-fs-xs: var(--fs-xs);
+  --ad-fs-sm: var(--fs-sm);
+  --ad-fs-lg: var(--fs-lg);
+  --ad-radius: var(--radius-md);
+  --ad-leading-relaxed: 1.6;
+}
+
 .ad-section__lead {
   font-size: var(--ad-fs-sm);
   line-height: var(--ad-leading-relaxed, 1.6);
@@ -16,7 +33,7 @@
 
 .balance-ledger__summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: var(--ad-space-3);
   margin-block-end: var(--ad-space-4);
 }
@@ -88,4 +105,88 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface-alt);
+}
+
+/* ── Maker-checker and payouts (2026-10-14 spec §1, §3) ── */
+
+.balance-name {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.balance-chip { font-size: var(--fs-xs); }
+
+/* The payout method line above the ledger figures. */
+.balance-ledger__method {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: 0 var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.balance-ledger__method-label {
+  font-weight: var(--fw-semibold);
+}
+
+.balance-ledger__method-label::after { content: ':'; }
+
+/* Last payout failed — a warning band with a link to the batch. */
+.balance-ledger__failure {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.balance-ledger__failure[hidden] { display: none; }
+
+.balance-ledger__failure a {
+  color: var(--color-danger);
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
+}
+
+/* The notice that replaces a button while its request awaits approval. */
+.balance-pending {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+  color: var(--color-warning-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+
+.balance-pending[hidden] { display: none; }
+
+.balance-pending:hover,
+.balance-pending:focus-visible { text-decoration: underline; }
+
+.balance-ledger__payouts-link {
+  margin-inline-start: auto;
+  font-size: var(--fs-sm);
+  color: var(--color-primary);
+}
+
+/* The "Open the request" link inside a toast. */
+.toast__link {
+  color: inherit;
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
 }
