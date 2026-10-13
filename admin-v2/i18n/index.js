@@ -24,8 +24,9 @@ import * as approvals from './approvals.js';
 import * as payouts from './payouts.js';
 import * as settlementImports from './settlement-imports.js';
 import * as financeEdits from './finance-edits.js';
+import * as profilePricing from './profile-pricing.js';
 
-const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits];
+const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits, profilePricing];
 
 function merge(code) {
   const out = {};
