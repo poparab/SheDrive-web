@@ -33,48 +33,37 @@ export const NAV_SECTIONS = [
     ],
   },
   {
-    labelKey: 'nav.money',
+    // Daily finance work, in the order it happens: approve, check balances,
+    // pay out, bring settlements in, rider fees. Approvals first — it is the
+    // checker's inbox (maker-checker, 2026-10-14 spec §1).
+    labelKey: 'nav.finance',
     items: [
-      // Maker-checker queue (2026-10-14 spec §1): every finance action waits here.
       { key: 'approvals', labelKey: 'nav.approvals', href: 'approvals.html', icon: 'checked-2.svg', count: 'pendingApprovals' },
-      {
-        key: 'pricing-zones',
-        labelKey: 'nav.pricingZones',
-        href: 'pricing-zones.html',
-        icon: 'prices.svg',
-      },
-      {
-        key: 'pricing-policies',
-        labelKey: 'nav.pricingPolicies',
-        href: 'pricing-policies.html',
-        icon: 'policies.svg',
-      },
-      { key: 'reports', labelKey: 'nav.reports', href: 'reports.html', icon: 'reports.svg' },
-      {
-        key: 'reconciliation',
-        labelKey: 'nav.reconciliation',
-        href: 'reconciliation.html',
-        icon: 'handshake.svg',
-      },
-      {
-        key: 'balances',
-        labelKey: 'nav.balances',
-        href: 'balances.html',
-        icon: 'reports.svg',
-      },
-      { key: 'payouts', labelKey: 'nav.payouts', href: 'payouts.html', icon: 'wallet.svg' },
+      { key: 'balances', labelKey: 'nav.balances', href: 'balances.html', icon: 'balance.svg' },
+      { key: 'payouts', labelKey: 'nav.payouts', href: 'payouts.html', icon: 'withdrawal-wallet.svg' },
       {
         key: 'settlement-imports',
         labelKey: 'nav.settlementImports',
         href: 'settlement-imports.html',
-        icon: 'upload-file.svg',
+        icon: 'deposit-wallet.svg',
       },
-      {
-        key: 'rider-balances',
-        labelKey: 'nav.riderBalances',
-        href: 'rider-balances.html',
-        icon: 'user-star.svg',
-      },
+      { key: 'rider-balances', labelKey: 'nav.riderBalances', href: 'rider-balances.html', icon: 'wallet.svg' },
+    ],
+  },
+  {
+    // Configuration that rarely changes; its changes still go through Approvals.
+    labelKey: 'nav.pricing',
+    items: [
+      { key: 'pricing-zones', labelKey: 'nav.pricingZones', href: 'pricing-zones.html', icon: 'prices.svg' },
+      { key: 'pricing-policies', labelKey: 'nav.pricingPolicies', href: 'pricing-policies.html', icon: 'policies.svg' },
+    ],
+  },
+  {
+    // Read-only — kept apart from the screens where money moves.
+    labelKey: 'nav.reporting',
+    items: [
+      { key: 'reports', labelKey: 'nav.reports', href: 'reports.html', icon: 'reports.svg' },
+      { key: 'reconciliation', labelKey: 'nav.reconciliation', href: 'reconciliation.html', icon: 'handshake.svg' },
     ],
   },
   {

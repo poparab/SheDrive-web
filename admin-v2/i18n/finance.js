@@ -7,6 +7,9 @@
 
 export const en = {
   nav: {
+    finance: 'Finance',
+    pricing: 'Pricing',
+    reporting: 'Reporting',
     approvals: 'Approvals',
     approvalsPendingCount: '{n} requests awaiting approval',
     payouts: 'Payouts',
@@ -30,6 +33,9 @@ export const en = {
 
 export const ar = {
   nav: {
+    finance: 'المالية',
+    pricing: 'التسعير',
+    reporting: 'التقارير والمصالحات',
     approvals: 'الموافقات',
     approvalsPendingCount: '{n} طلبات بانتظار الموافقة',
     payouts: 'المدفوعات',

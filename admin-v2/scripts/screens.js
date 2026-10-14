@@ -12,6 +12,7 @@
  * marked "planned" and are not linked.
  */
 
+import { NAV_SECTIONS } from './nav.js';
 import { injectAdminStyles, iconUrl } from '../components/ad-styles.js';
 import { qs } from '../../shared/scripts/utils.js';
 import {
@@ -305,7 +306,7 @@ export const SCREENS = [
       t('screens.notesRiderProfile'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.pricing'),
     title: t('zones.title'),
     file: 'pricing-zones.html',
     icon: 'prices.svg',
@@ -322,7 +323,7 @@ export const SCREENS = [
       t('screens.notesZones'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.pricing'),
     title: t('policies.title'),
     file: 'pricing-policies.html',
     icon: 'policies.svg',
@@ -333,7 +334,7 @@ export const SCREENS = [
     notes: t('screens.notesPolicies'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.reporting'),
     title: t('screens.titleReports'),
     file: 'reports.html',
     icon: 'reports.svg',
@@ -344,7 +345,7 @@ export const SCREENS = [
     notes: t('screens.notesReports'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.reporting'),
     title: t('reconciliation.title'),
     file: 'reconciliation.html',
     icon: 'handshake.svg',
@@ -356,7 +357,7 @@ export const SCREENS = [
       t('screens.notesReconciliation'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titleBalances'),
     file: 'balances.html',
     icon: 'handshake.svg',
@@ -367,7 +368,7 @@ export const SCREENS = [
     notes: t('screens.notesBalances'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titleRiderBalances'),
     file: 'rider-balances.html',
     icon: 'user-star.svg',
@@ -378,7 +379,7 @@ export const SCREENS = [
     notes: t('screens.notesRiderBalances'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titleApprovals'),
     file: 'approvals.html',
     icon: 'checked-2.svg',
@@ -389,7 +390,7 @@ export const SCREENS = [
     notes: t('screens.notesApprovals'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titlePayouts'),
     file: 'payouts.html',
     icon: 'wallet.svg',
@@ -400,7 +401,7 @@ export const SCREENS = [
     notes: t('screens.notesPayouts'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titlePayoutBatch'),
     file: 'payout-batch.html',
     icon: 'wallet.svg',
@@ -411,7 +412,7 @@ export const SCREENS = [
     notes: t('screens.notesPayoutBatch'),
   },
   {
-    group: t('nav.money'),
+    group: t('nav.finance'),
     title: t('screens.titleSettlementImports'),
     file: 'settlement-imports.html',
     icon: 'upload-file.svg',
@@ -597,7 +598,14 @@ function renderCard(screen) {
 }
 
 const host = qs('#screen-groups');
-const groups = [...new Set(SCREENS.map((s) => s.group))];
+// Groups follow the sidebar's order (nav.js); anything not in it keeps its place after them.
+const NAV_ORDER = NAV_SECTIONS.map((section) => t(section.labelKey));
+const groups = [...new Set(SCREENS.map((s) => s.group))].sort((x, y) => {
+  const ix = NAV_ORDER.indexOf(x);
+  const iy = NAV_ORDER.indexOf(y);
+  if (ix === -1 || iy === -1) return (ix === -1) - (iy === -1);
+  return ix - iy;
+});
 
 groups.forEach((group) => {
   const section = document.createElement('section');
