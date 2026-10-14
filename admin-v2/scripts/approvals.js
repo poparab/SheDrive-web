@@ -157,9 +157,24 @@ renderDemo();
 
 const stats = mountStatRow(qs('#approvals-stats'), [
   { key: 'pending', label: t('approvals.statPending'), tone: 'warning', icon: 'prossesing.svg' },
-  { key: 'amount', label: t('approvals.statPendingAmount'), tone: 'primary', icon: 'wallet.svg' },
+  { key: 'oldest', label: t('approvals.statOldest'), tone: 'primary', icon: 'timeline.svg' },
   { key: 'today', label: t('approvals.statDecidedToday'), tone: 'success', icon: 'checked-2.svg' },
 ]);
+
+const HOUR = 60 * 60 * 1000;
+
+/** Arabic counts take a different noun form for 1, 2, 3–10 and 11+; English reuses the same text. */
+const plural = (n) => (n === 1 ? 'one' : n === 2 ? 'two' : n <= 10 ? 'few' : 'many');
+
+/** "Under an hour" / "5 hours" / "2 days" since `since`; "None" when nothing is pending. */
+function waitingFor(since) {
+  if (!Number.isFinite(since)) return t('approvals.waitingNone');
+  const hours = Math.floor((Date.now() - since) / HOUR);
+  if (hours < 1) return t('approvals.waitingUnderHour');
+  if (hours < 24) return t(`approvals.waitingHour_${plural(hours)}`, { n: hours });
+  const days = Math.floor(hours / 24);
+  return t(`approvals.waitingDay_${plural(days)}`, { n: days });
+}
 
 async function loadStats() {
   const dash = t('common.notAvailable');
@@ -168,12 +183,13 @@ async function loadStats() {
       mockApi.listApprovals({ status: 'pending', pageSize: 1000 }),
       mockApi.listApprovals({ status: 'decided', pageSize: 1000 }),
     ]);
-    // Money at stake: a fee waiver carries the fee as a negative amount.
-    const amount = pending.rows.reduce((sum, r) => sum + Math.abs(Number(r.amount) || 0), 0);
+    // Requests never expire (spec §1), so the checker's cue is how long the
+    // oldest one has been waiting — it is the one to clear first.
+    const oldest = pending.rows.reduce((min, r) => Math.min(min, r.madeAt), Infinity);
     const today = toDateInputValue(Date.now());
     const decidedToday = decided.rows.filter((r) => r.decidedAt && toDateInputValue(r.decidedAt) === today).length;
     stats.get('pending')?.setAttribute('value', String(pending.total));
-    stats.get('amount')?.setAttribute('value', `${money(amount)} ${t('common.egp')}`);
+    stats.get('oldest')?.setAttribute('value', waitingFor(oldest));
     stats.get('today')?.setAttribute('value', String(decidedToday));
   } catch {
     stats.forEach((card) => card.setAttribute('value', dash));
