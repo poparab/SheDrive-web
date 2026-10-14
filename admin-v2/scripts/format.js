@@ -98,13 +98,6 @@ export function formatPhone(number) {
   return `+20 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
 }
 
-/** National ID masked to the last 4 digits — admins never need the full value. */
-export function maskNid(nid) {
-  const digits = String(nid ?? '').replace(/\D/g, '');
-  if (digits.length < 4) return '—';
-  return `•••• •••• •••• ${digits.slice(-4)}`;
-}
-
 /** "4 min ago" / "2 h 15 min ago" — relative to `now`. */
 export function formatElapsed(value, now = Date.now()) {
   const date = value instanceof Date ? value : new Date(value);

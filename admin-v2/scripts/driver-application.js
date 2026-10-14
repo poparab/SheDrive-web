@@ -7,7 +7,7 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { REASON_LISTS } from './seed.js';
-import { formatDate, formatDateTime, formatElapsed, formatPhone, maskNid } from './format.js';
+import { formatDate, formatDateTime, formatElapsed, formatPhone } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { withKitArt, kitVehiclePhotos } from './doc-images.js';
 import { t, hasKey } from './admin-i18n.js';
@@ -54,7 +54,7 @@ async function load() {
     { label: t('field.fullName'), value: application.name },
     { label: t('common.phone'), value: formatPhone(application.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(application.dob) },
-    { label: t('field.nid'), value: maskNid(application.nid), ltr: true },
+    { label: t('field.nid'), value: application.nid, ltr: true },
   ];
 
   qs('#vehicle').items = [

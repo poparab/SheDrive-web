@@ -16,7 +16,6 @@ import {
   formatEgp,
   formatPhone,
   humanize,
-  maskNid,
 } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { withKitArt } from './doc-images.js';
@@ -131,7 +130,7 @@ async function load() {
     { label: t('field.fullName'), value: driver.name },
     { label: t('common.phone'), value: formatPhone(driver.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(driver.dob) },
-    { label: t('field.nid'), value: maskNid(driver.nid), ltr: true },
+    { label: t('field.nid'), value: driver.nid, ltr: true },
     { label: t('field.homeArea'), value: driver.homeArea },
     { label: t('field.licence'), value: driver.licenceNumber, ltr: true },
     { label: t('field.licenceExpiry'), value: formatDate(driver.licenceExpiry) },

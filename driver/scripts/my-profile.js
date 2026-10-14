@@ -31,7 +31,7 @@ function render() {
 
   if (phone) qs('#dmp-phone').textContent = `+20 ${phone}`;
   qs('#dmp-dob').textContent = P.dateOfBirth;
-  qs('#dmp-national-id').textContent = `•••• ${P.nationalIdLast4}`;
+  qs('#dmp-national-id').textContent = P.nationalId;
 
   qs('#dmp-model').textContent = P.vehicle.model[lang];
   qs('#dmp-year').textContent = P.vehicle.year;

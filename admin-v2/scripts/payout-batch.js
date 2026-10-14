@@ -15,7 +15,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
-import { formatDateTime, formatEgp, formatCount, maskNid } from './format.js';
+import { formatDateTime, formatEgp, formatCount } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 
@@ -33,8 +33,6 @@ const linesTable = qs('#lines-table');
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 
-const EXPORT_COLUMNS = ['batch_ref', 'line_ref', 'national_id', 'driver_name', 'payout_type', 'provider_or_bank', 'account_number', 'account_holder', 'amount_egp'];
-const RESULT_COLUMNS = ['status', 'bank_reference', 'failure_reason'];
 
 /** Batch status → the kit's solid chip. */
 const CHIP = {
@@ -381,22 +379,6 @@ function renderActions() {
   }
 }
 
-function renderColumns() {
-  const section = qs('#batch-columns');
-  section.items = [];
-  const host = section.body;
-  host.textContent = '';
-  const block = (title, cols) => {
-    const wrap = el('div', 'batch-columns');
-    wrap.appendChild(el('span', 'batch-columns__title', title));
-    const list = el('ul', 'batch-columns__list');
-    cols.forEach((c) => list.appendChild(el('li', 'ad-ltr', c)));
-    wrap.appendChild(list);
-    return wrap;
-  };
-  host.append(block(t('payoutBatch.columnsExport'), EXPORT_COLUMNS), block(t('payoutBatch.columnsResult'), RESULT_COLUMNS));
-}
-
 // ── Lines grid ───────────────────────────────────────
 const LINE_PAGE = 20;
 let linePage = 1;
@@ -409,7 +391,7 @@ linesTable.columns = [
     label: t('payoutBatch.colDriver'),
     render: (row) => link(`driver-profile.html?id=${encodeURIComponent(row.driverId)}`, row.driverName),
   },
-  { key: 'nationalId', label: t('payoutBatch.colNid'), render: (row) => ltr(maskNid(row.nationalId)) },
+  { key: 'nationalId', label: t('payoutBatch.colNid'), render: (row) => ltr(row.nationalId) },
   { key: 'payoutType', label: t('payoutBatch.colType'), render: (row) => typeLabel(row.payoutType) },
   { key: 'provider', label: t('payoutBatch.colProvider'), render: (row) => row.provider || null },
   { key: 'masked', label: t('payoutBatch.colNumber'), render: (row) => ltr(row.masked) },
@@ -473,7 +455,6 @@ async function load() {
     renderSummary();
     renderTimeline();
     renderActions();
-    renderColumns();
     renderLines();
     show('body');
   } catch (error) {

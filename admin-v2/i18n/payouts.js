@@ -112,9 +112,6 @@ export const en = {
     completedAllPaid: 'Every line was paid — {lines} in all ({amount}).',
     rejectedNote: 'This batch was rejected. Its earnings are Due again and can go into a new batch.',
     // File columns
-    columnsHeading: 'Bank file columns',
-    columnsExport: 'Bank file',
-    columnsResult: 'Result file adds',
     // Lines table
     linesHeading: 'Lines',
     colLineRef: 'Line ref',
@@ -242,9 +239,6 @@ export const ar = {
     completedSummary: 'تم دفع {paid} من {lines} بنود ({amount}). فشل {failed} — أصبحت تلك الأرباح مستحقة مرة أخرى وستدخل الدفعة التالية.',
     completedAllPaid: 'تم دفع جميع البنود ({lines}) بإجمالي {amount}.',
     rejectedNote: 'تم رفض هذه الدفعة. أصبحت أرباحها مستحقة مرة أخرى ويمكن إدراجها في دفعة جديدة.',
-    columnsHeading: 'أعمدة ملف البنك',
-    columnsExport: 'ملف البنك',
-    columnsResult: 'ملف النتيجة يضيف',
     linesHeading: 'البنود',
     colLineRef: 'مرجع البند',
     colDriver: 'السائقة',

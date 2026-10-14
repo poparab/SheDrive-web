@@ -127,43 +127,6 @@
   padding-inline-start: var(--space-5);
 }
 
-/* ── Bank file columns ────────────────────────────────── */
-
-.batch-columns {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.batch-columns + .batch-columns {
-  margin-block-start: var(--space-3);
-}
-
-.batch-columns__title {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-strong);
-}
-
-.batch-columns__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-}
-
-.batch-columns__list li {
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-alt);
-  font-family: var(--font-latin);
-  font-size: var(--fs-xs);
-  color: var(--color-text);
-}
-
 /* ── Lines grid ───────────────────────────────────────── */
 
 .batch-line-status {

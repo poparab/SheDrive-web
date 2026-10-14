@@ -10,7 +10,7 @@ export const DRIVER_PROFILE = {
   rating: '4.9',
   ratingCount: 156,
   dateOfBirth: '14/03/1994',
-  nationalIdLast4: '4821',
+  nationalId: '29805120104821',
   vehicle: {
     model: { ar: 'هيونداي إلنترا', en: 'Hyundai Elantra' },
     year: '2022',

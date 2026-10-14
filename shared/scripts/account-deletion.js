@@ -93,11 +93,11 @@ export function isDeletedNumber(role, phone) {
   return entriesFor(role).some((e) => e.phone === phone && e.deleteOn <= Date.now());
 }
 
-/** "+20 10 •••• 5678": the number the code went to, masked as the API returns it. */
-export function maskPhone(phone) {
+/** "+20 10 1234 5678": the number the code went to, in full. */
+export function formatPhone(phone) {
   const digits = (phone || '').replace(/\D/g, '').replace(/^0/, '');
   if (digits.length < 6) return '';
-  return `+20 ${digits.slice(0, 2)} •••• ${digits.slice(-4)}`;
+  return `+20 ${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
 }
 
 /**
@@ -246,7 +246,7 @@ export function mountAccountDeletion(role) {
   const continueBtn = qs('#del-continue');
 
   const phoneEl = qs('#del-verify-phone');
-  if (phoneEl) phoneEl.textContent = maskPhone(phone);
+  if (phoneEl) phoneEl.textContent = formatPhone(phone);
 
   const otp = wireOtpStep({
     input: qs('#del-otp'),
