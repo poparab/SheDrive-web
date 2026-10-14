@@ -232,7 +232,7 @@ export const en = {
 
   // ── Per-driver earnings & settlement (#1833) ────────
   reconciliation: {
-    title: 'Per-driver earnings & settlement',
+    title: 'Driver earnings statement',
     filtersHeading: 'Driver & period',
     filtersHint: 'Select a driver to answer a payment query or review her settlement position.',
     driver: 'Driver',
@@ -409,7 +409,7 @@ export const en = {
     titleZones: 'Service zones & rate cards',
     titlePolicies: 'Global pricing policies',
     titleReports: 'Revenue & commission report',
-    titleReconciliation: 'Per-driver earnings & settlement',
+    titleReconciliation: 'Driver earnings statement',
     titleAuditLog: 'Admin activity audit log',
     titleAdminUsers: 'Admin user accounts',
     titleProfile: 'My profile',
@@ -462,7 +462,7 @@ export const en = {
     notesReports:
       'Totals reconcile: gross fares = commission + net driver earnings. CSV export included.',
     notesReconciliation:
-      'Reports the position; recording a settlement lives on Driver balances (#1813), which this screen links across to.',
+      'One driver over a period: trip earnings and commission, who holds each fare and what that means for her (commission she owes, net owed to her and its payout status), and her balance for the period from the ledger (opening + movements = closing).',
     notesAuditLog:
       'Read-only. Also the reference implementation of the filter-bar + data-table pattern every other grid follows — worth reviewing first.',
     notesAdminUsers: 'Not in the original 11-screen wireframe list, but three stories require it.',
@@ -685,7 +685,7 @@ export const ar = {
 
   // ── أرباح ومستحقات كل سائقة ────────────────────────
   reconciliation: {
-    title: 'أرباح ومستحقات كل سائقة',
+    title: 'كشف أرباح السائقة',
     filtersHeading: 'السائقة والفترة',
     filtersHint: 'اختاري سائقة للرد على استفسار دفع أو لمراجعة موقف تسوية مستحقاتها.',
     driver: 'السائقة',
@@ -859,7 +859,7 @@ export const ar = {
     titleZones: 'مناطق الخدمة وبطاقات الأسعار',
     titlePolicies: 'السياسات العالمية للأسعار',
     titleReports: 'تقرير الإيرادات والعمولة',
-    titleReconciliation: 'أرباح ومستحقات كل سائقة',
+    titleReconciliation: 'كشف أرباح السائقة',
     titleAuditLog: 'سجل تدقيق نشاط الإدارة',
     titleAdminUsers: 'حسابات مديري النظام',
     titleProfile: 'ملفي الشخصي',
@@ -909,7 +909,7 @@ export const ar = {
     notesReports:
       'الإجماليات متطابقة: إجمالي الأجرة = العمولة + صافي أرباح السائقات. ويتضمن تصدير CSV.',
     notesReconciliation:
-      'تعرض الموقف المالي؛ أما تسجيل التسوية فيتم في شاشة أرصدة السائقات (#1813) التي ترتبط بها هذه الشاشة.',
+      'سائقة واحدة خلال فترة: أرباح الرحلات والعمولة، ومن يحتفظ بكل أجرة وما يعنيه ذلك لها (العمولة المستحقة عليها والصافي المستحق لها وحالة صرفه)، ورصيدها خلال الفترة من الدفتر (الافتتاحي + الحركات = الختامي).',
     notesAuditLog:
       'للقراءة فقط. وهي أيضًا التطبيق المرجعي لنمط شريط التصفية + جدول البيانات الذي تتبعه كل الجداول الأخرى — يستحق المراجعة أولًا.',
     notesAdminUsers: 'ليست ضمن قائمة المخططات الأصلية المكوّنة من 11 شاشة، لكن ثلاث قصص تستلزمها.',

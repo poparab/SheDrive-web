@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SheDrive Admin — Reconciliation</title>
+    <title>SheDrive Admin — Driver earnings</title>
     <meta name="robots" content="noindex" />
     <script type="module" src="components/ad-shell.js"></script>
   </head>
@@ -12,7 +12,7 @@
     <ad-shell
       active="reconciliation"
       page-title-key="reconciliation.title"
-      breadcrumb-keys="nav.money > nav.reconciliation"
+      breadcrumb-keys="nav.reporting > nav.reconciliation"
       screen-styles="styles/list.css, styles/pricing.css, styles/reconciliation.css"
     >
       <!-- Kit reconciliation: driver search + date range straight under the title -->
@@ -54,17 +54,33 @@
           <ad-data-table id="trip-table"></ad-data-table>
         </section>
 
-        <div class="row mt-3">
+        <div class="row g-3 mt-1">
+          <!-- Who holds the fare decides what a trip means for her balance (spec §1). -->
           <div class="col-lg-12 col-xl-6">
-            <section class="standard-card-theme2 white-bg" aria-labelledby="split-heading">
+            <section class="standard-card-theme2 white-bg h-100" aria-labelledby="custody-heading">
               <div class="card-header">
                 <div class="card-title">
-                  <h5 id="split-heading" data-i18n="reconciliation.splitHeading">Cash vs digital</h5>
+                  <h5 id="custody-heading" data-i18n="kitPricing.custodyHeading">Who holds the fare</h5>
                 </div>
                 <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
               </div>
               <div class="card-body">
-                <div class="list-multi-column no-border p-0" id="split-rows"></div>
+                <div class="list-multi-column no-border p-0" id="custody-rows"></div>
+              </div>
+            </section>
+          </div>
+          <!-- Her balance for the period, from the ledger: opening + movements = closing. -->
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg h-100" aria-labelledby="balance-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="balance-heading" data-i18n="kitPricing.balanceHeading">Balance for the period</h5>
+                </div>
+                <div class="icon"><img src="vendor/icons/balance.svg" alt="" /></div>
+              </div>
+              <div class="card-body">
+                <div class="list-multi-column no-border p-0" id="balance-rows"></div>
+                <p class="small mt-2 mb-0" id="balance-note"></p>
               </div>
             </section>
           </div>

@@ -39,7 +39,7 @@ export const ar = {
   nav: {
     finance: 'المالية',
     pricing: 'التسعير',
-    reporting: 'التقارير والمصالحات',
+    reporting: 'التقارير المالية',
     approvals: 'الموافقات',
     approvalsPendingCount: '{n} طلبات بانتظار الموافقة',
     payouts: 'المدفوعات',

@@ -70,17 +70,19 @@ filters.actions = [
     onClick: () => {
       if (!latest) return;
       downloadCsv(
-        `shedrive-settlement-${latest.driver.name.replace(/\s+/g, '-').toLowerCase()}-${toDateInputValue(Date.now())}.csv`,
+        `shedrive-driver-earnings-${latest.driver.name.replace(/\s+/g, '-').toLowerCase()}-${toDateInputValue(Date.now())}.csv`,
         [
           t('reconciliation.colTripDate'),
-          t('reconciliation.colPaymentMethod'),
+          t('kitPricing.colHeldBy'),
+          t('kitPricing.colPayout'),
           t('reconciliation.colFare'),
           t('reconciliation.colCommission'),
           t('reconciliation.colNet'),
         ],
         latest.rows.map((trip) => [
           formatDate(trip.createdAt),
-          t(`status.${trip.paymentMethod ?? 'cash'}`),
+          t(trip.heldBy === 'driver' ? 'kitPricing.heldDriver' : 'kitPricing.heldPlatform'),
+          trip.payoutStatus ? payoutLabel(trip.payoutStatus) : '',
           trip.fare.total.toFixed(2),
           trip.fare.commission.toFixed(2),
           trip.fare.netEarnings.toFixed(2),
@@ -129,20 +131,52 @@ table.columns = [
     render: (trip) => moneyCell(trip.fare.netEarnings, 'success-color', trip.fare.netEarnings ? '+' : ''),
   },
   {
-    // How the fare was taken decides who is holding the money, and so whether
-    // the net on this row is cash she already has or a payout still owed.
-    key: 'paymentMethod',
-    label: t('reconciliation.colPaymentMethod'),
+    // Who holds the fare decides whether this row's money is already with her
+    // (she owes the commission) or still owed to her (paid out after the hold).
+    key: 'heldBy',
+    label: t('kitPricing.colHeldBy'),
     className: 'ad-table__nowrap',
     render: (trip) => {
-      const method = trip.paymentMethod ?? 'cash';
       const chip = document.createElement('span');
-      chip.className = method === 'cash' ? 'status-blue-solid' : 'status-primary-solid';
-      chip.textContent = t(`status.${method}`);
+      const mine = trip.heldBy === 'driver';
+      chip.className = mine ? 'status-blue-solid' : 'status-primary-solid';
+      chip.textContent = t(mine ? 'kitPricing.heldDriver' : 'kitPricing.heldPlatform');
       return chip;
     },
   },
+  {
+    key: 'payoutStatus',
+    label: t('kitPricing.colPayout'),
+    className: 'ad-table__nowrap',
+    render: (trip) => (trip.payoutStatus ? payoutLabel(trip.payoutStatus) : '—'),
+  },
 ];
+
+/** Payout status of what SheDrive owes her on a trip (spec §3). */
+const PAYOUT_KEYS = {
+  on_hold: 'kitPricing.payoutOnHold',
+  due: 'balancesFinance.statusDue',
+  in_batch: 'balancesFinance.statusInBatch',
+  sent: 'balancesFinance.statusSent',
+  paid: 'balancesFinance.statusPaid',
+  reversed: 'balancesFinance.statusReversed',
+};
+const payoutLabel = (status) => t(PAYOUT_KEYS[status] ?? 'balancesFinance.statusDue');
+
+/** Ledger entry type → label (the same keys the driver ledger uses). */
+const ENTRY_LABEL_KEYS = {
+  trip_commission: 'balances.entryTripCommission',
+  trip_earnings: 'balances.entryTripEarnings',
+  driver_cancellation_fee: 'balances.entryDriverCancellationFee',
+  rider_cancellation_fee_credit: 'balances.entryRiderCancellationFeeCredit',
+  rider_fee_recovery: 'kitPricing.entryRiderFeeRecovery',
+  settlement: 'balances.entrySettlement',
+  payout: 'balances.entryPayout',
+  fee_credit_reversed: 'balancesFinance.entryFeeCreditReversed',
+};
+
+/** Signed balance: "−120.00 EGP" she owes, "+80.00 EGP" she is owed. */
+const signed = (v) => (v > 0 ? `+${formatEgp(v)}` : v < 0 ? `−${formatEgp(Math.abs(v))}` : formatEgp(0));
 
 // The kit's forward arrow points the reading direction.
 qs('#settle-link-icon').className = `fa-solid ${isRtl() ? 'fa-arrow-left' : 'fa-arrow-right'}`;
@@ -217,14 +251,26 @@ async function load() {
     qs('#card-commission').value = formatEgp(totals.commission);
     qs('#card-net').value = formatEgp(totals.netEarnings);
 
-    const split = qs('#split-rows');
-    split.textContent = '';
-    split.append(
-      moneyRow(t('reconciliation.splitCash'), formatEgp(totals.cashPortion)),
-      moneyRow(t('reconciliation.splitDigital'), formatEgp(totals.digitalPortion)),
-      moneyRow(t('reports.cardGross'), formatEgp(totals.grossFares), true),
-      moneyRow(t('reconciliation.cardBalance'), formatEgp(totals.outstandingCashBalance)),
+    const c = data.custody;
+    const custodyRows = qs('#custody-rows');
+    custodyRows.textContent = '';
+    custodyRows.append(
+      moneyRow(t('kitPricing.heldDriverLine', { n: formatCount(c.driver.trips) }), formatEgp(c.driver.fares)),
+      moneyRow(t('kitPricing.commissionOwed'), `−${formatEgp(c.driver.commissionOwed)}`),
+      moneyRow(t('kitPricing.heldPlatformLine', { n: formatCount(c.platform.trips) }), formatEgp(c.platform.fares)),
+      moneyRow(t('kitPricing.netOwed'), `+${formatEgp(c.platform.netOwed)}`, true),
+      ...Object.entries(c.platform.byPayoutStatus).map(([status, amount]) => moneyRow(`· ${payoutLabel(status)}`, formatEgp(amount))),
     );
+
+    const b = data.balance;
+    const balanceRows = qs('#balance-rows');
+    balanceRows.textContent = '';
+    balanceRows.append(
+      moneyRow(query.from ? t('kitPricing.opening') : t('kitPricing.openingStart'), signed(b.opening)),
+      ...b.movements.map((m) => moneyRow(`${t(ENTRY_LABEL_KEYS[m.type] ?? m.type)} (${formatCount(m.count)})`, signed(m.amount))),
+      moneyRow(query.to ? t('kitPricing.closing') : t('kitPricing.closingNow'), signed(b.closing), true),
+    );
+    qs('#balance-note').textContent = t('kitPricing.balanceNote');
 
     table.setData(data);
   } catch (error) {

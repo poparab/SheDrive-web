@@ -2525,6 +2525,55 @@ export const mockApi = {
       trips.filter((t) => t.custody === 'driver').reduce((sum, t) => sum + t.fare.total, 0),
     );
 
+    // Who holds the fare decides what a trip means for her balance (spec §1):
+    // driver-held — she has the fare and owes the commission; platform-held —
+    // SheDrive has it and owes her the net, paid out after the 7-day hold.
+    const entries = ledgerFor(driverId);
+    const earningFor = (tripId) => entries.find((e) => e.type === 'trip_earnings' && e.tripId === tripId);
+    const driverHeld = trips.filter((t) => t.custody === 'driver');
+    const platformHeld = trips.filter((t) => t.custody !== 'driver');
+    const owedByStatus = {};
+    platformHeld.forEach((t) => {
+      const e = earningFor(t.id);
+      const status = (e && entryPayoutStatus(e)) || 'on_hold';
+      owedByStatus[status] = round2((owedByStatus[status] ?? 0) + t.fare.netEarnings);
+    });
+    const custody = {
+      driver: {
+        trips: driverHeld.length,
+        fares: round2(driverHeld.reduce((s, t) => s + t.fare.total, 0)),
+        commissionOwed: round2(driverHeld.reduce((s, t) => s + t.fare.commission, 0)),
+      },
+      platform: {
+        trips: platformHeld.length,
+        fares: round2(platformHeld.reduce((s, t) => s + t.fare.total, 0)),
+        netOwed: round2(platformHeld.reduce((s, t) => s + t.fare.netEarnings, 0)),
+        byPayoutStatus: owedByStatus,
+      },
+    };
+
+    // Her balance for the period, from the ledger: opening + every movement = closing.
+    // The closing balance is what her ledger shows at the end of the period.
+    const before = from ? entries.filter((e) => !inDateRange(e.at, from, '') ) : [];
+    const within = entries.filter((e) => inDateRange(e.at, from, to));
+    const opening = round2(before.reduce((s, e) => s + e.amount, 0));
+    const byType = new Map();
+    within.forEach((e) => {
+      const m = byType.get(e.type) ?? { type: e.type, count: 0, amount: 0 };
+      m.count += 1;
+      m.amount = round2(m.amount + e.amount);
+      byType.set(e.type, m);
+    });
+    const ORDER = ['trip_commission', 'trip_earnings', 'driver_cancellation_fee', 'rider_cancellation_fee_credit', 'rider_fee_recovery', 'fee_credit_reversed', 'settlement', 'payout'];
+    const movements = [...byType.values()].sort((x, y) => ORDER.indexOf(x.type) - ORDER.indexOf(y.type));
+    const closing = round2(opening + within.reduce((s, e) => s + e.amount, 0));
+    const balance = { opening, movements, closing, toNow: !to, current: driver.balance };
+
+    const rows = trips.map((t) => {
+      const e = t.custody === 'driver' ? null : earningFor(t.id);
+      return { ...t, heldBy: t.custody === 'driver' ? 'driver' : 'platform', payoutStatus: e ? entryPayoutStatus(e) : null };
+    });
+
     const payload = {
       driver: { id: driver.id, name: driver.name, status: driver.status },
       totals: {
@@ -2536,7 +2585,9 @@ export const mockApi = {
         digitalPortion: round2(grossFares - cashPortion),
         outstandingCashBalance: driver.cashBalance,
       },
-      ...paginate(trips, page, pageSize),
+      custody,
+      balance,
+      ...paginate(rows, page, pageSize),
     };
 
     return respond(payload, {
@@ -2551,6 +2602,8 @@ export const mockApi = {
           digitalPortion: 0,
           outstandingCashBalance: driver.cashBalance,
         },
+        custody: { driver: { trips: 0, fares: 0, commissionOwed: 0 }, platform: { trips: 0, fares: 0, netOwed: 0, byPayoutStatus: {} } },
+        balance: { opening: 0, movements: [], closing: 0, toNow: true, current: driver.balance },
         ...emptyPage(pageSize),
       },
     });
