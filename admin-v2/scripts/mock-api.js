@@ -2242,37 +2242,44 @@ export const mockApi = {
     return respond({ csv: toCsv(SETTLEMENT_HEADERS, [example]), fileName: 'shedrive-settlement-template.csv', headers: SETTLEMENT_HEADERS.slice() });
   },
 
-  /** Demo helper: a sheet with three good rows and one of each common mistake. */
+  /**
+   * Demo helper: Finance's sheet lists only payments that already went
+   * through. One paid in full, one paid part, one paid more, one paid while
+   * owing nothing — and one of each row that can't be applied.
+   */
   buildSampleSettlementSheet() {
-    const busy = new Set(APPROVALS.filter((a) => a.status === 'pending' && a.type === 'settlement').map((a) => a.subject.id));
-    SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => busy.add(r.driverId)));
-    const owing = DRIVERS.filter((d) => d.balance < 0 && !busy.has(String(d.id))).slice(0, 4);
     const today = localDay();
-    const rows = owing.slice(0, 3).map((d, i) => ({
+    const ref = () => `FT${String(100000000 + Math.floor(Math.random() * 899999999))}`;
+    const owing = DRIVERS.filter((d) => d.balance < 0).slice(0, 3);
+    const clear = DRIVERS.find((d) => ['approved', 'suspended'].includes(d.status) && d.balance >= 0);
+    const row = (d, amount, channel) => ({
       national_id: d.nid,
       driver_name: d.name,
-      amount_egp: (-d.balance).toFixed(2),
+      amount_egp: amount.toFixed(2),
       payment_date: today,
-      payment_channel: SETTLEMENT_CHANNELS[i % SETTLEMENT_CHANNELS.length],
-      payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}`,
-    }));
-    if (owing[3]) {
-      rows.push({ national_id: owing[3].nid, driver_name: owing[3].name, amount_egp: (Math.floor(-owing[3].balance / 2)).toFixed(2), payment_date: today, payment_channel: 'Fawry', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
-    }
-    // A driver who owes nothing — the "nothing owed" result.
-    const clear = DRIVERS.find((d) => ['approved', 'suspended'].includes(d.status) && d.balance >= 0);
-    if (clear) {
-      rows.push({ national_id: clear.nid, driver_name: clear.name, amount_egp: '75.00', payment_date: today, payment_channel: 'Field agent', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
-    }
-    rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: `FT${String(100000000 + Math.floor(Math.random() * 899999999))}` });
+      payment_channel: channel,
+      payment_reference: ref(),
+    });
+    const rows = [];
+    if (owing[0]) rows.push(row(owing[0], -owing[0].balance, 'Bank transfer'));
+    if (owing[1]) rows.push(row(owing[1], Math.floor(-owing[1].balance / 2), 'Fawry'));
+    if (owing[2]) rows.push(row(owing[2], -owing[2].balance + 50, 'Mobile wallet'));
+    if (clear) rows.push(row(clear, 75, 'Field agent'));
+    rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: ref() });
     const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
     if (used && owing[0]) {
-      rows.push({ national_id: owing[0].nid, driver_name: owing[0].name, amount_egp: (-owing[0].balance).toFixed(2), payment_date: today, payment_channel: 'Bank transfer', payment_reference: used.paymentRef });
+      rows.push({ ...row(owing[0], 60, 'Bank transfer'), payment_reference: used.paymentRef });
     }
     return respond({ csv: toCsv(SETTLEMENT_HEADERS, rows), fileName: `finance-settlements-${today}.csv` });
   },
 
-  /** Check each row of Finance's sheet, in the §4 order. Nothing is stored. */
+  /**
+   * §4 — every row is a payment that already went through, so any amount is
+   * applied: less than she owes settles part of it, more than she owes leaves
+   * the extra on her balance. A row can't be applied only when its national ID
+   * matches no driver, or its payment reference was already imported (so the
+   * same payment never posts twice). Nothing is stored here.
+   */
   checkSettlementSheet(csvText) {
     const { headers, rows } = parseCsv(csvText);
     const missingCols = SETTLEMENT_HEADERS.filter((h) => !headers.includes(h));
@@ -2283,10 +2290,9 @@ export const mockApi = {
 
     const usedRefs = new Set(LEDGER_ENTRIES.filter((e) => e.paymentRef).map((e) => e.paymentRef));
     SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => usedRefs.add(r.paymentRef)));
-    const busy = new Set(APPROVALS.filter((a) => a.status === 'pending' && a.type === 'settlement').map((a) => a.subject.id));
-    SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => busy.add(r.driverId)));
     const fileRefs = new Set();
-    const fileDrivers = new Set();
+    // Two rows for the same driver in one sheet both apply, one after the other.
+    const running = new Map();
 
     const checked = rows.map((row, i) => {
       const driver = DRIVERS.find((d) => d.nid === row.national_id);
@@ -2298,19 +2304,28 @@ export const mockApi = {
         driverId: driver ? String(driver.id) : null,
         systemName: driver ? driver.name : null,
         amount: Number.isFinite(amount) ? amount : null,
-        owed: driver && driver.balance < 0 ? round2(-driver.balance) : 0,
+        balanceBefore: null,
+        balanceAfter: null,
+        outcome: null,
         paymentDate: row.payment_date,
         channel: row.payment_channel,
         paymentRef: row.payment_reference,
         status: 'ready',
       };
       if (!driver) out.status = 'unknown_driver';
-      else if (driver.balance >= 0) out.status = 'nothing_owed';
       else if (!row.payment_reference || usedRefs.has(row.payment_reference) || fileRefs.has(row.payment_reference)) out.status = 'duplicate';
-      else if (out.amount !== out.owed) out.status = 'amount_mismatch';
-      else if (busy.has(String(driver.id)) || fileDrivers.has(String(driver.id))) out.status = 'pending_approval';
       if (row.payment_reference) fileRefs.add(row.payment_reference);
-      if (out.status === 'ready') fileDrivers.add(String(driver.id));
+      if (driver) {
+        const before = running.has(driver.id) ? running.get(driver.id) : driver.balance;
+        out.balanceBefore = before;
+        if (out.status === 'ready') {
+          const after = round2(before + (out.amount ?? 0));
+          out.balanceAfter = after;
+          // full: she owed and now owes nothing · partial: she still owes · credit: the extra sits on her balance
+          out.outcome = Math.abs(after) < 0.005 ? 'full' : after < 0 ? 'partial' : 'credit';
+          running.set(driver.id, after);
+        }
+      }
       return out;
     });
     const ready = checked.filter((r) => r.status === 'ready');

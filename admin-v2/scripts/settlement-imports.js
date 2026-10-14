@@ -73,19 +73,19 @@ const CHANNEL_KEYS = {
 };
 const channelLabel = (value) => (CHANNEL_KEYS[value] ? t(CHANNEL_KEYS[value]) : value || null);
 
-/** Check result → [pill status (sets the tone), label]. */
+/**
+ * What a row does to her balance (§4): every row is a payment that already
+ * went through, so any amount applies. Only an unknown national ID or an
+ * already-imported payment reference can't be applied.
+ */
 function resultPill(row) {
+  if (row.status === 'unknown_driver') return pill('rejected', t('settlementImports.resultUnknownDriver'));
+  if (row.status === 'duplicate') return pill('rejected', t('settlementImports.resultDuplicate'));
   const spec = {
-    ready: ['approved', t('settlementImports.resultReady')],
-    unknown_driver: ['rejected', t('settlementImports.resultUnknownDriver')],
-    nothing_owed: ['rejected', t('settlementImports.resultNothingOwed')],
-    duplicate: ['rejected', t('settlementImports.resultDuplicate')],
-    amount_mismatch: [
-      'rejected',
-      t('settlementImports.resultAmountMismatch', { amount: formatEgp(row.amount), owed: formatEgp(row.owed) }),
-    ],
-    pending_approval: ['pending', t('settlementImports.resultPendingApproval')],
-  }[row.status] ?? ['rejected', row.status];
+    full: ['approved', t('settlementImports.outcomeFull')],
+    partial: ['pending', t('settlementImports.outcomePartial', { owed: formatEgp(-row.balanceAfter) })],
+    credit: ['submitted', t('settlementImports.outcomeCredit', { extra: formatEgp(Math.min(row.amount, row.balanceAfter)) })],
+  }[row.outcome] ?? ['approved', t('settlementImports.resultReady')];
   return pill(spec[0], spec[1]);
 }
 
@@ -230,14 +230,21 @@ checkTable.columns = [
     label: t('settlementImports.colAmountEgp'),
     numeric: true,
     ltr: true,
-    render: (r) => ltr(formatEgp(r.amount), r.status === 'amount_mismatch' ? 'si-amount si-amount--off' : 'si-amount'),
+    render: (r) => ltr(formatEgp(r.amount), 'si-amount'),
   },
   {
-    key: 'owed',
-    label: t('settlementImports.colOwed'),
+    key: 'balanceBefore',
+    label: t('settlementImports.colBalanceBefore'),
     numeric: true,
     ltr: true,
-    render: (r) => (r.driverId ? ltr(formatEgp(r.owed), 'si-amount') : null),
+    render: (r) => (r.balanceBefore === null || r.balanceBefore === undefined ? null : ltr(formatEgp(r.balanceBefore), 'si-amount')),
+  },
+  {
+    key: 'balanceAfter',
+    label: t('settlementImports.colBalanceAfter'),
+    numeric: true,
+    ltr: true,
+    render: (r) => (r.balanceAfter === null || r.balanceAfter === undefined ? null : ltr(formatEgp(r.balanceAfter), 'si-amount')),
   },
   { key: 'channel', label: t('settlementImports.colChannel'), render: (r) => channelLabel(r.channel) },
   { key: 'paymentRef', label: t('settlementImports.colPaymentRef'), ltr: true, render: (r) => ltr(r.paymentRef, 'si-mono') },

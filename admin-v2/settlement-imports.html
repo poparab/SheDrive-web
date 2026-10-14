@@ -16,9 +16,7 @@
       screen-styles="styles/detail.css, styles/settlement-imports.css"
     >
       <p class="si-lead" data-i18n="settlementImports.lead">
-          Finance sends a sheet of drivers who paid SheDrive. Each row is matched by national ID
-          and must be the exact amount she owes today — no partial payments, no overpayments.
-          Approved rows settle her and lift her go-online block.
+          Finance sends a sheet of payments drivers have already made to SheDrive. Each row is matched by national ID and applied as paid: less than she owes settles part of it, more than she owes adds the extra to her balance. Approved rows lift her go-online block once she is under the limit.
         </p>
 
       <div class="row gy-4 si-steps">
@@ -44,7 +42,7 @@
                   <tbody>
                     <tr><td class="ad-ltr si-mono">national_id</td><td data-i18n="settlementImports.colNationalId">Matches the driver.</td></tr>
                     <tr><td class="ad-ltr si-mono">driver_name</td><td data-i18n="settlementImports.colDriverName">Reference only — never used to match.</td></tr>
-                    <tr><td class="ad-ltr si-mono">amount_egp</td><td data-i18n="settlementImports.colAmount">Must equal exactly what she owes.</td></tr>
+                    <tr><td class="ad-ltr si-mono">amount_egp</td><td data-i18n="settlementImports.colAmount">The amount she paid — any amount. Less settles part of what she owes; more adds to her balance.</td></tr>
                     <tr><td class="ad-ltr si-mono">payment_date</td><td data-i18n="settlementImports.colPaymentDate">The day she paid (YYYY-MM-DD).</td></tr>
                     <tr><td class="ad-ltr si-mono">payment_channel</td><td data-i18n="settlementImports.colPaymentChannel">Bank transfer, Fawry, Mobile wallet or Field agent.</td></tr>
                     <tr><td class="ad-ltr si-mono">payment_reference</td><td data-i18n="settlementImports.colPaymentReference">Unique. A reference already used is rejected.</td></tr>

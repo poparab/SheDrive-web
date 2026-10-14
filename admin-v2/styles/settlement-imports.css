@@ -138,11 +138,6 @@
   white-space: nowrap;
 }
 
-.si-amount--off {
-  font-weight: var(--fw-bold);
-  color: var(--color-danger);
-}
-
 .si-muted { color: var(--color-text-muted); font-style: italic; }
 
 .si-submitted {
