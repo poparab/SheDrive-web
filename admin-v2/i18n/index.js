@@ -25,8 +25,15 @@ import * as payouts from './payouts.js';
 import * as settlementImports from './settlement-imports.js';
 import * as financeEdits from './finance-edits.js';
 import * as profilePricing from './profile-pricing.js';
+import * as kitLists from './kit-lists.js';
+import * as kitBalances from './kit-balances.js';
+import * as kitDetails from './kit-details.js';
+import * as kitPeople from './kit-people.js';
+import * as kitPricing from './kit-pricing.js';
+import * as kitAdmin from './kit-admin.js';
+import * as kitFinance from './kit-finance.js';
 
-const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits, profilePricing];
+const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits, profilePricing, kitLists, kitBalances, kitDetails, kitPeople, kitPricing, kitAdmin, kitFinance];
 
 function merge(code) {
   const out = {};

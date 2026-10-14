@@ -15,7 +15,7 @@ export const NAV_SECTIONS = [
       { key: 'trips', labelKey: 'nav.trips', href: 'trips.html', icon: 'trips.svg' },
       // SOS sits above Safety reports: a live emergency outranks women-only triage.
       // `count` names a live counter ad-shell renders beside the label (open cases).
-      { key: 'sos', labelKey: 'nav.sos', href: 'sos-requests.html', icon: 'warning-sign.svg', count: 'openSos' },
+      { key: 'sos', labelKey: 'nav.sos', href: 'sos-requests.html', icon: 'lifeboat.svg', count: 'openSos' },
       { key: 'safety', labelKey: 'nav.safety', href: 'safety-reports.html', icon: 'shield.svg' },
     ],
   },

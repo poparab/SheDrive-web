@@ -184,7 +184,7 @@ class AdShell extends HTMLElement {
         link.append(icon, document.createTextNode(t(item.labelKey)));
         if (item.count && NAV_COUNTS[item.count]) {
           const badge = document.createElement('span');
-          badge.className = 'ad-nav-count';
+          badge.className = 'counter';
           badge.dataset.navCount = item.count;
           link.appendChild(badge);
         }
