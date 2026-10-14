@@ -26,6 +26,10 @@ export const en = {
     notesPayoutBatch:
       'One batch: its lines, the bank file and the result file Finance sends back. Open it from Payouts.',
     titleSettlementImports: 'Settlement imports',
+    titleDriverLedger: 'Driver ledger',
+    notesDriverLedger: "One driver's ledger, opened from Driver balances: balance and payout position, record payout or settlement (sent for approval), and every entry with its payout status.",
+    titleRiderLedger: 'Rider fee ledger',
+    notesRiderLedger: "One rider's fees, opened from Rider balances: outstanding and credit, and Waive fee on each cancellation fee (sent for approval).",
     notesSettlementImports:
       'Upload the settlement sheet from Finance. Each row is matched by national ID and checked before it is sent for approval.',
   },
@@ -52,6 +56,10 @@ export const ar = {
     notesPayoutBatch:
       'دفعة واحدة: بنودها وملف البنك وملف النتيجة الذي يعيده فريق المالية. تُفتح من صفحة المدفوعات.',
     titleSettlementImports: 'استيراد التسويات',
+    titleDriverLedger: 'دفتر حساب السائقة',
+    notesDriverLedger: 'دفتر حساب سائقة واحدة، يُفتح من أرصدة السائقات: الرصيد ووضع المدفوعات، وتسجيل دفعة أو تسوية (تُرسل للموافقة)، وكل قيد مع حالة صرفه.',
+    titleRiderLedger: 'دفتر رسوم الراكبة',
+    notesRiderLedger: 'رسوم راكبة واحدة، تُفتح من أرصدة الراكبات: المستحق والرصيد الدائن، والإعفاء من كل رسوم إلغاء (يُرسل للموافقة).',
     notesSettlementImports:
       'ارفع ملف التسويات من فريق المالية. تتم مطابقة كل صف بالرقم القومي والتحقق منه قبل إرساله للموافقة.',
   },

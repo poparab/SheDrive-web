@@ -1,0 +1,59 @@
+/*
+ * rider-balance-details.css — one rider's fee ledger, kit v22-09
+ * rider-balance-details.html. Every value comes from a token.
+ */
+
+#ledger-body[hidden],
+#ledger-missing[hidden],
+#ledger-error[hidden],
+ad-stat-card[hidden] { display: none; }
+
+#ledger-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Outstanding (+ Credit when she has one) keep a third of the row each, as
+   in the kit's row-cols-xl-3. */
+.ledger-kpis.ad-stats {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.ledger-breakdown-title { align-items: center; }
+.ledger-breakdown-title h4 { margin: 0; }
+
+/* Notes are sentences — let them wrap instead of widening the grid. */
+#ledger-table td.ledger-note-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-inline-size: 14rem;
+}
+
+.ledger-chip { white-space: nowrap; }
+
+.ledger-pending-link {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.ledger-pending-link:hover .ledger-chip,
+.ledger-pending-link:focus-visible .ledger-chip { text-decoration: underline; }
+
+/* ── Kit default-modal form (appended to <body>) ──── */
+.default-modal .ledger-field-error,
+.default-modal .ledger-field-hint {
+  margin-block: calc(-1 * var(--space-1)) var(--space-2);
+  font-size: var(--fs-xs);
+}
+
+.default-modal .ledger-field-error { color: var(--color-danger); }
+.default-modal .ledger-field-hint { color: var(--color-text-muted); }
+
+.default-modal .ledger-field-error[hidden],
+.default-modal .ledger-form-summary[hidden] { display: none; }
+
+.default-modal .ledger-form-summary p,
+.default-modal .alert p { margin: 0; }
+
+.default-modal .modal-header h3 { margin-inline-end: var(--space-1); }

@@ -19,23 +19,12 @@
       <div
         class="ad-stats"
         id="safety-stats"
-        aria-label="Safety reports summary" data-i18n-label="safety.statsLabel" data-i18n-aria-label="safety.statsLabel"
+        aria-label="Safety reports summary"
         data-i18n-aria-label="safety.statsLabel"
       ></div>
 
-      <section class="ad-section" aria-labelledby="reports-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="reports-heading" data-i18n="safety.heading">Report queue</h2>
-            <p class="ad-section__hint" data-i18n="safety.hint">
-              SheDrive is women-only. When a driver reports that the rider who arrived was not
-              female, the trip is expired and the rider is held in Pending review automatically.
-              Oldest first — open a report to review it and resolve.
-            </p>
-          </div>
-          <span class="badge badge--warning" id="open-count" data-i18n="common.notAvailable">—</span>
-        </div>
-
+      <!-- Kit list block: filter row, then the grid (no sub-heading) -->
+      <section class="ad-list" aria-label="Safety reports" data-i18n-aria-label="safety.pageTitle">
         <ad-filter-bar id="reports-filters"></ad-filter-bar>
         <ad-data-table id="reports-table"></ad-data-table>
       </section>

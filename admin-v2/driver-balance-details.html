@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Driver ledger</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <!--
+      Kit v22-09 driver-balance-details.html — one driver's ledger, reached from
+      balances.html (?id=<driverId>). Record payout / Record settlement open kit
+      default-modals; both are maker-checker requests (spec 2026-10-14 §1).
+    -->
+    <ad-shell
+      active="balances"
+      page-title-key="kitBalances.ledgerCrumb"
+      breadcrumb-keys="nav.money > nav.balances|balances.html > kitBalances.ledgerCrumb"
+      back="balances.html"
+      screen-styles="styles/driver-balance-details.css"
+    >
+      <div id="ledger-missing" hidden>
+        <ad-empty-state icon="not-found.svg" tone="warning" heading="Driver not found" data-i18n-heading="kitBalances.driverNotFoundHeading" message="There is no driver with this id." data-i18n-message="kitBalances.driverNotFoundMessage">
+          <a class="btn btn-primary-rounded-outline" href="balances.html" data-i18n="kitBalances.backToDriverBalances">Back to driver balances</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="ledger-error" hidden></div>
+
+      <div id="ledger-body">
+        <!-- Last payout failed (§3) -->
+        <div class="alert danger ledger-alert" id="ledger-failure" role="alert" hidden>
+          <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+          <p>
+            <span id="ledger-failure-text"></span>
+            <a id="ledger-failure-link" href="payout-batch.html" data-i18n="balancesFinance.viewBatch">View batch</a>
+          </p>
+        </div>
+
+        <div class="ad-stats ledger-kpis" id="ledger-kpis">
+          <ad-stat-card id="kpi-balance" tone="primary" icon="balance.svg" label="Total balance" data-i18n-label="kitBalances.kpiBalance" value="—"></ad-stat-card>
+        </div>
+
+        <!-- Payout position (§3): where her payable earnings are in the cycle -->
+        <div class="ad-stats ledger-position" id="ledger-position">
+          <ad-stat-card id="kpi-on-hold" tone="primary" icon="hold.svg" label="On hold" data-i18n-label="balancesFinance.statOnHold" value="—"></ad-stat-card>
+          <ad-stat-card id="kpi-due" tone="warning" icon="wallet-plus.svg" label="Due" data-i18n-label="balancesFinance.statDue" value="—"></ad-stat-card>
+          <ad-stat-card id="kpi-in-batch" tone="blue" icon="transactions.svg" label="In a batch" data-i18n-label="balancesFinance.statInBatch" value="—"></ad-stat-card>
+          <ad-stat-card id="kpi-sent" tone="success" icon="send.svg" label="Sent to bank" data-i18n-label="balancesFinance.statSent" value="—"></ad-stat-card>
+        </div>
+
+        <!-- Kit action bar: the filter-container with only buttons -->
+        <div class="filter-container white-bg ledger-actions">
+          <button type="button" class="btn btn-primary d-flex gap-1" id="btn-payout" disabled>
+            <i class="fa-regular fa-circle-up" aria-hidden="true"></i><span data-i18n="balances.recordPayout">Record payout</span>
+          </button>
+          <a class="btn btn-warning-outline d-flex gap-1 ledger-pending" id="payout-pending" href="approvals.html" hidden></a>
+          <button type="button" class="btn btn-success d-flex gap-1" id="btn-settle" disabled>
+            <i class="fa-regular fa-circle-down" aria-hidden="true"></i><span data-i18n="balances.recordSettlement">Record settlement</span>
+          </button>
+          <a class="btn btn-warning-outline d-flex gap-1 ledger-pending" id="settle-pending" href="approvals.html" hidden></a>
+          <a class="ledger-payouts-link ms-auto" href="payouts.html">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span data-i18n="balancesFinance.payoutsLink">Payouts are paid in batches</span>
+          </a>
+        </div>
+
+        <ad-data-table id="ledger-table"></ad-data-table>
+      </div>
+    </ad-shell>
+    <script type="module" src="scripts/driver-balance-details.js"></script>
+  </body>
+</html>

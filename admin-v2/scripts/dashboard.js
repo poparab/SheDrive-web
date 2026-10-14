@@ -36,21 +36,22 @@ const layerFilter = qs('#layer-filter');
 async function refreshMetrics() {
   try {
     const metrics = await mockApi.getDashboardMetrics();
-    const stamp = `Updated ${formatTime(metrics.refreshedAt)}`;
+    // The kit's per-tile meta line: "Updated 16:59".
+    const stamp = t('dashboard.updated', { time: formatTime(metrics.refreshedAt) });
 
     Object.entries(cards).forEach(([key, card]) => {
       card.value = formatCount(metrics[key]);
       card.meta = stamp;
     });
 
-    metricsStatus.textContent = `Live — refreshes every 30 seconds. ${stamp}`;
+    metricsStatus.textContent = t('dashboard.metricsLive', { stamp });
     metricsError.classList.remove('is-visible');
   } catch (error) {
-    metricsError.textContent = `Could not load metrics: ${error.message}`;
+    metricsError.textContent = t('dashboard.metricsError', { message: error.message });
     metricsError.classList.add('is-visible');
     metricsStatus.textContent = t('dashboard.metricsUnavailable');
     Object.values(cards).forEach((card) => {
-      card.value = '—';
+      card.value = t('common.notAvailable');
       card.meta = '';
     });
   }
@@ -123,11 +124,17 @@ async function refreshMap() {
 
     const driverCount = markers.filter((m) => m.kind.startsWith('driver')).length;
     const requestCount = markers.filter((m) => m.kind === 'ride-request').length;
-    mapStatus.textContent =
-      `Cairo / Giza · ${driverCount} driver${driverCount === 1 ? '' : 's'}, ` +
-      `${requestCount} request${requestCount === 1 ? '' : 's'} · updated ${formatTime(refreshedAt)}`;
+    mapStatus.textContent = t('dashboard.mapSummary', {
+      drivers:
+        driverCount === 1 ? t('dashboard.driverOne') : t('dashboard.driverMany', { count: driverCount }),
+      requests:
+        requestCount === 1
+          ? t('dashboard.requestOne')
+          : t('dashboard.requestMany', { count: requestCount }),
+      time: formatTime(refreshedAt),
+    });
   } catch (error) {
-    mapPanel.setEmpty(true, `Could not load map data: ${error.message}`);
+    mapPanel.setEmpty(true, t('dashboard.mapDataError', { message: error.message }));
     mapStatus.textContent = t('dashboard.mapDataUnavailable');
   }
 }

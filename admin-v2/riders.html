@@ -19,22 +19,13 @@
       <div
         class="ad-stats"
         id="riders-stats"
-        aria-label="Riders summary" data-i18n-label="riders.statsLabel" data-i18n-aria-label="riders.statsLabel"
+        aria-label="Riders summary"
         data-i18n-aria-label="riders.statsLabel"
       ></div>
 
       <!-- #1661 — rider list -->
-      <section class="ad-section" aria-labelledby="riders-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="riders-heading" data-i18n="riders.heading">All riders</h2>
-            <p class="ad-section__hint" data-i18n="riders.hint">
-              Open a rider to view her trip history and take account actions. Riders held in
-              Pending review were flagged automatically by a gender-mismatch report.
-            </p>
-          </div>
-        </div>
-
+      <!-- Kit list block: filter row, then the grid (no sub-heading) -->
+      <section class="ad-list" aria-label="Riders" data-i18n-aria-label="nav.riders">
         <ad-filter-bar id="riders-filters"></ad-filter-bar>
         <ad-data-table id="riders-table"></ad-data-table>
       </section>

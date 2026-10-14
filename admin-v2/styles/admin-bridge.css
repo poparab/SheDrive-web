@@ -578,29 +578,31 @@ textarea.input {
   white-space: nowrap;
 }
 
-/* Filter bar: the kit's row is one flex line; give labelled fields room. */
+/*
+ * Filter bar: the kit's row is one flex line of placeholder-only controls
+ * (labels are visually hidden). The field wrapper only exists to keep a date
+ * range and its error message together.
+ */
 .filter-container .ad-filters__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  min-width: 12rem;
+  min-width: 10rem;
 }
 
 .filter-container .ad-filters__field--grow {
-  flex: 1 1 16rem;
-}
-
-.filter-container .ad-filters__label {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
-  line-height: 1.4;
+  flex: 0 1 18rem;
 }
 
 .filter-container .ad-filters__range {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.filter-container .ad-filters__field .field__error {
+  font-size: var(--fs-xs);
+  color: var(--color-danger);
 }
 
 /* KPI widgets row. */
@@ -610,20 +612,70 @@ textarea.input {
   gap: var(--space-3);
 }
 
-/* Pagination emitted by ad-data-table. */
+/* Kit: every tile of a row sits on one line on desktop (col-lg-3 / col-sm-4). */
+@media (min-width: 992px) {
+  .ad-stats {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * Grid footer emitted by ad-data-table — the kit's tfoot: "Rows count"
+ * (.row.br-left) on the start side, the row summary, then the pagination
+ * pushed to the end.
+ */
 .ad-pagination {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-1) 0;
+  padding: var(--space-3) 0 0;
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
 }
 
+.ad-pagination .ad-pagination__rows {
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: 0;
+  padding-inline-end: var(--space-4);
+}
+
+.ad-pagination .ad-pagination__rows > * {
+  padding: 0;
+}
+
+.ad-pagination .ad-pagination__rows .rows-number-title {
+  padding-inline-end: var(--space-2);
+  color: var(--color-primary-700);
+  white-space: nowrap;
+}
+
 .ad-pagination .pagination {
   margin: 0;
+  margin-inline-start: auto;
+}
+
+/* Kit Actions column: compact row links, never wrapped. */
+.custom-grid-list th.ad-table__actions,
+.custom-grid-list td.ad-table__actions {
+  white-space: nowrap;
+}
+
+.custom-grid-list td.ad-table__actions {
+  cursor: default;
+}
+
+.custom-grid-list td.ad-table__actions .grid-options-btn {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.custom-grid-list td.ad-table__actions .grid-options-btn + .grid-options-btn,
+.custom-grid-list td.ad-table__actions .btn + .btn {
+  margin-inline-start: var(--space-3);
 }
 
 /* Detail key/value pairs, in the kit's list-row idiom. */
@@ -871,8 +923,9 @@ ad-empty-state .result-message {
  * portal's English direction, point them the way they are named again;
  * admin-rtl.css puts the rotation back for Arabic.
  */
-.custom-grid-list tfoot .pagination .page-link i.fa-chevron-left,
-.custom-grid-list tfoot .pagination .page-link i.fa-chevron-right {
+html:not([dir='rtl']) table.custom-grid-list tfoot .pagination .page-link i.fa-chevron-left,
+html:not([dir='rtl']) table.custom-grid-list tfoot .pagination .page-link i.fa-chevron-right {
+  /* "table." + :not() outrank the kit's own table.custom-grid-list rule. */
   transform: none;
 }
 

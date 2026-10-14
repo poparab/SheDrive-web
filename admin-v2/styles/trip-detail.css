@@ -1,0 +1,90 @@
+/*
+ * trip-detail.css — trip detail on the kit v22-09 card grid
+ * Screen owner: admin-v2/trip-detail.html
+ *
+ * Loaded after detail.css. Only what the kit's own classes do not cover: the
+ * cards stretch to the row height, the route map sits flat inside its card, the
+ * legacy money-row rules from detail.css are neutralised on the kit list rows,
+ * and the modal forms read left-to-right as forms.
+ */
+
+.td-grid > [class*='col-'] > ad-detail-section,
+.td-grid > [class*='col-'] > .standard-card-theme2 {
+  display: block;
+  height: 100%;
+}
+
+/* detail.css styles `.detail__money-row` as a flex row; on the kit list row the
+   Bootstrap grid already lays it out. */
+.td-grid .list-row.detail__money-row {
+  display: flex;
+  font-size: inherit;
+  color: inherit;
+}
+
+.td-grid .list-row.detail__money-row--total {
+  padding-block-start: 0;
+  border-block-start: 0;
+  font-size: inherit;
+}
+
+.td-grid .danger-color .detail__money-label,
+.td-grid .danger-color .detail__money-value {
+  color: var(--color-danger);
+}
+
+.td-grid .detail__money-label {
+  color: inherit;
+}
+
+/* The map panel renders its own kit card; inside our card it sits flat. */
+.td-map-card .ad-map__card {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.td-map-card .ad-map__body {
+  margin: 0;
+  padding: 0;
+}
+
+.td-no-rating {
+  margin: 0;
+}
+
+.td-grid .rating-container .detail__stars {
+  font-size: var(--fs-lg);
+}
+
+/* Bottom action row */
+.td-actions {
+  margin-block-start: var(--space-4);
+}
+
+.td-actions .alert {
+  margin-block-end: var(--space-3);
+}
+
+.td-actions .btn i {
+  margin-inline-end: var(--space-2);
+}
+
+/* Modals: the kit centres popup bodies; form rows still read as a form. */
+.td-modal .modal-body form,
+.td-modal .modal-body .alert {
+  text-align: start;
+}
+
+.td-modal .modal-footer .btn i {
+  margin-inline-end: var(--space-2);
+}
+
+.td-modal .invalid-feedback {
+  text-align: start;
+}
+
+[dir='rtl'] .td-flip {
+  transform: scaleX(-1);
+}

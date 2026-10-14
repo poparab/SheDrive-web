@@ -23,19 +23,8 @@
         data-i18n-aria-label="sos.statsLabel"
       ></div>
 
-      <section class="ad-section" aria-labelledby="sos-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="sos-heading" data-i18n="sos.heading">Case queue</h2>
-            <p class="ad-section__hint" data-i18n="sos.hint">
-              An SOS is raised from inside an active trip by the rider or the driver. The other
-              occupant is never told, and the trip runs on and settles as normal. Open cases
-              first — only an admin closes a case.
-            </p>
-          </div>
-          <span class="badge badge--danger" id="open-count" data-i18n="common.notAvailable">—</span>
-        </div>
-
+      <!-- Kit list block: filter row, then the grid (no sub-heading) -->
+      <section class="ad-list" aria-label="SOS requests" data-i18n-aria-label="sos.pageTitle">
         <ad-filter-bar id="sos-filters"></ad-filter-bar>
         <ad-data-table id="sos-table"></ad-data-table>
       </section>

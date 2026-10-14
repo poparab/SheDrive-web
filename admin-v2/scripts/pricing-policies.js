@@ -4,6 +4,12 @@
  * fee, driver cancellation grace period, rider no-show wait) and the platform
  * commission percentage. Validation comes from the story's two Field Validation
  * tables.
+ *
+ * Kit v22-09 port (2026-10-14): three `standard-card-theme2` cards with the
+ * kit's `list-multi-column` field rows, ONE global Save / Revert, and a
+ * `popup-success` that says what applied now and what went for approval —
+ * a commission change is still a maker-checker request (§1), every other
+ * field applies on save.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -11,6 +17,7 @@ import { mockApi } from './mock-api.js';
 import { formatDateTime, formatEgp, formatPercent } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { openDialog } from './pricing-dialogs.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -90,34 +97,39 @@ const BALANCE_FIELDS = [
     min: 0,
     max: 100000,
     emptyError: t('policies.limitEmpty'),
-    invalidError: t('policies.amountInvalid'),
+    invalidError: t('zones.amountInvalid'),
     rangeError: t('policies.limitRange'),
   },
 ];
 
 let policies;
 
-// ── Field rendering ───────────────────────────────────
+// ── Field rendering — the kit's list-multi-column row ─
 
 function renderField(host, spec, value) {
+  const wrap = document.createElement('div');
+  wrap.className = 'list-multi-column light-bg mb-2';
   const row = document.createElement('div');
-  row.className = 'pricing__form-row';
+  row.className = 'row gy-2 list-row';
 
   const labels = document.createElement('div');
-  labels.className = 'pricing__label-block';
+  labels.className = 'list-item-grid col-sm-9';
+  // The kit's p.text-bold, holding the real <label> so the input keeps its name.
+  const title = document.createElement('p');
+  title.className = 'text-bold';
   const label = document.createElement('label');
   label.className = 'pricing__label';
   label.htmlFor = `policy-${spec.key}`;
-  label.textContent = `${spec.label} (${spec.unit})`;
+  label.textContent = t('policies.fieldLabel', { label: spec.label, unit: spec.unit });
+  title.appendChild(label);
   const hint = document.createElement('span');
-  hint.className = 'pricing__label-hint';
   hint.textContent = spec.hint;
-  labels.append(label, hint);
+  labels.append(title, hint);
 
   const field = document.createElement('div');
-  field.className = 'field';
+  field.className = 'list-item col-sm-3 pricing__input';
   const input = document.createElement('input');
-  input.className = 'input';
+  input.className = 'form-control ad-ltr';
   input.id = `policy-${spec.key}`;
   input.name = spec.key;
   input.type = 'number';
@@ -131,16 +143,14 @@ function renderField(host, spec, value) {
   error.id = `policy-${spec.key}-error`;
   error.hidden = true;
 
-  input.addEventListener('input', () => {
-    error.hidden = true;
-    input.classList.remove('input--error');
-  });
-
   field.append(input, error);
   row.append(labels, field);
-  host.appendChild(row);
+  wrap.appendChild(row);
+  host.appendChild(wrap);
 
-  return { spec, input, error };
+  const control = { spec, input, error };
+  input.addEventListener('input', () => clearError(control));
+  return control;
 }
 
 /** An optional field accepts an empty value; every other rule still applies. */
@@ -151,14 +161,14 @@ function isBlankAndOptional(control) {
 function showError(control, message) {
   control.error.textContent = message;
   control.error.hidden = false;
-  control.input.classList.add('input--error');
+  control.input.classList.add('is-invalid');
   control.input.setAttribute('aria-invalid', 'true');
   control.input.setAttribute('aria-describedby', control.error.id);
 }
 
 function clearError(control) {
   control.error.hidden = true;
-  control.input.classList.remove('input--error');
+  control.input.classList.remove('is-invalid');
   control.input.removeAttribute('aria-invalid');
 }
 
@@ -193,10 +203,15 @@ function validate(control) {
   return true;
 }
 
-// ── Wiring ────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────
 
 let cancellationControls = [];
 let commissionControl = null;
+let balanceControls = [];
+
+function lastChanged(section) {
+  return t('policies.lastChanged', { when: formatDateTime(section.updatedAt), who: section.updatedBy });
+}
 
 function render() {
   const cancelHost = qs('#cancel-fields');
@@ -210,14 +225,20 @@ function render() {
   commissionControl = renderField(commissionHost, COMMISSION_FIELD, policies.commission.percentage);
   commissionControl.input.addEventListener('input', updateCommissionExample);
 
-  qs('#cancel-meta').textContent =
-    `Last changed ${formatDateTime(policies.cancellation.updatedAt)} by ${policies.cancellation.updatedBy}`;
-  qs('#commission-meta').textContent =
-    `Last changed ${formatDateTime(policies.commission.updatedAt)} by ${policies.commission.updatedBy}`;
+  const balanceHost = qs('#balance-fields');
+  balanceHost.textContent = '';
+  balanceControls = BALANCE_FIELDS.map((spec) =>
+    renderField(balanceHost, spec, policies.driverBalance[spec.key] ?? ''),
+  );
+  balanceControls.forEach((c) => c.input.addEventListener('input', updateBalanceExample));
+
+  qs('#cancel-meta').textContent = lastChanged(policies.cancellation);
+  qs('#commission-meta').textContent = lastChanged(policies.commission);
+  qs('#balance-meta').textContent = lastChanged(policies.driverBalance);
 
   updateCommissionExample();
+  updateBalanceExample();
   renderCommissionPending();
-  renderBalanceSection();
 }
 
 // ── Commission maker-checker (2026-10-14 §1) ──────────
@@ -225,12 +246,15 @@ function render() {
 /** While a change waits for a second admin, the field is locked and the proposal shown. */
 function renderCommissionPending() {
   const pending = policies.pendingCommission;
-  const banner = qs('#commission-pending');
-  banner.hidden = !pending;
+  const card = qs('#commission-card');
+  qs('#commission-pending').hidden = !pending;
   commissionControl.input.disabled = Boolean(pending);
-  qs('#commission-submit').disabled = Boolean(pending);
-  qs('#commission-reset').disabled = Boolean(pending);
+  // The kit tints a card whose change is waiting on someone else.
+  card.classList.toggle('warning-alert-bg', Boolean(pending));
+  card.classList.toggle('warning-alert-br', Boolean(pending));
+  card.classList.toggle('white-bg', !pending);
   if (!pending) return;
+  commissionControl.input.title = t('pricingApproval.lockedTitle');
   qs('#commission-pending-title').textContent = t('pricingApproval.commissionPending', {
     pct: formatPercent(pending.after?.percentage),
   });
@@ -240,18 +264,6 @@ function renderCommissionPending() {
     current: formatPercent(policies.commission.percentage),
   });
   qs('#commission-pending-link').href = `approvals.html?id=${encodeURIComponent(pending.id)}`;
-}
-
-/** Toasts are plain text; the request link rides along so the maker can follow it. */
-function toastWithLink(message, requestId) {
-  const toast = shell.showToast(message, 'success', 6000);
-  if (toast && requestId) {
-    const link = document.createElement('a');
-    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
-    link.className = 'text-reset text-decoration-underline';
-    link.textContent = t('pricingApproval.viewRequest');
-    toast.append(' ', link);
-  }
 }
 
 /** A worked example makes the percentage concrete for whoever sets it. */
@@ -264,130 +276,170 @@ function updateCommissionExample() {
   }
   const fare = 100;
   const commission = (fare * value) / 100;
-  example.textContent =
-    `On a ${formatEgp(fare)} fare the platform keeps ${formatEgp(commission)} ` +
-    `and the driver nets ${formatEgp(fare - commission)}.`;
-}
-
-qs('#cancel-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const box = qs('#cancel-error');
-  box.classList.remove('is-visible');
-
-  const results = cancellationControls.map(validate);
-  if (results.includes(false)) return;
-
-  const payload = {};
-  cancellationControls.forEach((control) => {
-    payload[control.spec.key] = Number(control.input.value);
+  example.textContent = t('policies.commissionExample', {
+    fare: formatEgp(fare),
+    commission: formatEgp(commission),
+    net: formatEgp(fare - commission),
   });
-
-  try {
-    await mockApi.savePolicies({ cancellation: payload });
-    shell.showToast(t('policies.cancellationSaved'), 'success');
-    policies = await mockApi.getPolicies();
-    render();
-  } catch (error) {
-    box.textContent = error.message;
-    box.classList.add('is-visible');
-  }
-});
-
-// ── Driver balance (#TBD-B) ───────────────────────────
-
-let balanceControls = [];
-
-function balanceControl(key) {
-  return balanceControls.find((c) => c.spec.key === key);
-}
-
-function renderBalanceSection() {
-  const host = qs('#balance-fields');
-  host.textContent = '';
-  balanceControls = BALANCE_FIELDS.map((spec) =>
-    renderField(host, spec, policies.driverBalance[spec.key] ?? ''),
-  );
-  qs('#balance-meta').textContent = t('policies.lastChanged', {
-    when: formatDateTime(policies.driverBalance.updatedAt),
-    who: policies.driverBalance.updatedBy,
-  });
-  balanceControls.forEach((c) => c.input.addEventListener('input', updateBalanceExample));
-  updateBalanceExample();
 }
 
 function updateBalanceExample() {
-  const limit = Number(balanceControl('outstandingLimit').input.value);
+  const limit = Number(balanceControls.find((c) => c.spec.key === 'outstandingLimit').input.value);
   qs('#balance-example').textContent =
     limit > 0
-      ? t('policies.balanceExample', {
-          warn: formatEgp(limit * 0.8),
-          limit: formatEgp(limit),
-        })
+      ? t('policies.balanceExample', { warn: formatEgp(limit * 0.8), limit: formatEgp(limit) })
       : t('policies.balanceExampleOff');
 }
 
-qs('#balance-form').addEventListener('submit', async (event) => {
+// ── One global Save ───────────────────────────────────
+
+function changed(controls, current) {
+  return controls.some((c) => Number(c.input.value) !== Number(current[c.spec.key]));
+}
+
+function readValues(controls) {
+  const out = {};
+  controls.forEach((c) => {
+    out[c.spec.key] = Number(c.input.value);
+  });
+  return out;
+}
+
+const errorBox = qs('#policies-error');
+
+qs('#policies-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const box = qs('#balance-error');
-  box.textContent = '';
-  box.classList.remove('is-visible');
+  errorBox.textContent = '';
+  errorBox.classList.remove('is-visible');
 
-  if (!balanceControls.map(validate).every(Boolean)) return;
-
-  try {
-    await mockApi.savePolicies({
-      driverBalance: {
-        outstandingLimit: Number(balanceControl('outstandingLimit').input.value),
-      },
-    });
-    policies = await mockApi.getPolicies();
-    renderBalanceSection();
-    qs('ad-shell').showToast(t('policies.balanceSaved'), 'success');
-  } catch (error) {
-    box.textContent = error.message;
-    box.classList.add('is-visible');
-  }
-});
-
-qs('#balance-reset').addEventListener('click', () => renderBalanceSection());
-
-qs('#commission-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const box = qs('#commission-error');
-  box.classList.remove('is-visible');
-
-  if (!validate(commissionControl)) return;
-
-  const percentage = Number(commissionControl.input.value);
-  if (percentage === Number(policies.commission.percentage)) {
-    shell.showToast(t('pricingApproval.commissionUnchanged'), 'info');
+  const commissionLocked = Boolean(policies.pendingCommission);
+  const controls = [...cancellationControls, ...(commissionLocked ? [] : [commissionControl]), ...balanceControls];
+  const results = controls.map(validate);
+  if (results.includes(false)) {
+    controls[results.indexOf(false)].input.focus();
     return;
   }
 
+  const payload = {};
+  const applied = [];
+  if (changed(cancellationControls, policies.cancellation)) {
+    payload.cancellation = readValues(cancellationControls);
+    applied.push(t('policies.cancelHeading'));
+  }
+  if (changed(balanceControls, policies.driverBalance)) {
+    payload.driverBalance = readValues(balanceControls);
+    applied.push(t('policies.balanceHeading'));
+  }
+  const before = Number(policies.commission.percentage);
+  const percentage = Number(commissionControl.input.value);
+  const commissionChanged = !commissionLocked && percentage !== before;
+  // A commission change never applies on save — savePolicies turns it into a request (§1).
+  if (commissionChanged) payload.commission = { percentage };
+
+  if (!applied.length && !commissionChanged) {
+    shell.showToast(t('kitPricing.nothingChanged'), 'info');
+    return;
+  }
+
+  const saveBtn = qs('#policies-save');
+  saveBtn.disabled = true;
   try {
-    // A commission change never applies on save — it becomes a request (§1).
-    const result = await mockApi.savePolicies({ commission: { percentage } });
-    toastWithLink(t('pricingApproval.commissionSent'), result.request?.id);
+    const result = await mockApi.savePolicies(payload);
     policies = await mockApi.getPolicies();
     render();
+    openSaved({
+      applied,
+      sent: result.pending
+        ? t('kitPricing.commissionChange', { from: formatPercent(before), to: formatPercent(percentage) })
+        : '',
+      requestId: result.request?.id,
+    });
   } catch (error) {
-    box.textContent = error.message;
-    box.classList.add('is-visible');
+    errorBox.textContent = error.message;
+    errorBox.classList.add('is-visible');
+  } finally {
+    saveBtn.disabled = false;
   }
 });
 
-qs('#cancel-reset').addEventListener('click', () => {
-  cancellationControls.forEach((control) => {
-    control.input.value = policies.cancellation[control.spec.key];
-    clearError(control);
+/** popup-success that says what applied now and what went for approval. */
+function openSaved({ applied, sent, requestId }) {
+  const body = document.createElement('div');
+  body.className = 'pricing-dialog__outcome';
+  if (applied.length) {
+    const p = document.createElement('p');
+    p.className = 'mb-1';
+    p.textContent = t('kitPricing.appliedNow', { list: applied.join(t('kitPricing.listSeparator')) });
+    body.appendChild(p);
+  }
+  if (sent) {
+    const p = document.createElement('p');
+    p.className = 'mb-1';
+    p.textContent = t('kitPricing.sentForApproval', { list: sent });
+    body.appendChild(p);
+    if (requestId) {
+      const link = document.createElement('a');
+      link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
+      link.textContent = t('pricingApproval.viewRequest');
+      body.appendChild(link);
+    }
+  }
+  openDialog({
+    variant: 'success',
+    title: applied.length ? t('kitPricing.savedTitle') : t('kitPricing.sentTitle'),
+    description: applied.length ? t('kitPricing.savedBody') : '',
+    body,
   });
-});
+}
 
-qs('#commission-reset').addEventListener('click', () => {
-  commissionControl.input.value = policies.commission.percentage;
-  clearError(commissionControl);
+// ── Revert ────────────────────────────────────────────
+
+qs('#policies-revert').addEventListener('click', () => {
+  errorBox.classList.remove('is-visible');
+  cancellationControls.forEach((c) => {
+    c.input.value = policies.cancellation[c.spec.key];
+    clearError(c);
+  });
+  balanceControls.forEach((c) => {
+    c.input.value = policies.driverBalance[c.spec.key] ?? '';
+    clearError(c);
+  });
+  if (!policies.pendingCommission) {
+    commissionControl.input.value = policies.commission.percentage;
+    clearError(commissionControl);
+  }
   updateCommissionExample();
+  updateBalanceExample();
 });
 
-policies = await mockApi.getPolicies();
-render();
+// ?state=error (or a real outage): the kit's error result instead of an uncaught throw.
+function renderLoadError(error) {
+  qs('#policies-form').hidden = true;
+  const box = document.createElement('div');
+  box.className = 'result-message danger mt-3';
+  const icon = document.createElement('span');
+  icon.className = 'icon';
+  const img = document.createElement('img');
+  img.src = 'vendor/icons/cloud-connection-off.svg';
+  img.alt = '';
+  icon.appendChild(img);
+  const heading = document.createElement('h3');
+  heading.textContent = t('kitPricing.policiesLoadError');
+  const message = document.createElement('p');
+  message.textContent = t('state.errorMessage');
+  console.warn('getPolicies failed:', error?.message);
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.className = 'btn btn-primary-rounded-outline';
+  retry.textContent = t('common.tryAgain');
+  retry.addEventListener('click', () => window.location.reload());
+  box.append(icon, heading, message, retry);
+  qs('#policies-form').after(box);
+}
+
+try {
+  policies = await mockApi.getPolicies();
+  render();
+} catch (error) {
+  renderLoadError(error);
+}

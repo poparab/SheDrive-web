@@ -10,6 +10,7 @@ import { createRequestGuard } from './request-guard.js';
 import { statusLabel } from '../components/ad-status-pill.js';
 import { downloadCsv, formatDateTime, formatPhone, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { gridAction } from '../components/ad-data-table.js';
 import { t } from './admin-i18n.js';
 import { mountStatRow, fillStatRow } from './list-metrics.js';
 
@@ -19,7 +20,6 @@ if (!adminAuth.requireAdmin()) {
 
 const filters = qs('#reports-filters');
 const table = qs('#reports-table');
-const openCount = qs('#open-count');
 
 const query = {
   status: 'open',
@@ -98,9 +98,21 @@ table.rowHref = (row) => `safety-report.html?id=${row.id}`;
 
 table.columns = [
   {
+    key: 'tripId',
+    label: t('safety.colTripId'),
+    className: 'ad-table__id',
+    render: (row) => {
+      const id = document.createElement('span');
+      id.className = 'ad-ltr';
+      id.textContent = row.tripId;
+      return id;
+    },
+  },
+  {
     key: 'riderName',
     label: t('safety.colReportedRider'),
     sortable: true,
+    className: 'list__wrap',
     render: (row) => row.riderName,
   },
   {
@@ -116,18 +128,7 @@ table.columns = [
       return phone;
     },
   },
-  { key: 'driverName', label: t('safety.colReportingDriver'), render: (row) => row.driverName },
-  {
-    key: 'tripId',
-    label: t('safety.colTripId'),
-    className: 'ad-table__id',
-    render: (row) => {
-      const id = document.createElement('span');
-      id.className = 'ad-ltr';
-      id.textContent = row.tripId;
-      return id;
-    },
-  },
+  { key: 'driverName', label: t('safety.colReportingDriver'), className: 'list__wrap', render: (row) => row.driverName },
   {
     key: 'reportedAt',
     label: t('safety.timeLabel'),
@@ -155,6 +156,12 @@ table.columns = [
       return pill;
     },
   },
+  {
+    key: 'actions',
+    label: t('common.actions'),
+    actions: true,
+    render: (row) => gridAction({ href: `safety-report.html?id=${row.id}`, label: t('common.view') }),
+  },
 ];
 
 table.emptyState = {
@@ -174,6 +181,13 @@ table.addEventListener('pagechange', (event) => {
   load();
 });
 
+// Kit "Rows count" select in the grid footer.
+table.addEventListener('pagesizechange', (event) => {
+  query.pageSize = event.detail.pageSize;
+  query.page = 1;
+  load();
+});
+
 const guard = createRequestGuard();
 
 async function load() {
@@ -184,15 +198,10 @@ async function load() {
     if (!isCurrent()) return;
     lastRows = result.rows;
     table.setData(result);
-    openCount.textContent =
-      query.status === 'open'
-        ? t('safety.badgeOpen', { count: result.total })
-        : t('safety.badgeShown', { count: result.total });
   } catch (error) {
     if (!isCurrent()) return;
     lastRows = [];
     table.setError(error.message, load);
-    openCount.textContent = t('common.notAvailable');
   }
 }
 

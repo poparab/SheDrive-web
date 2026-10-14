@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Rider ledger</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <!--
+      Kit v22-09 rider-balance-details.html — one rider's fee ledger, reached
+      from rider-balances.html (?id=<riderId>). Each cancellation fee can be
+      waived on its own (spec 2026-10-14 §5); a waiver is a maker-checker request.
+    -->
+    <ad-shell
+      active="rider-balances"
+      page-title-key="kitBalances.ledgerCrumb"
+      breadcrumb-keys="nav.money > nav.riderBalances|rider-balances.html > kitBalances.ledgerCrumb"
+      back="rider-balances.html"
+      screen-styles="styles/rider-balance-details.css"
+    >
+      <div id="ledger-missing" hidden>
+        <ad-empty-state icon="not-found.svg" tone="warning" heading="Rider not found" data-i18n-heading="kitBalances.riderNotFoundHeading" message="There is no rider with this id." data-i18n-message="kitBalances.riderNotFoundMessage">
+          <a class="btn btn-primary-rounded-outline" href="rider-balances.html" data-i18n="kitBalances.backToRiderBalances">Back to rider balances</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="ledger-error" hidden></div>
+
+      <div id="ledger-body">
+        <div class="ad-stats ledger-kpis">
+          <ad-stat-card id="kpi-outstanding" tone="danger" icon="wallet-minus.svg" label="Outstanding balance" data-i18n-label="kitBalances.kpiOutstandingBalance" value="—"></ad-stat-card>
+          <ad-stat-card id="kpi-credit" tone="success" icon="wallet-plus.svg" label="Credit" data-i18n-label="kitBalances.kpiCredit" value="—" hidden></ad-stat-card>
+        </div>
+
+        <!-- Kit sub-heading row: "Outstanding breakdown" + the link into her profile (suspension lives there) -->
+        <div class="section-title row gy-3 mb-0 ledger-breakdown-title">
+          <div class="title col-auto">
+            <h4 class="text-nowrap" data-i18n="kitBalances.breakdownHeading">Outstanding breakdown</h4>
+          </div>
+          <div class="end-side col-auto ms-auto">
+            <a class="btn btn-primary-outline d-flex gap-2" id="btn-view-profile" href="rider-profile.html">
+              <i class="fa-regular fa-user" aria-hidden="true"></i><span data-i18n="riderBalances.viewProfile">View profile</span>
+            </a>
+          </div>
+        </div>
+
+        <ad-data-table id="ledger-table"></ad-data-table>
+      </div>
+    </ad-shell>
+    <script type="module" src="scripts/rider-balance-details.js"></script>
+  </body>
+</html>

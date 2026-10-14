@@ -9,54 +9,26 @@
   </head>
 
   <body>
+    <!--
+      Kit v22-09 driver-balances.html: KPI row, filter row, grid with a Ledger
+      action per row. The ledger itself is its own page,
+      driver-balance-details.html?id=<driverId>.
+    -->
     <ad-shell
       active="balances"
       page-title-key="balances.heading"
       breadcrumb-keys="nav.money > nav.balances"
-      screen-styles="styles/detail.css, styles/balances.css"
+      screen-styles="styles/balances.css"
     >
-      <section class="ad-section">
-        <p class="ad-section__hint" data-i18n="balancesFinance.lead">
-          On cash trips the driver keeps the fare and owes the platform its commission.
-          Record what she hands in to clear it. A settlement or a manual payout is a
-          request: nothing posts to her ledger until another admin approves it.
-        </p>
-      </section>
-
-      <div class="ad-stats">
-        <ad-stat-card id="card-owing" label="Drivers owing the platform" data-i18n-label="balances.cardOwing" value="—"></ad-stat-card>
-        <ad-stat-card id="card-outstanding" label="Total outstanding" data-i18n-label="balances.cardOutstanding" value="—"></ad-stat-card>
-        <ad-stat-card id="card-owed" label="Drivers we owe" data-i18n-label="balances.cardOwed" value="—"></ad-stat-card>
-        <ad-stat-card id="card-blocked" label="Blocked from going online" data-i18n-label="balances.cardBlocked" value="—"></ad-stat-card>
+      <div class="ad-stats balance-kpis">
+        <ad-stat-card id="card-owing" tone="success" icon="wallet-minus.svg" label="Debtor drivers" data-i18n-label="kitBalances.kpiDebtors" value="—"></ad-stat-card>
+        <ad-stat-card id="card-outstanding" tone="primary" icon="balance.svg" label="Total outstanding" data-i18n-label="kitBalances.kpiOutstanding" value="—"></ad-stat-card>
+        <ad-stat-card id="card-owed" tone="warning" icon="wallet-plus.svg" label="Driver payables" data-i18n-label="kitBalances.kpiPayables" value="—"></ad-stat-card>
+        <ad-stat-card id="card-blocked" tone="danger" icon="stop-hand.svg" label="Online blocked" data-i18n-label="kitBalances.kpiBlocked" value="—"></ad-stat-card>
       </div>
 
       <ad-filter-bar id="balance-filters"></ad-filter-bar>
       <ad-data-table id="balance-table"></ad-data-table>
-
-      <section class="ad-section balance-ledger" id="ledger-panel" hidden>
-        <div class="ad-section__header">
-          <h2 class="ad-section__title" id="ledger-title">Ledger</h2>
-          <button type="button" class="btn btn--ghost btn--sm" id="ledger-close" data-i18n="balances.close">Close</button>
-        </div>
-        <div class="ad-section__body">
-          <p class="balance-ledger__method" id="ledger-method"></p>
-          <div class="balance-ledger__failure" id="ledger-failure" role="alert" hidden>
-            <span id="ledger-failure-text"></span>
-            <a id="ledger-failure-link" href="payout-batch.html" data-i18n="balancesFinance.viewBatch">View batch</a>
-          </div>
-          <div class="balance-ledger__summary" id="ledger-summary"></div>
-          <div class="balance-ledger__actions">
-            <button type="button" class="btn btn--primary btn--sm" id="btn-settle" data-i18n="balances.recordSettlement">Record settlement</button>
-            <a class="balance-pending" id="settle-pending" href="approvals.html" hidden></a>
-            <button type="button" class="btn btn--primary btn--sm" id="btn-payout" data-i18n="balances.recordPayout">Record payout</button>
-            <a class="balance-pending" id="payout-pending" href="approvals.html" hidden></a>
-            <a class="balance-ledger__payouts-link" href="payouts.html" data-i18n="balancesFinance.payoutsLink">Payouts are paid in batches</a>
-          </div>
-          <ad-data-table id="ledger-table"></ad-data-table>
-        </div>
-      </section>
-
-      <ad-form-modal id="balance-modal"></ad-form-modal>
     </ad-shell>
     <script type="module" src="scripts/balances.js"></script>
   </body>

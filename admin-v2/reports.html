@@ -13,44 +13,40 @@
       active="reports"
       page-title-key="reports.title"
       breadcrumb-keys="nav.money > nav.reports"
-      screen-styles="styles/detail.css, styles/pricing.css"
+      screen-styles="styles/pricing.css, styles/reports.css"
     >
-      <section class="ad-section" aria-labelledby="filters-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="filters-heading" data-i18n="reports.periodHeading">Period</h2>
-            <p class="ad-section__hint" data-i18n="reports.periodHint">
-              Platform-level financials from completed trips. Leave the dates empty for all time.
-            </p>
-          </div>
-        </div>
-        <ad-filter-bar id="report-filters"></ad-filter-bar>
-      </section>
+      <!-- Kit revenue-summary: the filter row sits straight under the title.
+           Leave the dates empty for all time. -->
+      <ad-filter-bar id="report-filters"></ad-filter-bar>
 
-      <div class="ad-stats" id="report-cards">
-        <ad-stat-card id="card-trips" label="Completed trips" data-i18n-label="reports.cardTrips" value="—"></ad-stat-card>
-        <ad-stat-card id="card-gross" label="Gross fares" data-i18n-label="reports.cardGross" value="—"></ad-stat-card>
-        <ad-stat-card id="card-commission" label="Platform commission" data-i18n-label="policies.commissionHeading" value="—"></ad-stat-card>
-        <ad-stat-card id="card-fees" label="Cancellation fees" data-i18n-label="reports.cardFees" value="—"></ad-stat-card>
-        <ad-stat-card id="card-net" label="Net driver earnings" data-i18n-label="reports.cardNet" value="—"></ad-stat-card>
+      <div class="ad-stats reports__kpis mt-3" id="report-cards">
+        <ad-stat-card id="card-trips" tone="primary" icon="trips.svg" label="Completed trips" data-i18n-label="reports.cardTrips" value="—"></ad-stat-card>
+        <ad-stat-card id="card-gross" tone="blue" icon="prices.svg" label="Gross fares" data-i18n-label="reports.cardGross" value="—"></ad-stat-card>
+        <ad-stat-card id="card-commission" tone="success" icon="discount.svg" label="Platform commission" data-i18n-label="reports.cardCommission" value="—"></ad-stat-card>
+        <ad-stat-card id="card-fees" tone="danger" icon="rejected.svg" label="Cancellation fees" data-i18n-label="reports.cardFees" value="—"></ad-stat-card>
+        <ad-stat-card id="card-net" tone="warning" icon="money.svg" label="Net driver earnings" data-i18n-label="reports.cardNet" value="—"></ad-stat-card>
       </div>
 
-      <div class="ad-form-error" id="report-error" role="alert"></div>
+      <div class="ad-form-error mt-3" id="report-error" role="alert"></div>
 
-      <section class="ad-section" aria-labelledby="recon-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="recon-heading" data-i18n="reports.reconHeading">Reconciliation check</h2>
-            <p class="ad-section__hint" data-i18n="reports.reconHint">
-              #1832 Scenario 4 requires gross fares to equal platform commission plus net driver
-              earnings. This panel proves it for the selected period.
-            </p>
-          </div>
+      <!-- #1832 S4 — not in the kit; kept as a kit card -->
+      <div class="row mt-3">
+        <div class="col-lg-12 col-xl-6">
+          <section class="standard-card-theme2 white-bg" id="recon-card" aria-labelledby="recon-heading">
+            <div class="card-header">
+              <div class="card-title">
+                <h5 id="recon-heading" data-i18n="reports.reconHeading">Reconciliation check</h5>
+                <span data-i18n="kitPricing.reconSubtitle">Gross fares = platform commission + net driver earnings</span>
+              </div>
+              <div class="icon"><img src="vendor/icons/calculator.svg" alt="" /></div>
+            </div>
+            <div class="card-body">
+              <div class="list-multi-column no-border p-0" id="recon-rows"></div>
+              <p class="small mt-3 mb-0" id="recon-verdict"></p>
+            </div>
+          </section>
         </div>
-        <div class="ad-section__body">
-          <div class="detail__money" id="recon-rows"></div>
-        </div>
-      </section>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/reports.js"></script>

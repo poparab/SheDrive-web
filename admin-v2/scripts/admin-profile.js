@@ -99,7 +99,7 @@ const recoveryCodes = mockAuth.recoveryCodes();
 setText(
   'security-recovery',
   record.twoFactorEnrolled
-    ? `${recoveryCodes.length} issued at enrolment`
+    ? t('profile.codesIssued', { count: recoveryCodes.length })
     : t('profile.codesAfterEnrol'),
 );
 

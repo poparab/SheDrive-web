@@ -290,3 +290,26 @@ Ids (`APR-`, `IMP-`, `PB-`) are derived from the records that exist, so they sta
 after a reload replays the session.
 
 Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`.
+
+## Port to kit v22-09 (2026-10-14)
+
+admin-v2 now follows the designer's `SheDrive.AdminPanel_v22-09-2026` kit. The kit's
+`styles.css` / `styles-ar.css` and its 15 new icons replace the v18-08 copies in `vendor/`
+(additive — nothing was renamed or removed).
+
+| Area | What changed |
+|---|---|
+| Lists (trips, drivers, riders, applications, SOS, safety) | Kit filter: placeholder controls, built-in Reset / Search, gradient Export; explicit Actions column (`gridAction()` in `ad-data-table`); Rows-count select in the footer (screens opt in via `pagesizechange`) |
+| Detail screens (trip, SOS, safety report, application, driver, rider) | Kit card grid (`.row.g-3 > .col-lg-6.col-xl-4 > .standard-card-theme2`), actions in a bottom row, kit `default-modal` / `popup-*` dialogs |
+| Balances | Ledgers moved to their own pages as in the kit: `driver-balance-details.html?id=` and `rider-balance-details.html?id=`; the lists link to them |
+| Pricing, reports, reconciliation, admin users, audit log | Kit layouts; pricing policies has one global Save (commission still goes for approval); audit log modelled on the kit's `demo-snapshots/audit-log.html` |
+| Our own screens (approvals, payouts, payout batch, settlement imports) | Not in the kit — built from its patterns so they read as part of it |
+| Shell | Sidebar badge is the kit `.counter`; SOS uses `lifeboat.svg`; our six sidebar groups stay |
+
+Component APIs are unchanged; additions: `ad-filter-bar` toolbar (`toolbar = {reset, search}`,
+`no-reset` / `no-search`), `ad-data-table` `actions: true` column flag, `gridAction()` helper,
+`pageSizeOptions` / `pagesizechange`. Several screens build kit `default-modal`s in their own
+scripts because `ad-form-modal` only renders the centred `popup-*` shape.
+
+Known gaps: SOS and safety-report lists have no search box (the mock API takes no search there);
+`listAdmins` has no delete, so `admin-users.js` soft-deletes through `patch('admins', …)`.

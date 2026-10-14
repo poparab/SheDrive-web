@@ -52,6 +52,22 @@
  * money — so it must not be re-ordered by the bidi algorithm in Arabic),
  * `headerClass`, `className`.
  *
+ * Actions column (kit): a column with `actions: true` gets `.ad-table__actions`
+ * (no wrap, never the row-link target). Render kit links with the exported
+ * helper:
+ *   import { gridAction } from '../components/ad-data-table.js';
+ *   { key: 'actions', label: t('common.actions'), actions: true,
+ *     render: (row) => gridAction({ href: `x.html?id=${row.id}`, label: t('common.view') }) }
+ * → `<a class="grid-options-btn view-icon"><i class="fa-regular fa-eye"></i> View</a>`.
+ * Compact `.btn`s inside a cell use the kit's `.custom-grid-list .btn` sizing.
+ *
+ * Rows count (kit tfoot): a "Rows count" `select.form-select.rows-number`
+ * (10 / 20 / 50) appears beside the pagination as soon as the screen listens
+ * for 'pagesizechange' on the table (or sets `table.pageSizeOptions`). Picking
+ * a size emits 'pagesizechange' → detail { pageSize, page: 1 }; the screen
+ * re-queries with that size. Screens that never listen keep their fixed size
+ * and see no select.
+ *
  * Every string this component generates — the summary line, the page controls,
  * the sort announcement, and the loading / empty / error copy — comes from
  * `t()`.
@@ -62,7 +78,70 @@ import { t } from '../scripts/admin-i18n.js';
 /** How many page numbers sit either side of the current one. */
 const PAGE_WINDOW = 1;
 
+/** The kit's "Rows count" choices. */
+const DEFAULT_PAGE_SIZES = [10, 20, 50];
+
+/**
+ * A kit grid row action: `a.grid-options-btn.<variant>` with a leading icon.
+ * Pass `href` for a link, or `onClick` for an in-page action (rendered as a
+ * link-styled <a role="button">). Labels arrive already translated.
+ * @param {{href?: string, label: string, icon?: string, variant?: string,
+ *          onClick?: (event: Event) => void, ariaLabel?: string}} spec
+ */
+export function gridAction({
+  href,
+  label,
+  icon = 'fa-regular fa-eye',
+  variant = 'view-icon',
+  onClick,
+  ariaLabel,
+} = {}) {
+  const link = document.createElement('a');
+  link.className = `grid-options-btn ${variant}`;
+  link.href = href ?? 'javascript:;';
+  if (!href) link.setAttribute('role', 'button');
+  if (ariaLabel) link.setAttribute('aria-label', ariaLabel);
+  const glyph = document.createElement('i');
+  glyph.className = icon;
+  glyph.setAttribute('aria-hidden', 'true');
+  // The kit wraps the label in span.link (its own, smaller type size).
+  const text = document.createElement('span');
+  text.className = 'link';
+  text.textContent = label ?? '';
+  link.append(glyph, document.createTextNode(' '), text);
+  if (onClick) {
+    link.addEventListener('click', (event) => {
+      if (!href) event.preventDefault();
+      onClick(event);
+    });
+  }
+  return link;
+}
+
 class AdDataTable extends HTMLElement {
+  /**
+   * A screen that listens for 'pagesizechange' has opted into the kit's Rows
+   * count select — show it then, so screens that do not handle a size change
+   * never offer one.
+   */
+  addEventListener(type, listener, options) {
+    super.addEventListener(type, listener, options);
+    if (type === 'pagesizechange' && !this._sizeAware) {
+      this._sizeAware = true;
+      if (this._built) this.renderFooter();
+    }
+  }
+
+  set pageSizeOptions(sizes) {
+    this._pageSizes = Array.isArray(sizes) && sizes.length ? sizes : DEFAULT_PAGE_SIZES;
+    this._sizeAware = true;
+    if (this._built) this.renderFooter();
+  }
+
+  get pageSizeOptions() {
+    return this._pageSizes ?? DEFAULT_PAGE_SIZES;
+  }
+
   connectedCallback() {
     if (!this._built) this.build();
     this.render();
@@ -91,13 +170,40 @@ class AdDataTable extends HTMLElement {
     this._footCell = document.createElement('td');
     this._footer = document.createElement('div');
     this._footer.className = 'ad-pagination';
+
+    // Kit "Rows count": `.row.br-left > label.rows-number-title + select.rows-number`.
+    this._rowsGroup = document.createElement('div');
+    this._rowsGroup.className = 'row br-left g-2 ad-pagination__rows';
+    const rowsLabelCol = document.createElement('div');
+    rowsLabelCol.className = 'col-auto align-content-center';
+    const rowsLabel = document.createElement('label');
+    rowsLabel.className = 'col-form-label rows-number-title';
+    rowsLabel.textContent = t('kitLists.rowsCount');
+    rowsLabelCol.appendChild(rowsLabel);
+    const rowsSelectCol = document.createElement('div');
+    rowsSelectCol.className = 'col-auto';
+    this._rowsSelect = document.createElement('select');
+    this._rowsSelect.className = 'form-select rows-number';
+    this._rowsSelect.id = `rows-${Math.random().toString(36).slice(2, 8)}`;
+    rowsLabel.htmlFor = this._rowsSelect.id;
+    this._rowsSelect.addEventListener('change', () => {
+      const pageSize = Number(this._rowsSelect.value) || this._pageSize;
+      this._pageSize = pageSize;
+      this.dispatchEvent(
+        new CustomEvent('pagesizechange', { bubbles: true, detail: { pageSize, page: 1 } }),
+      );
+    });
+    rowsSelectCol.appendChild(this._rowsSelect);
+    this._rowsGroup.append(rowsLabelCol, rowsSelectCol);
+
     this._summary = document.createElement('span');
+    this._summary.className = 'ad-pagination__summary';
     this._controls = document.createElement('ul');
     this._controls.className = 'pagination ad-pagination__controls';
     // A label, not role=navigation: the <ul> must keep its list semantics
     // so the page-item <li>s stay valid children.
     this._controls.setAttribute('aria-label', t('table.pagination'));
-    this._footer.append(this._summary, this._controls);
+    this._footer.append(this._rowsGroup, this._summary, this._controls);
     this._footCell.appendChild(this._footer);
     this._footRow.appendChild(this._footCell);
     this._tfoot.appendChild(this._footRow);
@@ -201,6 +307,7 @@ class AdDataTable extends HTMLElement {
       const th = document.createElement('th');
       th.scope = 'col';
       if (column.numeric) th.classList.add('ad-table__num');
+      if (column.actions) th.classList.add('ad-table__actions');
       if (column.headerClass) th.classList.add(column.headerClass);
 
       if (column.sortable) {
@@ -342,6 +449,7 @@ class AdDataTable extends HTMLElement {
       (this._columns ?? []).forEach((column) => {
         const td = document.createElement('td');
         if (column.numeric) td.classList.add('ad-table__num');
+        if (column.actions) td.classList.add('ad-table__actions');
         // Latin data (ids, phones, emails, plates, money) must keep its own
         // direction inside an Arabic-aligned cell — styles/admin-rtl.css
         // isolates .ad-ltr.
@@ -371,6 +479,7 @@ class AdDataTable extends HTMLElement {
     if (hide) return;
 
     this._controls.textContent = '';
+    this.renderRowsCount();
 
     if (this._total === 0) {
       this._summary.textContent = t('table.noRows');
@@ -408,6 +517,24 @@ class AdDataTable extends HTMLElement {
         this._page >= this._totalPages,
       ),
     );
+  }
+
+  /** The kit's Rows count select — only for screens that handle a size change. */
+  renderRowsCount() {
+    const show = Boolean(this._sizeAware) && this._total > 0;
+    this._rowsGroup.hidden = !show;
+    if (!show) return;
+    const sizes = Array.from(new Set([...this.pageSizeOptions, this._pageSize])).sort(
+      (a, b) => a - b,
+    );
+    this._rowsSelect.textContent = '';
+    sizes.forEach((size) => {
+      const opt = document.createElement('option');
+      opt.value = String(size);
+      opt.textContent = String(size);
+      if (size === this._pageSize) opt.selected = true;
+      this._rowsSelect.appendChild(opt);
+    });
   }
 
   /** [1, '…', 4, 5, 6, '…', 12] for the current page and total page count. */

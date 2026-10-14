@@ -18,66 +18,60 @@
       screen-styles="styles/list.css, styles/pricing.css"
       mapbox
     >
-      <div class="ad-stub">
-        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
-        <span>
-          A zone's Active/Inactive status is <strong>derived from its rate card</strong> and can
-          never be toggled by hand. A zone with no rate card blocks all trips starting inside it.
-        </span>
+      <!-- Kit service-zone: "Create Zone" sits in the title row's end side;
+           pricing-zones.js moves it into #ad-page-actions once the shell renders. -->
+      <button class="btn btn-success d-flex gap-2 align-items-center" type="button" id="create-zone">
+        <img src="vendor/icons/add-location.svg" alt="" />
+        <span data-i18n="zones.createZone">Create zone</span>
+      </button>
+
+      <!-- #1831 — map overview of every zone, full width at the top -->
+      <div class="row mt-2 mb-3 pricing-zones__map" id="zone-map-row">
+        <div class="col">
+          <ad-map-panel id="zone-map"></ad-map-panel>
+          <p class="small pricing__meta mt-2 mb-0" id="map-summary" data-i18n="dashboard.mapArea">Cairo / Giza service area</p>
+        </div>
       </div>
 
-      <!-- #1831 — map overview of every zone -->
-      <section class="ad-section ad-section--flush" aria-labelledby="map-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="map-heading" data-i18n="zones.mapHeading">Coverage map</h2>
-            <p class="ad-section__hint" id="map-summary" data-i18n="dashboard.mapArea">Cairo / Giza service area</p>
-          </div>
-          <button class="btn btn-primary btn--sm" type="button" id="create-zone" data-i18n="zones.createZone">
-            Create zone
+      <!-- Draw toolbar, shown only while drawing a boundary (#1756) -->
+      <div class="alert info pricing-zones__draw" id="draw-panel" role="region" aria-labelledby="draw-heading" hidden>
+        <i class="fa-solid fa-bezier-curve" aria-hidden="true"></i>
+        <div class="details">
+          <h6 id="draw-heading" data-i18n="zones.drawHeading">Draw the zone boundary</h6>
+          <p id="draw-hint" data-i18n="zones.drawHint">
+            Click the map to place at least three points. The boundary must not cross itself.
+          </p>
+          <span class="status-blue-solid" id="draw-count">0 points</span>
+          <div class="ad-form-error" id="draw-error" role="alert"></div>
+        </div>
+        <div class="end-side ms-auto d-flex flex-wrap gap-2">
+          <button class="btn btn-success d-inline-flex align-items-center gap-2" type="button" id="draw-finish">
+            <i class="fa-solid fa-check" aria-hidden="true"></i><span data-i18n="zones.finishBoundary">Finish boundary</span>
+          </button>
+          <button class="btn btn-tertiary d-inline-flex align-items-center gap-2" type="button" id="draw-undo">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span data-i18n="zones.undoPoint">Undo point</span>
+          </button>
+          <button class="btn btn-primary-outline d-inline-flex align-items-center gap-2" type="button" id="draw-cancel">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.cancel">Cancel</span>
           </button>
         </div>
-        <ad-map-panel id="zone-map"></ad-map-panel>
-      </section>
+      </div>
 
-      <!-- Draw toolbar, shown only while drawing a boundary (#1756) -->
-      <section class="ad-section" id="draw-panel" aria-labelledby="draw-heading" hidden>
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="draw-heading" data-i18n="zones.drawHeading">Draw the zone boundary</h2>
-            <p class="ad-section__hint" id="draw-hint" data-i18n="zones.drawHint">
-              Click the map to place at least three points. The boundary must not cross itself.
-            </p>
-          </div>
-          <span class="badge badge--info" id="draw-count">0 points</span>
-        </div>
-        <div class="ad-section__body">
-          <div class="ad-form-error" id="draw-error" role="alert"></div>
-          <div class="ad-row">
-            <button class="btn btn-primary btn--sm" type="button" id="draw-finish" data-i18n="zones.finishBoundary">
-              Finish boundary
-            </button>
-            <button class="btn btn-tertiary btn--sm" type="button" id="draw-undo" data-i18n="zones.undoPoint">Undo point</button>
-            <button class="btn btn-tertiary btn--sm" type="button" id="draw-cancel" data-i18n="zones.rateCancel">Cancel</button>
-          </div>
-        </div>
-      </section>
+      <!-- 2026-10-14 §1 — rate card changes wait for a second admin -->
+      <div class="alert warning" id="zones-pending" role="status" hidden>
+        <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+        <p id="zones-pending-text"></p>
+      </div>
 
       <!-- #1831 — zone list, 50 rows/page, A→Z -->
-      <section class="ad-section" aria-labelledby="zones-heading">
-        <div class="ad-section__header">
-          <h2 class="ad-section__title" id="zones-heading" data-i18n="zones.zonesHeading">Zones</h2>
-        </div>
-        <!-- 2026-10-14 §1 — rate card changes wait for a second admin -->
-        <div class="alert info mb-0" id="zones-pending" role="status" hidden>
-          <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-          <div class="details"><p id="zones-pending-text"></p></div>
-        </div>
+      <section class="pricing-zones__list" id="zones-list" aria-label="Zones" data-i18n-aria-label="zones.zonesHeading">
         <ad-filter-bar id="zone-filters"></ad-filter-bar>
-        <ad-data-table id="zone-table"></ad-data-table>
+        <div class="row mt-2">
+          <div class="col">
+            <ad-data-table id="zone-table"></ad-data-table>
+          </div>
+        </div>
       </section>
-
-      <ad-form-modal id="zone-modal"></ad-form-modal>
     </ad-shell>
 
     <script type="module" src="scripts/pricing-zones.js"></script>

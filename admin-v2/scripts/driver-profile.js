@@ -3,6 +3,11 @@
  * #1666 profile with documents, decision history and completed-trip history;
  * #1742 suspend (Pending suspension when the driver is mid-trip); #1743 reinstate.
  * Approve/reject deliberately live on the queue screens, not here.
+ *
+ * v22-09 kit port: the kit's card grid (driver-profile.html), the kit's
+ * Suspend `default-modal` and Reinstate `popup-primary` (driver-unsuspend.html),
+ * a `popup-success` after each action. The payout method, payout position and
+ * decision history are extra cards in the same grid.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -18,17 +23,19 @@ import {
   humanize,
 } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
-import { withKitArt } from './doc-images.js';
-import { t, hasKey } from './admin-i18n.js';
+import { withKitArt, kitArt, kitVehiclePhotos } from './doc-images.js';
+import { loadBootstrap, bindLightbox } from './design-init.js';
+import { iconUrl } from '../components/ad-styles.js';
+import { reasonKey } from '../i18n/details.js';
+import { t, hasKey, isRtl } from './admin-i18n.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
-const shell = qs('ad-shell');
-const modal = qs('#action-modal');
 const body = qs('#profile-body');
 const missing = qs('#profile-missing');
+const loadError = qs('#profile-error');
 const suspendBtn = qs('#suspend-btn');
 const reinstateBtn = qs('#reinstate-btn');
 const actionHint = qs('#action-hint');
@@ -42,8 +49,20 @@ const TONE_BY_STATE = {
   reinstated: 'success',
   rejected: 'danger',
   suspended: 'danger',
-  pending_suspension: 'default',
+  pending_suspension: 'warning',
 };
+
+/** Translated label for a stored reason string; unknown text passes through. */
+function reasonLabel(text) {
+  if (!text) return text;
+  const key = `reason.${reasonKey(text)}`;
+  return hasKey(key) ? t(key) : text;
+}
+
+const reasonOptions = (list) => list.map((reason) => ({ value: reason, label: reasonLabel(reason) }));
+
+/** The stored reason values are English; "Other" needs the explanatory note. */
+const isOther = (reason) => reason === 'Other' || reason === t('reason.other');
 
 // ── Trip history (#1666 S5) — 10 rows/page ────────────
 
@@ -62,7 +81,14 @@ tripsTable.columns = [
     key: 'fare',
     label: t('driverProfile.colFare'),
     numeric: true,
-    render: (trip) => formatEgp(trip.fare?.total),
+    ltr: true,
+    render: (trip) => {
+      // The kit's fare cell: bold, success-coloured.
+      const p = document.createElement('span');
+      p.className = 'success-color text-bold';
+      p.textContent = formatEgp(trip.fare?.total);
+      return p;
+    },
   },
   {
     key: 'rating',
@@ -76,11 +102,12 @@ tripsTable.columns = [
       }
       const wrap = document.createElement('span');
       wrap.className = 'list__rating';
+      wrap.append(document.createTextNode(String(trip.rating.stars)));
       const star = document.createElement('span');
-      star.className = 'list__rating-star';
+      star.className = 'warning-color ms-1';
       star.setAttribute('aria-hidden', 'true');
       star.textContent = '★';
-      wrap.append(star, document.createTextNode(String(trip.rating.stars)));
+      wrap.appendChild(star);
       return wrap;
     },
   },
@@ -114,8 +141,49 @@ async function loadTrips() {
 
 // ── Profile ───────────────────────────────────────────
 
+/** The kit's round profile-photo thumbnail, opening in the lightbox. */
+function profilePhoto(src, label) {
+  const full = kitArt(src);
+  const trigger = document.createElement('a');
+  trigger.className = 'photo-trigger';
+  trigger.href = full;
+  trigger.title = label;
+  trigger.setAttribute('aria-label', t('docs.enlarge', { label }));
+  const container = document.createElement('div');
+  container.className = 'lightbox-container';
+  const thumb = document.createElement('div');
+  thumb.className = 'thumb-item profile-photo';
+  const frame = document.createElement('div');
+  frame.className = 'thumb-img';
+  const photo = document.createElement('div');
+  photo.className = 'photo';
+  photo.style.backgroundImage = `url("${full}")`;
+  photo.innerHTML = '<i class="fa-solid fa-expand" aria-hidden="true"></i>';
+  frame.appendChild(photo);
+  thumb.appendChild(frame);
+  container.appendChild(thumb);
+  trigger.appendChild(container);
+  return trigger;
+}
+
+function statusChip(status) {
+  const pill = document.createElement('ad-status-pill');
+  pill.setAttribute('variant', 'chip');
+  pill.status = status;
+  return pill;
+}
+
 async function load() {
-  const driver = await mockApi.getDriver(id);
+  let driver;
+  try {
+    driver = await mockApi.getDriver(id);
+  } catch {
+    loadError.hidden = false;
+    missing.hidden = true;
+    body.hidden = true;
+    return;
+  }
+  loadError.hidden = true;
 
   if (!driver) {
     missing.hidden = false;
@@ -126,47 +194,19 @@ async function load() {
   missing.hidden = true;
   body.hidden = false;
 
-  qs('#personal').items = [
-    { label: t('field.fullName'), value: driver.name },
-    { label: t('common.phone'), value: formatPhone(driver.phone), ltr: true },
-    { label: t('field.dob'), value: formatDate(driver.dob) },
-    { label: t('field.nid'), value: driver.nid, ltr: true },
-    { label: t('field.homeArea'), value: driver.homeArea },
-    { label: t('field.licence'), value: driver.licenceNumber, ltr: true },
-    { label: t('field.licenceExpiry'), value: formatDate(driver.licenceExpiry) },
-    { label: t('field.registrationExpiry'), value: formatDate(driver.registrationExpiry) },
-  ];
-
-  qs('#vehicle').items = [
-    { label: t('field.make'), value: driver.vehicle.make },
-    { label: t('field.model'), value: driver.vehicle.model },
-    { label: t('field.year'), value: driver.vehicle.year },
-    { label: t('field.plate'), value: driver.vehicle.plate, ltr: true },
-    { label: t('field.colour'), value: driver.vehicle.colour },
-    { label: t('field.type'), value: driver.vehicle.type },
-  ];
-
-  // Kit artwork stands in for the seed's flat placeholders (presentation only).
-  qs('#docs').docs = withKitArt([
-    ...driver.documents.map((doc) => ({
-      // The seed is the frozen data layer, so the label is translated here.
-      label: hasKey(`docs.${doc.key}`) ? t(`docs.${doc.key}`) : doc.label,
-      src: doc.src,
-      ref: doc.ref,
-      meta: `Uploaded ${formatDate(doc.uploadedAt)}`,
-    })),
-    { label: t('docs.profilePhoto'), src: driver.profilePhoto },
-    { label: t('docs.vehiclePhoto'), src: driver.vehiclePhoto },
-  ]);
-
-  const pill = document.createElement('ad-status-pill');
-  pill.status = driver.status;
-
+  // ── Account status (the kit's first card) ──
+  const decision = driver.decisionHistory.find((entry) => entry.state === 'approved' || entry.state === 'rejected');
   const statusItems = [
-    { label: t('common.status'), value: pill },
-    { label: t('field.onlineNow'), value: driver.online ? t('common.yes') : t('common.no') },
-    { label: t('field.submitted'), value: formatDate(driver.submittedAt) },
+    { label: t('common.status'), value: statusChip(driver.status) },
+    { label: t('kitPeople.submissionDate'), value: formatDateTime(driver.submittedAt) },
   ];
+  if (decision) {
+    statusItems.push({ label: t('kitPeople.decisionDate'), value: formatDateTime(decision.at) });
+  }
+  statusItems.push(
+    { label: t('field.onlineNow'), value: driver.online ? t('common.yes') : t('common.no') },
+    { label: t('field.homeArea'), value: driver.homeArea },
+  );
 
   // #1666 S3 — a suspended driver shows the recorded reason, plus who suspended
   // her and when. Derived from the decision history rather than stored twice, so
@@ -178,29 +218,52 @@ async function load() {
 
     statusItems.push({
       label: driver.status === 'pending_suspension' ? t('driverProfile.pendingSuspensionReason') : t('driverProfile.suspensionReason'),
-      value: driver.suspensionReason,
+      value: reasonLabel(driver.suspensionReason),
       wide: true,
     });
     if (suspension?.actor) {
-      statusItems.push({ label: t('driverProfile.suspendedBy'), value: suspension.actor });
+      statusItems.push({ label: t('driverProfile.suspendedBy'), value: suspension.actor, ltr: true });
     }
     if (suspension?.at) {
       statusItems.push({ label: t('driverProfile.suspendedAt'), value: formatDateTime(suspension.at) });
     }
   }
   if (driver.rejectionReason) {
-    statusItems.push({ label: t('driverProfile.rejectionReason'), value: driver.rejectionReason, wide: true });
+    statusItems.push({ label: t('driverProfile.rejectionReason'), value: reasonLabel(driver.rejectionReason), wide: true });
   }
   // Once reinstated, show why — otherwise the account reads as if it were never suspended.
   if (driver.reinstatement) {
     statusItems.push(
-      { label: t('driverProfile.reinstatementReason'), value: driver.reinstatement.reason, wide: true },
-      { label: t('driverProfile.reinstatedBy'), value: driver.reinstatement.by },
+      { label: t('driverProfile.reinstatementReason'), value: reasonLabel(driver.reinstatement.reason), wide: true },
+      { label: t('driverProfile.reinstatedBy'), value: driver.reinstatement.by, ltr: true },
       { label: t('driverProfile.reinstatedAt'), value: formatDateTime(driver.reinstatement.at) },
     );
   }
-
   qs('#status-card').items = statusItems;
+
+  // ── Personal (national ID in full — product rule) ──
+  qs('#personal').items = [
+    { label: t('field.fullName'), value: driver.name },
+    { label: t('common.phone'), value: formatPhone(driver.phone), ltr: true },
+    { label: t('field.dob'), value: formatDate(driver.dob) },
+    { label: t('field.nid'), value: driver.nid, ltr: true },
+    { label: t('docs.profilePhoto'), value: profilePhoto(driver.profilePhoto, t('docs.profilePhoto')) },
+  ];
+
+  qs('#vehicle').items = [
+    { label: t('field.make'), value: driver.vehicle.make },
+    { label: t('field.model'), value: driver.vehicle.model },
+    { label: t('field.year'), value: driver.vehicle.year },
+    { label: t('field.plate'), value: driver.vehicle.plate, ltr: true },
+    { label: t('field.colour'), value: driver.vehicle.colour },
+    { label: t('field.type'), value: driver.vehicle.type },
+  ];
+
+  qs('#licence').items = [
+    { label: t('field.licenceNumber'), value: driver.licenceNumber, ltr: true },
+    { label: t('field.licenceExpiry'), value: formatDate(driver.licenceExpiry) },
+    { label: t('field.registrationExpiry'), value: formatDate(driver.registrationExpiry) },
+  ];
 
   qs('#stats').items = [
     { label: t('field.totalTrips'), value: formatCount(driver.tripsCompleted) },
@@ -208,25 +271,356 @@ async function load() {
       label: t('driverProfile.avgRating'),
       value: driver.avgRating ? `${driver.avgRating} ★` : t('driverProfile.noRatingsYet'),
     },
-    { label: t('driverProfile.cashBalance'), value: formatEgp(driver.cashBalance) },
+    { label: t('kitPeople.cashDue'), value: formatEgp(driver.cashBalance), ltr: true },
   ];
+
+  // Kit artwork stands in for the seed's flat placeholders (presentation only).
+  qs('#docs').docs = withKitArt(
+    driver.documents.map((doc) => ({
+      // The seed is the frozen data layer, so the label is translated here.
+      label: hasKey(`docs.${doc.key}`) ? t(`docs.${doc.key}`) : doc.label,
+      src: doc.src,
+      ref: doc.ref,
+      meta: t('docs.uploaded', { date: formatDate(doc.uploadedAt) }),
+    })),
+  );
+  qs('#photos').docs = [
+    ...withKitArt([{ label: t('docs.vehiclePhoto'), src: driver.vehiclePhoto }]),
+    ...kitVehiclePhotos(formatDate(driver.submittedAt)).slice(1),
+  ];
+  bindLightbox(qs('#personal'));
 
   // Decision history for anything past submission (#1666 S2/S3).
   if (driver.decisionHistory.length > 1) {
     qs('#history-section').hidden = false;
     qs('#history').items = driver.decisionHistory.map((entry) => ({
-      label: humanize(entry.state),
+      label: hasKey(`status.${entry.state}`) ? t(`status.${entry.state}`) : humanize(entry.state),
       meta: [formatDateTime(entry.at), entry.actor].filter(Boolean).join(' · '),
-      note: entry.note,
+      note: reasonLabel(entry.note),
       tone: TONE_BY_STATE[entry.state] ?? 'default',
     }));
   } else {
     qs('#history-section').hidden = true;
   }
 
+  qs('#ledger-link').href = `driver-balance-details.html?id=${encodeURIComponent(driver.id)}`;
+
   renderActions(driver);
   await loadPayout(driver);
   loadTrips();
+}
+
+qs('#retry-btn').addEventListener('click', () => load());
+
+// ── Kit modals ────────────────────────────────────────
+// The kit's dialogs, built on <body> per open and removed once closed:
+// `default-modal` / `popup-primary` forms with an icon header, the centred
+// `popup-warning` confirm and the `popup-success` result. <ad-form-modal> only
+// renders the centred popup layout, so the header-icon forms are built here.
+
+let modalSeq = 0;
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function faIcon(name) {
+  const i = el('i', `fa-solid ${name}`);
+  i.setAttribute('aria-hidden', 'true');
+  return i;
+}
+
+function kitButton(variant, icon, label, type = 'button') {
+  const button = el('button', `btn ${variant}`);
+  button.type = type;
+  if (icon) button.appendChild(faIcon(icon));
+  button.append(label);
+  return button;
+}
+
+const backIcon = () => (isRtl() ? 'fa-arrow-right' : 'fa-arrow-left');
+
+function modalShell(kind, labelId, { staticBackdrop = true } = {}) {
+  const root = el('div', `modal fade ${kind}`);
+  root.tabIndex = -1;
+  root.setAttribute('aria-hidden', 'true');
+  root.setAttribute('aria-labelledby', labelId);
+  if (staticBackdrop) root.setAttribute('data-bs-backdrop', 'static');
+  const dialog = el('div', 'modal-dialog modal-dialog-centered');
+  const content = el('div', 'modal-content');
+  const header = el('div', 'modal-header');
+  const bodyEl = el('div', 'modal-body');
+  const footer = el('div', 'modal-footer');
+  content.append(header, bodyEl, footer);
+  dialog.appendChild(content);
+  root.appendChild(dialog);
+  const close = el('button', 'btn-close');
+  close.type = 'button';
+  close.setAttribute('data-bs-dismiss', 'modal');
+  close.setAttribute('aria-label', t('aria.closeDialog'));
+  return { root, header, body: bodyEl, footer, close };
+}
+
+/** Mount on <body>, show, and resolve once the dialog has fully closed. */
+async function presentModal(root, onShown) {
+  document.body.appendChild(root);
+  try {
+    await loadBootstrap();
+  } catch {
+    /* manual fallback below */
+  }
+  return new Promise((resolve) => {
+    const finish = () => {
+      root.remove();
+      resolve();
+    };
+    if (window.bootstrap?.Modal) {
+      const instance = window.bootstrap.Modal.getOrCreateInstance(root);
+      root.addEventListener('shown.bs.modal', () => onShown?.(), { once: true });
+      root.addEventListener(
+        'hidden.bs.modal',
+        () => {
+          instance.dispose();
+          finish();
+        },
+        { once: true },
+      );
+      root.hideModal = () => instance.hide();
+      instance.show();
+      return;
+    }
+    // Bootstrap failed to load: show the same markup without it.
+    const backdrop = el('div', 'modal-backdrop fade show');
+    root.classList.add('show');
+    root.style.display = 'block';
+    root.removeAttribute('aria-hidden');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('role', 'dialog');
+    document.body.appendChild(backdrop);
+    root.hideModal = () => {
+      backdrop.remove();
+      finish();
+    };
+    root.querySelectorAll('[data-bs-dismiss="modal"]').forEach((node) =>
+      node.addEventListener('click', () => root.hideModal()),
+    );
+    onShown?.();
+  });
+}
+
+/** The kit's `popup-success` (or `popup-warning`) result dialog. */
+function kitResult({ tone = 'success', title, text, link }) {
+  modalSeq += 1;
+  const labelId = `people-modal-${modalSeq}`;
+  const m = modalShell(`popup-${tone}`, labelId, { staticBackdrop: false });
+  m.header.appendChild(m.close);
+  const sign = el('div', `status-sign ${tone}`);
+  sign.appendChild(faIcon(tone === 'success' ? 'fa-check' : 'fa-warning'));
+  const heading = el('h4', '', title);
+  heading.id = labelId;
+  m.body.append(sign, heading);
+  if (text) m.body.appendChild(el('p', '', text));
+  const done = kitButton(`btn-${tone}`, 'fa-xmark', t('common.close'));
+  done.setAttribute('data-bs-dismiss', 'modal');
+  m.footer.appendChild(done);
+  if (link) {
+    const a = el('a', 'btn btn-primary-outline', link.label);
+    a.href = link.href;
+    m.footer.appendChild(a);
+  }
+  return presentModal(m.root, () => done.focus());
+}
+
+/**
+ * The kit's form dialog: header icon + title (+ subject name), an optional
+ * intro and notice, a validated form, confirm + cancel in the footer.
+ * `fields` may be a function of the current values; a field with `rerender`
+ * rebuilds the form when it changes (the payout type picks its own fields).
+ * Resolves to onConfirm's result once closed, or null when dismissed.
+ */
+function kitForm({ kind = 'default-modal', icon, title, subject, intro, notice, fields, confirm, cancel, onConfirm }) {
+  modalSeq += 1;
+  const uid = `people-modal-${modalSeq}`;
+  const m = modalShell(kind, `${uid}-title`);
+
+  const img = el('img', 'icon');
+  img.src = iconUrl(icon);
+  img.alt = '';
+  img.setAttribute('aria-hidden', 'true');
+  const heading = el('h3', '', title);
+  heading.id = `${uid}-title`;
+  m.header.append(img, heading);
+  if (subject) m.header.appendChild(el('span', 'tertiary-color text-bold', subject));
+  m.header.appendChild(m.close);
+
+  if (intro) m.body.appendChild(el('p', 'small lh-sm', intro));
+  if (notice) m.body.appendChild(notice);
+
+  const summary = el('div', 'alert danger mt-3');
+  summary.setAttribute('role', 'alert');
+  summary.hidden = true;
+  const summaryText = el('p');
+  summary.append(faIcon('fa-circle-exclamation'), summaryText);
+
+  const form = el('form', 'row gy-3');
+  form.id = `${uid}-form`;
+  form.noValidate = true;
+  m.body.append(summary, form);
+
+  let specs = [];
+  let controls = new Map();
+  let errors = new Map();
+
+  const currentValues = () => {
+    const values = {};
+    controls.forEach((control, key) => {
+      values[key] = String(control.value ?? '').trim();
+    });
+    return values;
+  };
+
+  function renderFields() {
+    const previous = currentValues();
+    specs = typeof fields === 'function' ? fields(previous) : fields;
+    form.textContent = '';
+    controls = new Map();
+    errors = new Map();
+
+    specs.forEach((field) => {
+      const col = el('div', 'col-12');
+      const controlId = `${uid}-${field.key}`;
+      const label = el('label', '', field.label);
+      label.htmlFor = controlId;
+      if (field.required) {
+        const star = el('span', 'danger-color', ' *');
+        star.setAttribute('aria-hidden', 'true');
+        label.appendChild(star);
+      }
+
+      let control;
+      if (field.type === 'select') {
+        control = el('select', 'form-select');
+        const placeholder = el('option', '', field.placeholder ?? t('kitPeople.selectReason'));
+        placeholder.value = '';
+        control.appendChild(placeholder);
+        (field.options ?? []).forEach((option) => {
+          const opt = el('option', '', option.label);
+          opt.value = option.value;
+          control.appendChild(opt);
+        });
+      } else if (field.type === 'textarea') {
+        control = el('textarea', 'form-control');
+        control.rows = field.rows ?? 2;
+        if (field.placeholder) control.placeholder = field.placeholder;
+      } else {
+        control = el('input', 'form-control');
+        control.type = 'text';
+        if (field.placeholder) control.placeholder = field.placeholder;
+      }
+      control.id = controlId;
+      control.name = field.key;
+      // A rebuild keeps what the admin already entered in a field that survives it.
+      control.value = Object.prototype.hasOwnProperty.call(previous, field.key)
+        ? previous[field.key]
+        : field.value ?? '';
+      // Latin data (numbers, ids) keeps its own direction inside an Arabic form.
+      if (field.ltr) control.classList.add('ad-ltr', 'text-dir-ltr');
+      col.append(label, control);
+
+      const described = [];
+      if (field.hint) {
+        const hint = el('div', 'form-text', field.hint);
+        hint.id = `${controlId}-hint`;
+        described.push(hint.id);
+        col.appendChild(hint);
+      }
+      const error = el('div', 'invalid-feedback');
+      error.id = `${controlId}-error`;
+      described.push(error.id);
+      col.appendChild(error);
+      control.setAttribute('aria-describedby', described.join(' '));
+
+      const clear = () => {
+        control.classList.remove('is-invalid');
+        control.removeAttribute('aria-invalid');
+        error.textContent = '';
+      };
+      control.addEventListener('input', clear);
+      control.addEventListener('change', clear);
+      if (field.rerender) {
+        control.addEventListener('change', () => {
+          renderFields();
+          controls.get(field.key)?.focus();
+        });
+      }
+
+      controls.set(field.key, control);
+      errors.set(field.key, error);
+      form.appendChild(col);
+    });
+  }
+
+  function validate() {
+    const values = currentValues();
+    let first = null;
+    specs.forEach((field) => {
+      const raw = values[field.key] ?? '';
+      const required = field.required || field.requiredWhen?.(values);
+      const control = controls.get(field.key);
+      control.classList.remove('is-invalid');
+      control.removeAttribute('aria-invalid');
+      errors.get(field.key).textContent = '';
+      let message = null;
+      if (required && !raw) message = field.emptyError ?? t('validation.required', { label: field.label });
+      else if (raw && field.maxLength && raw.length > field.maxLength) message = field.lengthError;
+      else if (raw && field.validate) message = field.validate(raw, values);
+      if (message) {
+        control.classList.add('is-invalid');
+        control.setAttribute('aria-invalid', 'true');
+        errors.get(field.key).textContent = message;
+        first = first ?? control;
+      }
+    });
+    first?.focus();
+    return !first;
+  }
+
+  renderFields();
+
+  const confirmBtn = kitButton(confirm.variant, confirm.icon, confirm.label, 'submit');
+  confirmBtn.setAttribute('form', form.id);
+  const cancelBtn = kitButton('btn-primary-outline', cancel?.icon ?? 'fa-xmark', cancel?.label ?? t('common.cancel'));
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  m.footer.append(confirmBtn, cancelBtn);
+
+  let result = null;
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    summary.hidden = true;
+    if (!validate()) return;
+    const busy = [confirmBtn, cancelBtn, m.close];
+    busy.forEach((node) => {
+      node.disabled = true;
+    });
+    try {
+      result = (await onConfirm(currentValues())) ?? true;
+      m.root.hideModal();
+    } catch (error) {
+      summaryText.textContent = error?.message ?? t('modal.saveFailed');
+      summary.hidden = false;
+    } finally {
+      busy.forEach((node) => {
+        node.disabled = false;
+      });
+    }
+  });
+
+  return presentModal(m.root, () => (form.querySelector('select, input, textarea') ?? confirmBtn).focus()).then(
+    () => result,
+  );
 }
 
 // ── Payout method (2026-10-14 spec §2) ────────────────
@@ -274,6 +668,13 @@ function updatedByText(method) {
     : t('driverPayout.updatedByDriver', { when });
 }
 
+const numberLabel = (type) =>
+  ({
+    MOBILE_WALLET: t('driverPayout.walletNumber'),
+    BANK_ACCOUNT: t('driverPayout.accountNumber'),
+    PREPAID_CARD: t('driverPayout.cardNumber'),
+  })[type];
+
 async function loadPayout(driver) {
   currentDriver = driver;
   let payout;
@@ -292,11 +693,6 @@ async function loadPayout(driver) {
   const method = payout.method;
   if (method) {
     const isCard = method.type === 'PREPAID_CARD';
-    const numberLabel = {
-      MOBILE_WALLET: t('driverPayout.walletNumber'),
-      BANK_ACCOUNT: t('driverPayout.accountNumber'),
-      PREPAID_CARD: t('driverPayout.cardNumber'),
-    }[method.type];
     const items = [{ label: t('driverPayout.type'), value: typeLabel(method.type) }];
     if (!isCard) {
       items.push({
@@ -307,12 +703,13 @@ async function loadPayout(driver) {
     }
     items.push(
       { label: isCard ? t('driverPayout.cardName') : t('driverPayout.holderName'), value: method.holderName },
-      { label: numberLabel, value: method.masked, ltr: true },
+      // Account and card numbers stay masked (•••• 1234) on every screen.
+      { label: numberLabel(method.type), value: method.masked, ltr: true },
       { label: t('driverPayout.lastUpdated'), value: updatedByText(method), wide: true },
     );
     qs('#payout').items = items;
   } else {
-    qs('#payout').items = [];
+    qs('#payout').items = [{ label: t('driverPayout.type'), value: t('driverPayout.none'), muted: true, wide: true }];
   }
 
   const notices = qs('#payout-notices');
@@ -335,7 +732,7 @@ async function loadPayout(driver) {
     const p = payout.pendingChange;
     notices.appendChild(
       kitAlert(
-        'info',
+        'warning',
         'fa-hourglass-half',
         t('driverPayout.pendingHeading'),
         t('driverPayout.pendingMeta', { who: p.maker, when: formatDateTime(p.madeAt) }),
@@ -343,6 +740,7 @@ async function loadPayout(driver) {
       ),
     );
   }
+  notices.hidden = !notices.childNodes.length;
 
   // An admin edit is a request (§1); one pending request per driver.
   const editable = ['approved', 'suspended', 'pending_suspension', 'pending'].includes(driver.status);
@@ -360,46 +758,15 @@ async function loadPayout(driver) {
   qs('#payout-position-hint').textContent = t('driverPayout.positionHint', { days: payoutOptions.holdDays });
 }
 
-payoutEditBtn.addEventListener('click', () => {
-  if (!currentDriver || currentPayout?.pendingChange) return;
-  let chosen = null;
-  modal.open({
-    title: t('driverPayout.chooseTitle', { name: currentDriver.name }),
-    description: t('driverPayout.chooseDescription'),
-    confirmLabel: t('driverPayout.continue'),
-    tone: 'primary',
-    icon: 'fa-solid fa-wallet',
-    fields: [
-      {
-        key: 'type',
-        type: 'select',
-        label: t('driverPayout.type'),
-        required: true,
-        value: currentPayout?.method?.type ?? '',
-        options: payoutOptions.payoutTypes.map((type) => ({ value: type, label: typeLabel(type) })),
-        emptyError: t('driverPayout.typeEmpty'),
-      },
-    ],
-    onConfirm: async (values) => {
-      chosen = values.type;
-    },
-    // The kit modal has one form per open, so the details are a second step.
-    onClose: () => {
-      if (chosen) window.setTimeout(() => openPayoutDetails(chosen), 0);
-    },
-  });
-});
-
 const digitsOnly = (value) => String(value ?? '').replace(/\s+/g, '').toUpperCase();
 
-function holderField(key, label, emptyError) {
+function holderField(label, emptyError) {
   return {
-    key,
+    key: 'holderName',
     type: 'text',
     label,
     required: true,
     value: currentDriver.name,
-    minLength: 3,
     maxLength: 100,
     emptyError,
     lengthError: t('driverPayout.holderLength'),
@@ -410,12 +777,27 @@ function holderField(key, label, emptyError) {
   };
 }
 
-function payoutDetailFields(type) {
+/** The type select, then the chosen type's own fields (§2). */
+function payoutFields(values) {
+  const type = values.type ?? currentPayout?.method?.type ?? '';
   const current = currentPayout?.method?.type === type ? currentPayout.method : null;
+  const fields = [
+    {
+      key: 'type',
+      type: 'select',
+      label: t('driverPayout.type'),
+      required: true,
+      rerender: true,
+      value: currentPayout?.method?.type ?? '',
+      placeholder: t('kitPeople.selectReason'),
+      options: payoutOptions.payoutTypes.map((option) => ({ value: option, label: typeLabel(option) })),
+      emptyError: t('driverPayout.typeEmpty'),
+    },
+  ];
   if (type === 'MOBILE_WALLET') {
-    return [
+    fields.push(
       {
-        key: 'provider',
+        key: 'walletProvider',
         type: 'select',
         label: t('driverPayout.walletProvider'),
         required: true,
@@ -424,7 +806,7 @@ function payoutDetailFields(type) {
         emptyError: t('driverPayout.providerEmpty'),
       },
       {
-        key: 'number',
+        key: 'walletNumber',
         type: 'text',
         label: t('driverPayout.walletNumber'),
         required: true,
@@ -434,12 +816,11 @@ function payoutDetailFields(type) {
         emptyError: t('driverPayout.walletNumberEmpty'),
         validate: (value) => (/^01[0125]\d{8}$/.test(digitsOnly(value)) ? null : t('driverPayout.walletNumberInvalid')),
       },
-    ];
-  }
-  if (type === 'BANK_ACCOUNT') {
-    return [
+    );
+  } else if (type === 'BANK_ACCOUNT') {
+    fields.push(
       {
-        key: 'provider',
+        key: 'bank',
         type: 'select',
         label: t('driverPayout.bank'),
         required: true,
@@ -447,9 +828,9 @@ function payoutDetailFields(type) {
         options: payoutOptions.banks.map((b) => ({ value: b, label: b })),
         emptyError: t('driverPayout.bankEmpty'),
       },
-      holderField('holderName', t('driverPayout.holderName'), t('driverPayout.holderEmpty')),
+      holderField(t('driverPayout.holderName'), t('driverPayout.holderEmpty')),
       {
-        key: 'number',
+        key: 'accountNumber',
         type: 'text',
         label: t('driverPayout.accountNumber'),
         required: true,
@@ -461,12 +842,10 @@ function payoutDetailFields(type) {
           return /^\d{10,20}$/.test(n) || /^EG\d{27}$/.test(n) ? null : t('driverPayout.accountInvalid');
         },
       },
-    ];
-  }
-  return [
-    holderField('holderName', t('driverPayout.cardName'), t('driverPayout.cardNameEmpty')),
-    {
-      key: 'number',
+    );
+  } else if (type === 'PREPAID_CARD') {
+    fields.push(holderField(t('driverPayout.cardName'), t('driverPayout.cardNameEmpty')), {
+      key: 'cardNumber',
       type: 'text',
       label: t('driverPayout.cardNumber'),
       required: true,
@@ -474,43 +853,62 @@ function payoutDetailFields(type) {
       hint: t('driverPayout.cardNumberHint'),
       emptyError: t('driverPayout.cardNumberEmpty'),
       validate: (value) => (/^\d{16}$/.test(digitsOnly(value)) ? null : t('driverPayout.cardNumberInvalid')),
-    },
-  ];
+    });
+  }
+  return fields;
 }
 
-function openPayoutDetails(type) {
-  modal.open({
-    title: t('driverPayout.detailsTitle', { type: typeLabel(type), name: currentDriver.name }),
-    description: t('driverPayout.detailsDescription'),
-    confirmLabel: t('driverPayout.sendForApproval'),
-    tone: 'primary',
-    icon: 'fa-solid fa-wallet',
-    fields: payoutDetailFields(type),
+/** The kit's `alert.info` with the method in use now — masked, never in full. */
+function currentMethodNotice() {
+  const method = currentPayout?.method;
+  if (!method) return null;
+  const parts = [typeLabel(method.type), method.provider, method.masked].filter(Boolean).join(' · ');
+  const box = el('div', 'alert info mt-3');
+  box.append(faIcon('fa-circle-info'), el('p', '', t('kitPeople.currentMethod', { method: parts })));
+  return box;
+}
+
+payoutEditBtn.addEventListener('click', async () => {
+  if (!currentDriver || currentPayout?.pendingChange) return;
+  const driver = currentDriver;
+  const result = await kitForm({
+    icon: 'wallet.svg',
+    title: t('kitPeople.payoutEditTitle'),
+    subject: driver.name,
+    intro: t('driverPayout.chooseDescription'),
+    notice: currentMethodNotice(),
+    fields: payoutFields,
+    confirm: { variant: 'btn-success', icon: 'fa-paper-plane', label: t('driverPayout.sendForApproval') },
+    cancel: { icon: 'fa-xmark', label: t('common.cancel') },
     onConfirm: async (values) => {
-      const result = await mockApi.requestPayoutMethodChange(currentDriver.id, {
-        type,
-        provider: values.provider ?? null,
+      // Each type has its own field keys, so switching type never carries a
+      // wallet number into a card field.
+      const byType = {
+        MOBILE_WALLET: { provider: values.walletProvider, number: values.walletNumber },
+        BANK_ACCOUNT: { provider: values.bank, number: values.accountNumber },
+        PREPAID_CARD: { provider: null, number: values.cardNumber },
+      }[values.type];
+      const response = await mockApi.requestPayoutMethodChange(driver.id, {
+        type: values.type,
+        provider: byType.provider || null,
         // A wallet carries no holder field; the data layer defaults it to her name.
-        holderName: values.holderName ?? currentDriver.name,
-        number: digitsOnly(values.number),
+        holderName: values.holderName || driver.name,
+        number: digitsOnly(byType.number),
       });
-      toastWithLink(t('driverPayout.toastSent'), result.request?.id);
-      await loadPayout(currentDriver);
+      await loadPayout(driver);
+      return response;
     },
   });
-}
-
-/** Toasts are plain text; the request link rides along so the maker can follow it. */
-function toastWithLink(message, requestId) {
-  const toast = shell.showToast(message, 'success', 6000);
-  if (toast && requestId) {
-    const link = document.createElement('a');
-    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
-    link.className = 'text-reset text-decoration-underline';
-    link.textContent = t('driverPayout.viewRequest');
-    toast.append(' ', link);
-  }
-}
+  if (!result) return;
+  const requestId = result.request?.id;
+  await kitResult({
+    title: t('kitPeople.payoutSentTitle'),
+    text: t('driverPayout.toastSent'),
+    link: requestId
+      ? { href: `approvals.html?id=${encodeURIComponent(requestId)}`, label: t('driverPayout.viewRequest') }
+      : null,
+  });
+});
 
 // ── #1742 suspend / #1743 reinstate ───────────────────
 
@@ -522,89 +920,87 @@ function renderActions(driver) {
   reinstateBtn.hidden = !reinstatable;
 
   if (suspendable) {
-    actionHint.textContent =
-      t('driverProfile.hintSuspend');
+    actionHint.textContent = t('driverProfile.hintSuspend');
   } else if (reinstatable) {
     actionHint.textContent = t('driverProfile.hintReinstate');
   } else {
     actionHint.textContent =
-      driver.status === 'pending'
-        ? t('driverProfile.hintPending')
-        : t('driverProfile.hintRejected');
+      driver.status === 'pending' ? t('driverProfile.hintPending') : t('driverProfile.hintRejected');
   }
 }
 
-suspendBtn.addEventListener('click', () => {
-  modal.open({
+function noteField(emptyError, lengthError) {
+  return {
+    key: 'note',
+    type: 'textarea',
+    label: t('driverProfile.noteLabel'),
+    placeholder: t('kitPeople.notePlaceholder'),
+    maxLength: 500,
+    // The story requires a note only when "Other" is the reason.
+    requiredWhen: (values) => isOther(values.reason),
+    emptyError,
+    lengthError,
+  };
+}
+
+suspendBtn.addEventListener('click', async () => {
+  const result = await kitForm({
+    icon: 'stop-women.svg',
     title: t('driverProfile.suspendTitle'),
-    description:
-      t('driverProfile.suspendDescription'),
-    confirmLabel: t('driverProfile.suspendBtn'),
-    danger: true,
+    intro: t('driverProfile.suspendDescription'),
     fields: [
       {
         key: 'reason',
         type: 'select',
         label: t('driverProfile.suspensionReason'),
         required: true,
-        options: REASON_LISTS.driverSuspension.map((r) => ({ value: r, label: r })),
+        options: reasonOptions(REASON_LISTS.driverSuspension),
         emptyError: t('driverProfile.suspendReasonEmpty'),
       },
-      {
-        key: 'note',
-        type: 'textarea',
-        label: t('driverProfile.noteLabel'),
-        maxLength: 500,
-        // The story requires a note only when t('reason.other') is the reason.
-        requiredWhen: (values) => values.reason === t('reason.other'),
-        emptyError: t('driverProfile.noteEmptyOther'),
-        lengthError: t('driverProfile.noteTooLong'),
-      },
+      noteField(t('driverProfile.noteEmptyOther'), t('driverProfile.noteTooLong')),
     ],
+    confirm: { variant: 'btn-danger', icon: 'fa-stop', label: t('driverProfile.suspendBtn') },
+    cancel: { icon: 'fa-xmark', label: t('common.cancel') },
     onConfirm: async (values) => {
-      const result = await mockApi.suspendDriver(id, values.reason, values.note);
-      shell.showToast(
-        result.pending
-          ? t('driverProfile.toastPendingSuspension')
-          : t('driverProfile.toastSuspended'),
-        result.pending ? 'warning' : 'success',
-      );
+      const response = await mockApi.suspendDriver(id, values.reason, values.note);
       await load();
+      return response;
     },
   });
+  if (!result) return;
+  await kitResult(
+    result.pending
+      ? { tone: 'warning', title: t('kitPeople.pendingSuspensionTitle'), text: t('driverProfile.toastPendingSuspension') }
+      : { title: t('kitPeople.suspendedTitle'), text: t('kitPeople.suspendedText') },
+  );
 });
 
-reinstateBtn.addEventListener('click', () => {
-  modal.open({
+reinstateBtn.addEventListener('click', async () => {
+  const result = await kitForm({
+    kind: 'popup-primary',
+    icon: 'checked-women.svg',
     title: t('driverProfile.reinstateTitle'),
-    description:
-      t('driverProfile.reinstateDescription'),
-    confirmLabel: t('driverProfile.reinstateBtn'),
+    intro: t('driverProfile.reinstateDescription'),
     fields: [
       {
         key: 'reason',
         type: 'select',
         label: t('driverProfile.reinstatementReason'),
         required: true,
-        options: REASON_LISTS.driverReinstatement.map((r) => ({ value: r, label: r })),
+        options: reasonOptions(REASON_LISTS.driverReinstatement),
         emptyError: t('driverProfile.reinstateReasonEmpty'),
       },
-      {
-        key: 'note',
-        type: 'textarea',
-        label: t('driverProfile.noteLabel'),
-        maxLength: 500,
-        requiredWhen: (values) => values.reason === t('reason.other'),
-        emptyError: t('driverProfile.noteEmptyOther'),
-        lengthError: t('driverProfile.noteTooLong'),
-      },
+      noteField(t('driverProfile.noteEmptyOther'), t('driverProfile.noteTooLong')),
     ],
+    confirm: { variant: 'btn-success', icon: 'fa-play', label: t('driverProfile.reinstateBtn') },
+    cancel: { icon: 'fa-xmark', label: t('common.cancel') },
     onConfirm: async (values) => {
       await mockApi.reinstateDriver(id, values.reason, values.note);
-      shell.showToast(`Driver reinstated — ${values.reason}.`, 'success');
       await load();
     },
   });
+  if (!result) return;
+  await kitResult({ title: t('kitPeople.reinstatedTitle'), text: t('kitPeople.reinstatedText') });
 });
 
 await load();

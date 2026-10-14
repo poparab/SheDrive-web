@@ -14,7 +14,7 @@
       page-title-key="payoutBatch.title"
       breadcrumb-keys="nav.money > nav.payouts|payouts.html > payoutBatch.crumb"
       back="payouts.html"
-      screen-styles="styles/detail.css, styles/list.css, styles/payout-batch.css"
+      screen-styles="styles/list.css, styles/payout-batch.css"
     >
       <div id="batch-missing" hidden>
         <ad-empty-state
@@ -46,24 +46,60 @@
       </div>
 
       <div id="batch-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
-            <ad-detail-section id="batch-summary" icon="wallet.svg" section-title="Batch" data-i18n-section-title="payoutBatch.summaryHeading"></ad-detail-section>
-            <ad-detail-section id="batch-progress" icon="timeline.svg" section-title="Progress" data-i18n-section-title="payoutBatch.timelineHeading"></ad-detail-section>
+        <!-- Kit card grid (trip-completed): summary, state timeline, next step -->
+        <div class="row g-3">
+          <div class="col-lg-6 col-xl-4">
+            <div class="standard-card-theme2 white-bg batch-card" id="batch-summary">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 data-i18n="kitFinance.pbSummaryTitle">Batch summary</h5>
+                  <span class="ad-ltr" id="batch-ref"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0" id="batch-summary-body"></div>
+            </div>
           </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="batch-actions" icon="upload-file.svg" section-title="Next step" data-i18n-section-title="payoutBatch.actionsHeading"></ad-detail-section>
-          </aside>
+          <div class="col-lg-6 col-xl-4">
+            <div class="standard-card-theme2 white-bg batch-card" id="batch-progress">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 data-i18n="kitFinance.pbTimelineTitle">State timeline</h5>
+                  <span></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/timeline.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0" id="batch-timeline-body"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-12 col-xl-4">
+            <div class="standard-card-theme2 white-bg batch-card" id="batch-actions">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 data-i18n="payoutBatch.actionsHeading">Next step</h5>
+                  <span></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/upload-file.svg" alt="" /></div>
+              </div>
+              <div class="card-body" id="batch-actions-body"></div>
+            </div>
+          </div>
         </div>
 
-        <!-- Full width: eight columns do not fit beside the rail at 1280 px. -->
-        <section class="ad-section ad-section--flush batch-lines" aria-labelledby="lines-heading">
-          <div class="ad-section__header">
-            <h2 class="ad-section__title" id="lines-heading" data-i18n="payoutBatch.linesHeading">Lines</h2>
+        <!-- Full width: the lines table (kit driver-profile "Completed trips" card). -->
+        <div class="standard-card light-medium-bg batch-lines" aria-labelledby="lines-heading">
+          <div class="card-header mb-3">
+            <div class="card-title">
+              <img class="icon" src="vendor/icons/withdrawal-wallet.svg" alt="" />
+              <h4 id="lines-heading" data-i18n="payoutBatch.linesHeading">Lines</h4>
+            </div>
           </div>
-          <ad-data-table id="lines-table"></ad-data-table>
-        </section>
+          <div class="card-body">
+            <ad-data-table id="lines-table"></ad-data-table>
+          </div>
+        </div>
       </div>
     </ad-shell>
 

@@ -16,6 +16,7 @@ import { createRequestGuard } from './request-guard.js';
 import { statusLabel } from '../components/ad-status-pill.js';
 import { downloadCsv, formatDate, formatElapsed, formatPhone, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { gridAction } from '../components/ad-data-table.js';
 import { t } from './admin-i18n.js';
 import { mountStatRow, fillStatRow } from './list-metrics.js';
 
@@ -25,7 +26,6 @@ if (!adminAuth.requireAdmin()) {
 
 const filters = qs('#queue-filters');
 const table = qs('#queue-table');
-const countBadge = qs('#queue-count');
 
 const query = {
   search: '',
@@ -105,6 +105,7 @@ table.columns = [
     key: 'name',
     label: t('applications.colDriverName'),
     sortable: true,
+    className: 'list__wrap',
     render: (row) => row.name,
   },
   {
@@ -166,17 +167,18 @@ table.columns = [
     },
   },
   {
-    key: 'view',
-    label: t('applications.colView'),
-    render: (row) => {
-      const link = document.createElement('span');
-      link.className = 'list__link';
-      link.textContent =
-        row.applicationOutcome === 'pending'
-          ? t('applications.linkReview')
-          : t('applications.linkView');
-      return link;
-    },
+    key: 'actions',
+    label: t('common.actions'),
+    actions: true,
+    // A pending application is a review task; a decided one is only viewed.
+    render: (row) =>
+      gridAction({
+        href: `driver-application.html?id=${row.id}`,
+        label:
+          row.applicationOutcome === 'pending'
+            ? t('kitLists.reviewApplication')
+            : t('kitLists.viewApplication'),
+      }),
   },
 ];
 
@@ -197,6 +199,13 @@ table.addEventListener('pagechange', (event) => {
   load();
 });
 
+// Kit "Rows count" select in the grid footer.
+table.addEventListener('pagesizechange', (event) => {
+  query.pageSize = event.detail.pageSize;
+  query.page = 1;
+  load();
+});
+
 const guard = createRequestGuard();
 
 async function load() {
@@ -207,13 +216,10 @@ async function load() {
     if (!isCurrent()) return;
     lastRows = result.rows;
     table.setData(result);
-    // Always the pending workload, not the filtered row count.
-    countBadge.textContent = t('applications.badge', { count: result.pendingTotal });
   } catch (error) {
     if (!isCurrent()) return;
     lastRows = [];
     table.setError(error.message, load);
-    countBadge.textContent = t('common.notAvailable');
   }
 }
 

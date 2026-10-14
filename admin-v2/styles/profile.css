@@ -61,3 +61,8 @@
 .profile__card .list-item {
   overflow-wrap: anywhere;
 }
+
+/* Kit info alert in place of the old .ad-stub banner. */
+.profile__notice {
+  margin-block-end: var(--space-3);
+}

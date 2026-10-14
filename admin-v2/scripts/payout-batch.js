@@ -4,20 +4,27 @@
  * One batch through its whole life: Pending approval → Ready to export →
  * Sent to bank → Result pending approval → Completed (or Rejected).
  *
+ * Laid out as the kit's trip-detail card grid: a summary card, a State
+ * timeline card and a Next-step card, then the lines in a full-width table card.
+ *
  * What an admin can do depends only on the status:
  *   pending_approval / result_pending — nothing; another admin decides it on
  *     the Approvals screen (§1), linked from here.
- *   ready — export the bank file, which moves the batch to Sent to bank.
+ *   ready — export the bank file (kit popup-warning confirm), which moves the
+ *     batch to Sent to bank.
  *   sent_to_bank and later — download the file again (a copy, changes nothing).
- *   sent_to_bank — import Finance's result file. A valid file becomes a
- *     `payout_result` request; nothing posts to a ledger until it is approved.
+ *   sent_to_bank — import Finance's result file through the kit upload box. A
+ *     valid file becomes a `payout_result` request; nothing posts to a ledger
+ *     until it is approved.
  */
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { formatDateTime, formatEgp, formatCount } from './format.js';
+import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { iconUrl } from '../components/ad-styles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -33,8 +40,7 @@ const linesTable = qs('#lines-table');
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 
-
-/** Batch status → the kit's solid chip. */
+/** Batch status → the kit's chip. */
 const CHIP = {
   pending_approval: { className: 'status-pending', icon: 'fa-hourglass-half' },
   ready: { className: 'status-created', icon: 'fa-file-export' },
@@ -63,8 +69,8 @@ function el(tag, className, text) {
   return node;
 }
 
-function ltr(text) {
-  return el('span', 'ad-ltr', text);
+function ltr(text, tag = 'span') {
+  return el(tag, 'ad-ltr', text);
 }
 
 function link(href, text, className = 'list__link') {
@@ -73,23 +79,40 @@ function link(href, text, className = 'list__link') {
   return a;
 }
 
+function glyph(classes) {
+  const i = el('i', classes);
+  i.setAttribute('aria-hidden', 'true');
+  return i;
+}
+
 function button(label, className, icon) {
   const b = el('button', `btn ${className}`);
   b.type = 'button';
-  if (icon) {
-    const i = el('i', `fa-solid ${icon}`);
-    i.setAttribute('aria-hidden', 'true');
-    b.append(i, document.createTextNode(' '));
-  }
+  if (icon) b.appendChild(glyph(`fa-solid ${icon}`));
   b.append(document.createTextNode(label));
   return b;
+}
+
+/** Kit alert: icon + text (or a `.details` block of nodes). */
+function alertBox(tone, content, icon = null) {
+  const icons = {
+    info: 'fa-circle-info',
+    warning: 'fa-triangle-exclamation',
+    success: 'fa-circle-check',
+    danger: 'fa-circle-exclamation',
+  };
+  const box = el('div', `alert ${tone}`);
+  box.appendChild(glyph(`fa-solid ${icon ?? icons[tone] ?? icons.info}`));
+  if (content instanceof Node) box.appendChild(content);
+  else box.appendChild(el('p', '', content));
+  return box;
 }
 
 function chip(status) {
   const spec = CHIP[status] ?? CHIP.ready;
   const wrap = el('div', spec.className);
   const icon = el('div', 'icon');
-  icon.innerHTML = `<i class="fa-solid ${spec.icon}" aria-hidden="true"></i>`;
+  icon.appendChild(glyph(`fa-solid ${spec.icon}`));
   wrap.append(icon, document.createTextNode(t(`payouts.status_${status}`)));
   return wrap;
 }
@@ -107,12 +130,91 @@ function requestOf(type, status = null) {
     .sort((a, b) => (b.madeAt ?? 0) - (a.madeAt ?? 0))[0] ?? null;
 }
 
-function notice(text, tone = '') {
-  return el('p', `batch-notice${tone ? ` batch-notice--${tone}` : ''}`, text);
+function approvalLink(request) {
+  const a = link(`approvals.html?id=${encodeURIComponent(request.id)}`, '', 'btn btn-primary-outline w-100');
+  a.append(glyph('fa-solid fa-arrow-up-right-from-square'), document.createTextNode(t('payoutBatch.openApproval')));
+  return a;
 }
 
-function approvalLink(request) {
-  return link(`approvals.html?id=${encodeURIComponent(request.id)}`, t('payoutBatch.openApproval'), 'btn btn-primary-outline btn--full');
+/** Kit key/value list: [[label, value, muted?], …]. */
+function kvList(pairs) {
+  const list = el('div', 'list-multi-column no-border p-0');
+  const row = el('div', 'row gx-4');
+  const col = el('div', 'col');
+  pairs.forEach(([label, value, muted]) => {
+    const line = el('div', 'row gx-0 list-row');
+    const key = el('div', 'list-item col text-bold', label);
+    const val = el('div', `list-item col-auto justify-content-md-end${muted ? ' batch-muted' : ''}`);
+    if (value instanceof Node) val.appendChild(value);
+    else val.textContent = value === null || value === undefined || value === '' ? t('common.notAvailable') : String(value);
+    line.append(key, val);
+    col.appendChild(line);
+  });
+  row.appendChild(col);
+  list.appendChild(row);
+  return list;
+}
+
+// ── Kit popups (export confirm) ──────────────────────
+async function bootstrapModal() {
+  try {
+    await loadBootstrap();
+  } catch {
+    /* fall back to class toggling */
+  }
+  return window.bootstrap?.Modal ?? null;
+}
+
+let exportPopup = null;
+
+function buildExportPopup() {
+  const root = el('div', 'modal fade popup-warning batch-popup');
+  root.id = 'export-confirm';
+  root.tabIndex = -1;
+  root.dataset.bsBackdrop = 'static';
+  root.setAttribute('aria-labelledby', 'export-confirm-title');
+  root.setAttribute('aria-hidden', 'true');
+  root.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="status-sign warning"><i class="fa-solid fa-warning" aria-hidden="true"></i></div>
+          <h4 id="export-confirm-title"></h4>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" id="export-confirm-btn"><i class="fa-solid fa-file-export" aria-hidden="true"></i><span></span></button>
+          <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span></span></button>
+        </div>
+      </div>
+    </div>`;
+  qs('.btn-close', root).setAttribute('aria-label', t('aria.closeDialog'));
+  qs('h4', root).textContent = t('kitFinance.pbExportConfirmTitle');
+  qs('.modal-body p', root).textContent = t('kitFinance.pbExportConfirmBody');
+  qs('#export-confirm-btn span', root).textContent = t('payoutBatch.exportFile');
+  qs('.btn-warning-outline span', root).textContent = t('common.cancel');
+  qs('#export-confirm-btn', root).addEventListener('click', async () => {
+    const Modal = window.bootstrap?.Modal;
+    if (Modal) Modal.getOrCreateInstance(root).hide();
+    else {
+      root.classList.remove('show');
+      root.style.display = 'none';
+    }
+    await exportFile(true);
+  });
+  document.body.appendChild(root);
+  return root;
+}
+
+async function confirmExport() {
+  exportPopup ??= buildExportPopup();
+  const Modal = await bootstrapModal();
+  if (Modal) Modal.getOrCreateInstance(exportPopup).show();
+  else {
+    exportPopup.classList.add('show');
+    exportPopup.style.display = 'block';
+  }
 }
 
 // ── Download ─────────────────────────────────────────
@@ -144,7 +246,7 @@ async function exportFile(firstExport) {
   }
 }
 
-// ── Import ───────────────────────────────────────────
+// ── Import (kit upload box) ──────────────────────────
 function errorText(d) {
   switch (d.code) {
     case 'missing_column': return t('payoutBatch.errMissingColumn', { column: d.column });
@@ -156,25 +258,6 @@ function errorText(d) {
   }
 }
 
-function showImportErrors(host, error) {
-  host.textContent = '';
-  host.hidden = false;
-  host.appendChild(el('strong', 'batch-import__errors-title', t('payoutBatch.importErrorsHeading')));
-  const details = Array.isArray(error?.details) ? error.details : [];
-  if (!details.length) {
-    host.appendChild(el('p', '', error?.message ?? t('payoutBatch.errReadFile')));
-    return;
-  }
-  host.appendChild(el('p', '', error.message));
-  const list = el('ul', 'batch-import__errors-list');
-  details.forEach((d) => {
-    const li = el('li');
-    li.appendChild(ltrSafe(errorText(d)));
-    list.appendChild(li);
-  });
-  host.appendChild(list);
-}
-
 /** The message mixes Latin line refs into translated text; let bidi handle it per item. */
 function ltrSafe(text) {
   const span = el('span', '', text);
@@ -182,118 +265,193 @@ function ltrSafe(text) {
   return span;
 }
 
-async function importText(csvText, errorsHost, status) {
+function showImportErrors(host, error) {
+  const details = el('div', 'details');
+  details.appendChild(el('h6', '', t('payoutBatch.importErrorsHeading')));
+  const items = Array.isArray(error?.details) ? error.details : [];
+  details.appendChild(el('p', '', items.length ? error.message : error?.message ?? t('payoutBatch.errReadFile')));
+  if (items.length) {
+    const list = el('ul', 'batch-errors');
+    items.forEach((d) => {
+      const li = el('li');
+      li.appendChild(ltrSafe(errorText(d)));
+      list.appendChild(li);
+    });
+    details.appendChild(list);
+  }
+  const box = alertBox('danger', details);
+  box.setAttribute('role', 'alert');
+  host.replaceChildren(box);
+  host.hidden = false;
+}
+
+/** The kit's attachment row under the upload box: file name, progress bar, remove. */
+function attachmentRow(onRemove) {
+  const item = el('div', 'attachment-item');
+  item.hidden = true;
+  const progressTitle = el('div', 'progress-title');
+  const details = el('div', 'details');
+  const name = el('span', 'title ad-ltr');
+  const pct = el('span', 'percentage ad-ltr');
+  details.append(name, pct);
+  const progress = el('div', 'progress');
+  const bar = el('div', 'progress-bar');
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
+  progress.appendChild(bar);
+  progressTitle.append(details, progress);
+  const closeWrap = el('div', 'close-button-container');
+  const close = el('button', 'close-button btn btn-link p-0');
+  close.type = 'button';
+  close.setAttribute('aria-label', t('aria.closeDialog'));
+  close.appendChild(glyph('fa-solid fa-circle-xmark'));
+  close.addEventListener('click', onRemove);
+  closeWrap.appendChild(close);
+  item.append(progressTitle, closeWrap);
+
+  const set = (fileName, state) => {
+    item.hidden = !fileName;
+    name.textContent = fileName ?? '';
+    // checking → animated, done → full green, failed → full red
+    bar.className = `progress-bar ${state === 'failed' ? 'bg-danger' : state === 'checking' ? 'progress-bar-striped progress-bar-animated bg-primary' : 'bg-success'}`;
+    bar.style.width = '100%';
+    bar.setAttribute('aria-valuenow', '100');
+    pct.textContent = state === 'checking' ? '…' : '100%';
+  };
+  return { item, set };
+}
+
+async function importText(fileName, csvText, ui) {
   if (busy) return;
   busy = true;
-  errorsHost.hidden = true;
-  status.hidden = false;
+  ui.errors.hidden = true;
+  ui.attachment.set(fileName, 'checking');
   try {
     const result = await mockApi.importPayoutResult(batch.id, csvText);
     shell.showToast(t('payoutBatch.importDone', { success: formatCount(result.success), failed: formatCount(result.failed) }), 'success');
     busy = false;
     await load();
   } catch (error) {
-    showImportErrors(errorsHost, error);
+    ui.attachment.set(fileName, 'failed');
+    showImportErrors(ui.errors, error);
   } finally {
     busy = false;
-    status.hidden = true;
   }
 }
 
 function importBlock() {
   const wrap = el('div', 'batch-import');
   wrap.appendChild(el('h6', 'batch-import__title', t('payoutBatch.importHeading')));
-  wrap.appendChild(el('p', 'ad-section__hint', t('payoutBatch.importHint')));
+  wrap.appendChild(el('p', 'small lh-sm batch-muted', t('payoutBatch.importHint')));
 
-  const input = el('input', 'visually-hidden');
+  // Kit upload component (driver-balance-details #recordPayoutModal).
+  const group = el('div', 'input-group mt-2 batch-upload');
+  const input = el('input', 'form-control custom-file-input');
   input.type = 'file';
   input.accept = '.csv,text/csv';
   input.id = 'result-file';
-  const label = el('label', 'btn btn-primary btn--full');
+  const label = el('label', 'custom-file-label');
   label.htmlFor = 'result-file';
-  label.innerHTML = '<i class="fa-solid fa-file-import" aria-hidden="true"></i> ';
-  label.append(document.createTextNode(t('payoutBatch.importChoose')));
-
-  const status = el('p', 'batch-import__status');
-  status.append(el('span', 'spinner'), document.createTextNode(` ${t('payoutBatch.importing')}`));
-  status.hidden = true;
+  const img = el('img');
+  img.src = iconUrl('upload.svg');
+  img.alt = '';
+  label.append(img, document.createTextNode(t('kitFinance.pbUploadPrompt')), el('span', '', t('kitFinance.pbUploadLimits')));
+  group.append(input, label);
 
   const errors = el('div', 'batch-import__errors');
-  errors.setAttribute('role', 'alert');
   errors.hidden = true;
+  const attachment = attachmentRow(() => {
+    attachment.set(null);
+    errors.hidden = true;
+    input.value = '';
+  });
+  const ui = { errors, attachment };
 
   input.addEventListener('change', () => {
     const file = input.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => importText(String(reader.result ?? ''), errors, status);
-    reader.onerror = () => showImportErrors(errors, { message: t('payoutBatch.errReadFile') });
+    reader.onload = () => importText(file.name, String(reader.result ?? ''), ui);
+    reader.onerror = () => {
+      attachment.set(file.name, 'failed');
+      showImportErrors(errors, { message: t('payoutBatch.errReadFile') });
+    };
     reader.readAsText(file);
     input.value = '';
   });
 
   // Demo only: Finance's file does not exist in a mockup, so build one.
-  const sample = el('button', 'btn btn-link batch-import__sample');
+  const sample = el('button', 'btn btn-secondary-outline batch-import__sample');
   sample.type = 'button';
-  sample.append(el('span', 'batch-demo-tag', t('payoutBatch.demo')), document.createTextNode(` ${t('payoutBatch.importSample')}`));
+  sample.id = 'btn-sample-result';
+  sample.append(el('span', 'batch-demo-tag', t('payoutBatch.demo')), document.createTextNode(t('payoutBatch.importSample')));
   sample.addEventListener('click', async () => {
     try {
-      const { csv } = await mockApi.buildSampleResult(batch.id);
-      await importText(csv, errors, status);
+      const { csv, fileName } = await mockApi.buildSampleResult(batch.id);
+      await importText(fileName ?? `${batch.ref}-result.csv`, csv, ui);
     } catch (error) {
       showImportErrors(errors, error);
     }
   });
 
-  wrap.append(input, label, sample, status, errors);
+  wrap.append(group, attachment.item, sample, errors);
   return wrap;
 }
 
-// ── Render ───────────────────────────────────────────
-function renderSummary() {
-  const approve = requestOf('payout_batch');
-  const items = [
-    { label: t('payoutBatch.reference'), value: batch.ref, ltr: true },
-    { label: t('payoutBatch.status'), value: chip(batch.status) },
-    { label: t('payoutBatch.created'), value: atBy(batch.createdAt, batch.createdBy) },
-  ];
-  if (batch.status === 'rejected') {
-    items.push(
-      { label: t('payoutBatch.rejected'), value: atBy(approve?.decidedAt ?? batch.completedAt, approve?.checker) },
-      { label: t('payoutBatch.rejectReason'), value: approve?.rejectReason ?? null, wide: true },
-    );
-  } else {
-    items.push(
-      { label: t('payoutBatch.approved'), value: atBy(batch.approvedAt, batch.approvedBy) ?? t('payoutBatch.notYet'), muted: !batch.approvedAt },
-      { label: t('payoutBatch.exported'), value: atBy(batch.exportedAt, batch.exportedBy) ?? t('payoutBatch.notYet'), muted: !batch.exportedAt },
-      { label: t('payoutBatch.resultImported'), value: atBy(batch.resultImportedAt, batch.resultImportedBy) ?? t('payoutBatch.notYet'), muted: !batch.resultImportedAt },
-      { label: t('payoutBatch.completed'), value: batch.completedAt ? formatDateTime(batch.completedAt) : t('payoutBatch.notYet'), muted: !batch.completedAt },
-    );
-  }
-  items.push(
-    { label: t('payoutBatch.lines'), value: formatCount(batch.lines.length) },
-    { label: t('payoutBatch.total'), value: formatEgp(batch.total), ltr: true },
-    { label: t('payoutBatch.paidTotal'), value: formatEgp(batch.paidTotal), ltr: true },
-  );
-  qs('#batch-summary').items = items;
+// ── Render: summary card ─────────────────────────────
+
+/** Date on one line, the admin under it — a narrow card cannot fit "date by email". */
+function whenWho(at, name) {
+  if (!at) return null;
+  const stack = el('div', 'batch-when');
+  stack.appendChild(el('span', '', formatDateTime(at)));
+  if (name) stack.appendChild(ltr(name)).classList.add('batch-muted');
+  return stack;
 }
 
-function renderTimeline() {
-  const section = qs('#batch-progress');
-  section.items = [];
-  const host = section.body;
-  host.textContent = '';
-  const timeline = document.createElement('ad-timeline');
+function renderSummary() {
+  qs('#batch-ref').textContent = batch.ref;
+  const approve = requestOf('payout_batch');
+  const notYet = t('payoutBatch.notYet');
+  const pairs = [
+    [t('payoutBatch.reference'), ltr(batch.ref)],
+    [t('payoutBatch.status'), chip(batch.status)],
+    [t('payoutBatch.created'), whenWho(batch.createdAt, batch.createdBy)],
+  ];
+  if (batch.status === 'rejected') {
+    pairs.push(
+      [t('payoutBatch.rejected'), whenWho(approve?.decidedAt ?? batch.completedAt, approve?.checker)],
+      [t('payoutBatch.rejectReason'), approve?.rejectReason ?? null],
+    );
+  } else {
+    pairs.push(
+      [t('payoutBatch.approved'), whenWho(batch.approvedAt, batch.approvedBy) ?? notYet, !batch.approvedAt],
+      [t('payoutBatch.exported'), whenWho(batch.exportedAt, batch.exportedBy) ?? notYet, !batch.exportedAt],
+      [t('payoutBatch.resultImported'), whenWho(batch.resultImportedAt, batch.resultImportedBy) ?? notYet, !batch.resultImportedAt],
+      [t('payoutBatch.completed'), batch.completedAt ? formatDateTime(batch.completedAt) : notYet, !batch.completedAt],
+    );
+  }
+  pairs.push(
+    [t('payoutBatch.lines'), formatCount(batch.lines.length)],
+    [t('payoutBatch.total'), el('p', 'text-bold ad-ltr', formatEgp(batch.total))],
+    [t('payoutBatch.paidTotal'), el('p', 'text-bold success-color ad-ltr', formatEgp(batch.paidTotal))],
+  );
+  qs('#batch-summary-body').replaceChildren(kvList(pairs));
+}
 
-  const resultReq = requestOf('payout_result', 'approved');
+// ── Render: state timeline card ──────────────────────
+function renderTimeline() {
   const s = batch.status;
   const waiting = t('payoutBatch.stepWaiting');
+  const resultReq = requestOf('payout_result', 'approved');
+
+  // Generated → Approved → Sent to bank → Result imported → Completed / Rejected
   const step = (label, at, by, done, current) => ({
     label,
     meta: done ? (atBy(at, by) ?? '') : waiting,
-    tone: done ? 'success' : current ? 'warning' : 'muted',
+    tone: done ? 'success' : current ? 'warning' : 'todo',
   });
-
   const items = [step(t('payoutBatch.stepGenerated'), batch.createdAt, batch.createdBy, true, false)];
   if (s === 'rejected') {
     const req = requestOf('payout_batch');
@@ -306,77 +464,86 @@ function renderTimeline() {
   } else {
     items.push(
       step(t('payoutBatch.stepApproved'), batch.approvedAt, batch.approvedBy, Boolean(batch.approvedAt), s === 'pending_approval'),
-      step(t('payoutBatch.stepExported'), batch.exportedAt, batch.exportedBy, Boolean(batch.exportedAt), s === 'ready'),
+      step(t('payouts.status_sent_to_bank'), batch.exportedAt, batch.exportedBy, Boolean(batch.exportedAt), s === 'ready'),
       step(t('payoutBatch.stepResultImported'), batch.resultImportedAt, batch.resultImportedBy, Boolean(batch.resultImportedAt), s === 'sent_to_bank'),
-      step(t('payoutBatch.stepResultApproved'), resultReq?.decidedAt ?? batch.completedAt, resultReq?.checker, s === 'completed', s === 'result_pending'),
-      step(t('payoutBatch.stepCompleted'), batch.completedAt, null, s === 'completed', false),
+      step(t('payoutBatch.stepCompleted'), resultReq?.decidedAt ?? batch.completedAt, resultReq?.checker, s === 'completed', s === 'result_pending'),
     );
   }
-  timeline.items = items;
-  host.appendChild(timeline);
+
+  const list = el('ol', 'timeline-vertical batch-timeline');
+  items.forEach((item) => {
+    const li = el('li', item.tone);
+    // The kit's own tag name for a timeline label.
+    li.appendChild(el('lable', '', item.label));
+    li.appendChild(el('span', '', item.meta));
+    if (item.note) li.appendChild(el('span', 'batch-timeline__note', item.note));
+    list.appendChild(li);
+  });
+  qs('#batch-timeline-body').replaceChildren(list);
 }
 
+// ── Render: next-step card ───────────────────────────
 function renderActions() {
-  const section = qs('#batch-actions');
-  section.items = [];
-  const host = section.body;
-  host.textContent = '';
+  const host = qs('#batch-actions-body');
+  const nodes = [];
   const s = batch.status;
 
   if (s === 'pending_approval') {
-    host.appendChild(notice(t('payoutBatch.waitingApproval'), 'warning'));
+    nodes.push(alertBox('warning', t('payoutBatch.waitingApproval'), 'fa-hourglass-half'));
     const req = requestOf('payout_batch', 'pending');
-    if (req) host.appendChild(approvalLink(req));
+    if (req) nodes.push(approvalLink(req));
   }
 
   if (s === 'ready') {
-    host.appendChild(notice(t('payoutBatch.readyNote')));
-    const b = button(t('payoutBatch.exportFile'), 'btn-primary btn--full', 'fa-file-export');
+    nodes.push(alertBox('info', t('payoutBatch.readyNote')));
+    const b = button(t('payoutBatch.exportFile'), 'btn-primary w-100', 'fa-file-export');
     b.id = 'btn-export';
-    b.addEventListener('click', () => exportFile(true));
-    host.appendChild(b);
+    b.addEventListener('click', confirmExport);
+    nodes.push(b);
   }
 
   if (s === 'result_pending') {
-    host.appendChild(notice(t('payoutBatch.waitingResultApproval'), 'warning'));
+    nodes.push(alertBox('warning', t('payoutBatch.waitingResultApproval'), 'fa-hourglass-half'));
     const req = requestOf('payout_result', 'pending');
-    if (req) host.appendChild(approvalLink(req));
+    if (req) nodes.push(approvalLink(req));
   }
 
   if (s === 'completed') {
     const paid = batch.lines.filter((l) => l.status === 'paid').length;
     const failed = batch.lines.filter((l) => l.status === 'failed').length;
-    host.appendChild(
-      notice(
+    nodes.push(
+      alertBox(
+        failed ? 'warning' : 'success',
         failed
           ? t('payoutBatch.completedSummary', { paid: formatCount(paid), lines: formatCount(batch.lines.length), amount: formatEgp(batch.paidTotal), failed: formatCount(failed) })
           : t('payoutBatch.completedAllPaid', { lines: formatCount(batch.lines.length), amount: formatEgp(batch.paidTotal) }),
-        failed ? 'warning' : 'success',
       ),
     );
   }
 
   if (s === 'rejected') {
-    host.appendChild(notice(t('payoutBatch.rejectedNote'), 'danger'));
+    nodes.push(alertBox('danger', t('payoutBatch.rejectedNote')));
   }
 
   if (s === 'sent_to_bank') {
     // A rejected result sends the batch back here; say why, so the next file is right.
     const rejected = requestOf('payout_result', 'rejected');
     if (rejected) {
-      host.appendChild(notice(t('payoutBatch.resultRejected', { name: rejected.checker, reason: rejected.rejectReason ?? '' }), 'danger'));
+      nodes.push(alertBox('danger', t('payoutBatch.resultRejected', { name: rejected.checker, reason: rejected.rejectReason ?? '' })));
     }
-    host.appendChild(importBlock());
+    nodes.push(importBlock());
   }
 
   if (['sent_to_bank', 'result_pending', 'completed'].includes(s)) {
     const again = el('div', 'batch-again');
-    const b = button(t('payoutBatch.exportAgain'), 'btn-primary-outline btn--full', 'fa-download');
+    const b = button(t('payoutBatch.exportAgain'), 'btn-primary-outline w-100', 'fa-download');
     b.id = 'btn-export-again';
     b.addEventListener('click', () => exportFile(false));
-    again.append(b, el('p', 'ad-section__hint', t('payoutBatch.exportAgainHint')));
-    host.appendChild(again);
+    again.append(b, el('p', 'small lh-sm batch-muted', t('payoutBatch.exportAgainHint')));
+    nodes.push(again);
   }
+
+  host.replaceChildren(...nodes);
 }
 
 // ── Lines grid ───────────────────────────────────────
@@ -385,17 +552,27 @@ let linePage = 1;
 
 linesTable.pageSize = LINE_PAGE;
 linesTable.columns = [
-  { key: 'lineRef', label: t('payoutBatch.colLineRef'), render: (row) => ltr(row.lineRef) },
+  { key: 'lineRef', label: t('payoutBatch.colLineRef'), ltr: true, render: (row) => ltr(row.lineRef) },
   {
     key: 'driverName',
     label: t('payoutBatch.colDriver'),
-    render: (row) => link(`driver-profile.html?id=${encodeURIComponent(row.driverId)}`, row.driverName),
+    render: (row) => link(`driver-balance-details.html?id=${encodeURIComponent(row.driverId)}`, row.driverName),
   },
-  { key: 'nationalId', label: t('payoutBatch.colNid'), render: (row) => ltr(row.nationalId) },
-  { key: 'payoutType', label: t('payoutBatch.colType'), render: (row) => typeLabel(row.payoutType) },
-  { key: 'provider', label: t('payoutBatch.colProvider'), render: (row) => row.provider || null },
-  { key: 'masked', label: t('payoutBatch.colNumber'), render: (row) => ltr(row.masked) },
-  { key: 'amount', label: t('payoutBatch.colAmount'), numeric: true, render: (row) => formatEgp(row.amount) },
+  // Product rule: national IDs are shown in full.
+  { key: 'nationalId', label: t('payoutBatch.colNid'), ltr: true, render: (row) => ltr(row.nationalId) },
+  {
+    key: 'payoutType',
+    label: t('kitFinance.pbColMethod'),
+    render: (row) => {
+      const stack = el('div', 'batch-method');
+      stack.appendChild(el('p', 'text-bold', typeLabel(row.payoutType)));
+      if (row.provider) stack.appendChild(el('span', 'batch-muted', row.provider));
+      return stack;
+    },
+  },
+  // Product rule: payout numbers are masked (•••• 1234).
+  { key: 'masked', label: t('payoutBatch.colNumber'), ltr: true, render: (row) => ltr(row.masked) },
+  { key: 'amount', label: t('payoutBatch.colAmount'), numeric: true, render: (row) => el('p', 'text-bold ad-ltr', formatEgp(row.amount)) },
   {
     key: 'status',
     label: t('payoutBatch.colStatus'),
@@ -406,7 +583,7 @@ linesTable.columns = [
       lamp.append(el('div', 'lamp'), document.createTextNode(t(spec.key)));
       stack.appendChild(lamp);
       if (row.status === 'paid' && row.bankReference) stack.appendChild(el('span', 'batch-line-status__meta ad-ltr', row.bankReference));
-      if (row.status === 'failed' && row.failureReason) stack.appendChild(el('span', 'batch-line-status__meta batch-line-status__meta--failed', row.failureReason));
+      if (row.status === 'failed' && row.failureReason) stack.appendChild(el('span', 'batch-line-status__meta danger-color', row.failureReason));
       return stack;
     },
   },

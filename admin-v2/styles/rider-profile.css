@@ -1,0 +1,59 @@
+/*
+ * rider-profile.css — rider profile on the v22-09 kit card grid.
+ * Loaded after detail.css; only what the kit markup does not already cover.
+ * Every value comes from a token.
+ */
+
+/* Cards in one grid row share a height, as in the kit. */
+.people-grid > [class*='col-'] > ad-detail-section {
+  height: 100%;
+}
+
+/* Notices, hints and buttons slotted under a card's key/value rows. */
+.people-card-extra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ad-detail-section .card-body > .ad-stack > .people-card-extra {
+  padding-block-end: var(--space-4);
+}
+
+.people-card-extra:empty {
+  display: none;
+}
+
+.people-card-extra .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The document galleries sit flush in their card, like the kit's. */
+.ad-detail-section ad-doc-viewer {
+  display: block;
+  padding-block-end: var(--space-3);
+}
+
+/* Bottom action row: the hint reads beside the buttons. */
+.people-action-hint {
+  flex: 1 1 20rem;
+  color: var(--color-text-muted);
+}
+
+/* Arrows and chevrons point the reading direction. */
+[dir='rtl'] .people-flip {
+  transform: scaleX(-1);
+}
+
+/* The kit's trip table card: the grid fills it edge to edge. */
+.standard-card.light-medium-bg ad-data-table {
+  display: block;
+}
+
+/* The trip card's hint sits under its title. */
+.standard-card.light-medium-bg > .card-header {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

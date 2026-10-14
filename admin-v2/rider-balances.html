@@ -9,45 +9,23 @@
   </head>
 
   <body>
+    <!--
+      Kit v22-09 rider-balances.html: two KPI tiles, the filter row and a grid
+      whose Ledger action opens rider-balance-details.html?id=<riderId>.
+    -->
     <ad-shell
       active="rider-balances"
       page-title-key="riderBalances.heading"
       breadcrumb-keys="nav.money > nav.riderBalances"
-      screen-styles="styles/detail.css, styles/balances.css, styles/rider-balances.css"
+      screen-styles="styles/rider-balances.css"
     >
-      <section class="ad-section">
-        <p class="ad-section__hint" data-i18n="riderBalancesFinance.lead">
-          A rider who cancels after the grace period owes a fee. It is recovered as a
-          surcharge on her next cash trip. An admin can waive one fee with a reason — the
-          waiver needs another admin's approval. Persistent abuse is a human decision,
-          handled from her profile.
-        </p>
-      </section>
-
-      <div class="ad-stats">
-        <ad-stat-card id="card-owing" label="Riders owing a fee" data-i18n-label="riderBalances.cardOwing" value="—"></ad-stat-card>
-        <ad-stat-card id="card-outstanding" label="Total outstanding" data-i18n-label="riderBalances.cardOutstanding" value="—"></ad-stat-card>
+      <div class="ad-stats rider-balance-kpis">
+        <ad-stat-card id="card-outstanding" tone="success" icon="balance.svg" label="Total outstanding" data-i18n-label="kitBalances.kpiRiderOutstanding" value="—"></ad-stat-card>
+        <ad-stat-card id="card-owing" tone="danger" icon="wallet-minus.svg" label="Riders with fees due" data-i18n-label="kitBalances.kpiRidersDue" value="—"></ad-stat-card>
       </div>
 
       <ad-filter-bar id="rider-balance-filters"></ad-filter-bar>
       <ad-data-table id="rider-balance-table"></ad-data-table>
-
-      <section class="ad-section balance-ledger" id="ledger-panel" hidden>
-        <div class="ad-section__header">
-          <h2 class="ad-section__title" id="ledger-title">Ledger</h2>
-          <button type="button" class="btn btn--ghost btn--sm" id="ledger-close" data-i18n="riderBalances.close">Close</button>
-        </div>
-        <div class="ad-section__body">
-          <div class="balance-ledger__summary" id="ledger-summary"></div>
-          <p class="rider-credit-note" id="ledger-credit" hidden></p>
-          <div class="balance-ledger__actions">
-            <a class="btn btn--ghost btn--sm" id="btn-view-profile" href="rider-profile.html" data-i18n="riderBalances.viewProfile">View profile</a>
-          </div>
-          <ad-data-table id="ledger-table"></ad-data-table>
-        </div>
-      </section>
-
-      <ad-form-modal id="waive-modal"></ad-form-modal>
     </ad-shell>
     <script type="module" src="scripts/rider-balances.js"></script>
   </body>

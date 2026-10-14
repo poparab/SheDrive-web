@@ -13,6 +13,7 @@ import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
 import { statusLabel } from '../components/ad-status-pill.js';
+import { gridAction } from '../components/ad-data-table.js';
 import { downloadCsv, formatDateTime, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -24,7 +25,6 @@ if (!adminAuth.requireAdmin()) {
 
 const filters = qs('#sos-filters');
 const table = qs('#sos-table');
-const openCount = qs('#open-count');
 
 const query = {
   status: 'open',
@@ -131,6 +131,17 @@ table.rowHref = (row) => `sos-request.html?id=${row.id}`;
 
 table.columns = [
   {
+    key: 'tripId',
+    label: t('sos.colTripId'),
+    className: 'ad-table__id',
+    render: (row) => {
+      const id = document.createElement('span');
+      id.className = 'ad-ltr';
+      id.textContent = row.tripId;
+      return id;
+    },
+  },
+  {
     key: 'raisedAt',
     label: t('sos.timeLabel'),
     sortable: true,
@@ -154,28 +165,21 @@ table.columns = [
     key: 'raisedBy',
     label: t('sos.colRaisedBy'),
     sortable: true,
+    // Kit: a solid chip over the name. Rider and driver are told apart by
+    // hue — the kit's secondary (pink) chip for a rider, primary for a driver.
     render: (row) => {
       const wrap = document.createElement('span');
       wrap.className = 'sos-raiser';
       const pill = document.createElement('span');
-      pill.className = `sos-raiser__pill sos-raiser__pill--${row.raisedBy}`;
+      pill.className =
+        row.raisedBy === 'driver' ? 'status-primary-solid' : 'status-secondary-solid';
+      pill.dataset.raisedBy = row.raisedBy;
       pill.textContent = raiserLabel(row);
-      const name = document.createElement('span');
+      const name = document.createElement('p');
       name.className = 'sos-raiser__name';
       name.textContent = raiserName(row);
       wrap.append(pill, name);
       return wrap;
-    },
-  },
-  {
-    key: 'tripId',
-    label: t('sos.colTripId'),
-    className: 'ad-table__id',
-    render: (row) => {
-      const id = document.createElement('span');
-      id.className = 'ad-ltr';
-      id.textContent = row.tripId;
-      return id;
     },
   },
   {
@@ -186,6 +190,7 @@ table.columns = [
   {
     key: 'location',
     label: t('sos.colLocation'),
+    className: 'list__wrap',
     render: (row) => row.location?.address ?? '',
   },
   {
@@ -212,6 +217,13 @@ table.columns = [
       return pill;
     },
   },
+  {
+    key: 'actions',
+    label: t('common.actions'),
+    actions: true,
+    render: (row) =>
+      gridAction({ href: `sos-request.html?id=${row.id}`, label: t('common.view') }),
+  },
 ];
 
 table.emptyState = {
@@ -231,6 +243,13 @@ table.addEventListener('pagechange', (event) => {
   load();
 });
 
+// Kit "Rows count" select in the grid footer.
+table.addEventListener('pagesizechange', (event) => {
+  query.pageSize = event.detail.pageSize;
+  query.page = 1;
+  load();
+});
+
 const guard = createRequestGuard();
 
 async function load() {
@@ -241,15 +260,10 @@ async function load() {
     if (!isCurrent()) return;
     lastRows = result.rows;
     table.setData(result);
-    openCount.textContent =
-      query.status === 'open'
-        ? t('sos.badgeOpen', { count: result.total })
-        : t('sos.badgeShown', { count: result.total });
   } catch (error) {
     if (!isCurrent()) return;
     lastRows = [];
     table.setError(error.message, load);
-    openCount.textContent = t('common.notAvailable');
   }
 }
 
@@ -258,7 +272,7 @@ load();
 // ── Kit KPI row ───────────────────────────────────────
 const sosStats = mountStatRow(qs('#sos-stats'), [
   { key: 'all', label: t('sos.statTotal'), tone: 'primary', icon: 'warning-sign.svg' },
-  { key: 'open', label: t('status.open'), tone: 'danger', icon: 'prossesing.svg' },
+  { key: 'open', label: t('status.open'), tone: 'warning', icon: 'prossesing.svg' },
   { key: 'closed', label: t('status.closed'), tone: 'success', icon: 'checked-2.svg' },
 ]);
 

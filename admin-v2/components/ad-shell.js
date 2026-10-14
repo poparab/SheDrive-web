@@ -232,7 +232,13 @@ class AdShell extends HTMLElement {
   refreshNavCounts(root = this) {
     root.querySelectorAll('[data-nav-count]').forEach((badge) => {
       const counter = NAV_COUNTS[badge.dataset.navCount];
-      const n = counter.read();
+      // A counter must never break the page it sits on (e.g. under ?state=error).
+      let n = 0;
+      try {
+        n = Number(counter.read()) || 0;
+      } catch {
+        n = 0;
+      }
       badge.hidden = n === 0;
       badge.title = t(counter.labelKey, { n });
       // The digit alone reads as noise to a screen reader; name what it counts.

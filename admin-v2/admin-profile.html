@@ -14,19 +14,21 @@
       breadcrumb-keys="nav.administration > profile.title"
       screen-styles="styles/profile.css"
     >
-      <div class="ad-stub">
-        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
-        <span>
-          <strong>Read-only mockup.</strong> This is the page the topbar user menu points
-          at. The mock admin API has no self-service endpoint for editing your own
-          account, so nothing here saves and no field is editable. The two security
-          actions hand off to the enrolment and new-password screens, which are
-          themselves mockups. Every value below is read from the demo session and the
-          seeded admin record.
-        </span>
+      <div class="alert info profile__notice">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p>
+          <strong data-i18n="profile.notice1">Read-only mockup.</strong>
+          <span data-i18n="profile.notice2">
+            This is the page the topbar user menu points at. The mock admin API has no
+            self-service endpoint for editing your own account, so nothing here saves and no
+            field is editable. The two security actions hand off to the enrolment and
+            new-password screens, which are themselves mockups. Every value below is read from
+            the demo session and the seeded admin record.
+          </span>
+        </p>
       </div>
 
-      <div class="row gy-4 profile__grid">
+      <div class="row g-3 profile__grid">
         <!-- ── Account ────────────────────────────────── -->
         <div class="col-lg-6 col-xl-4">
           <div class="standard-card-theme2 white-bg profile__card">
@@ -132,11 +134,13 @@
               </div>
 
               <div class="profile__actions">
-                <a class="btn btn-primary-rounded-outline btn--sm" href="2fa-setup.html">
-                  <i class="fa-solid fa-shield-halved"></i> Set up authenticator
+                <a class="btn btn-primary-outline" href="2fa-setup.html">
+                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  <span data-i18n="profile.setUpAuthenticator">Set up authenticator</span>
                 </a>
-                <a class="btn btn-secondary-rounded-outline btn--sm" href="password-new.html">
-                  <i class="fa-solid fa-key"></i> Change password
+                <a class="btn btn-tertiary" href="password-new.html">
+                  <i class="fa-solid fa-key" aria-hidden="true"></i>
+                  <span data-i18n="profile.changePassword">Change password</span>
                 </a>
               </div>
 
@@ -188,17 +192,19 @@
               </div>
 
               <div class="profile__actions">
-                <button class="btn btn-danger-rounded-outline btn--sm" type="button" id="session-signout">
+                <button class="btn btn-danger-outline" type="button" id="session-signout">
                   <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                   <span data-i18n="shell.signOut">Sign out</span>
                 </button>
               </div>
 
               <p class="profile__hint">
-                Signing out clears the browser session and returns to the sign-in screen.
-                Because every internal screen is open for review, opening one again quietly
-                provisions a fresh demo session — add <code>?auth=strict</code> to a screen
-                URL to see the production redirect instead.
+                <span data-i18n="profile.sessionHint1">Signing out clears the browser session and
+                returns to the sign-in screen. Because every internal screen is open for review,
+                opening one again quietly provisions a fresh demo session — add</span>
+                <code>?auth=strict</code>
+                <span data-i18n="profile.sessionHint2">to a screen URL to see the production
+                redirect instead.</span>
               </p>
             </div>
           </div>

@@ -2,6 +2,12 @@
  * reports.js — SheDrive admin revenue & commission summary
  * #1832: date range + optional zone filter, five totals, a zero state for an
  * idle period, a reconciliation proof, and CSV export.
+ *
+ * Kit v22-09 port (2026-10-14): the kit's revenue-summary — the filter row
+ * (zone-name search, zone, date range) straight under the title, five KPI
+ * widgets in the kit's tones, and our reconciliation check as a kit card.
+ * The zone-name search narrows "All zones" to the zones whose name matches;
+ * a selected zone always wins over the search text.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -18,12 +24,20 @@ if (!adminAuth.requireAdmin()) {
 
 const filters = qs('#report-filters');
 const errorBox = qs('#report-error');
+const CARD_IDS = ['card-trips', 'card-gross', 'card-commission', 'card-fees', 'card-net'];
 
-const query = { from: '', to: '', zoneId: 'all' };
+const query = { search: '', from: '', to: '', zoneId: 'all' };
 let summary = null;
 
 filters.fields = [
-  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: 'to' },
+  {
+    type: 'search',
+    key: 'search',
+    label: t('reports.zone'),
+    placeholder: t('kitPricing.zoneSearchPlaceholder'),
+    grow: true,
+    maxLength: 60,
+  },
   {
     type: 'select',
     key: 'zoneId',
@@ -34,7 +48,17 @@ filters.fields = [
       ...ZONES.map((zone) => ({ value: String(zone.id), label: zone.name })),
     ],
   },
+  { type: 'daterange', key: 'date', label: t('reports.dateRange'), fromKey: 'from', toKey: 'to' },
 ];
+
+/** What the CSV and the summary say the figures cover. */
+function scopeLabel() {
+  if (query.zoneId !== 'all') {
+    return ZONES.find((z) => String(z.id) === String(query.zoneId))?.name ?? query.zoneId;
+  }
+  const term = query.search.trim();
+  return term ? t('kitPricing.zonesMatching', { term }) : t('reports.allZones');
+}
 
 filters.actions = [
   {
@@ -42,17 +66,13 @@ filters.actions = [
     variant: 'ghost',
     onClick: () => {
       if (!summary) return;
-      const zoneLabel =
-        query.zoneId === 'all'
-          ? t('reports.allZones')
-          : (ZONES.find((z) => String(z.id) === String(query.zoneId))?.name ?? query.zoneId);
       downloadCsv(
         `shedrive-revenue-${toDateInputValue(Date.now())}.csv`,
         [t('reports.csvMetric'), t('reports.csvValue')],
         [
           [t('reports.csvDateFrom'), query.from || t('reports.csvAllTime')],
           [t('reports.csvDateTo'), query.to || t('reports.csvAllTime')],
-          [t('reports.zone'), zoneLabel],
+          [t('reports.zone'), scopeLabel()],
           [t('reports.cardTrips'), summary.completedTrips],
           [t('reports.csvGross'), summary.grossFares.toFixed(2)],
           [t('reports.csvCommission'), summary.commission.toFixed(2)],
@@ -69,14 +89,16 @@ filters.addEventListener('change', (event) => {
   load();
 });
 
-function moneyRow(label, value, total = false) {
+// ── Reconciliation check card (#1832 S4) ──────────────
+
+function listRow(label, value, tone = '') {
   const row = document.createElement('div');
-  row.className = total ? 'detail__money-row detail__money-row--total' : 'detail__money-row';
-  const key = document.createElement('span');
-  key.className = 'detail__money-label';
+  row.className = 'row gx-0 list-row';
+  const key = document.createElement('div');
+  key.className = 'list-item col text-bold';
   key.textContent = label;
-  const val = document.createElement('span');
-  val.className = 'detail__money-value';
+  const val = document.createElement('div');
+  val.className = `list-item col-auto justify-content-md-end ad-ltr ${tone}`.trim();
   val.textContent = value;
   row.append(key, val);
   return row;
@@ -84,6 +106,7 @@ function moneyRow(label, value, total = false) {
 
 function renderReconciliation(data) {
   const host = qs('#recon-rows');
+  const verdict = qs('#recon-verdict');
   host.textContent = '';
 
   const sum = Math.round((data.commission + data.netDriverEarnings) * 100) / 100;
@@ -91,19 +114,43 @@ function renderReconciliation(data) {
   const balanced = Math.abs(sum - gross) < 0.01;
 
   host.append(
-    moneyRow(t('policies.commissionHeading'), formatEgp(data.commission)),
-    moneyRow(t('reports.cardNet'), formatEgp(data.netDriverEarnings)),
-    moneyRow(t('reports.sumRow'), formatEgp(sum), true),
-    moneyRow(t('reports.cardGross'), formatEgp(gross)),
+    listRow(t('reports.cardCommission'), formatEgp(data.commission)),
+    listRow(t('reports.cardNet'), formatEgp(data.netDriverEarnings)),
+    listRow(t('reports.sumRow'), formatEgp(sum), 'text-bold'),
+    listRow(t('reports.cardGross'), formatEgp(gross), balanced ? 'text-bold success-color' : 'text-bold danger-color'),
   );
 
-  const verdict = document.createElement('p');
-  verdict.className = balanced ? 'pricing__meta' : 'pricing__warning';
-  verdict.style.marginBlockStart = 'var(--space-3)';
+  verdict.className = balanced ? 'small mt-3 mb-0 success-color' : 'small mt-3 mb-0 warning-color text-bold';
   verdict.textContent = balanced
     ? t('reports.balanced')
-    : `⚠ Out by ${formatEgp(Math.abs(sum - gross))} — this would be a data problem, not a rounding one.`;
-  host.appendChild(verdict);
+    : t('reports.unbalanced', { amount: formatEgp(Math.abs(sum - gross)) });
+}
+
+// ── Load ──────────────────────────────────────────────
+
+const ZERO = { completedTrips: 0, grossFares: 0, commission: 0, cancellationFees: 0, netDriverEarnings: 0 };
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/** One zone, all zones, or the sum over the zones whose name matches the search. */
+async function fetchSummary() {
+  const term = query.search.trim().toLowerCase();
+  if (query.zoneId !== 'all' || !term) {
+    return mockApi.getRevenueSummary({ from: query.from, to: query.to, zoneId: query.zoneId });
+  }
+  const zones = ZONES.filter((z) => z.name.toLowerCase().includes(term));
+  const parts = await Promise.all(
+    zones.map((z) => mockApi.getRevenueSummary({ from: query.from, to: query.to, zoneId: String(z.id) })),
+  );
+  return parts.reduce(
+    (acc, part) => ({
+      completedTrips: acc.completedTrips + part.completedTrips,
+      grossFares: round2(acc.grossFares + part.grossFares),
+      commission: round2(acc.commission + part.commission),
+      cancellationFees: round2(acc.cancellationFees + part.cancellationFees),
+      netDriverEarnings: round2(acc.netDriverEarnings + part.netDriverEarnings),
+    }),
+    { ...ZERO },
+  );
 }
 
 const guard = createRequestGuard();
@@ -111,12 +158,12 @@ const guard = createRequestGuard();
 async function load() {
   const isCurrent = guard();
   errorBox.classList.remove('is-visible');
-  ['card-trips', 'card-gross', 'card-commission', 'card-fees', 'card-net'].forEach((id) => {
+  CARD_IDS.forEach((id) => {
     qs(`#${id}`).value = '…';
   });
 
   try {
-    const data = await mockApi.getRevenueSummary(query);
+    const data = await fetchSummary();
     if (!isCurrent()) return;
     summary = data;
 
@@ -128,7 +175,7 @@ async function load() {
 
     // #1832 S3 — an idle period shows zeros, not an error.
     const meta = data.completedTrips === 0 ? t('reports.noTrips') : '';
-    ['card-trips', 'card-gross', 'card-commission', 'card-fees', 'card-net'].forEach((id) => {
+    CARD_IDS.forEach((id) => {
       qs(`#${id}`).meta = meta;
     });
 
@@ -136,12 +183,14 @@ async function load() {
   } catch (error) {
     if (!isCurrent()) return;
     summary = null;
-    errorBox.textContent = `Could not load the summary: ${error.message}`;
+    errorBox.textContent = t('reports.loadError', { message: error.message });
     errorBox.classList.add('is-visible');
-    ['card-trips', 'card-gross', 'card-commission', 'card-fees', 'card-net'].forEach((id) => {
+    CARD_IDS.forEach((id) => {
       qs(`#${id}`).value = '—';
+      qs(`#${id}`).meta = '';
     });
     qs('#recon-rows').textContent = '';
+    qs('#recon-verdict').textContent = '';
   }
 }
 

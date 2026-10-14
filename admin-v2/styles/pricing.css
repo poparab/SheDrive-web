@@ -1,117 +1,83 @@
 /*
- * pricing.css — SheDrive admin pricing screens (v2 design kit)
+ * pricing.css — SheDrive admin pricing screens (kit v22-09 port, 2026-10-14)
  *
- * Zone list warnings, rate-card summary cells, and the global policy forms.
- * The grid, the cards and the form controls are all the kit's now, so this
- * sheet keeps only the layout the kit has no opinion about.
- *
- * Class names are unchanged — pricing-zones.js, pricing-policies.js and
- * reports.js emit every one of them. Every value is a token.
+ * pricing-zones, pricing-policies, and the kit dialogs both of them open
+ * (scripts/pricing-dialogs.js); reports and reconciliation also load it for
+ * `.pricing__meta`. The cards, grids, alerts, chips and buttons are the kit's
+ * own — this sheet only adds what the kit has no opinion about.
+ * Every value is a token.
  */
 
-/* A zone with no rate card blocks trips, so the warning has to read as one. */
-.pricing__warning {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--admin-fs-label);
-  font-weight: var(--fw-semibold);
-  color: var(--color-warning-strong);
+.pricing__meta {
+  color: var(--color-text-muted);
 }
 
-/* ── Rate card summary cell ─────────────────────────── */
+/* ── Service zones ──────────────────────────────────── */
 
+.pricing-zones__name p {
+  margin: 0;
+}
+
+/*
+ * The kit draws the five rates on one line, which does not fit beside the
+ * other five columns at 1280 px — two rates per line keeps the grid inside
+ * the card without a horizontal scroll.
+ */
 .pricing__rates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--admin-gutter-tight);
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: var(--space-1) var(--space-2);
   font-size: var(--admin-fs-label);
   font-variant-numeric: tabular-nums;
 }
 
-.pricing__rate {
+.pricing__rates > span {
   white-space: nowrap;
-  color: var(--color-text);
 }
 
-.pricing__rate-label {
-  color: var(--color-text-muted);
+/* "⚠ No rate card — trips will be blocked" may wrap rather than widen the grid. */
+.custom-grid-list .pricing__no-card {
+  white-space: normal;
+  max-inline-size: 13rem;
 }
 
-.pricing__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+/* Kit grid cells never wrap; the date and the pending note may. */
+.custom-grid-list td.pricing-zones__wrap,
+.custom-grid-list th.pricing-zones__wrap {
+  white-space: normal;
+  min-inline-size: 6rem;
 }
 
-/* ── Global policy screen ───────────────────────────── */
-
-/* Two forms side by side on a wide display; the kit cards frame them. */
-.pricing__policies {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
-  gap: var(--admin-gutter);
-  align-items: start;
-}
-
-.pricing__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--admin-gutter-tight);
-}
-
-.pricing__form-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 8rem;
-  gap: var(--admin-gutter-tight);
-  align-items: start;
-}
-
-.pricing__form-row .field {
-  margin: 0;
-}
-
-.pricing__label-block {
-  display: flex;
-  flex-direction: column;
+.pricing-zones__actions {
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-1);
 }
 
-.pricing__label {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-primary-700);
+table.custom-grid-list .pricing-zones__actions .grid-options-btn {
+  padding-inline: var(--space-1);
 }
 
-.pricing__label-hint {
-  font-size: var(--admin-fs-label);
-  line-height: var(--leading-normal);
-  color: var(--color-text-muted);
+/* A row action that is locked by a pending approval reads as unavailable. */
+.pricing-zones__actions .grid-options-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.pricing__meta {
-  font-size: var(--admin-fs-label);
-  color: var(--color-text-muted);
+/* Maker-checker (§1): the zone's proposed card waits for another admin. */
+table.custom-grid-list tbody tr.pricing-zones__row--pending > td {
+  /* the kit paints every cell white with !important */
+  background: var(--color-warning-soft) !important;
 }
-
-/*
- * Money KPI tiles carry a long figure plus a currency word ("17,588.56 EGP"),
- * which wraps onto two lines at the shared tile width. Tighten the figure so
- * the row reads as one line of numbers.
- */
-#report-cards .number {
-  font-size: calc(1rem + 0.35vw);
-  white-space: nowrap;
-}
-
-/* ── Pending rate-card change (2026-10-14 maker-checker) ── */
 
 .pricing__pending {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
-  margin-block-start: var(--space-1);
+  margin-block-start: var(--space-2);
+  max-inline-size: 15rem;
+  white-space: normal;
 }
 
 .pricing__pending-summary {
@@ -121,3 +87,54 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The draw toolbar is a kit info alert with buttons at its end side. */
+.pricing-zones__draw {
+  gap: var(--admin-gutter-tight);
+}
+
+.pricing-zones__draw .details {
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ── Global policies ────────────────────────────────── */
+
+/* The label inside the kit's p.text-bold reads as that paragraph. */
+.pricing__label {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* The input column stacks the field and its validation message. */
+.pricing__input {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.pricing__input .field__error {
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+/* ── Kit dialogs (scripts/pricing-dialogs.js) ───────── */
+
+.pricing-dialog__desc {
+  color: var(--color-text-muted);
+}
+
+.pricing-dialog__form {
+  text-align: start;
+}
+
+.pricing-dialog__form .field__hint,
+.pricing-dialog__form .field__error {
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+.pricing-dialog__outcome,
+.pricing-dialog__link {
+  margin-block-start: var(--space-2);
+}

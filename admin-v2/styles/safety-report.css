@@ -1,0 +1,50 @@
+/*
+ * safety-report.css — gender-mismatch report on the kit v22-09 layout
+ * Screen owner: admin-v2/safety-report.html
+ *
+ * Loaded after detail.css. The statement sits in the kit's info alert rather
+ * than the legacy quote block, cards stretch to the row height, and the modal
+ * forms read as forms.
+ */
+
+.sr-grid > [class*='col-'] > ad-detail-section {
+  display: block;
+  height: 100%;
+}
+
+/* The statement is the alert's own text, not the legacy quote block. */
+#statement-alert .detail__statement {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+}
+
+#statement-alert .detail__statement--empty {
+  font-style: italic;
+}
+
+#statement-alert .details {
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+#report-body > .alert {
+  margin-block-end: var(--space-3);
+}
+
+.sr-actions .btn i,
+.sr-modal .modal-footer .btn i {
+  margin-inline-end: var(--space-2);
+}
+
+.sr-modal .modal-body form,
+.sr-modal .modal-body .alert,
+.sr-modal .invalid-feedback {
+  text-align: start;
+}
+
+.sr-modal label span[data-i18n='kitDetails.optional'] {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-regular);
+}

@@ -2,12 +2,12 @@
  * payouts.js — SheDrive admin payout batches (2026-10-14 spec §3)
  *
  * Lists payout batches and generates a new one. Generating is a two-step act:
- * the preview shows who a batch made now would pay (and who it leaves out and
- * why), then confirming creates the batch as a `payout_batch` request that a
- * different admin must approve (§1). Nothing is paid from this screen.
+ * the preview lists only the drivers a batch made now would pay, then
+ * confirming creates the batch as a `payout_batch` request that a different
+ * admin must approve (§1). Nothing is paid from this screen.
  *
  * The preview needs a table of lines, which the field-driven
- * ad-form-modal cannot render, so it is a kit Bootstrap modal built here.
+ * ad-form-modal cannot render, so it is a kit `default-modal` built here.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -17,6 +17,7 @@ import { formatDate, formatEgp, formatCount } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { iconUrl } from '../components/ad-styles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -108,7 +109,7 @@ table.columns = [
     },
   },
   { key: 'lineCount', label: t('payouts.colLines'), sortable: true, numeric: true, render: (row) => formatCount(row.lineCount) },
-  { key: 'total', label: t('payouts.colTotal'), sortable: true, numeric: true, render: (row) => formatEgp(row.total) },
+  { key: 'total', label: t('payouts.colTotal'), sortable: true, numeric: true, render: (row) => el('p', 'text-bold ad-ltr', formatEgp(row.total)) },
   {
     key: 'paidFailed',
     label: t('payouts.colPaidFailed'),
@@ -124,8 +125,17 @@ table.columns = [
     },
   },
   { key: 'status', label: t('payouts.colStatus'), sortable: true, render: (row) => statusLamp(row.status) },
+  {
+    key: 'actions',
+    label: t('common.actions'),
+    render: (row) => {
+      const a = el('a', 'btn btn-primary-outline', t('common.view'));
+      a.href = `payout-batch.html?id=${encodeURIComponent(row.id)}`;
+      a.setAttribute('aria-label', `${t('common.view')} ${row.ref}`);
+      return a;
+    },
+  },
 ];
-table.rowHref = (row) => `payout-batch.html?id=${encodeURIComponent(row.id)}`;
 table.emptyState = {
   icon: 'wallet.svg',
   heading: t('payouts.emptyHeading'),
@@ -194,34 +204,36 @@ async function load() {
   }
 }
 
-// ── Generate: preview modal ──────────────────────────
+// ── Generate: preview modal (kit default-modal) ──────
 let modal = null;
 
 function buildModal() {
-  const root = el('div', 'modal fade payouts-preview');
+  const root = el('div', 'modal fade default-modal payouts-preview');
   root.id = 'preview-modal';
   root.tabIndex = -1;
+  root.dataset.bsBackdrop = 'static';
   root.setAttribute('aria-labelledby', 'preview-title');
   root.setAttribute('aria-hidden', 'true');
   root.innerHTML = `
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title" id="preview-title"></h4>
+          <img class="icon" alt="" />
+          <h3 id="preview-title"></h3>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body payouts-preview__body" id="preview-body"></div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="preview-confirm"></button>
-          <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal" id="preview-cancel"></button>
+          <button type="button" class="btn btn-success" id="preview-confirm"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span></span></button>
+          <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal" id="preview-cancel"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span></span></button>
         </div>
       </div>
     </div>`;
+  qs('img.icon', root).src = iconUrl('wallet-plus.svg');
   qs('#preview-title', root).textContent = t('payouts.previewTitle');
-  const close = qs('.btn-close', root);
-  close.setAttribute('aria-label', t('aria.closeDialog'));
-  qs('#preview-confirm', root).textContent = t('payouts.confirm');
-  qs('#preview-cancel', root).textContent = t('common.cancel');
+  qs('.btn-close', root).setAttribute('aria-label', t('aria.closeDialog'));
+  qs('#preview-confirm span', root).textContent = t('payouts.confirm');
+  qs('#preview-cancel span', root).textContent = t('common.cancel');
   qs('#preview-confirm', root).addEventListener('click', confirmBatch);
   document.body.appendChild(root);
   return root;
@@ -235,61 +247,80 @@ function headerRow(labels) {
   return thead;
 }
 
+function alertBox(tone, text) {
+  const box = el('div', `alert ${tone}`);
+  const glyph = el('i', tone === 'warning' ? 'fa-solid fa-triangle-exclamation' : tone === 'danger' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-info');
+  glyph.setAttribute('aria-hidden', 'true');
+  box.append(glyph, el('p', '', text));
+  return box;
+}
+
+function cell(className, node) {
+  const td = el('td', className);
+  td.appendChild(node);
+  return td;
+}
+
 function renderPreview(body, preview, openBatch) {
   body.textContent = '';
 
   if (!preview.lines.length) {
     const empty = el('div', 'result-message info payouts-preview__empty');
-    empty.append(el('h3', '', t('payouts.previewEmpty')));
+    const iconWrap = el('span', 'icon');
+    const img = el('img');
+    img.src = iconUrl('wallet.svg');
+    img.alt = '';
+    iconWrap.appendChild(img);
+    empty.append(iconWrap, el('h3', '', t('payouts.previewEmpty')));
     body.appendChild(empty);
-  } else {
-    body.append(
-      el('p', 'payouts-preview__summary', t('payouts.previewSummary', { n: formatCount(preview.count), total: formatEgp(preview.total) })),
-      el('p', 'payouts-notice', t('payouts.previewApprovalNote')),
-    );
-    if (openBatch) {
-      body.appendChild(el('p', 'payouts-notice payouts-notice--warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
-    }
-
-    const wrap = el('div', 'table-responsive');
-    const grid = el('table', 'table custom-grid-list payouts-preview__table');
-    grid.appendChild(
-      headerRow([
-        [t('payouts.previewColDriver')],
-        [t('payouts.previewColType')],
-        [t('payouts.previewColProvider')],
-        [t('payouts.previewColNumber')],
-        [t('payouts.previewColDue'), true],
-        [t('payouts.previewColBalance'), true],
-        [t('payouts.previewColAmount'), true],
-      ]),
-    );
-    const tbody = el('tbody');
-    preview.lines.forEach((line) => {
-      const tr = el('tr');
-      const amount = el('td', 'text-end payouts-preview__amount', formatEgp(line.amount));
-      [
-        el('td', '', line.driverName),
-        el('td', '', typeLabel(line.payoutType)),
-        el('td', '', line.provider || '—'),
-        (() => { const td = el('td'); td.appendChild(ltr(line.masked)); return td; })(),
-        el('td', 'text-end', formatEgp(line.dueNet)),
-        el('td', 'text-end', formatEgp(line.balance)),
-        amount,
-      ].forEach((td) => tr.appendChild(td));
-      tbody.appendChild(tr);
-    });
-    grid.appendChild(tbody);
-    const tfoot = el('tfoot');
-    const totalRow = el('tr', 'payouts-preview__total');
-    const totalLabel = el('td', '', t('payouts.previewTotal'));
-    totalLabel.colSpan = 6;
-    totalRow.append(totalLabel, el('td', 'text-end', formatEgp(preview.total)));
-    tfoot.appendChild(totalRow);
-    grid.appendChild(tfoot);
-    wrap.appendChild(grid);
-    body.append(wrap, el('p', 'ad-section__hint', t('payouts.previewAmountHint')));
+    if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
+    return;
   }
+
+  body.append(
+    el('p', 'payouts-preview__summary', t('payouts.previewSummary', { n: formatCount(preview.count), total: formatEgp(preview.total) })),
+    alertBox('info', t('payouts.previewApprovalNote')),
+  );
+  if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
+
+  // Only the drivers this batch pays — nobody left out is listed (2026-10-14).
+  const wrap = el('div', 'table-responsive');
+  const grid = el('table', 'table custom-grid-list payouts-preview__table');
+  grid.appendChild(
+    headerRow([
+      [t('payouts.previewColDriver')],
+      [t('payouts.previewColType')],
+      [t('payouts.previewColProvider')],
+      [t('payouts.previewColNumber')],
+      [t('payouts.previewColDue'), true],
+      [t('payouts.previewColBalance'), true],
+      [t('payouts.previewColAmount'), true],
+    ]),
+  );
+  const tbody = el('tbody');
+  preview.lines.forEach((line) => {
+    const tr = el('tr');
+    tr.append(
+      el('td', '', line.driverName),
+      el('td', '', typeLabel(line.payoutType)),
+      el('td', '', line.provider || '—'),
+      cell('', ltr(line.masked)),
+      cell('text-end', ltr(formatEgp(line.dueNet))),
+      cell('text-end', ltr(formatEgp(line.balance))),
+      cell('text-end', el('p', 'text-bold success-color ad-ltr', formatEgp(line.amount))),
+    );
+    tbody.appendChild(tr);
+  });
+  grid.appendChild(tbody);
+  const tfoot = el('tfoot');
+  const totalRow = el('tr', 'payouts-preview__total');
+  const totalLabel = el('td', '', t('payouts.previewTotal'));
+  totalLabel.colSpan = 6;
+  totalRow.append(totalLabel, cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.total))));
+  tfoot.appendChild(totalRow);
+  grid.appendChild(tfoot);
+  wrap.appendChild(grid);
+  body.append(wrap, el('p', 'small lh-sm payouts-preview__hint', t('payouts.previewAmountHint')));
 }
 
 async function openPreview() {
@@ -324,7 +355,7 @@ async function openPreview() {
     confirm.disabled = preview.lines.length === 0;
   } catch (error) {
     body.textContent = '';
-    body.appendChild(el('p', 'ad-form-error is-visible', error.message));
+    body.appendChild(alertBox('danger', error.message));
   }
 }
 
@@ -350,10 +381,23 @@ async function confirmBatch() {
     window.location.href = `payout-batch.html?id=${encodeURIComponent(result.batch.id)}&created=1`;
   } catch (error) {
     const body = qs('#preview-body', modal);
-    body.prepend(el('p', 'ad-form-error is-visible', error.message));
+    body.prepend(alertBox('danger', error.message));
     confirm.disabled = false;
   }
 }
+
+// "Generate payout batch" sits on the title row's end side, as the kit's create actions do.
+(() => {
+  const host = qs('#ad-page-actions');
+  if (!host) return;
+  const btn = el('button', 'btn btn-success d-flex gap-2');
+  btn.type = 'button';
+  btn.id = 'btn-generate';
+  const glyph = el('i', 'fa-solid fa-plus');
+  glyph.setAttribute('aria-hidden', 'true');
+  btn.append(glyph, el('span', '', t('payouts.generate')));
+  host.appendChild(btn);
+})();
 
 qs('#btn-generate').addEventListener('click', openPreview);
 

@@ -9,8 +9,16 @@ import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
 import { statusLabel } from '../components/ad-status-pill.js';
-import { downloadCsv, formatDateTime, formatEgp, toDateInputValue } from './format.js';
+import {
+  downloadCsv,
+  formatDate,
+  formatDateTime,
+  formatEgp,
+  formatTime,
+  toDateInputValue,
+} from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { gridAction } from '../components/ad-data-table.js';
 import { t } from './admin-i18n.js';
 import { mountStatRow, fillStatRow } from './list-metrics.js';
 
@@ -43,6 +51,8 @@ filters.fields = [
     type: 'select',
     key: 'status',
     label: t('common.status'),
+    // Kit: the select reads "All statuses" until one is picked.
+    placeholder: t('kitLists.allStatuses'),
     value: 'all',
     options: [
       { value: 'all', label: t('common.all') },
@@ -135,6 +145,25 @@ table.columns = [
     },
   },
   {
+    key: 'createdAt',
+    label: t('common.date'),
+    sortable: true,
+    className: 'ad-table__nowrap',
+    // Kit: the date over the time, the time in the tertiary colour.
+    render: (trip) => {
+      const wrap = document.createElement('span');
+      wrap.className = 'list__name';
+      const date = document.createElement('span');
+      date.className = 'ad-ltr';
+      date.textContent = formatDate(trip.createdAt);
+      const time = document.createElement('span');
+      time.className = 'tertiary-color ad-ltr';
+      time.textContent = formatTime(trip.createdAt);
+      wrap.append(date, time);
+      return wrap;
+    },
+  },
+  {
     key: 'riderName',
     label: t('trips.colRider'),
     sortable: true,
@@ -153,20 +182,11 @@ table.columns = [
     render: (trip) => trip.destination.area,
   },
   {
-    key: 'status',
-    label: t('common.status'),
-    sortable: true,
-    render: (trip) => {
-      const pill = document.createElement('ad-status-pill');
-      pill.status = trip.status;
-      return pill;
-    },
-  },
-  {
     key: 'fare',
     label: t('trips.colFare'),
     sortable: true,
     numeric: true,
+    className: 'list__wrap-tight',
     render: (trip) => {
       // Only a completed trip has a final fare; others show the estimate.
       if (trip.fare) {
@@ -182,11 +202,20 @@ table.columns = [
     },
   },
   {
-    key: 'createdAt',
-    label: t('common.date'),
+    key: 'status',
+    label: t('common.status'),
     sortable: true,
-    className: 'ad-table__nowrap',
-    render: (trip) => formatDateTime(trip.createdAt),
+    render: (trip) => {
+      const pill = document.createElement('ad-status-pill');
+      pill.status = trip.status;
+      return pill;
+    },
+  },
+  {
+    key: 'actions',
+    label: t('common.actions'),
+    actions: true,
+    render: (row) => gridAction({ href: `trip-detail.html?id=${row.id}`, label: t('common.view') }),
   },
 ];
 
@@ -204,6 +233,13 @@ table.addEventListener('sortchange', (event) => {
 
 table.addEventListener('pagechange', (event) => {
   query.page = event.detail.page;
+  load();
+});
+
+// Kit "Rows count" select in the grid footer.
+table.addEventListener('pagesizechange', (event) => {
+  query.pageSize = event.detail.pageSize;
+  query.page = 1;
   load();
 });
 

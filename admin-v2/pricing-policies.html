@@ -15,101 +15,94 @@
       breadcrumb-keys="nav.money > nav.pricingPolicies"
       screen-styles="styles/pricing.css"
     >
-      <div class="ad-stub">
-        <span class="ad-stub__icon" aria-hidden="true">ⓘ</span>
-        <span>
-          These policies apply across <strong>all zones</strong>. Changes take effect immediately
-          for new trips; a trip already in progress keeps the values active when the driver
-          accepted it. Per-zone amounts live on each zone's rate card.
-        </span>
+      <div class="alert info">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p data-i18n="kitPricing.policiesIntro">
+          These policies apply across all zones. Changes take effect immediately for new trips; a trip
+          already in progress keeps the values active when the driver accepted it. Per-zone amounts live
+          on each zone's rate card.
+        </p>
       </div>
 
-      <div class="pricing__policies">
-        <!-- #1759 — cancellation policy -->
-        <section class="ad-section" aria-labelledby="cancel-heading">
-          <div class="ad-section__header">
-            <div>
-              <h2 class="ad-section__title" id="cancel-heading" data-i18n="policies.cancelHeading">Cancellation policy</h2>
-              <p class="ad-section__hint" id="cancel-meta"></p>
-            </div>
-          </div>
-          <div class="ad-section__body">
-            <form class="pricing__form" id="cancel-form" novalidate>
-              <div class="ad-form-error" id="cancel-error" role="alert"></div>
-              <div id="cancel-fields"></div>
-              <div class="ad-row ad-row--end">
-                <button class="btn btn-tertiary btn--sm" type="button" id="cancel-reset" data-i18n="policies.revert">
-                  Revert changes
-                </button>
-                <button class="btn btn-primary btn--sm" type="submit" data-i18n="policies.saveCancellation">
-                  Save cancellation policy
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- #1759 — platform commission -->
-        <section class="ad-section" aria-labelledby="commission-heading">
-          <div class="ad-section__header">
-            <div>
-              <h2 class="ad-section__title" id="commission-heading" data-i18n="policies.commissionHeading">Platform commission</h2>
-              <p class="ad-section__hint" id="commission-meta"></p>
-            </div>
-          </div>
-          <div class="ad-section__body">
-            <form class="pricing__form" id="commission-form" novalidate>
-              <div class="ad-form-error" id="commission-error" role="alert"></div>
-              <!-- 2026-10-14 §1 — a commission change waits for a second admin -->
-              <div class="alert info mb-0" id="commission-pending" role="status" hidden>
-                <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-                <div class="details">
-                  <h6 id="commission-pending-title"></h6>
-                  <p id="commission-pending-meta"></p>
-                  <a id="commission-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+      <form id="policies-form" novalidate>
+        <div class="row g-3 pricing__policies">
+          <!-- #1759 — cancellation policy -->
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg h-100" id="cancel-card" aria-labelledby="cancel-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="cancel-heading" data-i18n="policies.cancelHeading">Cancellation policy</h5>
+                  <span id="cancel-meta"></span>
                 </div>
+                <div class="icon"><img src="vendor/icons/policies.svg" alt="" /></div>
               </div>
-              <div id="commission-fields"></div>
-              <p class="pricing__meta" id="commission-approval-hint" data-i18n="pricingApproval.commissionHint">
-                Commission changes need another admin's approval. Cancellation and balance settings save immediately.
-              </p>
-              <p class="pricing__meta" id="commission-example"></p>
-              <div class="ad-row ad-row--end">
-                <button class="btn btn-tertiary btn--sm" type="button" id="commission-reset" data-i18n="policies.revert">
-                  Revert changes
-                </button>
-                <button class="btn btn-primary btn--sm" type="submit" id="commission-submit" data-i18n="pricingApproval.sendForApproval">Send for approval</button>
+              <div class="card-body">
+                <div id="cancel-fields"></div>
               </div>
-            </form>
+            </section>
           </div>
-        </section>
 
-        <!-- Driver balance policy (#TBD-B) -->
-        <section class="ad-section" aria-labelledby="balance-heading">
-          <div class="ad-section__header">
-            <div>
-              <h2 class="ad-section__title" id="balance-heading" data-i18n="policies.balanceHeading">Driver balance</h2>
-              <p class="ad-section__hint" id="balance-meta"></p>
-            </div>
-          </div>
-          <div class="ad-section__body">
-            <form class="pricing__form" id="balance-form" novalidate>
-              <div class="ad-form-error" id="balance-error" role="alert"></div>
-
-              <div id="balance-fields"></div>
-              <p class="pricing__meta" id="balance-example"></p>
-              <div class="pricing__actions">
-                <button class="btn btn-tertiary btn--sm" type="button" id="balance-reset" data-i18n="policies.revert">
-                  Reset
-                </button>
-                <button class="btn btn-primary btn--sm" type="submit" data-i18n="policies.saveBalance">
-                  Save balance policy
-                </button>
+          <!-- #1759 — platform commission (maker-checker, 2026-10-14 §1) -->
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg h-100" id="commission-card" aria-labelledby="commission-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="commission-heading" data-i18n="policies.commissionHeading">Platform commission</h5>
+                  <span id="commission-meta"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/discount.svg" alt="" /></div>
               </div>
-            </form>
+              <div class="card-body">
+                <!-- A commission change waits for a second admin; the field is locked meanwhile -->
+                <div class="alert warning" id="commission-pending" role="status" hidden>
+                  <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                  <div class="details flex-column gap-1">
+                    <h6 id="commission-pending-title"></h6>
+                    <p id="commission-pending-meta"></p>
+                    <a id="commission-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+                  </div>
+                </div>
+                <div id="commission-fields"></div>
+                <p class="small mb-1" id="commission-example"></p>
+                <p class="small pricing__meta mb-0" id="commission-approval-hint" data-i18n="pricingApproval.commissionHint">
+                  Commission changes need another admin's approval. Cancellation and balance settings save immediately.
+                </p>
+              </div>
+            </section>
           </div>
-        </section>
-      </div>
+
+          <!-- Driver balance policy (#TBD-B) -->
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg h-100" id="balance-card" aria-labelledby="balance-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="balance-heading" data-i18n="policies.balanceHeading">Driver balance</h5>
+                  <span id="balance-meta"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/balance.svg" alt="" /></div>
+              </div>
+              <div class="card-body">
+                <div id="balance-fields"></div>
+                <p class="small mb-0" id="balance-example"></p>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="ad-form-error mt-3" id="policies-error" role="alert"></div>
+
+        <!-- One global Save / Revert, as the kit draws it -->
+        <div class="flex-row">
+          <div class="col d-flex flex-wrap gap-3 mt-4 mb-3">
+            <button class="btn btn-success d-flex" type="submit" id="policies-save">
+              <i class="fa-solid fa-check" aria-hidden="true"></i><span data-i18n="kitPricing.saveChanges">Save changes</span>
+            </button>
+            <button class="btn btn-primary-outline d-flex" type="button" id="policies-revert">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="policies.revert">Revert changes</span>
+            </button>
+          </div>
+        </div>
+      </form>
     </ad-shell>
 
     <script type="module" src="scripts/pricing-policies.js"></script>

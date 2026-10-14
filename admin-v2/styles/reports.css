@@ -1,0 +1,18 @@
+/*
+ * reports.css — revenue & commission summary (#1832), kit v22-09 port.
+ * Every value is a token.
+ */
+
+/*
+ * Money KPI tiles carry a long figure plus a currency word ("17,588.56 EGP"),
+ * which wraps onto two lines at the five-across tile width. Tighten the figure
+ * so the row reads as one line of numbers.
+ */
+#report-cards .number {
+  font-size: calc(0.85rem + 0.25vw);
+  white-space: nowrap;
+}
+
+#recon-rows .list-row + .list-row {
+  border-block-start: 1px solid var(--color-border);
+}

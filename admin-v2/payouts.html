@@ -15,22 +15,20 @@
       breadcrumb-keys="nav.money > nav.payouts"
       screen-styles="styles/list.css, styles/payouts.css"
     >
-      <section class="ad-section payouts-intro">
-        <p class="ad-section__hint" data-i18n="payouts.lead">
+      <!-- "Generate payout batch" is added to the title row's end side by scripts/payouts.js. -->
+      <div class="alert info payouts-lead">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p data-i18n="payouts.lead">
           Trip earnings and cancellation-fee credits become due 7 calendar days after they happen.
           On working days an admin generates a payout batch; another admin approves it before the
           bank file can be exported.
         </p>
-        <button type="button" class="btn btn-primary" id="btn-generate">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span data-i18n="payouts.generate">Generate payout batch</span>
-        </button>
-      </section>
+      </div>
 
       <div class="ad-stats" id="payouts-stats">
-        <ad-stat-card id="card-due" label="Due now" data-i18n-label="payouts.kpiDue" value="—" tone="warning" icon="deposit-wallet.svg"></ad-stat-card>
-        <ad-stat-card id="card-open" label="In open batches" data-i18n-label="payouts.kpiOpen" value="—" tone="blue" icon="withdrawal-wallet.svg"></ad-stat-card>
-        <ad-stat-card id="card-paid" label="Paid this month" data-i18n-label="payouts.kpiPaid" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
+        <ad-stat-card id="card-due" label="Due now" data-i18n-label="payouts.kpiDue" value="—" tone="warning" icon="wallet-plus.svg"></ad-stat-card>
+        <ad-stat-card id="card-open" label="In open batches" data-i18n-label="payouts.kpiOpen" value="—" tone="blue" icon="wallet-minus.svg"></ad-stat-card>
+        <ad-stat-card id="card-paid" label="Paid this month" data-i18n-label="payouts.kpiPaid" value="—" tone="success" icon="withdrawal-wallet.svg"></ad-stat-card>
       </div>
 
       <ad-filter-bar id="batch-filters"></ad-filter-bar>

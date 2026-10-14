@@ -15,21 +15,93 @@
       breadcrumb-keys="nav.administration > nav.auditLog"
       screen-styles="styles/audit-log.css"
     >
-      <!-- #1816 — read-only immutable log of every consequential admin action -->
-      <section class="ad-section" aria-labelledby="audit-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="audit-heading" data-i18n="audit.heading">Audit entries</h2>
-            <p class="ad-section__hint" data-i18n="audit.hint">
-              Every state-changing admin action is recorded immutably. This log is read-only.
-              Pricing changes keep their dedicated log (#1760) and are cross-linked here.
-            </p>
+      <!-- #1816 — read-only immutable log of every consequential admin action.
+           Model: the developers' build, kit demo-snapshots/audit-log.html. -->
+      <ad-filter-bar id="audit-filters"></ad-filter-bar>
+      <div class="row mt-2">
+        <div class="col">
+          <ad-data-table id="audit-table"></ad-data-table>
+        </div>
+      </div>
+
+      <!-- ── Entry details: before → after (kit #auditLogDetailsModal) ── -->
+      <div
+        class="modal fade default-modal"
+        id="auditEntryModal"
+        tabindex="-1"
+        aria-labelledby="auditEntryTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+          <div class="modal-content audit-diff-modal">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/file-checked.svg" alt="" aria-hidden="true" />
+              <div class="audit-diff-heading">
+                <h3 id="auditEntryTitle" data-i18n="kitAdmin.detailsTitle">Audit entry details</h3>
+              </div>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-i18n-aria-label="aria.closeDialog"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="list-multi-column no-border p-0 audit-diff-summary">
+                <div class="row gx-4">
+                  <div class="col-md-6">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="audit.timestampLabel">Timestamp (UTC+2)</div>
+                      <div class="list-item col-auto justify-content-md-end" id="audit-detail-at">—</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="audit.actorLabel">Actor</div>
+                      <div class="list-item col-auto justify-content-md-end ad-ltr" id="audit-detail-actor">—</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="kitAdmin.eventLabel">Event</div>
+                      <div class="list-item col-auto justify-content-md-end" id="audit-detail-event">—</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold" data-i18n="kitAdmin.entityLabel">Entity</div>
+                      <div class="list-item col-auto justify-content-md-end" id="audit-detail-entity">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h4 class="audit-diff-title" data-i18n="kitAdmin.changesTitle">Before → after</h4>
+              <div class="table-responsive" id="audit-diff-wrap">
+                <table class="table custom-grid-list audit-diff-table">
+                  <thead>
+                    <tr>
+                      <th scope="col" data-i18n="kitAdmin.colField">Field</th>
+                      <th scope="col" data-i18n="kitAdmin.colBefore">Before</th>
+                      <th scope="col" data-i18n="kitAdmin.colAfter">After</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-diff-rows"></tbody>
+                </table>
+              </div>
+              <p class="audit-diff-empty" id="audit-diff-empty" data-i18n="kitAdmin.noChanges" hidden>
+                No field values were recorded for this entry.
+              </p>
+              <p class="small lh-sm mb-0 audit-diff-note" data-i18n="kitAdmin.readOnlyNote">
+                Audit entries are immutable. This view is read-only.
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span data-i18n="common.close">Close</span>
+              </button>
+            </div>
           </div>
         </div>
-
-        <ad-filter-bar id="audit-filters"></ad-filter-bar>
-        <ad-data-table id="audit-table"></ad-data-table>
-      </section>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/audit-log.js"></script>

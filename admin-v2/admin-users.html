@@ -13,34 +13,184 @@
       active="admin-users"
       page-title-key="adminUsers.pageTitle"
       breadcrumb-keys="nav.administration > nav.adminUsers"
-      screen-styles="styles/list.css"
+      screen-styles="styles/list.css, styles/admin-users.css"
     >
-      <!-- #1820 list · #1807 add · #1821 enable/disable -->
-      <section class="ad-section" aria-labelledby="admins-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="admins-heading" data-i18n="adminUsers.heading">Admin accounts</h2>
-            <p class="ad-section__hint" data-i18n="adminUsers.hint">
-              Every account has full super-admin privileges in this phase. A new account must
-              enrol two-factor authentication and change its password at first sign-in.
-            </p>
-          </div>
-          <button
-            class="btn btn-primary btn--sm"
-            type="button"
-            id="add-admin"
-            data-i18n="adminUsers.addButton"
-          >
-            Add admin user
-          </button>
+      <!-- #1820 list · #4121 summary cards · #1807 add · #1821 suspend/unsuspend · #4122 delete.
+           Kit page: admin-accounts.html. The add button moves into the title row's end side. -->
+      <button
+        class="btn btn-success d-flex gap-2 align-items-center"
+        type="button"
+        id="add-admin"
+      >
+        <img src="vendor/icons/add-user.svg" alt="" aria-hidden="true" />
+        <span data-i18n="kitAdmin.createAccount">Add new admin</span>
+      </button>
+
+      <div class="ad-stats admin-kpis" id="admins-stats">
+        <ad-stat-card id="kpi-total" tone="blue" icon="users.svg" value="—"></ad-stat-card>
+        <ad-stat-card id="kpi-active" tone="success" icon="user-active.svg" value="—"></ad-stat-card>
+        <ad-stat-card id="kpi-suspended" tone="danger" icon="user-locked2.svg" value="—"></ad-stat-card>
+      </div>
+
+      <!-- Shown only to the Admin role (#1821 Scenario 3); demo it with ?role=admin. -->
+      <div class="alert info admin-role-notice" id="role-notice" hidden>
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p data-i18n="kitAdmin.roleNotice">
+          You are signed in with the Admin role. Only a Super admin can suspend, unsuspend or
+          delete admin accounts.
+        </p>
+      </div>
+
+      <ad-filter-bar id="admins-filters"></ad-filter-bar>
+      <div class="row mt-2">
+        <div class="col">
+          <ad-data-table id="admins-table"></ad-data-table>
         </div>
+      </div>
 
-        <ad-filter-bar id="admins-filters"></ad-filter-bar>
-        <ad-data-table id="admins-table"></ad-data-table>
-      </section>
+      <!-- ── #1807 Create account (kit #addNewAdminModal) ── -->
+      <div
+        class="modal fade default-modal"
+        id="createAdminModal"
+        data-bs-backdrop="static"
+        tabindex="-1"
+        aria-labelledby="createAdminTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/add-user.svg" alt="" aria-hidden="true" />
+              <h3 id="createAdminTitle" data-i18n="kitAdmin.createTitle">Create new account</h3>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-i18n-aria-label="aria.closeDialog"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <form class="row gy-3" id="create-admin-form" novalidate>
+                <div class="col-12">
+                  <p class="small lh-sm mb-0" data-i18n="adminUsers.addDescription">
+                    The account is created active. She must enrol 2FA and set her own password
+                    at first sign-in.
+                  </p>
+                </div>
+                <div class="col-12">
+                  <div class="alert danger mb-0" id="create-admin-error" role="alert" hidden>
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <p></p>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label for="create-admin-email" data-i18n="common.email">Email</label>
+                  <input
+                    type="email"
+                    class="form-control direction-ltr"
+                    id="create-admin-email"
+                    name="email"
+                    maxlength="300"
+                    autocomplete="off"
+                    placeholder="name@shedrive.app"
+                    data-i18n-placeholder="adminUsers.emailPlaceholder"
+                    aria-describedby="create-admin-email-error"
+                  />
+                  <div class="invalid-feedback" id="create-admin-email-error"></div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success" form="create-admin-form" id="create-admin-confirm">
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                <span data-i18n="kitAdmin.confirmSave">Confirm &amp; save</span>
+              </button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span data-i18n="common.cancel">Cancel</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <ad-form-modal id="admin-modal"></ad-form-modal>
-      <sd-confirm-dialog id="confirm"></sd-confirm-dialog>
+      <!-- ── #1821 / #4122 confirmation (kit popup-warning; configured per action) ── -->
+      <div
+        class="modal fade popup-warning"
+        id="adminConfirmModal"
+        data-bs-backdrop="static"
+        tabindex="-1"
+        aria-labelledby="adminConfirmTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-i18n-aria-label="aria.closeDialog"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign warning"><i class="fa-solid fa-warning" aria-hidden="true"></i></div>
+              <h4 id="adminConfirmTitle"></h4>
+              <p id="adminConfirmText"></p>
+              <div class="alert danger mt-2 mb-0 text-start" id="adminConfirmError" role="alert" hidden>
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <p></p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" id="adminConfirmButton">
+                <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                <span></span>
+              </button>
+              <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                <span data-i18n="kitAdmin.backToReview">Back to review</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Result (kit popup-success) ── -->
+      <div
+        class="modal fade popup-success"
+        id="adminSuccessModal"
+        tabindex="-1"
+        aria-labelledby="adminSuccessTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-i18n-aria-label="aria.closeDialog"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign success"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
+              <h4 id="adminSuccessTitle" data-i18n="kitAdmin.successTitle">Request completed successfully</h4>
+              <p id="adminSuccessText"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span data-i18n="common.close">Close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/admin-users.js"></script>

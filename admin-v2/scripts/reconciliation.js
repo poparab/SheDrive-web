@@ -6,6 +6,11 @@
  * Recording a settlement, recording a payout and the full ledger live on
  * balances.html (#1813); this screen links across to it and reports the
  * resulting position.
+ *
+ * Kit v22-09 port (2026-10-14): the kit's reconciliation page — filter row
+ * under the title, four KPI widgets, a "Per-trip breakdown" heading with
+ * "Open driver balance" (→ driver-balance-details.html?id=<driverId>), and the
+ * kit's coloured money columns and Cash / Digital chips.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -13,7 +18,7 @@ import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
 import { downloadCsv, formatCount, formatDate, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
-import { t } from './admin-i18n.js';
+import { t, isRtl } from './admin-i18n.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -28,7 +33,14 @@ const errorBox = qs('#recon-error');
 const query = { driverId: '', from: '', to: '', page: 1, pageSize: 20 };
 let latest = null;
 
-const drivers = await mockApi.listSettleableDrivers();
+// ?state=error (or an outage) must render, not throw before the filter exists.
+let drivers = [];
+let driversError = null;
+try {
+  drivers = await mockApi.listSettleableDrivers();
+} catch (error) {
+  driversError = error;
+}
 
 // #4382: one searchable picker, matched on name *or* phone, replacing the
 // kit's free-text box beside a name-only dropdown. An admin answering a
@@ -88,12 +100,33 @@ filters.addEventListener('change', (event) => {
 // ── Per-trip rows (#1833) ─────────────────────────────
 
 table.pageSize = query.pageSize;
+/** A money cell in the kit's colours: fare tertiary, commission −danger, net +success. */
+function moneyCell(value, tone, sign = '') {
+  const p = document.createElement('p');
+  p.className = `text-bold ad-ltr ${tone}`;
+  p.textContent = `${sign}${formatEgp(value)}`;
+  return p;
+}
+
 table.columns = [
   {
     key: 'createdAt',
     label: t('reconciliation.colTripDate'),
     className: 'ad-table__nowrap',
     render: (trip) => formatDate(trip.createdAt),
+  },
+  { key: 'fare', label: t('reconciliation.colFare'), numeric: true, render: (trip) => moneyCell(trip.fare.total, 'tertiary-color') },
+  {
+    key: 'commission',
+    label: t('reconciliation.colCommission'),
+    numeric: true,
+    render: (trip) => moneyCell(trip.fare.commission, 'danger-color', trip.fare.commission ? '-' : ''),
+  },
+  {
+    key: 'net',
+    label: t('reconciliation.colNet'),
+    numeric: true,
+    render: (trip) => moneyCell(trip.fare.netEarnings, 'success-color', trip.fare.netEarnings ? '+' : ''),
   },
   {
     // How the fare was taken decides who is holding the money, and so whether
@@ -102,25 +135,17 @@ table.columns = [
     label: t('reconciliation.colPaymentMethod'),
     className: 'ad-table__nowrap',
     render: (trip) => {
-      const pill = document.createElement('ad-status-pill');
-      pill.status = trip.paymentMethod ?? 'cash';
-      return pill;
+      const method = trip.paymentMethod ?? 'cash';
+      const chip = document.createElement('span');
+      chip.className = method === 'cash' ? 'status-blue-solid' : 'status-primary-solid';
+      chip.textContent = t(`status.${method}`);
+      return chip;
     },
   },
-  { key: 'fare', label: t('reconciliation.colFare'), numeric: true, render: (trip) => formatEgp(trip.fare.total) },
-  {
-    key: 'commission',
-    label: t('reconciliation.colCommission'),
-    numeric: true,
-    render: (trip) => formatEgp(trip.fare.commission),
-  },
-  {
-    key: 'net',
-    label: t('reconciliation.colNet'),
-    numeric: true,
-    render: (trip) => formatEgp(trip.fare.netEarnings),
-  },
 ];
+
+// The kit's forward arrow points the reading direction.
+qs('#settle-link-icon').className = `fa-solid ${isRtl() ? 'fa-arrow-left' : 'fa-arrow-right'}`;
 
 table.emptyState = {
   icon: '☐',
@@ -133,14 +158,15 @@ table.addEventListener('pagechange', (event) => {
   load();
 });
 
+/** The kit's key/value list row. */
 function moneyRow(label, value, total = false) {
   const row = document.createElement('div');
-  row.className = total ? 'detail__money-row detail__money-row--total' : 'detail__money-row';
-  const key = document.createElement('span');
-  key.className = 'detail__money-label';
+  row.className = 'row gx-0 list-row';
+  const key = document.createElement('div');
+  key.className = 'list-item col text-bold';
   key.textContent = label;
-  const val = document.createElement('span');
-  val.className = 'detail__money-value';
+  const val = document.createElement('div');
+  val.className = `list-item col-auto justify-content-md-end ad-ltr${total ? ' text-bold primary-color' : ''}`;
   val.textContent = value;
   row.append(key, val);
   return row;
@@ -150,6 +176,20 @@ const guard = createRequestGuard();
 
 async function load() {
   errorBox.classList.remove('is-visible');
+
+  if (driversError) {
+    // The kit's danger result in place of "Select a driver".
+    const state = noDriver.querySelector('ad-empty-state');
+    state.removeAttribute('data-i18n-heading');
+    state.removeAttribute('data-i18n-message');
+    state.setAttribute('tone', 'danger');
+    state.setAttribute('icon', 'cloud-connection-off.svg');
+    state.setAttribute('heading', t('kitPricing.driversLoadError'));
+    state.setAttribute('message', t('state.errorMessage'));
+    noDriver.hidden = false;
+    report.hidden = true;
+    return;
+  }
 
   // #1833 S2 — no driver selected means no report.
   if (!query.driverId) {
@@ -161,6 +201,7 @@ async function load() {
 
   noDriver.hidden = true;
   report.hidden = false;
+  qs('#settle-link').href = `driver-balance-details.html?id=${encodeURIComponent(query.driverId)}`;
 
   const isCurrent = guard();
   table.setLoading();

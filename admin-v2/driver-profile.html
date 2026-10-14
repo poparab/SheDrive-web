@@ -14,92 +14,113 @@
       page-title-key="driverProfile.title"
       breadcrumb-keys="nav.drivers|drivers.html > driverProfile.crumb"
       back="drivers.html"
-      screen-styles="styles/detail.css, styles/list.css"
+      screen-styles="styles/detail.css, styles/list.css, styles/driver-profile.css"
     >
+      <!-- Kit model: driver-profile.html / driver-unsuspend.html (v22-09) -->
       <div id="profile-missing" hidden>
-        <ad-empty-state icon="⚠" heading="Driver not found" data-i18n-heading="driverProfile.notFoundHeading" message="This driver account does not exist." data-i18n-message="driverProfile.notFoundMessage">
-          <a class="btn btn-primary-outline btn--sm" href="drivers.html" data-i18n="driverProfile.backToDrivers">Back to drivers</a>
+        <ad-empty-state icon="not-found.svg" heading="Driver not found" data-i18n-heading="driverProfile.notFoundHeading" message="This driver account does not exist." data-i18n-message="driverProfile.notFoundMessage">
+          <a class="btn btn-primary-rounded-outline" href="drivers.html"><i class="fa-solid fa-angle-left people-flip" aria-hidden="true"></i><span data-i18n="driverProfile.backToDrivers">Back to drivers</span></a>
+        </ad-empty-state>
+      </div>
+
+      <div id="profile-error" hidden>
+        <ad-empty-state icon="cloud-connection-off.svg" heading="Couldn't load this record" data-i18n-heading="kitPeople.loadErrorHeading" message="The service is temporarily unavailable." data-i18n-message="state.errorMessage">
+          <button class="btn btn-primary-rounded-outline" type="button" id="retry-btn" data-i18n="common.tryAgain">Try again</button>
         </ad-empty-state>
       </div>
 
       <div id="profile-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
+        <!-- The kit's 7-card grid, then the portal's payout and history cards -->
+        <div class="row g-3 people-grid">
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="personal" icon="user-2.svg" section-title="Personal details" data-i18n-section-title="driverProfile.personal"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="vehicle" icon="vehicle.svg" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle"></ad-detail-section>
-
-            <section class="ad-section" aria-labelledby="docs-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="docs-heading" data-i18n="driverProfile.docsHeading">Documents &amp; photos</h2>
-              </div>
-              <div class="ad-section__body">
-                <ad-doc-viewer id="docs"></ad-doc-viewer>
-              </div>
-            </section>
-
-            <!-- Decision history: shown for pending, rejected and suspended (#1666 S2/S3) -->
-            <section class="ad-section" id="history-section" aria-labelledby="history-heading" hidden>
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="history-heading" data-i18n="driverProfile.historyHeading">Decision history</h2>
-              </div>
-              <div class="ad-section__body">
-                <ad-timeline id="history"></ad-timeline>
-              </div>
-            </section>
-
-            <!-- #1666 S5 — completed trips, 10 rows/page -->
-            <section class="ad-section" aria-labelledby="trips-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="trips-heading" data-i18n="driverProfile.tripsHeading">Completed trips</h2>
-              </div>
-              <ad-data-table id="trips-table"></ad-data-table>
-            </section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="licence" icon="driving-license.svg" section-title="Licence &amp; registration" data-i18n-section-title="application.licence"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="stats" icon="chart.svg" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="docs-card" icon="upload-file.svg" section-title="Uploaded documents" data-i18n-section-title="application.docsHeading">
+              <ad-doc-viewer id="docs"></ad-doc-viewer>
+            </ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="photos-card" icon="image.svg" section-title="Vehicle photos" data-i18n-section-title="kitPeople.vehiclePhotos">
+              <ad-doc-viewer id="photos"></ad-doc-viewer>
+            </ad-detail-section>
           </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
-            <ad-detail-section id="stats" icon="chart.svg" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading"></ad-detail-section>
-
-            <!-- 2026-10-14 spec §2 — payout method; an admin edit is a maker-checker request -->
+          <!-- 2026-10-14 spec §2 — payout method; an admin edit is a maker-checker request -->
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading">
-              <div class="ad-stack" id="payout-extra">
-                <div class="ad-stack" id="payout-notices"></div>
-                <p class="ad-section__hint" id="payout-hint" data-i18n="driverPayout.editHint">
+              <div class="people-card-extra" id="payout-extra">
+                <div class="people-card-extra" id="payout-notices"></div>
+                <p class="small lh-sm mb-0" id="payout-hint" data-i18n="driverPayout.editHint">
                   An edit made here needs another admin's approval. The driver's own change in the app applies immediately.
                 </p>
-                <button class="btn btn-primary-outline btn--full" type="button" id="payout-edit-btn" data-i18n="driverPayout.editBtn">
-                  Edit payout method
-                </button>
+                <div>
+                  <button class="btn btn-primary-outline" type="button" id="payout-edit-btn">
+                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span data-i18n="driverPayout.editBtn">Edit payout method</span>
+                  </button>
+                </div>
               </div>
             </ad-detail-section>
+          </div>
 
-            <!-- §3 — where her earnings stand in the payout cycle -->
+          <!-- §3 — where her earnings stand in the payout cycle -->
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="payout-position" icon="deposit-wallet.svg" section-title="Payout position" data-i18n-section-title="driverPayout.positionHeading">
-              <div class="ad-stack">
-                <p class="ad-section__hint" id="payout-position-hint"></p>
-                <a class="btn btn-tertiary btn--sm" href="balances.html" data-i18n="driverPayout.openBalances">Open driver balances</a>
+              <div class="people-card-extra">
+                <p class="small lh-sm mb-0" id="payout-position-hint"></p>
+                <div>
+                  <a class="btn btn-primary-outline" id="ledger-link" href="driver-balance-details.html">
+                    <span data-i18n="kitPeople.openLedger">Open her ledger</span><i class="fa-solid fa-arrow-right people-flip" aria-hidden="true"></i>
+                  </a>
+                </div>
               </div>
             </ad-detail-section>
+          </div>
 
-            <section class="ad-section" aria-labelledby="actions-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="actions-heading" data-i18n="driverProfile.actionsHeading">Account actions</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" id="action-hint"></p>
-                <button class="btn btn-danger btn--full" type="button" id="suspend-btn" hidden data-i18n="driverProfile.suspendBtn">
-                  Suspend driver
-                </button>
-                <button class="btn btn-primary btn--full" type="button" id="reinstate-btn" hidden data-i18n="driverProfile.reinstateBtn">
-                  Reinstate driver
-                </button>
-              </div>
-            </section>
-          </aside>
+          <!-- Decision history: shown for pending, rejected and suspended (#1666 S2/S3) -->
+          <div class="col-lg-6 col-xl-4" id="history-section" hidden>
+            <ad-detail-section icon="timeline.svg" section-title="Decision history" data-i18n-section-title="driverProfile.historyHeading">
+              <ad-timeline id="history"></ad-timeline>
+            </ad-detail-section>
+          </div>
+        </div>
+
+        <!-- #1666 S5 — completed trips, 10 rows/page -->
+        <div class="standard-card light-medium-bg mt-3">
+          <div class="card-header mb-3">
+            <div class="card-title">
+              <img class="icon" src="vendor/icons/route.svg" alt="" aria-hidden="true" />
+              <h4 id="trips-heading" data-i18n="driverProfile.tripsHeading">Completed trips</h4>
+            </div>
+          </div>
+          <div class="card-body">
+            <ad-data-table id="trips-table" aria-labelledby="trips-heading"></ad-data-table>
+          </div>
+        </div>
+
+        <!-- #1742 suspend / #1743 reinstate — the kit's bottom action row -->
+        <div class="d-flex flex-wrap align-items-center gap-3 my-3" id="account-actions">
+          <button class="btn btn-danger d-flex" type="button" id="suspend-btn" hidden>
+            <i class="fa-solid fa-stop" aria-hidden="true"></i><span data-i18n="driverProfile.suspendBtn">Suspend driver</span>
+          </button>
+          <button class="btn btn-success d-flex" type="button" id="reinstate-btn" hidden>
+            <i class="fa-solid fa-play" aria-hidden="true"></i><span data-i18n="driverProfile.reinstateBtn">Reinstate driver</span>
+          </button>
+          <p class="small lh-sm mb-0 people-action-hint" id="action-hint"></p>
         </div>
       </div>
-
-      <ad-form-modal id="action-modal"></ad-form-modal>
     </ad-shell>
 
     <script type="module" src="scripts/driver-profile.js"></script>

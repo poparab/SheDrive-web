@@ -14,7 +14,7 @@
       page-title-key="safetyReport.title"
       breadcrumb-keys="nav.safety|safety-reports.html > safetyReport.crumb"
       back="safety-reports.html"
-      screen-styles="styles/detail.css, styles/list.css"
+      screen-styles="styles/detail.css, styles/list.css, styles/safety-report.css"
     >
       <div id="report-missing" hidden>
         <ad-empty-state icon="⚠" heading="Report not found" data-i18n-heading="safetyReport.notFoundHeading" message="This report record does not exist." data-i18n-message="safetyReport.notFoundMessage">
@@ -22,45 +22,126 @@
         </ad-empty-state>
       </div>
 
+      <!-- Kit v22-09 gender-mismatch-details: the driver's statement as an info
+           alert, four cards, and the two resolutions in a bottom row. -->
       <div id="report-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
-            <section class="ad-section" aria-labelledby="statement-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="statement-heading" data-i18n="safetyReport.statementHeading">Reporting driver's statement</h2>
-              </div>
-              <div class="ad-section__body">
-                <p class="detail__statement" id="statement"></p>
-              </div>
-            </section>
-
-            <ad-detail-section id="trip-snapshot" icon="trips.svg" section-title="Trip snapshot" data-i18n-section-title="safetyReport.tripSnapshot"></ad-detail-section>
-            <ad-detail-section id="rider-state" icon="user-star.svg" section-title="Reported rider" data-i18n-section-title="safetyReport.riderState"></ad-detail-section>
-            <ad-detail-section id="driver-info" icon="steering-wheel.svg" section-title="Reporting driver" data-i18n-section-title="safetyReport.driverInfo"></ad-detail-section>
+        <div class="alert info mt-3" id="statement-alert">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <div class="details">
+            <h6 id="statement-heading" data-i18n="safetyReport.statementHeading">Reporting driver's statement</h6>
+            <p class="detail__statement" id="statement"></p>
           </div>
+        </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="report-meta" icon="shield.svg" section-title="Report" data-i18n-section-title="safetyReport.crumb"></ad-detail-section>
+        <div class="row g-3 sr-grid">
+          <div class="col-lg-6">
+            <ad-detail-section id="report-meta" icon="shield.svg" section-title="Report details"></ad-detail-section>
+          </div>
+          <div class="col-lg-6">
+            <ad-detail-section id="rider-state" icon="user-star.svg" section-title="Reported rider"></ad-detail-section>
+          </div>
+          <div class="col-lg-6">
+            <ad-detail-section id="driver-info" icon="steering-wheel.svg" section-title="Reporting driver"></ad-detail-section>
+          </div>
+          <div class="col-lg-6">
+            <ad-detail-section id="trip-snapshot" icon="trips.svg" section-title="Trip snapshot"></ad-detail-section>
+          </div>
+        </div>
 
-            <section class="ad-section" aria-labelledby="resolve-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="resolve-heading" data-i18n="safetyReport.resolveHeading">Resolution</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" id="resolve-hint"></p>
-                <button class="btn btn-danger btn--full" type="button" id="suspend-btn" hidden data-i18n="safetyReport.suspendBtn">
-                  Suspend the reported rider
-                </button>
-                <button class="btn btn-primary-outline btn--full" type="button" id="dismiss-btn" hidden data-i18n="safetyReport.dismissBtn">
-                  Dismiss the report
-                </button>
-              </div>
-            </section>
-          </aside>
+        <section class="sr-actions mt-3" aria-labelledby="resolve-heading">
+          <h2 class="visually-hidden" id="resolve-heading" data-i18n="safetyReport.resolveHeading">Resolution</h2>
+          <p class="small lh-sm" id="resolve-hint"></p>
+          <div class="d-flex flex-wrap gap-3 mb-3">
+            <button class="btn btn-danger d-flex" type="button" id="suspend-btn" hidden>
+              <i class="fa-solid fa-pause" aria-hidden="true"></i><span data-i18n="safetyReport.suspendBtn">Suspend the reported rider</span>
+            </button>
+            <button class="btn btn-success d-flex" type="button" id="dismiss-btn" hidden>
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="safetyReport.dismissBtn">Dismiss the report</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Kit modals (moved to <body> by the script) ── -->
+
+      <!-- Kit #suspendReportedRiderReasonModal -->
+      <div class="modal fade default-modal sr-modal" id="suspend-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="suspend-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/stop-women.svg" alt="" />
+              <h3 id="suspend-modal-title" data-i18n="safetyReport.suspendTitle">Suspend the reported rider</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small lh-sm" data-i18n="safetyReport.suspendDescription">This upholds the report. Her sessions are invalidated and she cannot book until reinstated.</p>
+              <div class="alert danger sr-form-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><p></p></div>
+              <form class="row" id="suspend-form" novalidate>
+                <div class="col-12">
+                  <label for="suspend-note"><span data-i18n="kitDetails.noteLabel">Note</span> <span data-i18n="kitDetails.optional">Optional</span></label>
+                  <textarea class="form-control" rows="2" id="suspend-note" name="note" maxlength="500" placeholder="Type a note." data-i18n-placeholder="kitDetails.notePlaceholder" aria-describedby="suspend-note-hint"></textarea>
+                  <div class="invalid-feedback"></div>
+                  <p class="small lh-sm" id="suspend-note-hint" data-i18n="safetyReport.suspendNoteHint">The gender-mismatch report is already the recorded reason, so a note is optional.</p>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" form="suspend-form" class="btn btn-danger"><i class="fa-solid fa-pause" aria-hidden="true"></i><span data-i18n="safetyReport.suspendConfirm">Suspend rider</span></button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.cancel">Cancel</span></button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ad-form-modal id="resolve-modal"></ad-form-modal>
+      <!-- Kit #dismissReportReasonModal -->
+      <div class="modal fade default-modal sr-modal" id="dismiss-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="dismiss-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/checked-women.svg" alt="" />
+              <h3 id="dismiss-modal-title" data-i18n="safetyReport.dismissTitle">Dismiss this report?</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert danger sr-form-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><p></p></div>
+              <form class="row" id="dismiss-form" novalidate>
+                <div class="col-12">
+                  <label for="dismiss-note"><span data-i18n="kitDetails.noteLabel">Note</span> <span data-i18n="kitDetails.optional">Optional</span></label>
+                  <textarea class="form-control" rows="2" id="dismiss-note" name="note" maxlength="500" placeholder="Type a note." data-i18n-placeholder="kitDetails.notePlaceholder"></textarea>
+                  <div class="invalid-feedback"></div>
+                </div>
+              </form>
+              <div class="alert info mt-3">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <p data-i18n="safetyReport.dismissDescription">The report is marked unfounded and the rider returns from Pending review to Active.</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" form="dismiss-form" class="btn btn-success"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="safetyReport.dismissConfirm">Dismiss report</span></button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.cancel">Cancel</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kit #riderSuspentionSuccessModal / #riderDismissedSuccessModal -->
+      <div class="modal fade popup-success sr-modal" id="success-modal" tabindex="-1" aria-labelledby="success-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign success"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
+              <h4 id="success-title"></h4>
+              <p id="success-body"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.close">Close</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/safety-report.js"></script>

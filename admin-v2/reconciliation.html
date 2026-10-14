@@ -13,22 +13,13 @@
       active="reconciliation"
       page-title-key="reconciliation.title"
       breadcrumb-keys="nav.money > nav.reconciliation"
-      screen-styles="styles/detail.css, styles/list.css, styles/pricing.css, styles/reconciliation.css"
+      screen-styles="styles/list.css, styles/pricing.css, styles/reconciliation.css"
     >
-      <section class="ad-section" aria-labelledby="filters-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="filters-heading" data-i18n="reconciliation.filtersHeading">Driver & period</h2>
-            <p class="ad-section__hint" data-i18n="reconciliation.filtersHint">
-              Select a driver to answer a payment query or review her settlement position.
-            </p>
-          </div>
-        </div>
-        <ad-filter-bar id="recon-filters"></ad-filter-bar>
-      </section>
+      <!-- Kit reconciliation: driver search + date range straight under the title -->
+      <ad-filter-bar id="recon-filters"></ad-filter-bar>
 
       <!-- #1833 S2 — a driver is required before a report can be generated -->
-      <div id="no-driver">
+      <div id="no-driver" class="mt-3">
         <ad-empty-state
           icon="⇌"
           heading="Select a driver" data-i18n-heading="reconciliation.emptyHeading"
@@ -39,53 +30,48 @@
 
       <div id="report" hidden>
         <!-- Period totals only. The outstanding cash balance is a live figure the
-             date range does not change, so it sits in the Cash vs digital panel. -->
-        <div class="ad-stats" id="report-cards">
-          <ad-stat-card id="card-trips" label="Completed trips" data-i18n-label="reports.cardTrips" value="—"></ad-stat-card>
-          <ad-stat-card id="card-gross" label="Gross fares" data-i18n-label="reports.cardGross" value="—"></ad-stat-card>
-          <ad-stat-card id="card-commission" label="Commission deducted" data-i18n-label="reconciliation.cardCommission" value="—"></ad-stat-card>
-          <ad-stat-card id="card-net" label="Net earnings" data-i18n-label="reconciliation.cardNet" value="—"></ad-stat-card>
+             date range does not change, so it sits in the Cash vs digital card. -->
+        <div class="ad-stats recon__kpis mt-3" id="report-cards">
+          <ad-stat-card id="card-trips" tone="primary" icon="trips.svg" label="Completed trips" data-i18n-label="reports.cardTrips" value="—"></ad-stat-card>
+          <ad-stat-card id="card-gross" tone="blue" icon="prices.svg" label="Gross fares" data-i18n-label="reports.cardGross" value="—"></ad-stat-card>
+          <ad-stat-card id="card-commission" tone="warning" icon="discount.svg" label="Commission deducted" data-i18n-label="reconciliation.cardCommission" value="—"></ad-stat-card>
+          <ad-stat-card id="card-net" tone="success" icon="money.svg" label="Net earnings" data-i18n-label="reconciliation.cardNet" value="—"></ad-stat-card>
         </div>
 
-        <div class="ad-split" style="margin-block-start: var(--admin-gutter)">
-          <section class="ad-section" aria-labelledby="rows-heading">
-            <div class="ad-section__header">
-              <h2 class="ad-section__title" id="rows-heading" data-i18n="reconciliation.rowsHeading">Per-trip breakdown</h2>
+        <section class="mt-4" aria-labelledby="rows-heading">
+          <div class="section-title row gy-3 mb-3">
+            <div class="title col-auto">
+              <h4 class="text-nowrap" id="rows-heading" data-i18n="reconciliation.rowsHeading">Per-trip breakdown</h4>
             </div>
-            <ad-data-table id="trip-table"></ad-data-table>
-          </section>
+            <div class="end-side col-auto ms-auto">
+              <!-- Settlement, payouts and the full ledger live on the driver's balance page -->
+              <a class="btn btn-primary d-flex gap-2 align-items-center" id="settle-link" href="balances.html">
+                <span data-i18n="kitPricing.openDriverBalance">Open driver balance</span>
+                <i class="fa-solid fa-arrow-right" id="settle-link-icon" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+          <ad-data-table id="trip-table"></ad-data-table>
+        </section>
 
-          <aside class="ad-split__aside">
-            <section class="ad-section" aria-labelledby="split-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="split-heading" data-i18n="reconciliation.splitHeading">Cash vs digital</h2>
+        <div class="row mt-3">
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg" aria-labelledby="split-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="split-heading" data-i18n="reconciliation.splitHeading">Cash vs digital</h5>
+                </div>
+                <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
               </div>
-              <div class="ad-section__body">
-                <div class="detail__money" id="split-rows"></div>
+              <div class="card-body">
+                <div class="list-multi-column no-border p-0" id="split-rows"></div>
               </div>
             </section>
-
-            <!-- Settlement now lives on the dedicated #1813 screen -->
-            <section class="ad-section" aria-labelledby="settle-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="settle-heading" data-i18n="reconciliation.settleHeading">Settlement</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" data-i18n="reconciliation.settleHint">
-                  Recording a settlement, recording a payout and reviewing the full
-                  transaction ledger are handled on the Driver balances screen, where the
-                  entry is posted and the balance is recomputed from it.
-                </p>
-                <a class="btn btn--primary btn--full" id="settle-link" href="balances.html" data-i18n="reconciliation.settleLink">
-                  Open driver balances
-                </a>
-              </div>
-            </section>
-          </aside>
+          </div>
         </div>
       </div>
 
-      <div class="ad-form-error" id="recon-error" role="alert"></div>
+      <div class="ad-form-error mt-3" id="recon-error" role="alert"></div>
     </ad-shell>
 
     <script type="module" src="scripts/reconciliation.js"></script>

@@ -11,6 +11,12 @@
  * cancelled and expired as separate cases); reassigning keeps the trip live and
  * returns it to `accepted`; both are written to the audit log per #1816.
  *
+ * Presentation (kit v22-09): one `.row.g-3` card grid whose cards appear by trip
+ * state, the actions in a bottom row, and the kit's own modals — a
+ * `default-modal` for the reason form, a `popup-danger` final confirmation for
+ * cancelling, and a `popup-success` result. The modals are static markup in the
+ * page, moved to <body> so no positioned ancestor can trap them.
+ *
  * Bilingual: every generated string goes through `t()`. Reason values stay
  * English in the data (they are what the audit log and `values.reason ===
  * 'Other'` compare against) — only their labels are translated.
@@ -29,7 +35,8 @@ import {
   formatTime,
   humanize,
 } from './format.js';
-import { t, hasKey } from './admin-i18n.js';
+import { t, hasKey, applyAdminTranslations } from './admin-i18n.js';
+import { loadBootstrap } from './design-init.js';
 import { reasonKey } from '../i18n/details.js';
 import { qs } from '../../shared/scripts/utils.js';
 
@@ -37,8 +44,6 @@ if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
-const shell = qs('ad-shell');
-const modal = qs('#intervention-modal');
 const body = qs('#trip-body');
 const missing = qs('#trip-missing');
 const id = new URLSearchParams(window.location.search).get('id');
@@ -50,16 +55,13 @@ const TERMINAL_TONE = {
   reassigned_by_admin: 'default',
 };
 
+const NOTE_MAX = 500;
+
 /** Translated label for a stored reason string; unknown text passes through. */
 function reasonLabel(text) {
   if (!text) return text;
   const key = `reason.${reasonKey(text)}`;
   return hasKey(key) ? t(key) : text;
-}
-
-/** A reason list as modal options — English value, translated label. */
-function reasonOptions(list) {
-  return list.map((reason) => ({ value: reason, label: reasonLabel(reason) }));
 }
 
 /** Translated label for a trip state token from the state machine. */
@@ -80,7 +82,7 @@ function localizeSections() {
   const titles = {
     '#parties': 'tripDetail.parties',
     '#route': 'tripDetail.route',
-    '#summary': 'tripDetail.summary',
+    '#summary': 'kitDetails.tripDetails',
     '#estimate': 'tripDetail.estimate',
     '#cancellation': 'tripDetail.cancellation',
   };
@@ -108,20 +110,160 @@ function noteText(note) {
   return hasKey(key) ? t(key) : humanize(note);
 }
 
-function moneyRow(label, value, total = false) {
+/** One kit key/value row: `.row.gx-0.list-row > .list-item.col + .list-item.col-auto`. */
+function listRow(label, value, extraClass = '') {
   const row = document.createElement('div');
-  row.className = total ? 'detail__money-row detail__money-row--total' : 'detail__money-row';
-  const key = document.createElement('span');
-  key.className = 'detail__money-label';
+  row.className = `row gx-0 list-row detail__money-row ${extraClass}`.trim();
+  const key = document.createElement('div');
+  key.className = 'list-item col text-bold detail__money-label';
   key.textContent = label;
-  const val = document.createElement('span');
-  val.className = 'detail__money-value ad-ltr';
+  const val = document.createElement('div');
+  val.className = 'list-item col-auto justify-content-md-end detail__money-value ad-ltr';
   val.textContent = value;
   row.append(key, val);
   return row;
 }
 
 localizeSections();
+
+// ── Kit modals ────────────────────────────────────────
+
+const modals = {
+  reassign: qs('#reassign-modal'),
+  noDriver: qs('#no-driver-modal'),
+  cancel: qs('#cancel-modal'),
+  cancelWarning: qs('#cancel-warning-modal'),
+  success: qs('#success-modal'),
+};
+
+// <ad-shell> re-parents its children into the content area; a Bootstrap modal
+// must sit on <body> so no transformed or positioned ancestor can trap it.
+Object.values(modals).forEach((el) => {
+  document.body.appendChild(el);
+  applyAdminTranslations(el);
+});
+
+async function showModal(el) {
+  try {
+    await loadBootstrap();
+  } catch {
+    /* fall back below */
+  }
+  if (window.bootstrap?.Modal) {
+    window.bootstrap.Modal.getOrCreateInstance(el).show();
+    return;
+  }
+  el.style.display = 'block';
+  el.classList.add('show');
+  el.removeAttribute('aria-hidden');
+}
+
+/** Resolves once the modal has finished hiding, so the next one can open cleanly. */
+function hideModal(el) {
+  return new Promise((resolve) => {
+    const instance = window.bootstrap?.Modal?.getInstance(el);
+    if (!instance) {
+      el.classList.remove('show');
+      el.style.display = '';
+      el.setAttribute('aria-hidden', 'true');
+      resolve();
+      return;
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    el.addEventListener('hidden.bs.modal', finish, { once: true });
+    const hide = () => {
+      if (!el.classList.contains('show')) finish();
+      else instance.hide();
+    };
+    // Bootstrap ignores hide() while a show is still animating — wait it out.
+    if (instance._isTransitioning) el.addEventListener('shown.bs.modal', hide, { once: true });
+    else hide();
+    // Never leave the flow hanging on an animation event that does not arrive.
+    window.setTimeout(finish, 1500);
+  });
+}
+
+function showSuccess(title, message) {
+  qs('#success-title', modals.success).textContent = title;
+  qs('#success-body', modals.success).textContent = message;
+  showModal(modals.success);
+}
+
+function setFormError(modal, message) {
+  const box = modal.querySelector('.td-form-error');
+  if (!box) return;
+  box.hidden = !message;
+  box.querySelector('p').textContent = message ?? '';
+}
+
+function fillReasonSelect(select, list) {
+  select.textContent = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = t('modal.selectPlaceholder');
+  select.appendChild(placeholder);
+  list.forEach((reason) => {
+    const opt = document.createElement('option');
+    opt.value = reason;
+    opt.textContent = reasonLabel(reason);
+    select.appendChild(opt);
+  });
+  select.value = '';
+}
+
+function fieldError(form, key, control, message) {
+  const feedback = form.querySelector(`[data-error-for="${key}"]`);
+  const target = control.tagName === 'AD-COMBOBOX' ? control.querySelector('input') ?? control : control;
+  if (message) {
+    if (feedback) {
+      feedback.textContent = message;
+      feedback.classList.add('d-block');
+    }
+    target.classList.add('is-invalid');
+    target.setAttribute('aria-invalid', 'true');
+  } else {
+    feedback?.classList.remove('d-block');
+    target.classList.remove('is-invalid');
+    target.removeAttribute('aria-invalid');
+  }
+}
+
+/** Reason + note rules shared by both forms (Field Validation tables of #1808/#1809). */
+function validateReasonNote(form, reasonSelect, noteInput, reasonEmptyKey) {
+  let firstInvalid = null;
+  const reason = reasonSelect.value;
+  const note = noteInput.value.trim();
+
+  if (!reason) {
+    fieldError(form, 'reason', reasonSelect, t(reasonEmptyKey));
+    firstInvalid = firstInvalid ?? reasonSelect;
+  } else {
+    fieldError(form, 'reason', reasonSelect, null);
+  }
+
+  if (reason === 'Other' && !note) {
+    fieldError(form, 'note', noteInput, t('tripDetail.noteEmptyOther'));
+    firstInvalid = firstInvalid ?? noteInput;
+  } else if (note.length > NOTE_MAX) {
+    fieldError(form, 'note', noteInput, t('tripDetail.noteTooLong'));
+    firstInvalid = firstInvalid ?? noteInput;
+  } else {
+    fieldError(form, 'note', noteInput, null);
+  }
+
+  return firstInvalid;
+}
+
+function clearOnEdit(form, key, control) {
+  ['input', 'change'].forEach((type) =>
+    control.addEventListener(type, () => fieldError(form, key, control, null)),
+  );
+}
 
 async function load() {
   const trip = await mockApi.getTrip(id);
@@ -203,74 +345,83 @@ function render(trip) {
   qs('#summary').items = summaryItems;
 
   // ── Timeline (#1671 S1) ──
+  // Kit: earlier states plain, the last one toned — success/danger when the trip
+  // ended, `active` while it is still running.
   qs('#timeline').items = trip.stateHistory.map((entry, index) => {
     const isLast = index === trip.stateHistory.length - 1;
+    let tone = TERMINAL_TONE[entry.state] ?? 'default';
+    if (isLast && !TERMINAL_TONE[entry.state] && isInProgress) tone = 'active';
     return {
       label: stateLabel(entry.state),
       meta: `${formatDate(entry.at)} · ${formatTime(entry.at)}`,
       note: entry.note ? t('tripDetail.reasonNote', { reason: noteText(entry.note) }) : null,
-      tone: TERMINAL_TONE[entry.state] ?? (isLast ? 'default' : 'muted'),
+      tone,
     };
   });
 
   // ── Original estimate (#1671 S2) — incomplete trips only ──
-  const estimateSection = qs('#estimate');
+  qs('#estimate-col').hidden = isCompleted;
   if (!isCompleted) {
-    estimateSection.hidden = false;
-    estimateSection.items = [
+    qs('#estimate').items = [
       { label: t('tripDetail.estimatedFare'), value: ltr(formatEgp(trip.estimate.fare)) },
       { label: t('tripDetail.estimatedTime'), value: formatDuration(trip.estimate.durationMin) },
       { label: t('tripDetail.estimatedDistance'), value: formatDistance(trip.estimate.distanceKm) },
       { label: t('tripDetail.destination'), value: trip.destination.area },
     ];
-  } else {
-    estimateSection.hidden = true;
   }
 
   // ── Fare breakdown (#1672 S1) — completed only ──
+  qs('#fare-section').hidden = !isCompleted;
   if (isCompleted) {
-    qs('#fare-section').hidden = false;
     const rows = qs('#fare-rows');
     rows.textContent = '';
     rows.append(
-      moneyRow(t('tripDetail.baseFare'), formatEgp(trip.fare.baseFare)),
-      moneyRow(t('tripDetail.distanceCharge'), formatEgp(trip.fare.distanceCharge)),
-      moneyRow(t('tripDetail.timeCharge'), formatEgp(trip.fare.timeCharge)),
-      moneyRow(t('tripDetail.totalFare'), formatEgp(trip.fare.total), true),
-      moneyRow(t('tripDetail.cashCollected'), formatEgp(trip.fare.cashCollected)),
+      listRow(t('tripDetail.baseFare'), formatEgp(trip.fare.baseFare), 'no-border'),
+      listRow(t('tripDetail.distanceCharge'), formatEgp(trip.fare.distanceCharge), 'no-border'),
+      listRow(t('tripDetail.timeCharge'), formatEgp(trip.fare.timeCharge)),
+      listRow(
+        t('tripDetail.totalFare'),
+        formatEgp(trip.fare.total),
+        'no-border danger-color text-bold detail__money-row--total',
+      ),
+      listRow(t('tripDetail.cashCollected'), formatEgp(trip.fare.cashCollected)),
     );
   }
 
   // ── Rating (#1672 S2/S3) — completed only ──
+  qs('#rating-section').hidden = !isCompleted;
   if (isCompleted) {
-    qs('#rating-section').hidden = false;
     const host = qs('#rating-body');
     host.textContent = '';
 
     if (!trip.rating) {
       const none = document.createElement('p');
-      none.className = 'ad-muted';
-      none.style.margin = '0';
+      none.className = 'ad-muted td-no-rating';
       none.textContent = t('tripDetail.noRating');
       host.appendChild(none);
     } else {
+      const container = document.createElement('div');
+      container.className = 'rating-container';
+
       const stars = document.createElement('div');
-      stars.className = 'detail__stars';
+      stars.className = 'stars detail__stars';
+      stars.setAttribute('role', 'img');
       stars.setAttribute('aria-label', t('tripDetail.starsAria', { stars: trip.rating.stars }));
       stars.textContent = '★'.repeat(trip.rating.stars) + '☆'.repeat(5 - trip.rating.stars);
-      host.appendChild(stars);
+      container.appendChild(stars);
 
       if (trip.rating.tags.length) {
         const tags = document.createElement('div');
-        tags.className = 'detail__tags';
+        tags.className = 'feedback detail__tags';
         trip.rating.tags.forEach((tag) => {
-          const chip = document.createElement('span');
-          chip.className = 'chip';
+          const chip = document.createElement('div');
+          chip.className = 'item';
           chip.textContent = tag;
           tags.appendChild(chip);
         });
-        host.appendChild(tags);
+        container.appendChild(tags);
       }
+      host.appendChild(container);
     }
   }
 
@@ -285,10 +436,9 @@ function render(trip) {
   }
 
   // ── Recorded cancellation, once it has happened ──
-  const cancellationSection = qs('#cancellation');
+  qs('#cancellation-col').hidden = !trip.cancellation;
   if (trip.cancellation) {
-    cancellationSection.hidden = false;
-    cancellationSection.items = [
+    qs('#cancellation').items = [
       { label: t('common.reason'), value: reasonLabel(trip.cancellation.reason), wide: true },
       ...(trip.cancellation.note && trip.cancellation.note !== trip.cancellation.reason
         ? [{ label: t('common.note'), value: trip.cancellation.note, wide: true }]
@@ -296,115 +446,152 @@ function render(trip) {
       { label: t('tripDetail.cancelledBy'), value: ltr(trip.cancellation.by) },
       { label: t('tripDetail.cancelledAt'), value: formatDateTime(trip.cancellation.at) },
     ];
-  } else {
-    cancellationSection.hidden = true;
   }
 
   // ── Recorded route (#1672 S4) — completed only ──
   if (isCompleted && trip.route) {
     mountRouteMap(trip);
+  } else {
+    qs('#route-section').hidden = true;
   }
 }
 
 // ── #1808 cancel an in-progress trip ──────────────────
+// Reason form (default-modal) → final confirmation (popup-danger) → result
+// (popup-success). "Back to review" returns to the form with its values intact.
+
+const cancelForm = qs('#cancel-form', modals.cancel);
+const cancelReason = qs('#cancel-reason', modals.cancel);
+const cancelNote = qs('#cancel-note', modals.cancel);
+const cancelConfirm = qs('#cancel-confirm', modals.cancelWarning);
+const cancelBack = qs('#cancel-back', modals.cancelWarning);
+let pendingCancel = null;
+
+clearOnEdit(cancelForm, 'reason', cancelReason);
+clearOnEdit(cancelForm, 'note', cancelNote);
 
 qs('#cancel-trip').addEventListener('click', () => {
-  modal.open({
-    title: t('tripDetail.cancelTitle'),
-    description: t('tripDetail.cancelDescription'),
-    confirmLabel: t('tripDetail.cancelConfirm'),
-    danger: true,
-    cancelLabel: t('tripDetail.cancelKeep'),
-    fields: [
-      {
-        key: 'reason',
-        type: 'select',
-        label: t('tripDetail.cancelReasonLabel'),
-        required: true,
-        options: reasonOptions(REASON_LISTS.tripCancellation),
-        emptyError: t('tripDetail.cancelReasonEmpty'),
-      },
-      {
-        key: 'note',
-        type: 'textarea',
-        label: t('tripDetail.noteLabel'),
-        maxLength: 500,
-        requiredWhen: (values) => values.reason === 'Other',
-        emptyError: t('tripDetail.noteEmptyOther'),
-        lengthError: t('tripDetail.noteTooLong'),
-      },
-    ],
-    onConfirm: async (values) => {
-      await mockApi.cancelTrip(id, values.reason, values.note);
-      shell.showToast(t('tripDetail.toastCancelled'), 'warning');
-      await load();
-    },
-  });
+  fillReasonSelect(cancelReason, REASON_LISTS.tripCancellation);
+  cancelNote.value = '';
+  fieldError(cancelForm, 'reason', cancelReason, null);
+  fieldError(cancelForm, 'note', cancelNote, null);
+  pendingCancel = null;
+  showModal(modals.cancel);
+});
+
+modals.cancel.addEventListener('shown.bs.modal', () => cancelReason.focus());
+
+cancelForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const invalid = validateReasonNote(cancelForm, cancelReason, cancelNote, 'tripDetail.cancelReasonEmpty');
+  if (invalid) {
+    invalid.focus();
+    return;
+  }
+  pendingCancel = { reason: cancelReason.value, note: cancelNote.value.trim() };
+  setFormError(modals.cancelWarning, null);
+  await hideModal(modals.cancel);
+  showModal(modals.cancelWarning);
+});
+
+cancelBack.addEventListener('click', async () => {
+  await hideModal(modals.cancelWarning);
+  showModal(modals.cancel);
+});
+
+cancelConfirm.addEventListener('click', async () => {
+  if (!pendingCancel) return;
+  cancelConfirm.disabled = true;
+  cancelBack.disabled = true;
+  try {
+    await mockApi.cancelTrip(id, pendingCancel.reason, pendingCancel.note);
+    pendingCancel = null;
+    await hideModal(modals.cancelWarning);
+    await load();
+    showSuccess(t('kitDetails.cancelledTitle'), t('kitDetails.cancelledBody'));
+  } catch (error) {
+    setFormError(modals.cancelWarning, error?.message ?? t('modal.saveFailed'));
+  } finally {
+    cancelConfirm.disabled = false;
+    cancelBack.disabled = false;
+  }
 });
 
 // ── #1809 reassign to another driver ──────────────────
+
+const reassignForm = qs('#reassign-form', modals.reassign);
+const reassignDriver = qs('#reassign-driver', modals.reassign);
+const reassignReason = qs('#reassign-reason', modals.reassign);
+const reassignNote = qs('#reassign-note', modals.reassign);
+const reassignSubmit = modals.reassign.querySelector('button[type="submit"]');
+
+clearOnEdit(reassignForm, 'driverId', reassignDriver);
+clearOnEdit(reassignForm, 'reason', reassignReason);
+clearOnEdit(reassignForm, 'note', reassignNote);
 
 qs('#reassign-trip').addEventListener('click', async () => {
   const candidates = await mockApi.listReassignableDrivers(id);
 
   // Nothing to reassign to is a real operational state, not an error.
   if (!candidates.length) {
-    modal.open({
-      title: t('tripDetail.noDriverTitle'),
-      description: t('tripDetail.noDriverDescription'),
-      confirmLabel: t('common.close'),
-      cancelLabel: t('tripDetail.noDriverBack'),
-      fields: [],
-      onConfirm: async () => {},
-    });
+    showModal(modals.noDriver);
     return;
   }
 
-  modal.open({
-    title: t('tripDetail.reassignTitle'),
-    description: t('tripDetail.reassignDescription'),
-    confirmLabel: t('tripDetail.reassignConfirm'),
-    fields: [
-      {
-        key: 'driverId',
-        // #4382: searchable on name or phone — dispatch is reassigning a live
-        // trip and is usually already on the phone to the driver she wants.
-        type: 'combobox',
-        label: t('tripDetail.newDriverLabel'),
-        required: true,
-        placeholder: t('tripDetail.newDriverPlaceholder'),
-        options: candidates.map((d) => ({
-          value: String(d.id),
-          label: d.name,
-          meta: d.phone,
-          note: `${d.vehicle}${d.rating ? ` · ${d.rating}★` : ''} · ${d.homeArea}`,
-        })),
-        emptyError: t('tripDetail.newDriverEmpty'),
-      },
-      {
-        key: 'reason',
-        type: 'select',
-        label: t('tripDetail.reassignReasonLabel'),
-        required: true,
-        options: reasonOptions(REASON_LISTS.tripReassignment),
-        emptyError: t('tripDetail.reassignReasonEmpty'),
-      },
-      {
-        key: 'note',
-        type: 'textarea',
-        label: t('tripDetail.noteLabel'),
-        maxLength: 500,
-        requiredWhen: (values) => values.reason === 'Other',
-        emptyError: t('tripDetail.noteEmptyOther'),
-        lengthError: t('tripDetail.noteTooLong'),
-      },
-    ],
-    onConfirm: async (values) => {
-      const result = await mockApi.reassignTrip(id, values.driverId, values.reason, values.note);
-      shell.showToast(t('tripDetail.toastReassigned', { name: result.driverName }), 'success');
-      await load();
-    },
-  });
+  // #4382: searchable on name or phone — dispatch is reassigning a live trip and
+  // is usually already on the phone to the driver she wants.
+  reassignDriver.placeholder = t('tripDetail.newDriverPlaceholder');
+  reassignDriver.options = candidates.map((d) => ({
+    value: String(d.id),
+    label: d.name,
+    meta: d.phone,
+    note: `${d.vehicle}${d.rating ? ` · ${d.rating}★` : ''} · ${d.homeArea}`,
+  }));
+  reassignDriver.value = '';
+  fillReasonSelect(reassignReason, REASON_LISTS.tripReassignment);
+  reassignNote.value = '';
+  ['driverId', 'reason', 'note'].forEach((key) =>
+    fieldError(reassignForm, key, { driverId: reassignDriver, reason: reassignReason, note: reassignNote }[key], null),
+  );
+  setFormError(modals.reassign, null);
+  showModal(modals.reassign);
+});
+
+modals.reassign.addEventListener('shown.bs.modal', () => reassignDriver.focus());
+
+reassignForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  let invalid = null;
+  if (!reassignDriver.value) {
+    fieldError(reassignForm, 'driverId', reassignDriver, t('tripDetail.newDriverEmpty'));
+    invalid = reassignDriver;
+  } else {
+    fieldError(reassignForm, 'driverId', reassignDriver, null);
+  }
+  invalid = validateReasonNote(reassignForm, reassignReason, reassignNote, 'tripDetail.reassignReasonEmpty') ?? invalid;
+  if (!reassignDriver.value) invalid = reassignDriver;
+  if (invalid) {
+    invalid.focus();
+    return;
+  }
+
+  setFormError(modals.reassign, null);
+  reassignSubmit.disabled = true;
+  try {
+    const result = await mockApi.reassignTrip(
+      id,
+      reassignDriver.value,
+      reassignReason.value,
+      reassignNote.value.trim(),
+    );
+    await hideModal(modals.reassign);
+    await load();
+    showSuccess(t('kitDetails.reassignedTitle'), t('kitDetails.reassignedBody', { name: result.driverName }));
+  } catch (error) {
+    setFormError(modals.reassign, error?.message ?? t('modal.saveFailed'));
+  } finally {
+    reassignSubmit.disabled = false;
+  }
 });
 
 async function mountRouteMap(trip) {
@@ -417,6 +604,8 @@ async function mountRouteMap(trip) {
   });
 
   const panel = qs('#route-map');
+  if (panel.dataset.mounted) return;
+  panel.dataset.mounted = '1';
   // The map must never block the rest of the screen, so this runs last and
   // handles an unavailable map with a visible message.
   const map = await panel.mount({ center: trip.pickup.point, zoom: 12 });

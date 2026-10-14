@@ -2,30 +2,14 @@
  * payouts.css — payout batches list and the generate-batch preview
  * Screen owner: admin-v2/payouts.html
  *
- * The grid, KPI row and filter bar are kit/shared. What is local: the intro
- * row with its primary action, the paid/failed counts cell, and the preview
- * modal (summary, notices, the skipped-drivers list).
+ * The lead alert, KPI row, filter bar, grid and the preview's default-modal are
+ * kit markup. What is local: spacing under the lead, the paid/failed counts
+ * cell, and the preview body's column layout.
+ * Every value comes from a token. Logical properties only (RTL-safe).
  */
 
-/* ── Intro row ────────────────────────────────────────── */
-
-.payouts-intro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.payouts-intro .ad-section__hint {
-  margin: 0;
-  max-inline-size: 70ch;
-}
-
-.payouts-intro .btn {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+.alert.payouts-lead {
+  margin-block-end: var(--space-4);
 }
 
 /* ── Grid cells ───────────────────────────────────────── */
@@ -44,19 +28,21 @@
   font-weight: var(--fw-semibold);
 }
 
-/* ── Preview modal ────────────────────────────────────── */
+/* ── Preview modal (kit default-modal) ────────────────── */
 
-.payouts-preview .modal-header {
+.payouts-preview .modal-content .modal-header {
   align-items: center;
 }
 
-.payouts-preview .modal-title {
+.payouts-preview .modal-content .modal-header h3 {
   margin: 0;
-  color: var(--color-text-strong);
 }
 
-/* The kit centres popup bodies; a preview is tabular, so it reads from the start. */
-.payouts-preview__body {
+.payouts-preview .modal-content .modal-header .btn-close {
+  margin-inline-start: auto;
+}
+
+.payouts-preview .modal-content .payouts-preview__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -69,11 +55,14 @@
   flex-shrink: 0;
 }
 
+.payouts-preview__body .alert {
+  margin: 0;
+}
+
 .payouts-preview__summary {
   margin: 0;
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
-  color: var(--color-text-strong);
 }
 
 .payouts-preview__loading {
@@ -88,29 +77,20 @@
   margin: 0;
 }
 
-.payouts-preview__amount,
-.payouts-preview__total td {
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-700);
-}
-
 .payouts-preview__table td,
 .payouts-preview__table th {
   font-variant-numeric: tabular-nums;
 }
 
-.payouts-notice {
+.payouts-preview__table p {
   margin: 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  font-size: var(--fs-sm);
-  line-height: var(--leading-relaxed);
-  background: rgba(var(--color-info-rgb), 0.08);
-  border-inline-start: 3px solid var(--color-info);
-  color: var(--color-text);
 }
 
-.payouts-notice--warning {
-  background: rgba(var(--color-warning-rgb), 0.1);
-  border-inline-start-color: var(--color-warning);
+.payouts-preview__total td {
+  font-weight: var(--fw-bold);
+}
+
+.payouts-preview__hint {
+  margin: 0;
+  color: var(--color-text-muted);
 }

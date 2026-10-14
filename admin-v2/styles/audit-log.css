@@ -1,40 +1,49 @@
 /*
- * audit-log.css — SheDrive admin activity audit log (v2 design kit)
+ * audit-log.css — SheDrive admin activity audit log (kit v22-09)
  *
- * The grid itself is the kit's `.custom-grid-list`, so this sheet only shapes
- * the two composite cells audit-log.js builds: the before/after diff and the
- * target identifier. The diff has to stay legible without widening the grid,
- * which is why it wraps inside a capped column rather than stretching it.
- *
- * Class names are unchanged. Every value is a token.
+ * The filter row, grid, lamps, View button and dialog are kit markup; the
+ * developers' build (demo-snapshots/audit-log.html) names the dialog
+ * `.audit-diff-modal`, which the kit stylesheet does not style, so this sheet
+ * shapes it: the summary list, the before → after table and the footnote.
+ * Every value is a token.
  */
 
-.audit__diff {
+.audit__target {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-width: 22rem;
-  font-size: var(--admin-fs-label);
-  /* The kit's grid cells are nowrap; a long reason would otherwise push the whole
-     table wider than its container. */
-  white-space: normal;
 }
 
-.audit__diff-before,
-.audit__diff-after {
+/* ── Details dialog ───────────────────────────────── */
+
+.audit-diff-modal .audit-diff-heading h3 {
+  margin: 0;
+}
+
+.audit-diff-modal .modal-body {
+  text-align: start;
+}
+
+.audit-diff-summary {
+  margin-block-end: var(--space-4);
+}
+
+.audit-diff-summary .list-item {
   overflow-wrap: anywhere;
 }
 
-.audit__diff-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
-.audit__diff-key {
+.audit-diff-title {
+  margin-block: 0 var(--space-2);
+  font-size: var(--admin-fs-label);
   font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
+}
+
+/* The kit's grid cells are nowrap; a long reason must wrap inside the dialog. */
+.audit-diff-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
 }
 
 /* Old value struck through, new value carried in the brand ink. */
@@ -43,34 +52,24 @@
   text-decoration: line-through;
 }
 
-.audit__diff-arrow {
-  color: var(--color-primary-500);
-}
-
 .audit__diff-after {
   font-weight: var(--fw-semibold);
   color: var(--color-primary-700);
 }
 
-.audit__target {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.audit__target-type {
-  font-size: var(--admin-fs-label);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.audit-diff-empty {
+  margin: 0;
+  padding-block: var(--space-3);
   color: var(--color-text-muted);
 }
 
-/*
- * The arrow between the before and after values names a physical direction.
- * In Arabic the row itself is reversed by the flex direction, so the glyph has
- * to be mirrored to keep pointing from the old value towards the new one.
- */
-[dir='rtl'] .audit__diff-arrow {
-  display: inline-block;
-  transform: rotate(180deg);
+.audit-diff-note {
+  margin-block-start: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+/* The diff cells wrap, so the table never needs to scroll sideways (a sub-pixel
+   overshoot would otherwise paint a scrollbar under it). */
+.audit-diff-modal .table-responsive {
+  overflow-x: hidden;
 }

@@ -16,7 +16,12 @@
       screen-styles="styles/list.css, styles/approvals.css"
     >
       <!-- Demo only (spec §7): act as a second admin to show the checker side. -->
-      <div class="apr-demo" id="approvals-demo" role="region" aria-label="Demo switch" data-i18n-aria-label="approvals.demoBadge"></div>
+      <div class="alert warning apr-demo" id="approvals-demo" role="region" aria-label="Demo switch" data-i18n-aria-label="approvals.demoBadge"></div>
+
+      <div class="alert info apr-hint">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p data-i18n="approvals.hint">Every finance action waits here until a different admin approves or rejects it.</p>
+      </div>
 
       <!-- Kit KPI row -->
       <div
@@ -26,20 +31,8 @@
         data-i18n-aria-label="approvals.statsLabel"
       ></div>
 
-      <section class="ad-section" aria-labelledby="approvals-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="approvals-heading" data-i18n="approvals.heading">Request queue</h2>
-            <p class="ad-section__hint" data-i18n="approvals.hint">
-              Every finance action waits here until a different admin approves or rejects it.
-            </p>
-          </div>
-        </div>
-
-        <ad-tabs id="approvals-tabs"></ad-tabs>
-        <ad-filter-bar id="approvals-filters"></ad-filter-bar>
-        <ad-data-table id="approvals-table"></ad-data-table>
-      </section>
+      <ad-filter-bar id="approvals-filters"></ad-filter-bar>
+      <ad-data-table id="approvals-table"></ad-data-table>
     </ad-shell>
 
     <script type="module" src="scripts/approvals.js"></script>

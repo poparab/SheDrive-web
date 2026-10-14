@@ -13,6 +13,7 @@ import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatCount, formatDate, formatPhone } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
+import { gridAction } from '../components/ad-data-table.js';
 import { t } from './admin-i18n.js';
 import { mountStatRow, fillStatRow } from './list-metrics.js';
 
@@ -64,7 +65,7 @@ table.sort = query.sort;
 table.rowHref = (row) => `rider-profile.html?id=${row.id}`;
 
 table.columns = [
-  { key: 'name', label: t('common.name'), sortable: true, render: (row) => row.name },
+  { key: 'name', label: t('common.name'), sortable: true, className: 'list__wrap', render: (row) => row.name },
   {
     key: 'phone',
     label: t('common.phone'),
@@ -103,6 +104,12 @@ table.columns = [
     numeric: true,
     render: (row) => formatCount(row.tripsCompleted),
   },
+  {
+    key: 'actions',
+    label: t('common.actions'),
+    actions: true,
+    render: (row) => gridAction({ href: `rider-profile.html?id=${row.id}`, label: t('kitLists.viewProfile') }),
+  },
 ];
 
 table.emptyState = {
@@ -119,6 +126,13 @@ table.addEventListener('sortchange', (event) => {
 
 table.addEventListener('pagechange', (event) => {
   query.page = event.detail.page;
+  load();
+});
+
+// Kit "Rows count" select in the grid footer.
+table.addEventListener('pagesizechange', (event) => {
+  query.pageSize = event.detail.pageSize;
+  query.page = 1;
   load();
 });
 

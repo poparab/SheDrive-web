@@ -1,0 +1,98 @@
+/*
+ * driver-balance-details.css — one driver's ledger, kit v22-09
+ * driver-balance-details.html. Every value comes from a token.
+ */
+
+#ledger-body[hidden],
+#ledger-missing[hidden],
+#ledger-error[hidden] { display: none; }
+
+#ledger-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Kit alerts carry their own spacing; keep the paragraph tight to the icon. */
+.ledger-alert { margin: 0; }
+.ledger-alert[hidden] { display: none; }
+.ledger-alert p { margin: 0; }
+.ledger-alert a {
+  color: inherit;
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
+}
+
+/* The kit action bar: only buttons, plus the batches link at the end. */
+.ledger-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ledger-actions [hidden] { display: none !important; }
+
+.ledger-pending {
+  align-items: center;
+  text-decoration: none;
+}
+
+.ledger-pending:hover,
+.ledger-pending:focus-visible { text-decoration: underline; }
+
+.ledger-payouts-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-primary);
+}
+
+/* Payout status chips sit on one line. */
+.ledger-chip { white-space: nowrap; }
+
+/* ── Proof thumbnail (#3982) ──────────────────────── */
+.ledger-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.ledger-proof:hover,
+.ledger-proof:focus-visible { text-decoration: underline; }
+
+.ledger-proof img {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}
+
+/* ── Kit default-modal form (appended to <body>) ──── */
+.default-modal .ledger-field-error {
+  margin-block: calc(-1 * var(--space-1)) var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-danger);
+}
+
+.default-modal .ledger-field-error[hidden],
+.default-modal .ledger-form-summary[hidden],
+.default-modal .attachment-item[hidden] { display: none; }
+
+.default-modal .ledger-form-summary p { margin: 0; }
+
+.default-modal .attachment-item { margin-block-start: var(--space-3); }
+
+.default-modal .modal-header h3 { margin-inline-end: var(--space-1); }
+
+/* The balance tile keeps one column's width, as in the kit's row-cols-lg-3
+   row; the four payout-position tiles form the row below. */
+.ledger-kpis.ad-stats {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}

@@ -23,6 +23,11 @@
   font-weight: var(--fw-medium);
   color: var(--color-primary-700);
   overflow-wrap: anywhere;
+  /* The kit's cells never wrap; a very long name would push the Actions
+     column off-screen, so a name may wrap inside a bounded width. */
+  white-space: normal;
+  min-inline-size: 5.5rem;
+  max-inline-size: 16rem;
 }
 
 .list__name-secondary {
@@ -63,4 +68,36 @@
 .list__rating-star {
   color: var(--color-warning);
   line-height: 1;
+}
+
+/* Kit list block. The kit's bare <section> padding is not wanted here — the
+   content column already spaces its blocks. */
+.ad-list {
+  padding-block: 0;
+}
+
+/* Kit list block: the grid sits just under the filter row (`.row.mt-2`). */
+.ad-list > ad-data-table {
+  margin-block-start: var(--space-2);
+}
+
+/*
+ * Free-text cells (addresses, long names) may wrap inside a bounded width so
+ * the kit's no-wrap grid keeps its Actions column on screen.
+ */
+.custom-grid-list td.list__wrap {
+  white-space: normal;
+  min-inline-size: 8rem;
+  max-inline-size: 16rem;
+}
+
+/* Long header captions may break onto two lines rather than widen the grid. */
+.ad-list .custom-grid-list thead th {
+  white-space: normal;
+}
+
+/* Short labelled figures ("218.83 EGP est.") may break before the label. */
+.custom-grid-list td.list__wrap-tight {
+  white-space: normal;
+  min-inline-size: 5rem;
 }

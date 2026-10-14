@@ -15,9 +15,18 @@
  *     </div>
  *   </form>
  *
- * Each control keeps its visible `<label class="ad-filters__label">` inside an
- * `.ad-filters__field` wrapper — the portal's grids carry more filters than
- * the kit's static pages, so an unlabelled row would be unreadable.
+ * Controls are placeholder-only, as in the kit. Each keeps its `<label>` for
+ * assistive tech, but visually hidden (`.ad-visually-hidden`); a select shows
+ * its name in the "all" option ("Status: All", or the field's `placeholder`)
+ * and a date range carries the label as a `title`.
+ *
+ * The kit's button group always ends the row: **Reset** (`btn-tertiary`,
+ * clears every field and emits 'change') and **Search** (`btn-primary`,
+ * flushes a pending debounced search and re-emits the current value — the row
+ * still filters live). Screen actions follow; an Export action renders as the
+ * kit's `btn-primary-gradient` with `fa-file-csv`. Opt out of either built-in
+ * button with `bar.toolbar = { reset: false, search: false }` or the
+ * `no-reset` / `no-search` attributes. Enter in a text field acts as Search.
  *
  * Usage:
  *   bar.fields = [
@@ -43,8 +52,10 @@
  * labels and action labels are supplied already translated by the screen.
  *
  * Action `variant` maps onto the kit's buttons: 'primary' → `.btn-primary`,
- * anything else → `.btn-tertiary`. Labels that read as Reset or Export pick up
- * the kit's leading icon automatically.
+ * 'success' → `.btn-success`, 'gradient' → `.btn-primary-gradient`, anything
+ * else → `.btn-tertiary` — except that an Export / CSV label always becomes the
+ * kit's gradient Export button. Labels that read as Reset, Search or Export
+ * pick up the kit's leading icon automatically.
  */
 
 import { t } from '../scripts/admin-i18n.js';
@@ -59,9 +70,25 @@ const DEBOUNCE_MS = 300;
  */
 const ACTION_ICONS = [
   [/reset|clear|إعادة تعيين|مسح/i, 'fa-arrows-rotate'],
-  [/export|download|csv|تصدير|تنزيل/i, 'fa-file-arrow-down'],
+  [/export|download|csv|تصدير|تنزيل/i, 'fa-file-csv'],
   [/search|apply|filter|بحث|تطبيق|تصفية/i, 'fa-magnifying-glass'],
 ];
+
+const EXPORT_LABEL = /export|csv|تصدير/i;
+
+function actionClass(action) {
+  if (EXPORT_LABEL.test(String(action.label ?? ''))) return 'btn btn-primary-gradient';
+  switch (action.variant) {
+    case 'primary':
+      return 'btn btn-primary';
+    case 'success':
+      return 'btn btn-success';
+    case 'gradient':
+      return 'btn btn-primary-gradient';
+    default:
+      return 'btn btn-tertiary';
+  }
+}
 
 function actionIcon(label) {
   const match = ACTION_ICONS.find(([pattern]) => pattern.test(String(label ?? '')));
@@ -100,6 +127,20 @@ class AdFilterBar extends HTMLElement {
     return this._fields ?? [];
   }
 
+  /** Built-in Reset / Search buttons; both on by default. */
+  set toolbar(config) {
+    this._toolbar = { ...(config ?? {}) };
+    if (this._built) this.render();
+  }
+
+  get toolbar() {
+    return {
+      reset: !this.hasAttribute('no-reset'),
+      search: !this.hasAttribute('no-search'),
+      ...(this._toolbar ?? {}),
+    };
+  }
+
   set actions(actions) {
     this._actions = actions ?? [];
     if (this._built) this.render();
@@ -118,7 +159,19 @@ class AdFilterBar extends HTMLElement {
   }
 
   reset() {
+    window.clearTimeout(this._debounce);
     this.fields = this._fields.map((field) => ({ ...field }));
+    this.emitChange();
+  }
+
+  /** The kit's Search button: commit any half-typed search, then re-emit. */
+  search() {
+    window.clearTimeout(this._debounce);
+    (this._fields ?? []).forEach((field) => {
+      if (field.type && field.type !== 'search' && field.type !== 'text') return;
+      const input = this._inputs.get(field.key);
+      if (input) this._state[field.key] = input.value.trim();
+    });
     this.emitChange();
   }
 
@@ -131,8 +184,11 @@ class AdFilterBar extends HTMLElement {
     this._inputs.clear();
 
     const form = document.createElement('form');
-    // The row filters live; there is nothing to submit.
-    form.addEventListener('submit', (event) => event.preventDefault());
+    // The row filters live; Enter acts as the kit's Search button.
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.search();
+    });
 
     const row = document.createElement('div');
     row.className = 'filter-container white-bg';
@@ -145,15 +201,37 @@ class AdFilterBar extends HTMLElement {
       row.appendChild(this.buildField(field));
     });
 
-    if ((this._actions ?? []).length) {
+    const toolbar = this.toolbar;
+    const buttons = [];
+    if (toolbar.reset) {
+      buttons.push({
+        label: t('common.reset'),
+        className: 'btn btn-tertiary',
+        builtIn: 'reset',
+        onClick: () => this.reset(),
+      });
+    }
+    if (toolbar.search) {
+      buttons.push({
+        label: t('common.search'),
+        className: 'btn btn-primary',
+        builtIn: 'search',
+        onClick: () => this.search(),
+      });
+    }
+    (this._actions ?? []).forEach((action) => {
+      buttons.push({ ...action, className: actionClass(action) });
+    });
+
+    if (buttons.length) {
       const actions = document.createElement('div');
       actions.className = 'end-side ms-auto ad-filters__actions';
 
-      this._actions.forEach((action) => {
+      buttons.forEach((action) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className =
-          action.variant === 'primary' ? 'btn btn-primary' : 'btn btn-tertiary';
+        btn.className = action.className;
+        if (action.builtIn) btn.dataset.filterAction = action.builtIn;
 
         const glyph = actionIcon(action.label);
         // Static icon markup only — the label below is always a text node.
@@ -184,7 +262,8 @@ class AdFilterBar extends HTMLElement {
 
     const inputId = `filter-${field.key ?? field.fromKey}`;
     const label = document.createElement('label');
-    label.className = 'ad-filters__label';
+    // Placeholder-only controls, as in the kit; the label stays for AT.
+    label.className = 'ad-filters__label ad-visually-hidden';
     label.textContent = field.label;
     label.htmlFor = inputId;
     wrap.appendChild(label);
@@ -202,14 +281,26 @@ class AdFilterBar extends HTMLElement {
     return wrap;
   }
 
+  /**
+   * With no visible label, the "all" option names the filter — the kit's
+   * "All Statuses". A field `placeholder` wins; otherwise "Status: All".
+   */
+  optionText(field, option) {
+    const isAll = option.value === 'all' || option.value === '';
+    if (!isAll || !field.label) return option.label;
+    if (field.placeholder) return field.placeholder;
+    return t('kitLists.selectAll', { label: field.label, all: option.label });
+  }
+
   buildSelect(field, inputId) {
     const select = document.createElement('select');
     select.className = 'form-select';
     select.id = inputId;
+    select.title = field.label ?? '';
     (field.options ?? []).forEach((option) => {
       const opt = document.createElement('option');
       opt.value = option.value;
-      opt.textContent = option.label;
+      opt.textContent = this.optionText(field, option);
       if (String(option.value) === String(this._state[field.key])) opt.selected = true;
       select.appendChild(opt);
     });
@@ -248,14 +339,13 @@ class AdFilterBar extends HTMLElement {
     input.type = field.type === 'search' ? 'search' : 'text';
     input.className = 'form-control';
     input.id = inputId;
-    input.placeholder = field.placeholder ?? '';
+    input.placeholder = field.placeholder ?? field.label ?? '';
     input.value = this._state[field.key] ?? '';
     if (field.maxLength) input.maxLength = field.maxLength;
 
-    let timer;
     input.addEventListener('input', () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
+      window.clearTimeout(this._debounce);
+      this._debounce = window.setTimeout(() => {
         this._state[field.key] = input.value.trim();
         this.emitChange();
       }, DEBOUNCE_MS);
@@ -271,6 +361,8 @@ class AdFilterBar extends HTMLElement {
 
     const range = document.createElement('div');
     range.className = 'date-inputs-container ad-filters__range';
+    // No visible label in the kit's row — the tooltip names the range.
+    range.title = field.label ?? '';
 
     const from = document.createElement('input');
     from.type = 'date';

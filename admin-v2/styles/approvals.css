@@ -1,55 +1,53 @@
 /*
  * approvals.css — maker-checker queue (2026-10-14 spec §1)
  * Screen owner: admin-v2/approvals.html
+ *
+ * The screen is built from kit parts (alert, neutral-widjet, filter row,
+ * custom-grid-list, default-modal, popup-warning, popup-success). What is
+ * local: the demo switch layout, the grid's who/when cells, and the review
+ * modal's cards and before → after lines.
  * Every value comes from a token. Logical properties only (RTL-safe).
  */
 
-/* ── Demo switch (mockup only) ────────────────────────── */
+/* ── Demo switch (mockup only) — a kit alert.warning ──── */
 
-.apr-demo {
+.alert.apr-demo {
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin-block-end: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-style: dashed;
+}
+
+.alert.apr-demo--acting {
+  border-style: solid;
+}
+
+.apr-demo__text {
+  flex: 1 1 calc(var(--space-16) * 6);
+  min-inline-size: 0;
+}
+
+.alert .apr-demo__title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3) var(--space-5);
-  margin-block-end: var(--space-5);
-  padding: var(--space-3) var(--space-4);
-  border: 1px dashed var(--color-warning);
-  border-radius: var(--admin-radius);
-  background: var(--color-warning-soft);
-  color: var(--color-text);
-}
-
-.apr-demo--acting {
-  border-style: solid;
-  border-color: var(--color-warning-strong);
+  gap: var(--space-2);
+  font-size: var(--fs-base);
 }
 
 .apr-demo__badge {
-  flex: 0 0 auto;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
   background: var(--color-warning-strong);
   color: var(--color-surface);
   font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
-.apr-demo__text {
-  flex: 1 1 24rem;
-  min-inline-size: 0;
-}
-
-.apr-demo__title {
-  margin: 0;
-  font-weight: var(--fw-semibold);
-}
-
-.apr-demo__sub {
-  margin: var(--space-1) 0 0;
+.alert .apr-demo__sub {
   font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
 .apr-demo__controls {
@@ -57,19 +55,25 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.apr-demo__controls .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .apr-demo__select {
   inline-size: auto;
-  min-inline-size: 14rem;
+  min-inline-size: calc(var(--space-16) * 3.5);
+}
+
+.alert.apr-hint {
+  margin-block-end: var(--space-4);
 }
 
 /* ── Grid cells ───────────────────────────────────────── */
-
-#approvals-tabs {
-  display: block;
-  margin-block-end: var(--space-4);
-}
 
 .apr-amount {
   text-align: end;
@@ -78,7 +82,6 @@
 }
 
 .apr-actions {
-  text-align: end;
   white-space: nowrap;
 }
 
@@ -114,84 +117,79 @@
   color: var(--color-text-muted);
 }
 
-/* ── Review modal ─────────────────────────────────────── */
+/* ── Review modal (kit default-modal modal-lg) ────────── */
 
-/* The kit centres popup content; a review reads as a document. */
-.apr-modal .modal-content .modal-body,
-.apr-modal .modal-content .modal-footer {
-  text-align: start;
-}
-
-.apr-modal .modal-header {
+.apr-review .modal-content .modal-body {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.apr-modal__title {
-  margin: 0;
-  font-size: var(--fs-lg);
-}
-
-/* The kit lays popup bodies out as a wrapping flex row; a review is a column. */
-.apr-modal .modal-content .apr-modal__body {
-  display: block;
-}
-
-.apr-modal .modal-content .apr-modal__body > * + * {
-  margin-block-start: var(--space-5);
-}
-
-.apr-modal .modal-content .modal-header h4,
-.apr-modal .modal-content .modal-body h5,
-.apr-modal .modal-content .modal-body h6 {
+  flex-direction: column;
+  gap: var(--space-4);
   text-align: start;
 }
 
-.apr-section__title {
-  margin: 0 0 var(--space-3);
-  padding-block-end: var(--space-2);
-  border-block-end: 1px solid var(--color-border);
-  font-size: var(--fs-base);
+/* The scrolling body must not squeeze a card or a table wrapper to nothing. */
+.apr-review .modal-content .modal-body > * {
+  flex-shrink: 0;
+}
+
+.apr-modal .modal-content .modal-header {
+  align-items: center;
+}
+
+.apr-modal .modal-content .modal-header h3 {
+  margin: 0;
+}
+
+.apr-modal .modal-content .modal-header .btn-close {
+  margin-inline-start: auto;
 }
 
 .apr-effect {
-  margin: 0 0 var(--space-3);
-  font-size: var(--fs-sm);
+  margin: 0;
   color: var(--color-text-muted);
 }
 
-.apr-kv {
-  display: grid;
-  grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
-  gap: var(--space-2) var(--space-5);
-  margin: 0 0 var(--space-3);
-}
-
-.apr-kv dt {
-  font-weight: var(--fw-regular);
-  color: var(--color-text-muted);
-}
-
-.apr-kv dd {
+.apr-review .apr-card {
   margin: 0;
-  font-weight: var(--fw-medium);
-  overflow-wrap: anywhere;
 }
 
-.apr-grid {
-  margin: 0;
+.apr-card .card-body > * + * {
+  margin-block-start: var(--space-3);
 }
 
 .apr-grid .table {
   margin: 0;
 }
 
-/* A field that the request changes reads first. */
-.apr-grid tr.apr-changed td {
+/* A field the request changes reads first. */
+.apr-card .list-row.apr-changed {
   background: rgba(var(--color-primary-500-rgb), 0.06);
-  font-weight: var(--fw-semibold);
+}
+
+.apr-card .apr-who {
+  gap: 0;
+  align-items: flex-end;
+  line-height: var(--leading-snug);
+}
+
+.apr-diff {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.apr-diff__before {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.apr-diff__arrow {
+  color: var(--color-primary-500);
+  font-size: var(--fs-xs);
+}
+
+.apr-diff__after {
+  font-weight: var(--fw-bold);
 }
 
 .apr-result {
@@ -200,17 +198,29 @@
   gap: var(--space-1);
 }
 
-.apr-method-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+.apr-reason-label {
+  margin: 0;
+}
+
+.apr-reason {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--admin-radius);
+  background: var(--color-surface-alt);
+  overflow-wrap: anywhere;
 }
 
 .apr-method {
+  block-size: 100%;
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--admin-radius);
   background: var(--color-surface-alt);
+}
+
+.apr-method--after {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
 }
 
 .apr-method__title {
@@ -218,56 +228,42 @@
   font-size: var(--fs-sm);
 }
 
-.apr-method .apr-kv {
-  margin: 0;
-  grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
-}
+/* ── Footers ──────────────────────────────────────────── */
 
-/* ── Footer: decision ─────────────────────────────────── */
-
-.apr-modal .modal-content .apr-modal__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-}
-
-.apr-decide {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.apr-decide[hidden],
-.apr-reject[hidden] {
-  display: none;
-}
-
-.apr-own-note {
+.apr-modal .modal-content .modal-footer .alert.apr-own-note {
   flex: 1 1 100%;
   margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--admin-radius);
-  background: var(--color-info-soft);
-  color: var(--color-text);
+}
+
+.apr-alert {
+  margin: 0;
+}
+
+.apr-popup-note {
   font-size: var(--fs-sm);
 }
 
-.apr-reject {
-  flex: 1 1 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.apr-popup-error:empty {
+  display: none;
 }
 
-.apr-reject__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
+.apr-popup-error {
+  inline-size: 100%;
+  text-align: start;
+}
+
+/* ── Reject modal ─────────────────────────────────────── */
+
+.apr-reject .form-control.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.apr-reject__hint {
+  margin: 0;
 }
 
 .apr-field-error {
-  margin: 0;
+  margin: var(--space-1) 0 0;
   color: var(--color-danger);
   font-size: var(--fs-sm);
 }

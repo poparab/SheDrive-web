@@ -1,5 +1,5 @@
 /*
- * reconciliation.css — per-driver earnings & settlement (#1833)
+ * reconciliation.css — per-driver earnings & settlement (#1833), kit v22-09 port.
  * Every value comes from a token; see admin-tokens.css.
  */
 
@@ -8,7 +8,16 @@
  * Left to auto-fit they break 3 + 1 at 1280 px.
  */
 @media (min-width: 1280px) {
-  #report-cards {
+  .recon__kpis {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+/* Money cells hold a kit <p>; keep the row height of the other grids. */
+#trip-table td p {
+  margin: 0;
+}
+
+#split-rows .list-row + .list-row {
+  border-block-start: 1px solid var(--color-border);
 }

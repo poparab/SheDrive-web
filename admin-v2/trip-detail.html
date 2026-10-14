@@ -16,7 +16,7 @@
       page-title-key="tripDetail.title"
       breadcrumb-keys="nav.trips|trips.html > tripDetail.crumb"
       back="trips.html"
-      screen-styles="styles/detail.css, styles/list.css"
+      screen-styles="styles/detail.css, styles/list.css, styles/trip-detail.css"
       mapbox
     >
       <div id="trip-missing" hidden>
@@ -25,100 +25,253 @@
         </ad-empty-state>
       </div>
 
+      <!-- Kit v22-09 trip-in-progress / trip-completed / trip-expired: one card grid,
+           cards shown by trip state, actions in a bottom row. -->
       <div id="trip-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
-            <ad-detail-section id="parties" icon="users.svg" section-title="Rider &amp; driver"></ad-detail-section>
-            <ad-detail-section id="route" icon="gps.svg" section-title="Pickup &amp; destination"></ad-detail-section>
-
-            <!-- #1671 — chronological state timeline -->
-            <section class="ad-section" aria-labelledby="timeline-heading">
-              <div class="ad-section__header">
-                <div>
-                  <h2 class="ad-section__title" id="timeline-heading" data-i18n="tripDetail.timelineHeading">State timeline</h2>
-                  <p class="ad-section__hint" data-i18n="tripDetail.timelineHint">
-                    Every transition this trip passed through, with timestamps in UTC+2.
-                  </p>
-                </div>
-              </div>
-              <div class="ad-section__body">
-                <ad-timeline id="timeline"></ad-timeline>
-              </div>
-            </section>
-
-            <!-- #1672 — actual route travelled, completed trips only -->
-            <section class="ad-section ad-section--flush" id="route-section" aria-labelledby="map-heading" hidden>
-              <div class="ad-section__header">
-                <div>
-                  <h2 class="ad-section__title" id="map-heading" data-i18n="tripDetail.mapHeading">Actual route travelled</h2>
-                  <p class="ad-section__hint" id="route-summary"></p>
-                </div>
-              </div>
-              <ad-map-panel id="route-map"></ad-map-panel>
-            </section>
+        <div class="row g-3 td-grid">
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="parties" icon="passenger.svg" section-title="Rider &amp; driver"></ad-detail-section>
           </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="summary" icon="trips.svg" section-title="Trip" data-i18n-section-title="tripDetail.summary"></ad-detail-section>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="route" icon="trips.svg" section-title="Pickup &amp; destination"></ad-detail-section>
+          </div>
 
-            <!-- #1671 S2 — original estimate for any incomplete trip -->
-            <ad-detail-section id="estimate" icon="prices.svg" section-title="Original fare estimate" data-i18n-section-title="tripDetail.estimate" hidden>
-            </ad-detail-section>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="summary" icon="car-location.svg" section-title="Trip details"></ad-detail-section>
+          </div>
 
-            <!-- #1672 S1 — fare breakdown, completed trips only -->
-            <section class="ad-section" id="fare-section" aria-labelledby="fare-heading" hidden>
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="fare-heading" data-i18n="tripDetail.fareHeading">Fare breakdown</h2>
-              </div>
-              <div class="ad-section__body">
-                <div class="detail__money" id="fare-rows"></div>
-              </div>
-            </section>
+          <!-- #1671 S2 — original estimate for any incomplete trip -->
+          <div class="col-lg-6 col-xl-4" id="estimate-col" hidden>
+            <ad-detail-section id="estimate" icon="prices.svg" section-title="Original fare estimate"></ad-detail-section>
+          </div>
 
-            <!-- #1672 S2/S3 — rating, completed trips only -->
-            <section class="ad-section" id="rating-section" aria-labelledby="rating-heading" hidden>
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="rating-heading" data-i18n="tripDetail.ratingHeading">Rider rating</h2>
+          <!-- #1672 S1 — fare breakdown, completed trips only -->
+          <div class="col-lg-6 col-xl-4" id="fare-section" hidden>
+            <div class="standard-card-theme2 white-bg">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="fare-heading" data-i18n="tripDetail.fareHeading">Fare breakdown</h5>
+                  <spam></spam>
+                </div>
+                <div class="icon"><img src="vendor/icons/prices.svg" alt="" /></div>
               </div>
-              <div class="ad-section__body">
+              <div class="card-body pb-0">
+                <div class="list-multi-column no-border p-0">
+                  <div class="row gx-4">
+                    <div class="col" id="fare-rows"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- #1672 S2/S3 — rating, completed trips only -->
+          <div class="col-lg-6 col-xl-4" id="rating-section" hidden>
+            <div class="standard-card-theme2 white-bg">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="rating-heading" data-i18n="tripDetail.ratingHeading">Rider rating</h5>
+                  <spam></spam>
+                </div>
+                <div class="icon"><img src="vendor/icons/rating-user.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0">
                 <div id="rating-body"></div>
               </div>
-            </section>
+            </div>
+          </div>
 
-            <!-- #1671 S5 — intervention actions, in-progress trips only -->
-            <section class="ad-section" id="actions-section" aria-labelledby="actions-heading" hidden>
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="actions-heading" data-i18n="tripDetail.actionsHeading">Admin intervention</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <div class="ad-stub">
-                  <span class="ad-stub__icon" aria-hidden="true">⚠</span>
-                  <span>
-                    <strong data-i18n="tripDetail.proposalStrong">Proposed behaviour — needs BA sign-off.</strong>
-                    <span data-i18n="tripDetail.proposalBody">Stories #1808
-                    (cancel) and #1809 (reassign) have not been written, so the flows below are
-                    a proposal built to fit the rest of the backlog. Review them as design
-                    intent, not as agreed requirements.</span>
-                  </span>
+          <!-- Recorded intervention, shown once a trip has been cancelled -->
+          <div class="col-lg-6 col-xl-4" id="cancellation-col" hidden>
+            <ad-detail-section id="cancellation" icon="cancel-trip.svg" section-title="Cancellation"></ad-detail-section>
+          </div>
+
+          <!-- #1672 S4 — actual route travelled, completed trips only -->
+          <div class="col-lg-6 col-xl-4" id="route-section" hidden>
+            <div class="standard-card-theme2 white-bg td-map-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="map-heading" data-i18n="kitDetails.actualRoute">Actual route</h5>
+                  <span id="route-summary"></span>
                 </div>
-                <p class="ad-section__hint" id="intervention-hint"></p>
-                <button class="btn btn-danger btn--full" type="button" id="cancel-trip" data-i18n="tripDetail.cancelBtn">
-                  Cancel this trip
-                </button>
-                <button class="btn btn-primary-outline btn--full" type="button" id="reassign-trip" data-i18n="tripDetail.reassignBtn">
-                  Reassign to another driver
-                </button>
+                <div class="icon"><img src="vendor/icons/route.svg" alt="" /></div>
               </div>
-            </section>
+              <div class="card-body pb-0">
+                <ad-map-panel id="route-map"></ad-map-panel>
+              </div>
+            </div>
+          </div>
 
-            <!-- Recorded intervention, shown once a trip has been cancelled -->
-            <ad-detail-section id="cancellation" icon="cancel-trip.svg" section-title="Cancellation" data-i18n-section-title="tripDetail.cancellation" hidden>
-            </ad-detail-section>
-          </aside>
+          <!-- #1671 — chronological state timeline -->
+          <div class="col-lg-6 col-xl-4">
+            <div class="standard-card-theme2 white-bg">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="timeline-heading" data-i18n="tripDetail.timelineHeading">State timeline</h5>
+                  <span data-i18n="tripDetail.timelineHint">Every transition this trip passed through, with timestamps in UTC+2.</span>
+                </div>
+                <div class="icon"><img src="vendor/icons/timeline.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0">
+                <ad-timeline id="timeline"></ad-timeline>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #1671 S5 — intervention actions, in-progress trips only -->
+        <section class="td-actions" id="actions-section" aria-labelledby="actions-heading" hidden>
+          <h2 class="visually-hidden" id="actions-heading" data-i18n="tripDetail.actionsHeading">Admin intervention</h2>
+          <div class="alert warning">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <div class="details">
+              <h6 data-i18n="tripDetail.proposalStrong">Proposed behaviour — needs BA sign-off.</h6>
+              <p data-i18n="tripDetail.proposalBody">Stories #1808 (cancel) and #1809 (reassign) have not been written, so the flows below are a proposal built to fit the rest of the backlog. Review them as design intent, not as agreed requirements.</p>
+            </div>
+          </div>
+          <p class="small lh-sm" id="intervention-hint"></p>
+          <div class="d-flex flex-wrap gap-3 mb-3">
+            <button class="btn btn-primary d-flex" type="button" id="reassign-trip">
+              <i class="fa-solid fa-retweet" aria-hidden="true"></i><span data-i18n="kitDetails.reassignDriver">Reassign driver</span>
+            </button>
+            <button class="btn btn-danger d-flex" type="button" id="cancel-trip">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="kitDetails.cancelTrip">Cancel trip</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Kit modals (moved to <body> by the script) ── -->
+
+      <!-- #1809 reassign: kit #reassignDriverReasonsModal -->
+      <div class="modal fade default-modal td-modal" id="reassign-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="reassign-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/passenger.svg" alt="" />
+              <h3 id="reassign-modal-title" data-i18n="tripDetail.reassignTitle">Reassign to another driver</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small lh-sm" data-i18n="tripDetail.reassignDescription">The trip stays live and moves to the new driver, so the rider does not have to book again. Only approved drivers who are online and not already on a trip are listed.</p>
+              <div class="alert danger td-form-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><p></p></div>
+              <form class="row gy-3" id="reassign-form" novalidate>
+                <div class="col-12">
+                  <label for="reassign-driver"><span data-i18n="tripDetail.newDriverLabel">New driver</span> <span class="danger-color">*</span></label>
+                  <ad-combobox id="reassign-driver"></ad-combobox>
+                  <div class="invalid-feedback" data-error-for="driverId" data-i18n="tripDetail.newDriverEmpty">Select the driver taking over</div>
+                </div>
+                <div class="col-12">
+                  <label for="reassign-reason"><span data-i18n="tripDetail.reassignReasonLabel">Reason for reassignment</span> <span class="danger-color">*</span></label>
+                  <select class="form-select" id="reassign-reason" name="reason"></select>
+                  <div class="invalid-feedback" data-error-for="reason" data-i18n="tripDetail.reassignReasonEmpty">Select a reason</div>
+                </div>
+                <div class="col-12">
+                  <label for="reassign-note"><span data-i18n="tripDetail.noteLabel">Explanatory note</span></label>
+                  <textarea class="form-control" rows="2" id="reassign-note" name="note" maxlength="500" placeholder="Leave a note …" data-i18n-placeholder="kitDetails.leaveNote"></textarea>
+                  <div class="invalid-feedback" data-error-for="note"></div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" form="reassign-form" class="btn btn-success"><i class="fa-solid fa-retweet" aria-hidden="true"></i><span data-i18n="tripDetail.reassignConfirm">Reassign trip</span></button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.cancel">Cancel</span></button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ad-form-modal id="intervention-modal"></ad-form-modal>
+      <!-- No free driver to reassign to — a real operational state, not an error -->
+      <div class="modal fade popup-warning td-modal" id="no-driver-modal" tabindex="-1" aria-labelledby="no-driver-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign warning"><i class="fa-solid fa-warning" aria-hidden="true"></i></div>
+              <h4 id="no-driver-title" data-i18n="tripDetail.noDriverTitle">No driver available</h4>
+              <p data-i18n="tripDetail.noDriverDescription">No approved driver is online and free right now.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span data-i18n="tripDetail.noDriverBack">Back</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- #1808 cancel: kit #tripCancellationReasonModal -->
+      <div class="modal fade default-modal td-modal" id="cancel-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="cancel-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/x-car.svg" alt="" />
+              <h3 id="cancel-modal-title" data-i18n="kitDetails.cancelTrip">Cancel trip</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small lh-sm" data-i18n="tripDetail.cancelDescription">The trip ends immediately and both the rider and the driver are notified. This cannot be undone, and it is recorded in the audit log.</p>
+              <form class="row gy-3" id="cancel-form" novalidate>
+                <div class="col-12">
+                  <label for="cancel-reason"><span data-i18n="tripDetail.cancelReasonLabel">Cancellation reason</span> <span class="danger-color">*</span></label>
+                  <select class="form-select" id="cancel-reason" name="reason"></select>
+                  <div class="invalid-feedback" data-error-for="reason" data-i18n="tripDetail.cancelReasonEmpty">Select a cancellation reason</div>
+                </div>
+                <div class="col-12">
+                  <label for="cancel-note"><span data-i18n="tripDetail.noteLabel">Explanatory note</span></label>
+                  <textarea class="form-control" rows="2" id="cancel-note" name="note" maxlength="500" placeholder="Leave a note …" data-i18n-placeholder="kitDetails.leaveNote"></textarea>
+                  <div class="invalid-feedback" data-error-for="note"></div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" form="cancel-form" class="btn btn-danger"><i class="fa-solid fa-arrow-right td-flip" aria-hidden="true"></i><span data-i18n="kitDetails.continue">Continue</span></button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="tripDetail.cancelKeep">Keep the trip</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final confirmation: kit #cancelTripWarningModal -->
+      <div class="modal fade popup-danger td-modal" id="cancel-warning-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="cancel-warning-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign danger"><i class="fa-solid fa-warning" aria-hidden="true"></i></div>
+              <h4 id="cancel-warning-title" data-i18n="kitDetails.cancelWarnTitle">Are you sure you want to cancel this trip?</h4>
+              <p data-i18n="kitDetails.cancelWarnBody">This action cannot be undone.</p>
+              <div class="alert danger td-form-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><p></p></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" id="cancel-confirm"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="kitDetails.cancelConfirm">Confirm &amp; cancel trip</span></button>
+              <button type="button" class="btn btn-primary-outline" id="cancel-back"><i class="fa-solid fa-arrow-left td-flip" aria-hidden="true"></i><span data-i18n="kitDetails.backToReview">Back to review</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result: kit #tripCancellationSuccessModal / #driverReassignedSuccessModal -->
+      <div class="modal fade popup-success td-modal" id="success-modal" tabindex="-1" aria-labelledby="success-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign success"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
+              <h4 id="success-title"></h4>
+              <p id="success-body"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.close">Close</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/trip-detail.js"></script>

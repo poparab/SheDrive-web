@@ -31,89 +31,170 @@
         </ad-empty-state>
       </div>
 
+      <!-- Kit v22-09 sos-request-details: standing alerts, a card grid, and a
+           full-width Resolution card. -->
       <div id="case-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
-            <section class="ad-section" aria-labelledby="incident-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="incident-heading" data-i18n="sosCase.incidentHeading">Incident</h2>
-                <span class="sos-raiser__pill" id="raiser-pill"></span>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="detail__statement" id="case-note"></p>
-                <!-- Two facts an admin will otherwise assume wrongly: the ride was
-                     not stopped, and neither occupant knows this was raised. -->
-                <p class="sos-notice" id="trip-unaffected" data-i18n="sosCase.tripUnaffected"></p>
-                <p class="sos-notice sos-notice--silent" id="silent-notice" data-i18n="sosCase.silentNotice"></p>
-              </div>
-            </section>
+        <!-- Two facts an admin will otherwise assume wrongly: neither occupant knows
+             this was raised, and the ride was not stopped. -->
+        <div class="alert warning mt-2" id="silent-notice">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <p data-i18n="sosCase.silentNotice">Neither occupant was told the other had raised this.</p>
+        </div>
+        <div class="alert info" id="trip-unaffected">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <p data-i18n="sosCase.tripUnaffected">The trip was not interrupted. An SOS is recorded alongside it.</p>
+        </div>
 
-            <ad-detail-section id="incident-facts" icon="warning-sign.svg" section-title="Incident" data-i18n-section-title="sosCase.incidentHeading"></ad-detail-section>
-
-            <section class="ad-section ad-section--flush" aria-labelledby="location-heading">
-              <div class="ad-section__header">
-                <div>
-                  <h2 class="ad-section__title" id="location-heading" data-i18n="sosCase.locationHeading">Location at trigger</h2>
-                </div>
-              </div>
-              <ad-map-panel id="case-map"></ad-map-panel>
-            </section>
-
-            <ad-detail-section id="location-facts" icon="gps.svg" section-title="Location at trigger" data-i18n-section-title="sosCase.locationHeading"></ad-detail-section>
-            <ad-detail-section id="rider-facts" icon="user-star.svg" section-title="Rider" data-i18n-section-title="sosCase.riderHeading"></ad-detail-section>
-            <ad-detail-section id="driver-facts" icon="steering-wheel.svg" section-title="Driver" data-i18n-section-title="sosCase.driverHeading"></ad-detail-section>
-            <ad-detail-section id="vehicle-facts" icon="trips.svg" section-title="Vehicle" data-i18n-section-title="sosCase.vehicleHeading"></ad-detail-section>
-            <ad-detail-section id="trip-facts" icon="trips.svg" section-title="Trip" data-i18n-section-title="sosCase.tripHeading"></ad-detail-section>
-
-            <section class="ad-section" aria-labelledby="contacts-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="contacts-heading" data-i18n="sosCase.contactsHeading">Contacts alerted</h2>
-              </div>
-              <div class="ad-section__body">
-                <ul class="sos-contact-list" id="contact-list"></ul>
-                <p class="ad-section__hint" id="contacts-empty" hidden data-i18n="sosCase.noContacts"></p>
-              </div>
-            </section>
+        <div class="row g-3 sos-grid">
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="case-meta" icon="warning-sign.svg" section-title="Case"></ad-detail-section>
           </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="case-meta" icon="warning-sign.svg" section-title="Case" data-i18n-section-title="sosCase.caseMeta"></ad-detail-section>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="trip-facts" icon="car-location.svg" section-title="Trip"></ad-detail-section>
+          </div>
 
-            <section class="ad-section" aria-labelledby="resolve-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="resolve-heading" data-i18n="sosCase.resolveHeading">Resolution</h2>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="rider-facts" icon="user-star.svg" section-title="Rider"></ad-detail-section>
+          </div>
+
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="driver-facts" icon="steering-wheel.svg" section-title="Driver"></ad-detail-section>
+          </div>
+
+          <div class="col-lg-6 col-xl-4">
+            <div class="standard-card-theme2 white-bg sos-map-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="location-heading" data-i18n="sosCase.locationHeading">Location at trigger</h5>
+                  <spam></spam>
+                </div>
+                <div class="icon"><img src="vendor/icons/location.svg" alt="" /></div>
               </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" id="resolve-hint"></p>
+              <div class="card-body pb-0">
+                <ad-map-panel id="case-map"></ad-map-panel>
+                <div class="list-multi-column no-border p-0 mt-3">
+                  <div class="row gx-4">
+                    <div class="col" id="location-rows"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <!-- The ticks sit in the rail, not in the confirm modal: the admin
-                     decides who is suspended and how the case closes in one place,
-                     then confirms once. -->
-                <fieldset class="sos-actions" id="suspend-fieldset" hidden>
-                  <legend class="sr-only" data-i18n="sosCase.resolveHeading">Resolution</legend>
-                  <label class="sos-check">
-                    <input type="checkbox" id="suspend-rider" />
-                    <span data-i18n="sosCase.suspendRiderLabel">Suspend the rider</span>
-                  </label>
-                  <label class="sos-check">
-                    <input type="checkbox" id="suspend-driver" />
-                    <span data-i18n="sosCase.suspendDriverLabel">Suspend the driver</span>
-                  </label>
+          <div class="col-lg-6 col-xl-4">
+            <div class="standard-card-theme2 white-bg">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="contacts-heading" data-i18n="sosCase.contactsHeading">Contacts alerted</h5>
+                  <span id="contacts-count"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/shield-warning.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0">
+                <div id="contact-list" class="sos-contact-list"></div>
+                <p class="small lh-sm" id="contacts-empty" hidden data-i18n="sosCase.noContacts">No emergency contacts were saved when this case was raised.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resolution: the ticks and both close actions in one place, confirmed once. -->
+        <div class="row mt-4">
+          <div class="col">
+            <div class="standard-card white-bg sos-resolution">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3 id="resolve-heading" data-i18n="sosCase.resolveHeading">Resolution</h3>
+                </div>
+              </div>
+              <div class="card-body">
+                <p class="small lh-sm mt-3 mb-3" id="resolve-hint"></p>
+                <fieldset class="row d-flex gap-2" id="suspend-fieldset" hidden>
+                  <legend class="visually-hidden" data-i18n="sosCase.resolveHeading">Resolution</legend>
+                  <div class="col-auto">
+                    <div class="form-check d-flex gap-2 align-items-center">
+                      <input class="form-check-input" type="checkbox" id="suspend-rider" />
+                      <label class="form-check-label" for="suspend-rider" data-i18n="sosCase.suspendRiderLabel">Suspend the rider</label>
+                    </div>
+                    <div class="form-check d-flex gap-2 align-items-center">
+                      <input class="form-check-input" type="checkbox" id="suspend-driver" />
+                      <label class="form-check-label" for="suspend-driver" data-i18n="sosCase.suspendDriverLabel">Suspend the driver</label>
+                    </div>
+                  </div>
                 </fieldset>
-
-                <button class="btn btn-primary btn--full" type="button" id="close-resolved-btn" hidden data-i18n="sosCase.resolvedBtn">
-                  Close — resolved
-                </button>
-                <button class="btn btn-primary-outline btn--full" type="button" id="close-false-btn" hidden data-i18n="sosCase.falseAlarmBtn">
-                  Close — false alarm
-                </button>
               </div>
-            </section>
-          </aside>
+              <div class="card-footer mt-3 pb-0" id="resolve-actions" hidden>
+                <hr />
+                <div class="row">
+                  <div class="col d-flex flex-wrap gap-3 mb-3">
+                    <button class="btn btn-danger d-flex" type="button" id="close-resolved-btn">
+                      <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="kitDetails.closeCase">Close the case</span>
+                    </button>
+                    <button class="btn btn-success d-flex" type="button" id="close-false-btn">
+                      <i class="fa-regular fa-bell-slash" aria-hidden="true"></i><span data-i18n="kitDetails.falseAlarm">False alarm</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ad-form-modal id="close-modal"></ad-form-modal>
+      <!-- ── Kit modals (moved to <body> by the script) ── -->
+
+      <!-- Kit #suspendReasonModal / #falseAlramReasonModal: one modal, retitled per outcome -->
+      <div class="modal fade default-modal sos-modal" id="close-modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="close-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" id="close-modal-icon" src="vendor/icons/checked-women.svg" alt="" />
+              <h3 id="close-modal-title"></h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small lh-sm" data-i18n="sosCase.confirmDescription">Confirm what is recorded against this case.</p>
+              <div class="alert info mt-3">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <p id="close-effect"></p>
+              </div>
+              <div class="alert danger sos-form-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><p></p></div>
+              <form class="row" id="close-form" novalidate>
+                <div class="col-12">
+                  <label for="close-note"><span data-i18n="sosCase.noteLabel">Resolution note</span> <span class="danger-color">*</span></label>
+                  <textarea class="form-control" rows="2" id="close-note" name="note" maxlength="500" placeholder="Explain the resolution." data-i18n-placeholder="kitDetails.resolutionPlaceholder" aria-describedby="close-note-hint"></textarea>
+                  <div class="invalid-feedback" id="close-note-error"></div>
+                  <p class="small lh-sm" id="close-note-hint" data-i18n="sosCase.noteHint">Explain what was found and why this outcome was chosen.</p>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer mt-4">
+              <button type="submit" form="close-form" class="btn btn-success" id="close-submit"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span id="close-submit-label"></span></button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.cancel">Cancel</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kit #requestSuccessModal -->
+      <div class="modal fade popup-success sos-modal" id="success-modal" tabindex="-1" aria-labelledby="success-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="aria.closeDialog"></button>
+            </div>
+            <div class="modal-body">
+              <div class="status-sign success"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
+              <h4 id="success-title" data-i18n="kitDetails.closedTitle">The request completed successfully</h4>
+              <p data-i18n="kitDetails.closedBody">The case has been closed successfully.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="common.close">Close</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </ad-shell>
 
     <script type="module" src="scripts/sos-request.js"></script>

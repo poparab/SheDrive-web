@@ -21,41 +21,51 @@
       screen-styles="styles/dashboard.css"
       mapbox
     >
-      <!-- #1669 — five live metric cards, refreshed every 30 seconds -->
-      <section aria-labelledby="metrics-heading">
-        <div class="dash__section-head">
-          <h2 class="ad-section__title" id="metrics-heading" data-i18n="dashboard.metricsHeading">Platform metrics</h2>
-          <p class="ad-section__hint" id="metrics-status" data-i18n="dashboard.metricsLoading">Loading live metrics…</p>
-        </div>
+      <!-- #1669 — live metric tiles, refreshed every 30 seconds; each tile's
+           kit meta line carries the last-refreshed stamp -->
+      <section aria-label="Platform metrics" data-i18n-aria-label="dashboard.metricsHeading">
+        <p class="ad-visually-hidden" id="metrics-status" aria-live="polite" data-i18n="dashboard.metricsLoading">Loading live metrics…</p>
 
         <div class="ad-stats" id="metric-cards">
           <ad-stat-card id="metric-active-trips" icon="location-checked.svg" tone="blue" label="Active trips" data-i18n-label="dashboard.metricActiveTrips" value="—"></ad-stat-card>
+          <ad-stat-card id="metric-trips-today" icon="route.svg" tone="primary" label="Total trips today" data-i18n-label="dashboard.metricTripsToday" value="—"></ad-stat-card>
           <ad-stat-card id="metric-online-drivers" icon="signal-waves.svg" tone="success" label="Online drivers" data-i18n-label="dashboard.metricOnlineDrivers" value="—"></ad-stat-card>
-          <ad-stat-card id="metric-trips-today" icon="trips.svg" tone="primary" label="Total trips today" data-i18n-label="dashboard.metricTripsToday" value="—"></ad-stat-card>
           <ad-stat-card id="metric-riders" icon="user-star.svg" tone="warning" label="Total registered riders" data-i18n-label="dashboard.metricRegisteredRiders" value="—"></ad-stat-card>
         </div>
 
         <div class="ad-form-error" id="metrics-error" role="alert"></div>
       </section>
 
-      <!-- #1823–#1826 — live operations map -->
-      <section class="ad-section ad-section--flush" aria-labelledby="map-heading">
-        <div class="ad-section__header">
-          <div>
-            <h2 class="ad-section__title" id="map-heading" data-i18n="dashboard.mapHeading">Live operations map</h2>
-            <p class="ad-section__hint" id="map-status" data-i18n="dashboard.mapArea">Cairo / Giza service area</p>
-          </div>
-          <div class="ad-row">
-            <label class="ad-filters__label" for="layer-filter" data-i18n="dashboard.show">Show</label>
-            <select class="form-select" id="layer-filter">
-              <option value="all" selected data-i18n="common.all">All</option>
-              <option value="drivers" data-i18n="dashboard.metricOnlineDrivers">Online drivers</option>
-              <option value="requests" data-i18n="dashboard.layerRequests">Ride requests</option>
-            </select>
+      <!-- #1823–#1826 — live operations map, in the kit's map card -->
+      <section class="dash__map" aria-labelledby="map-heading">
+        <div class="section-title row gy-3">
+          <div class="title col-auto">
+            <h3 class="underline-title" id="map-heading" data-i18n="dashboard.mapHeading">Live operations map</h3>
           </div>
         </div>
 
-        <ad-map-panel id="ops-map"></ad-map-panel>
+        <div class="row mt-2">
+          <div class="col">
+            <div class="standard-card white-bg">
+              <div class="card-header d-flex justify-content-between align-items-center gap-3">
+                <div class="card-title">
+                  <h6 id="map-status" data-i18n="dashboard.mapArea">Cairo / Giza service area</h6>
+                </div>
+                <div>
+                  <label class="ad-visually-hidden" for="layer-filter" data-i18n="dashboard.show">Show</label>
+                  <select class="form-select" id="layer-filter">
+                    <option value="all" selected data-i18n="common.all">All</option>
+                    <option value="drivers" data-i18n="dashboard.metricOnlineDrivers">Online drivers</option>
+                    <option value="requests" data-i18n="dashboard.layerRequests">Ride requests</option>
+                  </select>
+                </div>
+              </div>
+              <div class="card-body pb-0">
+                <ad-map-panel id="ops-map"></ad-map-panel>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </ad-shell>
 

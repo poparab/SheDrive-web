@@ -14,80 +14,77 @@
       page-title-key="application.title"
       breadcrumb-keys="nav.driverApplications|driver-applications.html > application.crumb"
       back="driver-applications.html"
-      screen-styles="styles/detail.css"
+      screen-styles="styles/detail.css, styles/driver-application.css"
     >
       <!-- #1658 full application · #1659 approve · #1660 reject with reason -->
+      <!-- Kit model: driver-application-view.html (+ -not-found) v22-09 -->
       <div id="app-missing" hidden>
         <ad-empty-state
-          icon="⚠"
+          icon="not-found.svg"
           heading="Application not found" data-i18n-heading="application.notFoundHeading"
           message="This application no longer exists, or it has already been reviewed." data-i18n-message="application.notFoundMessage"
         >
-          <a class="btn btn-primary-outline btn--sm" href="driver-applications.html" data-i18n="application.backToQueue">
-            Back to the queue
-          </a>
+          <a class="btn btn-primary-rounded-outline" href="driver-applications.html"><i class="fa-solid fa-angle-left people-flip" aria-hidden="true"></i><span data-i18n="application.backToQueue">Back to the queue</span></a>
+        </ad-empty-state>
+      </div>
+
+      <div id="app-error" hidden>
+        <ad-empty-state icon="cloud-connection-off.svg" heading="Couldn't load this record" data-i18n-heading="kitPeople.loadErrorHeading" message="The service is temporarily unavailable." data-i18n-message="state.errorMessage">
+          <button class="btn btn-primary-rounded-outline" type="button" id="retry-btn" data-i18n="common.tryAgain">Try again</button>
         </ad-empty-state>
       </div>
 
       <div id="app-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
+        <div class="row g-3 people-grid">
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="personal" icon="user-2.svg" section-title="Personal details" data-i18n-section-title="driverProfile.personal"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="vehicle" icon="vehicle.svg" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="licence" icon="driving-license.svg" section-title="Licence &amp; registration" data-i18n-section-title="application.licence"></ad-detail-section>
-            <!-- 2026-10-14 spec §2 — payout method is the last onboarding step; read-only here -->
-            <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading"></ad-detail-section>
-
-            <section class="ad-section" aria-labelledby="docs-heading">
-              <div class="ad-section__header">
-                <div>
-                  <h2 class="ad-section__title" id="docs-heading" data-i18n="application.docsHeading">Uploaded documents</h2>
-                  <p class="ad-section__hint" data-i18n="application.docsHint">
-                    Click a document to open it larger. Images here are placeholders — the
-                    mockup never carries real ID scans.
-                  </p>
-                </div>
-              </div>
-              <div class="ad-section__body">
-                <ad-doc-viewer id="docs"></ad-doc-viewer>
-              </div>
-            </section>
-
-            <section class="ad-section" aria-labelledby="photos-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="photos-heading" data-i18n="application.photosHeading">Vehicle &amp; profile photo</h2>
-              </div>
-              <div class="ad-section__body">
-                <ad-doc-viewer id="photos"></ad-doc-viewer>
-              </div>
-            </section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="summary" icon="submission.svg" section-title="Submission &amp; status" data-i18n-section-title="kitPeople.submissionStatus"></ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="docs-card" icon="upload-file.svg" section-title="Uploaded documents" data-i18n-section-title="application.docsHeading">
+              <ad-doc-viewer id="docs"></ad-doc-viewer>
+            </ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="photos-card" icon="image.svg" section-title="Vehicle photos" data-i18n-section-title="kitPeople.vehiclePhotos">
+              <ad-doc-viewer id="photos"></ad-doc-viewer>
+            </ad-detail-section>
           </div>
 
-          <aside class="ad-split__aside">
-            <section class="ad-section" aria-labelledby="decision-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="decision-heading" data-i18n="application.decisionHeading">Decision</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" id="decision-hint" data-i18n="application.decisionHint">
-                  Approving lets this driver go online. Rejecting requires a reason, which the
-                  driver is notified with.
-                </p>
-                <button class="btn btn-primary btn--full" type="button" id="approve-btn" data-i18n="application.approveBtn">
-                  Approve application
-                </button>
-                <button class="btn btn-danger btn--full" type="button" id="reject-btn" data-i18n="application.rejectBtn">
-                  Reject application
-                </button>
-              </div>
-            </section>
+          <!-- 2026-10-14 spec §2 — payout method is the last onboarding step; read-only here -->
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading"></ad-detail-section>
+          </div>
 
-            <ad-detail-section id="summary" icon="application-status.svg" section-title="Submission" data-i18n-section-title="application.summary"></ad-detail-section>
-          </aside>
+          <!-- Decisions already made on this application, when there are any -->
+          <div class="col-lg-6 col-xl-4" id="history-section" hidden>
+            <ad-detail-section icon="timeline.svg" section-title="Decision history" data-i18n-section-title="driverProfile.historyHeading">
+              <ad-timeline id="history"></ad-timeline>
+            </ad-detail-section>
+          </div>
+        </div>
+
+        <!-- The kit's bottom decision row -->
+        <div class="d-flex flex-wrap align-items-center gap-3 my-3" id="decision-actions">
+          <button class="btn btn-success d-flex" type="button" id="approve-btn">
+            <i class="fa-solid fa-check" aria-hidden="true"></i><span data-i18n="application.approveBtn">Approve application</span>
+          </button>
+          <button class="btn btn-danger d-flex" type="button" id="reject-btn">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="application.rejectBtn">Reject application</span>
+          </button>
+          <p class="small lh-sm mb-0 people-action-hint" id="decision-hint" data-i18n="application.decisionHint">
+            Approving lets this driver go online. Rejecting requires a reason, which the driver is notified with.
+          </p>
         </div>
       </div>
-
-      <ad-form-modal id="decision-modal"></ad-form-modal>
     </ad-shell>
 
     <script type="module" src="scripts/driver-application.js"></script>

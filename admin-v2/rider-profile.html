@@ -14,55 +14,67 @@
       page-title-key="riderProfile.title"
       breadcrumb-keys="nav.riders|riders.html > riderProfile.crumb"
       back="riders.html"
-      screen-styles="styles/detail.css, styles/list.css"
+      screen-styles="styles/detail.css, styles/list.css, styles/rider-profile.css"
     >
+      <!-- Kit model: rider-profile.html / rider-reinstate.html (v22-09) -->
       <div id="profile-missing" hidden>
-        <ad-empty-state icon="⚠" heading="Rider not found" data-i18n-heading="riderProfile.notFoundHeading" message="This rider account does not exist." data-i18n-message="riderProfile.notFoundMessage">
-          <a class="btn btn-primary-outline btn--sm" href="riders.html" data-i18n="riderProfile.backToRiders">Back to riders</a>
+        <ad-empty-state icon="not-found.svg" heading="Rider not found" data-i18n-heading="riderProfile.notFoundHeading" message="This rider account does not exist." data-i18n-message="riderProfile.notFoundMessage">
+          <a class="btn btn-primary-rounded-outline" href="riders.html"><i class="fa-solid fa-angle-left people-flip" aria-hidden="true"></i><span data-i18n="riderProfile.backToRiders">Back to riders</span></a>
+        </ad-empty-state>
+      </div>
+
+      <div id="profile-error" hidden>
+        <ad-empty-state icon="cloud-connection-off.svg" heading="Couldn't load this record" data-i18n-heading="kitPeople.loadErrorHeading" message="The service is temporarily unavailable." data-i18n-message="state.errorMessage">
+          <button class="btn btn-primary-rounded-outline" type="button" id="retry-btn" data-i18n="common.tryAgain">Try again</button>
         </ad-empty-state>
       </div>
 
       <div id="profile-body" hidden>
-        <div class="ad-split">
-          <div class="ad-stack">
+        <div class="row g-3 people-grid">
+          <div class="col-lg-6 col-xl-6">
             <ad-detail-section id="personal" icon="user-2.svg" section-title="Rider details" data-i18n-section-title="riderProfile.personal"></ad-detail-section>
-
-            <!-- #1662 S6 — trip history, 10 rows/page, read-only -->
-            <section class="ad-section" aria-labelledby="trips-heading">
-              <div class="ad-section__header">
+          </div>
+          <div class="col-lg-6 col-xl-6">
+            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading">
+              <!-- An outstanding fee or a credit links to her fee ledger -->
+              <div class="people-card-extra" id="balance-extra" hidden>
                 <div>
-                  <h2 class="ad-section__title" id="trips-heading" data-i18n="riderProfile.tripsHeading">Trip history</h2>
-                  <p class="ad-section__hint" data-i18n="riderProfile.tripsHint">
-                    Read-only. Trip rows are deliberately not clickable in this phase.
-                  </p>
+                  <a class="btn btn-primary-outline" id="balance-link" href="rider-balance-details.html">
+                    <span data-i18n="kitPeople.openFeeLedger">Open her fee ledger</span><i class="fa-solid fa-arrow-right people-flip" aria-hidden="true"></i>
+                  </a>
                 </div>
               </div>
-              <ad-data-table id="trips-table"></ad-data-table>
-            </section>
+            </ad-detail-section>
           </div>
+        </div>
 
-          <aside class="ad-split__aside">
-            <ad-detail-section id="status-card" icon="profile-info.svg" section-title="Account status" data-i18n-section-title="driverProfile.statusHeading"></ad-detail-section>
+        <!-- #1662 S6 — trip history, 10 rows/page, read-only -->
+        <div class="standard-card light-medium-bg mt-3">
+          <div class="card-header mb-3">
+            <div class="card-title">
+              <img class="icon" src="vendor/icons/route.svg" alt="" aria-hidden="true" />
+              <h4 id="trips-heading" data-i18n="riderProfile.tripsHeading">Trip history</h4>
+            </div>
+            <p class="small lh-sm mb-0 people-action-hint" data-i18n="riderProfile.tripsHint">
+              Read-only. Trip rows are deliberately not clickable in this phase.
+            </p>
+          </div>
+          <div class="card-body">
+            <ad-data-table id="trips-table" aria-labelledby="trips-heading"></ad-data-table>
+          </div>
+        </div>
 
-            <section class="ad-section" aria-labelledby="actions-heading">
-              <div class="ad-section__header">
-                <h2 class="ad-section__title" id="actions-heading" data-i18n="riderProfile.actionsHeading">Account actions</h2>
-              </div>
-              <div class="ad-section__body ad-stack">
-                <p class="ad-section__hint" id="action-hint"></p>
-                <button class="btn btn-danger btn--full" type="button" id="suspend-btn" hidden data-i18n="riderProfile.suspendBtn">
-                  Suspend rider
-                </button>
-                <button class="btn btn-primary btn--full" type="button" id="reinstate-btn" hidden data-i18n="riderProfile.reinstateBtn">
-                  Reinstate rider
-                </button>
-              </div>
-            </section>
-          </aside>
+        <!-- #1740 suspend / #1741 reinstate — the kit's bottom action row -->
+        <div class="d-flex flex-wrap align-items-center gap-3 my-3" id="account-actions">
+          <button class="btn btn-danger d-flex" type="button" id="suspend-btn" hidden>
+            <i class="fa-solid fa-stop" aria-hidden="true"></i><span data-i18n="riderProfile.suspendBtn">Suspend rider</span>
+          </button>
+          <button class="btn btn-success d-flex" type="button" id="reinstate-btn" hidden>
+            <i class="fa-solid fa-play" aria-hidden="true"></i><span data-i18n="riderProfile.reinstateBtn">Reinstate rider</span>
+          </button>
+          <p class="small lh-sm mb-0 people-action-hint" id="action-hint"></p>
         </div>
       </div>
-
-      <ad-form-modal id="action-modal"></ad-form-modal>
     </ad-shell>
 
     <script type="module" src="scripts/rider-profile.js"></script>
