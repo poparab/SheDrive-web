@@ -228,7 +228,6 @@ table.columns = [
         wrap.appendChild(chip(t('balancesFinance.chipAwaitingApproval'), 'warning'));
       }
       // Without one she is left out of every batch (§3).
-      if (!row.hasPayoutMethod) wrap.appendChild(chip(t('balancesFinance.chipNoPayoutMethod'), 'brand'));
       return wrap;
     },
   },

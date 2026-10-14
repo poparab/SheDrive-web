@@ -69,12 +69,9 @@ function seedPayoutMethod(driver, index) {
   return { type: 'PREPAID_CARD', provider: null, holderName: driver.name, number: `5078${digits(12)}`, updatedAt: at, updatedBy: 'driver' };
 }
 
-// Drivers approved before the payout-method step existed have none, which is
-// what gives the batch preview its "no payout method" rows. Every applicant
-// has one — it is required to submit onboarding (§2).
+// Every driver has one — a driver can't be in the system without it (§2).
 DRIVERS.forEach((driver, index) => {
-  const legacy = driver.status !== 'pending' && index % 9 === 4;
-  driver.payoutMethod = legacy ? null : seedPayoutMethod(driver, index);
+  driver.payoutMethod = seedPayoutMethod(driver, index);
   driver.lastPayoutFailure = null;
 });
 

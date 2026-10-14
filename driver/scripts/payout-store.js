@@ -18,7 +18,6 @@
  *   shedrive.payoutMethod   {type, provider, holder, last4, savedAt}
  *
  * Demo switches (query string):
- *   ?state=none            she has no payout method yet
  *   ?state=failed          her last payout failed (payout-method.html)
  *   ?state=payout-failed   her last payout failed (balance.html)
  */
@@ -69,15 +68,14 @@ export const LAST_FAILED_PAYOUT = {
 const params = new URLSearchParams(location.search);
 const demoState = params.get('state');
 
-// The method saved on this page, so it shows even on ?state=none or without storage.
+// The method saved on this page, so it shows even without storage.
 let savedThisPage = null;
 
 // ── Reads ────────────────────────────────────────────
 
-/** Her current method, or null when she has none (?state=none). */
+/** Her current method. Every driver has one — it is required to be in the system. */
 export function getPayoutMethod() {
   if (savedThisPage) return { ...savedThisPage };
-  if (demoState === 'none') return null;
   return storage.get(STORAGE_KEY) || { ...DEMO_METHOD };
 }
 

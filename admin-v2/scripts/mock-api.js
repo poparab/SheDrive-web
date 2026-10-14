@@ -2051,24 +2051,16 @@ export const mockApi = {
 
   // ── Payout batches (§3) ─────────────────────────────
 
-  /** Who a batch generated now would pay, and who it leaves out and why. */
+  /** Who a batch generated now would pay. Drivers who owe SheDrive are left out — they settle instead. */
   previewPayoutBatch() {
     const now = Date.now();
     const lines = [];
-    const skipped = [];
     DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status)).forEach((driver) => {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0) return;
+      if (driver.balance <= 0 || !driver.payoutMethod) return;
       const base = { driverId: String(driver.id), driverName: driver.name, nationalId: driver.nid, dueNet, balance: driver.balance };
-      if (driver.balance <= 0) {
-        skipped.push({ ...base, reason: 'owes' });
-        return;
-      }
-      if (!driver.payoutMethod) {
-        skipped.push({ ...base, reason: 'no_method' });
-        return;
-      }
       lines.push({
         ...base,
         payoutType: driver.payoutMethod.type,
@@ -2080,8 +2072,8 @@ export const mockApi = {
       });
     });
     lines.sort((a, b) => b.amount - a.amount);
-    const payload = { lines, skipped, count: lines.length, total: round2(lines.reduce((t, l) => t + l.amount, 0)) };
-    return respond(payload, { emptyValue: { lines: [], skipped: [], count: 0, total: 0 } });
+    const payload = { lines, count: lines.length, total: round2(lines.reduce((t, l) => t + l.amount, 0)) };
+    return respond(payload, { emptyValue: { lines: [], count: 0, total: 0 } });
   },
 
   createPayoutBatch() {

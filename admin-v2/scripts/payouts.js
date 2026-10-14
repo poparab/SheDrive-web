@@ -6,7 +6,7 @@
  * why), then confirming creates the batch as a `payout_batch` request that a
  * different admin must approve (§1). Nothing is paid from this screen.
  *
- * The preview needs two tables and a skipped list, which the field-driven
+ * The preview needs a table of lines, which the field-driven
  * ad-form-modal cannot render, so it is a kit Bootstrap modal built here.
  */
 
@@ -289,28 +289,6 @@ function renderPreview(body, preview, openBatch) {
     grid.appendChild(tfoot);
     wrap.appendChild(grid);
     body.append(wrap, el('p', 'ad-section__hint', t('payouts.previewAmountHint')));
-  }
-
-  if (preview.skipped.length) {
-    const section = el('div', 'payouts-skipped');
-    section.appendChild(el('h5', 'payouts-skipped__title', t('payouts.skippedHeading', { n: formatCount(preview.skipped.length) })));
-    const list = el('ul', 'payouts-skipped__list');
-    preview.skipped.forEach((s) => {
-      const li = el('li', 'payouts-skipped__item');
-      const who = el('span', 'payouts-skipped__who');
-      who.append(el('strong', '', s.driverName), el('span', 'payouts-skipped__due', t('payouts.skippedDue', { amount: formatEgp(s.dueNet) })));
-      li.append(
-        who,
-        el(
-          'span',
-          `payouts-skipped__reason payouts-skipped__reason--${s.reason}`,
-          s.reason === 'owes' ? t('payouts.reasonOwes') : t('payouts.reasonNoMethod'),
-        ),
-      );
-      list.appendChild(li);
-    });
-    section.appendChild(list);
-    body.appendChild(section);
   }
 }
 

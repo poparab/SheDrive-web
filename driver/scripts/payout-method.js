@@ -5,7 +5,7 @@
  * and the shared form to change it. Her own change needs no approval: saving
  * applies at once and her next payout goes to the new method.
  *
- * Demo only: ?state=failed (last payout failed) · ?state=none (no method yet)
+ * Demo only: ?state=failed (last payout failed)
  */
 
 import { auth } from '../../shared/scripts/auth.js';

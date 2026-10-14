@@ -318,9 +318,6 @@ async function loadPayout(driver) {
 
   const notices = qs('#payout-notices');
   notices.textContent = '';
-  if (!method) {
-    notices.appendChild(kitAlert('warning', 'fa-wallet', t('driverPayout.none')));
-  }
   if (payout.lastFailure) {
     const f = payout.lastFailure;
     notices.appendChild(
