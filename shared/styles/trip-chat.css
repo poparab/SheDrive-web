@@ -1,0 +1,433 @@
+/* trip-chat.css — the rider ↔ driver trip chat, both apps, and its push.
+   Both apps render the same screen (shared/scripts/trip-chat.js); each app's
+   chat.css only adjusts for its shell.
+
+   No Figma frame exists for this screen, so it follows the list screens: a
+   purple .sd-hero band holding the header, a white .sd-panel, lavender cards.
+   Her own messages are purple bubbles on the inline-end side; the other
+   person's are lavender on the inline-start side. The composer sits in the
+   .action-dock, pinned while the thread scrolls under it. */
+
+/* ── Header: who she is talking to ────────────────────────────────────── */
+
+.chat-hero {
+  flex: none;
+  padding-block-end: calc(var(--radius-2xl) + var(--space-2));
+}
+
+.chat-page .navbar .chat-topbar__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-peer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.chat-peer__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-surface);
+  background: var(--gradient-brand);
+  color: var(--color-on-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.chat-peer__text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  text-align: start;
+}
+
+.chat-peer__name {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--leading-tight);
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-peer__role {
+  font-size: var(--fs-xs);
+  color: rgba(var(--color-surface-rgb), 0.85);
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────── */
+
+.chat-page sd-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-panel {
+  padding-block-end: 0;
+  gap: var(--space-4);
+}
+
+.chat-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  color: var(--color-text);
+  font-size: var(--fs-xs);
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+
+.chat-notice svg {
+  flex: none;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block: auto;
+  padding-block: var(--space-8);
+  text-align: center;
+}
+
+.chat-empty[hidden] {
+  display: none;
+}
+
+.chat-empty__icon {
+  display: grid;
+  place-items: center;
+  inline-size: var(--space-16);
+  block-size: var(--space-16);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-tint);
+  color: var(--color-primary-600);
+}
+
+.chat-empty__title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-strong);
+}
+
+.chat-empty__hint {
+  margin: 0;
+  max-inline-size: 28ch;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Thread ───────────────────────────────────────────────────────────── */
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-inline-size: 80%;
+}
+
+.chat-msg--own {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.chat-msg--peer {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.chat-msg__bubble {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-base);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.chat-msg--own .chat-msg__bubble {
+  background: var(--color-primary-600);
+  color: var(--color-on-primary);
+  border-end-end-radius: var(--radius-sm);
+}
+
+.chat-msg--peer .chat-msg__bubble {
+  background: var(--color-surface-tint);
+  color: var(--color-text-strong);
+  border-end-start-radius: var(--radius-sm);
+}
+
+/* A quick reply reads the same, with a subtle outline so it is recognisable. */
+.chat-msg--quick.chat-msg--peer .chat-msg__bubble {
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
+}
+
+.chat-msg--failed .chat-msg__bubble {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.chat-msg__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+.chat-msg__meta time {
+  white-space: nowrap;
+}
+
+.chat-msg__status {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.chat-msg__retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-danger);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.chat-msg__note {
+  margin: 0;
+  padding-inline: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Dock: quick replies + composer ───────────────────────────────────── */
+
+.chat-dock {
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+}
+
+.chat-quick {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(var(--page-gutter) * -1);
+  padding-inline: var(--page-gutter);
+}
+
+.chat-quick::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-quick__chip {
+  flex: none;
+  white-space: nowrap;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.chat-quick__chip:hover {
+  background: var(--color-primary-50);
+}
+
+.chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.chat-composer .chat-input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: var(--control-height);
+  max-block-size: calc(var(--control-height) * 2.5);
+  padding-block: var(--space-3);
+  resize: none;
+  line-height: var(--leading-snug);
+  overflow-y: auto;
+}
+
+.chat-send {
+  flex: none;
+  inline-size: var(--control-height);
+  block-size: var(--control-height);
+}
+
+/* The send arrow points the way text runs. */
+[dir='rtl'] .chat-send svg {
+  transform: scaleX(-1);
+}
+
+.chat-count {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-align: end;
+}
+
+.chat-count[hidden] {
+  display: none;
+}
+
+.chat-driving,
+.chat-closed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  line-height: var(--leading-snug);
+}
+
+.chat-driving svg,
+.chat-closed svg {
+  flex: none;
+  color: var(--color-primary-600);
+}
+
+/* Which parts of the dock show, from body[data-chat] (set by trip-chat.js). */
+.chat-driving,
+.chat-closed {
+  display: none;
+}
+[data-chat='quick-only'] .chat-driving,
+[data-chat='ended'] .chat-closed {
+  display: flex;
+}
+[data-chat='quick-only'] .chat-composer,
+[data-chat='quick-only'] .chat-count,
+[data-chat='ended'] .chat-composer,
+[data-chat='ended'] .chat-count,
+[data-chat='ended'] .chat-quick,
+[data-chat='ended'] .chat-notice {
+  display: none;
+}
+
+/* ── Message button badge (trip screens) ──────────────────────────────── */
+
+[data-chat-link] {
+  position: relative;
+}
+
+.chat-badge {
+  position: absolute;
+  inset-block-start: calc(var(--space-2) * -1);
+  inset-inline-end: calc(var(--space-2) * -1);
+  min-inline-size: var(--space-5);
+  block-size: var(--space-5);
+  padding-inline: var(--space-1);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-600);
+  color: var(--color-on-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.chat-badge[hidden] {
+  display: none;
+}
+
+/* ── Push (a new message outside the chat) ────────────────────────────── */
+
+.chat-push {
+  position: fixed;
+  inset-block-start: calc(var(--space-3) + env(safe-area-inset-top));
+  inset-inline: var(--space-3);
+  z-index: calc(var(--z-toast) + 1); /* above the trip's own push banners */
+  animation: chat-push-in 300ms ease;
+}
+
+.chat-push__card {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  color: var(--color-text-strong);
+  text-decoration: none;
+}
+
+.chat-push__app {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.chat-push__icon {
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border-radius: var(--radius-sm);
+}
+
+.chat-push__when {
+  margin-inline-start: auto;
+}
+
+.chat-push__title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+}
+
+.chat-push__body {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.chat-push__more {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+@keyframes chat-push-in {
+  from { transform: translateY(-120%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}

@@ -11,7 +11,7 @@
   </head>
 
   <body class="app-shell driver-trip-page">
-    <sd-page body-class="app-shell driver-trip-page" screen-styles="styles/driver.css, styles/trip.css" mapbox>
+    <sd-page body-class="app-shell driver-trip-page" screen-styles="styles/driver.css, ../shared/styles/trip-chat.css, styles/trip.css" mapbox>
 
       <!-- ── Full-screen map ── -->
       <main class="home-map-container" id="map" aria-label="خريطة الرحلة" data-i18n-aria-label="aria.map.trip" role="main"></main>
@@ -63,6 +63,14 @@
               <span class="trip-rider__rating-label" data-i18n="trip.rating">التقييم</span>
             </span>
           </div>
+
+          <!-- Trip chat -->
+          <button type="button" class="btn trip-action" id="msg-rider-btn-enroute" data-chat-link
+            aria-label="رسالة للراكبة" data-i18n-aria-label="trip.driver.msgAria">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span data-i18n="trip.message">رسالة</span>
+            <span class="chat-badge" aria-hidden="true" hidden></span>
+          </button>
 
           <!-- Navigation deep-link (#1586) -->
           <div class="trip-actions">
@@ -121,6 +129,14 @@
               <span class="trip-rider__rating-label" data-i18n="trip.rating">التقييم</span>
             </span>
           </div>
+
+          <!-- Trip chat -->
+          <button type="button" class="btn trip-action" id="msg-rider-btn-arrived" data-chat-link
+            aria-label="رسالة للراكبة" data-i18n-aria-label="trip.driver.msgAria">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span data-i18n="trip.message">رسالة</span>
+            <span class="chat-badge" aria-hidden="true" hidden></span>
+          </button>
         </div>
 
         <div class="trip-card__footer">
@@ -213,7 +229,7 @@
 
           <!-- Contact + safety -->
           <div class="trip-actions trip-actions--three">
-            <button type="button" class="btn trip-action" id="call-rider-btn"
+            <button type="button" class="btn trip-action js-call-rider" id="call-rider-btn"
               aria-label="اتصال بالراكبة" data-i18n-aria-label="trip.driver.callAria">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -221,12 +237,13 @@
               <span data-i18n="trip.call">اتصال</span>
             </button>
 
-            <button type="button" class="btn trip-action" id="msg-rider-btn"
+            <button type="button" class="btn trip-action" id="msg-rider-btn" data-chat-link
               aria-label="رسالة للراكبة" data-i18n-aria-label="trip.driver.msgAria">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
               <span data-i18n="trip.message">رسالة</span>
+              <span class="chat-badge" aria-hidden="true" hidden></span>
             </button>
 
             <button type="button" class="btn trip-action trip-action--sos" id="sos-btn"

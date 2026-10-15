@@ -273,6 +273,12 @@
   gap: var(--space-2);
 }
 
+/* Trip chat — full width under the driver details */
+.trip-driver__chat {
+  grid-column: 1 / -1;
+  margin-block-start: var(--space-2);
+}
+
 .safety-badge {
   padding-block: var(--space-1);
   padding-inline: var(--space-3);

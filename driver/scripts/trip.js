@@ -6,7 +6,9 @@
 import { auth } from '../../shared/scripts/auth.js';
 import { initI18n, setLanguage, translate } from '../../shared/scripts/i18n.js';
 import { MapService } from '../../shared/scripts/map.js';
-import { qs, startWaitingCounter } from '../../shared/scripts/utils.js';
+import { qs, qsa, startWaitingCounter } from '../../shared/scripts/utils.js';
+import { wireChatEntry } from '../../shared/scripts/trip-chat.js';
+import { clearChat } from '../../shared/scripts/trip-chat-store.js';
 
 auth.requireAuth();
 await initI18n();
@@ -246,7 +248,7 @@ qs('#verify-fail-confirm')?.addEventListener('click', () => {
 });
 
 // Online status is preserved — she returns to home still available (#1588 S6).
-qs('#verify-fail-done-btn')?.addEventListener('click', () => window.location.replace('./home.html'));
+qs('#verify-fail-done-btn')?.addEventListener('click', () => { clearChat(); window.location.replace('./home.html'); });
 
 // ── Cancel trip with reason + fee (#1722) ─────────
 const CANCEL_FEE = { ar: '20 جنيه', en: 'EGP 20' };
@@ -337,6 +339,7 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
     ? translate('driver.cancel.cancelledNoFee')
     : translate('driver.cancel.cancelledFee', { amount: feeAmount() });
   showToast(msg || 'تم إلغاء الرحلة', noFee ? 'success' : 'danger');
+  clearChat();
   setTimeout(() => window.location.replace('./home.html'), 1800);
 });
 
@@ -390,16 +393,16 @@ document.querySelectorAll('.trip-nav-btn').forEach((btn) => {
 });
 
 // ── Call / message ────────────────────────────────
-qs('#call-rider-btn')?.addEventListener('click', () =>
+qsa('.js-call-rider').forEach((btn) => btn.addEventListener('click', () =>
   showToast(translate('driver.trip.callToast') || 'جارٍ الاتصال…', 'info')
-);
-qs('#msg-rider-btn')?.addEventListener('click', () =>
-  showToast(translate('driver.trip.msgToast') || 'الرسائل غير متاحة حالياً', 'info')
-);
+));
+// Trip chat: Message buttons, unread badge, push. verify-rider is still the pickup.
+wireChatEntry('driver', () => (getState() === 'verify-rider' ? 'arrived' : getState()));
 
 // ── Complete trip (#1591) → cash-collection ───────
 qs('#complete-btn')?.addEventListener('click', () => {
   if (timerInterval) clearInterval(timerInterval);
+  clearChat(); // the chat closes with the trip
   window.location.replace('./cash-collection.html');
 });
 
