@@ -14,6 +14,8 @@ import { initI18n, setLanguage, translate, getLanguage, I18N_EVENT } from '../..
 import { MapService } from '../../shared/scripts/map.js';
 import { qs, startWaitingCounter } from '../../shared/scripts/utils.js';
 import { Drawer } from '../../shared/scripts/drawer.js';
+import { wireChatEntry } from '../../shared/scripts/trip-chat.js';
+import { clearChat } from '../../shared/scripts/trip-chat-store.js';
 
 // ── Auth guard ────────────────────────────────────────
 auth.requireAuth();
@@ -126,6 +128,7 @@ const etaInterval = setInterval(() => {
     updateEtaDisplay();
   } else {
     clearInterval(etaInterval);
+    clearChat(); // the chat closes with the trip
     window.location.replace('./trip-complete.html');
   }
 }, 60_000);
@@ -295,8 +298,12 @@ qs('#cancel-confirm')?.addEventListener('click', () => {
   }));
   sessionStorage.removeItem('shedrive.activeTrip');
   sessionStorage.removeItem('shedrive.tripMatchedAt');
+  clearChat();
   window.location.replace('./home.html');
 });
+
+// ── Trip chat: Message button, unread badge, push ──
+wireChatEntry('rider', () => document.body.dataset.state || '');
 
 // ── Side drawer ───────────────────────────────────────
 qs('#menu-btn')?.addEventListener('click', () => Drawer.open());
@@ -323,5 +330,6 @@ qs('#demo-advance-btn')?.addEventListener('click', () => {
     return;
   }
   clearInterval(etaInterval);
+  clearChat();
   window.location.replace('./trip-complete.html');
 });
