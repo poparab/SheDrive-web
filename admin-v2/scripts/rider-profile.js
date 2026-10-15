@@ -6,7 +6,7 @@
  *
  * v22-09 kit port: two `col-xl-6` cards, the full-width Trip history card and
  * the bottom action row; Suspend is the kit's `default-modal`, Reinstate its
- * `popup-primary`, each followed by a `popup-success`.
+ * `popup-primary`, each followed by a toast.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -26,6 +26,7 @@ if (!adminAuth.requireAdmin()) {
 
 const body = qs('#profile-body');
 const missing = qs('#profile-missing');
+const banner = qs('#status-banner');
 const loadError = qs('#profile-error');
 const suspendBtn = qs('#suspend-btn');
 const reinstateBtn = qs('#reinstate-btn');
@@ -115,6 +116,7 @@ async function load() {
   try {
     rider = await mockApi.getRider(id);
   } catch {
+    banner.hide();
     loadError.hidden = false;
     missing.hidden = true;
     body.hidden = true;
@@ -130,6 +132,7 @@ async function load() {
 
   missing.hidden = true;
   body.hidden = false;
+  renderStatusBanner(rider);
 
   qs('#personal').items = [
     { label: t('field.fullName'), value: rider.name },
@@ -217,7 +220,7 @@ qs('#retry-btn').addEventListener('click', () => load());
 // ── Kit modals ────────────────────────────────────────
 // The kit's dialogs, built on <body> per open and removed once closed:
 // `default-modal` / `popup-primary` forms with an icon header, the centred
-// `popup-warning` confirm and the `popup-success` result. <ad-form-modal> only
+// `popup-warning` confirm; results are toasts (kitResult). <ad-form-modal> only
 // renders the centred popup layout, so the header-icon forms are built here.
 
 let modalSeq = 0;
@@ -313,27 +316,17 @@ async function presentModal(root, onShown) {
   });
 }
 
-/** The kit's `popup-success` (or `popup-warning`) result dialog. */
+/**
+ * The result of an action. It used to be the kit's popup-success, which the
+ * admin had to close; it needs no decision, so it is a toast now. A link (the
+ * approval a change went to) becomes the toast's action.
+ */
 function kitResult({ tone = 'success', title, text, link }) {
-  modalSeq += 1;
-  const labelId = `people-modal-${modalSeq}`;
-  const m = modalShell(`popup-${tone}`, labelId, { staticBackdrop: false });
-  m.header.appendChild(m.close);
-  const sign = el('div', `status-sign ${tone}`);
-  sign.appendChild(faIcon(tone === 'success' ? 'fa-check' : 'fa-warning'));
-  const heading = el('h4', '', title);
-  heading.id = labelId;
-  m.body.append(sign, heading);
-  if (text) m.body.appendChild(el('p', '', text));
-  const done = kitButton(`btn-${tone}`, 'fa-xmark', t('common.close'));
-  done.setAttribute('data-bs-dismiss', 'modal');
-  m.footer.appendChild(done);
-  if (link) {
-    const a = el('a', 'btn btn-primary-outline', link.label);
-    a.href = link.href;
-    m.footer.appendChild(a);
-  }
-  return presentModal(m.root, () => done.focus());
+  qs('ad-shell').showToast(text || title, tone, {
+    title: text ? title : undefined,
+    action: link ? { label: link.label, href: link.href } : null,
+  });
+  return Promise.resolve();
 }
 
 /**
@@ -525,6 +518,31 @@ function kitForm({ kind = 'default-modal', icon, title, subject, intro, notice, 
   );
 }
 
+
+// ── Status banner ─────────────────────────────────────
+// The account's standing state; the toast after an action only reports it.
+
+function renderStatusBanner(rider) {
+  if (rider.status === 'suspended') {
+    banner.show({
+      tone: 'danger',
+      heading: t('banner.riderSuspendedHeading'),
+      message: t('banner.riderSuspendedMessage', { reason: rider.suspensionReason ?? '' }),
+    });
+  } else if (rider.status === 'pending_review') {
+    const report = SAFETY_REPORTS.find((r) => String(r.riderId) === String(rider.id));
+    banner.show({
+      tone: 'warning',
+      heading: t('banner.riderReviewHeading'),
+      message: t('banner.riderReviewMessage'),
+      action: report
+        ? { label: t('banner.riderReviewAction'), href: `safety-report.html?id=${report.id}` }
+        : null,
+    });
+  } else {
+    banner.hide();
+  }
+}
 
 // ── #1740 suspend / #1741 reinstate ───────────────────
 

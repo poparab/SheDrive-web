@@ -73,7 +73,7 @@ function statusChip(className, iconClass, text) {
   return chip;
 }
 
-// ── Kit modals (default-modal + popup-success) ───────
+// ── Kit modals (default-modal; results are toasts) ───
 // Built fresh per open and removed on close.
 
 async function showModal(root) {
@@ -138,29 +138,12 @@ function closeButton() {
 
 /** The kit's success popup, worded as a request sent for approval. */
 function showSentForApproval(request) {
-  const { root, content } = modalShell('popup-success');
-  const header = el('div', 'modal-header');
-  header.appendChild(closeButton());
-  const mbody = el('div', 'modal-body');
-  const sign = el('div', 'status-sign success');
-  sign.appendChild(icon('fa-solid fa-check'));
-  const title = el('h4', '', t('kitBalances.sentTitle'));
-  title.id = `${root.id}-title`;
-  mbody.append(sign, title, el('p', '', t('kitBalances.waiverSentMessage')));
-  const footer = el('div', 'modal-footer');
-  if (request?.id) {
-    const link = el('a', 'btn btn-primary-outline ledger-request-link');
-    link.href = approvalHref(request.id);
-    link.append(icon('fa-solid fa-arrow-up-right-from-square'), el('span', '', t('riderBalancesFinance.openRequest')));
-    footer.appendChild(link);
-  }
-  const ok = el('button', 'btn btn-success');
-  ok.type = 'button';
-  ok.setAttribute('data-bs-dismiss', 'modal');
-  ok.append(icon('fa-solid fa-xmark'), el('span', '', t('common.close')));
-  footer.appendChild(ok);
-  content.append(header, mbody, footer);
-  showModal(root);
+  // A toast with an "Open request" action; the kit's popup-success asked
+  // nothing of the admin but to close it.
+  document.querySelector('ad-shell').showToast(t('kitBalances.waiverSentMessage'), 'success', {
+    title: t('kitBalances.sentTitle'),
+    action: request?.id ? { label: t('riderBalancesFinance.openRequest'), href: approvalHref(request.id) } : null,
+  });
 }
 
 // ── Waive fee (2026-10-14 spec §5) ───────────────────

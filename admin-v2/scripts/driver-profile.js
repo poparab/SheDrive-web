@@ -6,7 +6,7 @@
  *
  * v22-09 kit port: the kit's card grid (driver-profile.html), the kit's
  * Suspend `default-modal` and Reinstate `popup-primary` (driver-unsuspend.html),
- * a `popup-success` after each action. The payout method, payout position and
+ * a toast after each action. The payout method, payout position and
  * decision history are extra cards in the same grid.
  */
 
@@ -35,6 +35,7 @@ if (!adminAuth.requireAdmin()) {
 
 const body = qs('#profile-body');
 const missing = qs('#profile-missing');
+const banner = qs('#status-banner');
 const loadError = qs('#profile-error');
 const suspendBtn = qs('#suspend-btn');
 const reinstateBtn = qs('#reinstate-btn');
@@ -178,6 +179,7 @@ async function load() {
   try {
     driver = await mockApi.getDriver(id);
   } catch {
+    banner.hide();
     loadError.hidden = false;
     missing.hidden = true;
     body.hidden = true;
@@ -193,6 +195,7 @@ async function load() {
 
   missing.hidden = true;
   body.hidden = false;
+  renderStatusBanner(driver);
 
   // ── Account status (the kit's first card) ──
   const decision = driver.decisionHistory.find((entry) => entry.state === 'approved' || entry.state === 'rejected');
@@ -315,7 +318,7 @@ qs('#retry-btn').addEventListener('click', () => load());
 // ── Kit modals ────────────────────────────────────────
 // The kit's dialogs, built on <body> per open and removed once closed:
 // `default-modal` / `popup-primary` forms with an icon header, the centred
-// `popup-warning` confirm and the `popup-success` result. <ad-form-modal> only
+// `popup-warning` confirm; results are toasts (kitResult). <ad-form-modal> only
 // renders the centred popup layout, so the header-icon forms are built here.
 
 let modalSeq = 0;
@@ -411,27 +414,17 @@ async function presentModal(root, onShown) {
   });
 }
 
-/** The kit's `popup-success` (or `popup-warning`) result dialog. */
+/**
+ * The result of an action. It used to be the kit's popup-success, which the
+ * admin had to close; it needs no decision, so it is a toast now. A link (the
+ * approval a change went to) becomes the toast's action.
+ */
 function kitResult({ tone = 'success', title, text, link }) {
-  modalSeq += 1;
-  const labelId = `people-modal-${modalSeq}`;
-  const m = modalShell(`popup-${tone}`, labelId, { staticBackdrop: false });
-  m.header.appendChild(m.close);
-  const sign = el('div', `status-sign ${tone}`);
-  sign.appendChild(faIcon(tone === 'success' ? 'fa-check' : 'fa-warning'));
-  const heading = el('h4', '', title);
-  heading.id = labelId;
-  m.body.append(sign, heading);
-  if (text) m.body.appendChild(el('p', '', text));
-  const done = kitButton(`btn-${tone}`, 'fa-xmark', t('common.close'));
-  done.setAttribute('data-bs-dismiss', 'modal');
-  m.footer.appendChild(done);
-  if (link) {
-    const a = el('a', 'btn btn-primary-outline', link.label);
-    a.href = link.href;
-    m.footer.appendChild(a);
-  }
-  return presentModal(m.root, () => done.focus());
+  qs('ad-shell').showToast(text || title, tone, {
+    title: text ? title : undefined,
+    action: link ? { label: link.label, href: link.href } : null,
+  });
+  return Promise.resolve();
 }
 
 /**
@@ -909,6 +902,47 @@ payoutEditBtn.addEventListener('click', async () => {
       : null,
   });
 });
+
+// ── Status banner ─────────────────────────────────────
+// What the account cannot do right now stays on screen for as long as it is
+// true; the toast after suspending only reports that the action happened.
+
+function renderStatusBanner(driver) {
+  const reason = driver.suspensionReason ?? driver.rejectionReason ?? '';
+  switch (driver.status) {
+    case 'suspended':
+      banner.show({
+        tone: 'danger',
+        heading: t('banner.driverSuspendedHeading'),
+        message: t('banner.driverSuspendedMessage', { reason }),
+      });
+      break;
+    case 'pending_suspension':
+      banner.show({
+        tone: 'warning',
+        heading: t('banner.driverPendingSuspensionHeading'),
+        message: t('banner.driverPendingSuspensionMessage', { reason }),
+      });
+      break;
+    case 'pending':
+      banner.show({
+        tone: 'info',
+        heading: t('banner.driverPendingHeading'),
+        message: t('banner.driverPendingMessage'),
+        action: { label: t('banner.driverPendingAction'), href: `driver-application.html?id=${driver.id}` },
+      });
+      break;
+    case 'rejected':
+      banner.show({
+        tone: 'info',
+        heading: t('banner.driverRejectedHeading'),
+        message: t('banner.driverRejectedMessage', { reason }),
+      });
+      break;
+    default:
+      banner.hide();
+  }
+}
 
 // ── #1742 suspend / #1743 reinstate ───────────────────
 

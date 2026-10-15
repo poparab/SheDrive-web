@@ -22,6 +22,7 @@ import { ADMINS, CURRENT_ADMIN } from './seed.js';
 import { formatDateTime, humanize } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { queueToast } from '../components/ad-toast.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -112,7 +113,8 @@ setText(
 );
 
 qs('#session-signout')?.addEventListener('click', () => {
-  shell?.showToast?.(t('profile.signingOut'), 'info');
+  // The sign-in page shows it; a toast here would vanish with the redirect.
+  queueToast(t('toast.signedOut'), 'success');
   adminAuth.logout();
   window.location.href = './index.html';
 });

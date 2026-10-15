@@ -278,7 +278,6 @@ table.addEventListener('pagechange', (event) => {
 const modalEls = {
   create: qs('#createAdminModal'),
   confirm: qs('#adminConfirmModal'),
-  success: qs('#adminSuccessModal'),
 };
 // <body> keeps them clear of any positioned ancestor in the shell.
 Object.values(modalEls).forEach((el) => document.body.appendChild(el));
@@ -288,12 +287,13 @@ async function modal(el) {
   return window.bootstrap.Modal.getOrCreateInstance(el);
 }
 
-/** Hide one dialog and only then show the next, so the backdrops never stack. */
-async function swap(fromEl, toEl) {
-  const from = await modal(fromEl);
-  const to = await modal(toEl);
-  fromEl.addEventListener('hidden.bs.modal', () => to.show(), { once: true });
-  from.hide();
+/**
+ * The action went through: close the dialog and say so in a toast. The kit's
+ * popup-success asked nothing of the admin but to close it.
+ */
+async function done(fromEl, message) {
+  (await modal(fromEl)).hide();
+  qs('ad-shell').showToast(message, 'success', { title: t('kitAdmin.successTitle') });
 }
 
 function showError(box, message) {
@@ -367,8 +367,7 @@ confirmButton.addEventListener('click', async () => {
     return;
   }
   pending = null;
-  qs('#adminSuccessText').textContent = t(spec.done, { email: admin.email });
-  await swap(modalEls.confirm, modalEls.success);
+  await done(modalEls.confirm, t(spec.done, { email: admin.email }));
   await Promise.all([load(), loadCards()]);
 });
 
@@ -466,8 +465,7 @@ createForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  qs('#adminSuccessText').textContent = t('kitAdmin.createdDone', { email: email.toLowerCase() });
-  await swap(modalEls.create, modalEls.success);
+  await done(modalEls.create, t('kitAdmin.createdDone', { email: email.toLowerCase() }));
   query.page = 1;
   await Promise.all([load(), loadCards()]);
 });

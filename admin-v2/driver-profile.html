@@ -17,6 +17,9 @@
       screen-styles="styles/detail.css, styles/list.css, styles/driver-profile.css"
     >
       <!-- Kit model: driver-profile.html / driver-unsuspend.html (v22-09) -->
+      <!-- The record's standing state (ad-banner) -->
+      <ad-banner id="status-banner"></ad-banner>
+
       <div id="profile-missing" hidden>
         <ad-empty-state icon="not-found.svg" heading="Driver not found" data-i18n-heading="driverProfile.notFoundHeading" message="This driver account does not exist." data-i18n-message="driverProfile.notFoundMessage">
           <a class="btn btn-primary-rounded-outline" href="drivers.html"><i class="fa-solid fa-angle-left people-flip" aria-hidden="true"></i><span data-i18n="driverProfile.backToDrivers">Back to drivers</span></a>

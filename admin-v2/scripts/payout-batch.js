@@ -240,7 +240,10 @@ async function exportFile(firstExport) {
     if (firstExport) shell.showToast(t('payoutBatch.exportedToast'), 'success');
     await load();
   } catch (error) {
-    shell.showToast(error.message, 'danger');
+    shell.showToast(error.message, 'danger', {
+      title: t('toast.failedTitle'),
+      action: { label: t('toast.retry'), onClick: () => exportFile(firstExport) },
+    });
   } finally {
     busy = false;
   }

@@ -14,7 +14,7 @@
  * Presentation (kit v22-09): one `.row.g-3` card grid whose cards appear by trip
  * state, the actions in a bottom row, and the kit's own modals — a
  * `default-modal` for the reason form, a `popup-danger` final confirmation for
- * cancelling, and a `popup-success` result. The modals are static markup in the
+ * cancelling, and a toast result. The modals are static markup in the
  * page, moved to <body> so no positioned ancestor can trap them.
  *
  * Bilingual: every generated string goes through `t()`. Reason values stay
@@ -36,6 +36,7 @@ import {
   humanize,
 } from './format.js';
 import { t, hasKey, applyAdminTranslations } from './admin-i18n.js';
+import { loadWithBanner } from './page-banner.js';
 import { loadBootstrap } from './design-init.js';
 import { reasonKey } from '../i18n/details.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -46,6 +47,7 @@ if (!adminAuth.requireAdmin()) {
 
 const body = qs('#trip-body');
 const missing = qs('#trip-missing');
+const banner = qs('#status-banner');
 const id = new URLSearchParams(window.location.search).get('id');
 
 const TERMINAL_TONE = {
@@ -133,7 +135,6 @@ const modals = {
   noDriver: qs('#no-driver-modal'),
   cancel: qs('#cancel-modal'),
   cancelWarning: qs('#cancel-warning-modal'),
-  success: qs('#success-modal'),
 };
 
 // <ad-shell> re-parents its children into the content area; a Bootstrap modal
@@ -188,10 +189,9 @@ function hideModal(el) {
   });
 }
 
+/** The action went through. A toast — the kit's popup-success asked nothing of the admin. */
 function showSuccess(title, message) {
-  qs('#success-title', modals.success).textContent = title;
-  qs('#success-body', modals.success).textContent = message;
-  showModal(modals.success);
+  qs('ad-shell').showToast(message, 'success', { title });
 }
 
 function setFormError(modal, message) {
@@ -274,10 +274,11 @@ async function load() {
   }
   missing.hidden = true;
   body.hidden = false;
+  renderStatusBanner(trip);
   render(trip);
 }
 
-await load();
+await loadWithBanner(load, { banner, hide: [body, missing] });
 
 function render(trip) {
   const isCompleted = trip.status === 'completed';
@@ -456,9 +457,33 @@ function render(trip) {
   }
 }
 
+// ── Status banner ─────────────────────────────────────
+// A finished-but-not-completed trip says so up front, because the actions an
+// admin would look for are gone.
+
+function renderStatusBanner(trip) {
+  if (trip.status === 'cancelled') {
+    banner.show({
+      tone: 'warning',
+      heading: t('banner.tripCancelledHeading'),
+      message: t('banner.tripCancelledMessage'),
+    });
+  } else if (trip.status === 'expired') {
+    banner.show({
+      tone: 'info',
+      heading: t('banner.tripExpiredHeading'),
+      message: t('banner.tripExpiredMessage', {
+        reason: trip.expiryReason ? noteText(trip.expiryReason) : t('common.notAvailable'),
+      }),
+    });
+  } else {
+    banner.hide();
+  }
+}
+
 // ── #1808 cancel an in-progress trip ──────────────────
 // Reason form (default-modal) → final confirmation (popup-danger) → result
-// (popup-success). "Back to review" returns to the form with its values intact.
+// (toast). "Back to review" returns to the form with its values intact.
 
 const cancelForm = qs('#cancel-form', modals.cancel);
 const cancelReason = qs('#cancel-reason', modals.cancel);

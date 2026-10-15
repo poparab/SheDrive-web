@@ -7,7 +7,7 @@
  *
  * Kit v22-09 port (2026-10-14): three `standard-card-theme2` cards with the
  * kit's `list-multi-column` field rows, ONE global Save / Revert, and a
- * `popup-success` that says what applied now and what went for approval —
+ * toast that says what applied now and what went for approval —
  * a commission change is still a maker-checker request (§1), every other
  * field applies on save.
  */
@@ -17,7 +17,6 @@ import { mockApi } from './mock-api.js';
 import { formatDateTime, formatEgp, formatPercent } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
-import { openDialog } from './pricing-dialogs.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -362,33 +361,23 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   }
 });
 
-/** popup-success that says what applied now and what went for approval. */
+/**
+ * Says what applied now and what went for approval. A toast, not the kit's
+ * popup-success: nothing here needs a decision. The approval link rides along
+ * as the toast's action.
+ */
 function openSaved({ applied, sent, requestId }) {
-  const body = document.createElement('div');
-  body.className = 'pricing-dialog__outcome';
+  const lines = [];
   if (applied.length) {
-    const p = document.createElement('p');
-    p.className = 'mb-1';
-    p.textContent = t('kitPricing.appliedNow', { list: applied.join(t('kitPricing.listSeparator')) });
-    body.appendChild(p);
+    lines.push(t('kitPricing.appliedNow', { list: applied.join(t('kitPricing.listSeparator')) }));
   }
-  if (sent) {
-    const p = document.createElement('p');
-    p.className = 'mb-1';
-    p.textContent = t('kitPricing.sentForApproval', { list: sent });
-    body.appendChild(p);
-    if (requestId) {
-      const link = document.createElement('a');
-      link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
-      link.textContent = t('pricingApproval.viewRequest');
-      body.appendChild(link);
-    }
-  }
-  openDialog({
-    variant: 'success',
+  if (sent) lines.push(t('kitPricing.sentForApproval', { list: sent }));
+  shell.showToast(lines.join(' '), 'success', {
     title: applied.length ? t('kitPricing.savedTitle') : t('kitPricing.sentTitle'),
-    description: applied.length ? t('kitPricing.savedBody') : '',
-    body,
+    action:
+      sent && requestId
+        ? { label: t('pricingApproval.viewRequest'), href: `approvals.html?id=${encodeURIComponent(requestId)}` }
+        : null,
   });
 }
 

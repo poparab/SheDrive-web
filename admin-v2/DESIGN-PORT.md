@@ -105,7 +105,8 @@ Helpers in `components/ad-styles.js`: `assetUrl('vendor/img/logo.png')` and
 | Empty / error / not-found | `<div class="result-message primary"><span class="icon"><img src="…"></span><h3>…</h3><p>…</p><button class="btn btn-primary-rounded-outline">…</button></div>` — tones: `primary info success warning danger` |
 | Timeline | `<ol class="timeline-vertical"><li[.success|.danger]><lable>Label</lable><span>meta</span></li>` |
 | Document thumbnails | `.lightbox-container > a.photo-trigger[href=full][title] > .thumb-item > .thumb-img > .photo[style=background-image] > i.fa-expand` + `.thumb-details > h6 + p` |
-| Modal | Bootstrap 5 modal with `.modal.fade.popup-warning` / `.popup-success` |
+| Modal | Bootstrap 5 modal with `.modal.fade.popup-warning` (confirm). The kit's `.popup-success` result is not used — results are toasts, see below |
+| Banner | `<div class="alert info"><i class="fa-solid …"></i><div class="details"><h6>…</h6><p>…</p></div></div>` — tones `info success warning danger`; rendered by `<ad-banner>` |
 | Buttons | `.btn` + `.btn-primary`, `-secondary`, `-tertiary`, `-success`, `-warning`, `-danger`, `-info`, `-light`, `-white`, each with `-outline`, `-rounded`, `-rounded-outline`; `.btn-back.btn-back-outline` (round), `.btn-primary-gradient`, `.btn-submit`. **The kit has no size modifier** — `.btn-x-*` is a rotated `+` glyph used as a close/remove control, not a small button. For a compact button add `.btn--sm` from `admin-bridge.css`. |
 | Inputs | `.form-control`, `.form-select`, `.input-group` + `img.input-icon`, `.show-hide-icon` |
 | Section heading | `.section-title.row > .title.col-auto > h3.underline-title` |
@@ -123,8 +124,36 @@ signal-waves, checked-2, stop-hand, mail, lock2, gps, wallet, money-bag`.
 `.ad-section*`, `.ad-stack`, `.ad-row`, `.ad-split`, `.ad-detail-*`, `.ad-tabs*`,
 `.ad-modal*`, `.ad-map*`, `.ad-stub`, `.ad-form-error`, `.ad-skeleton`,
 `.btn--primary|secondary|ghost|danger|sm|lg|full|icon`, `.input`, `.field*`,
-`.badge--brand|success|warning|danger|info`, `.toast*`, `.spinner`.
+`.badge--brand|success|warning|danger|info`, `.spinner`.
 Keep emitting them where a screen already does; prefer kit classes for anything new.
+
+## Feedback after an action — toast, error toast, banner (2026-10-15)
+
+The confirmation dialog asks; what follows it tells. **Deviation from the kit:** the
+kit closes every action with a `popup-success` dialog the admin must dismiss. It asks
+nothing, so it is a toast instead — on every screen that had one (driver and rider
+profile, driver application, trip detail, safety report, SOS case, approvals, admin
+users, pricing zones and policies, driver and rider balance details).
+
+| Kind | Component | When | Behaviour |
+|---|---|---|---|
+| **Toast** | `ad-toast-host` — `shell.showToast(message, tone, { title, action })` | An action finished. Tone follows the *outcome*: a delete or suspension that worked is `success`; `warning` only when it worked with a caveat (suspension pending until the trip ends). | Bottom-end, auto-dismiss (4 s+, longer for longer text), timer bar, pauses on hover/focus, close button, `role="status"`. A change that went to maker-checker keeps its "View the request" link as the toast action. |
+| **Error toast** | same, tone `danger` + `{ title, action: { label, onClick } }` | An action failed **and there is no form to show it in** — an export, a template download, a boundary save, a map that cannot load, a copy. | Stays until dismissed, `role="alert"`, optional Retry. |
+| **Banner** | `<ad-banner>` → `banner.show({ tone, heading, message, action })` | A state that stays true: driver/rider suspended, pending suspension, under review, application pending or rejected, cancelled or expired trip, resolved report, closed SOS case, an SOS SMS that did not reach a contact, inactive zones, map unavailable, a detail page that failed to load. | Kit `.alert` at the top of the content; gone when the state ends. |
+
+Rules:
+
+- A failure **inside a dialog stays inline in that dialog** — the admin's input is still
+  there to correct and resend.
+- An action that navigates away (approve / reject application, sign out) uses
+  `queueToast()` from `components/ad-toast.js`; the next page shows it
+  (sessionStorage `shedrive.adminToast`).
+- `ad-filter-bar` actions get both for free: an export shows "Export ready", a rejected
+  `onClick` shows an error toast with Retry. Override the success text with `toast`.
+- Trip detail, safety report and SOS case load through `scripts/page-banner.js`
+  (`loadWithBanner`), so `?state=error` shows a danger banner with Retry instead of a
+  blank page. The two profiles keep their own load-error block.
+- Every new string is in `i18n/feedback.js` (`toast.*`, `banner.*`), both languages.
 
 ## Screen inventory
 
@@ -190,6 +219,8 @@ read as unchanged unless you null the `transition` property before measuring.
   profile screens, not separate pages — they are reached from the profile's account
   actions.
 - The kit's `*-empty` / `*-error` / `*-not-found` pages are the `?state=` variants.
+- **No `popup-success` result dialogs.** An action's result is a toast, not a dialog to
+  close — see *Feedback after an action* above.
 
 ## Intentional divergence from `admin/` — SOS cases (2026-09-07)
 

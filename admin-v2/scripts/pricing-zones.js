@@ -10,7 +10,7 @@
  * in the title row, the map card on top, a Zone | Rate card | Created by |
  * Created at | Status | Action grid with `grid-options-btn` row actions, the
  * rate card and rename as `default-modal`s, delete as `popup-warning`, and a
- * `popup-success` after each change. Maker-checker (§1) is unchanged: a rate
+ * toast after each change. Maker-checker (§1) is unchanged: a rate
  * card save or removal becomes a request, and the zone stays locked until it
  * is decided.
  */
@@ -423,7 +423,7 @@ function pointsLabel(count) {
 
 function startDraw(mode, existingPolygon) {
   if (!mapReady) {
-    shell.showToast(t('zones.mapUnavailableToast'), 'danger');
+    shell.showToast(t('zones.mapUnavailableToast'), 'danger', { title: t('toast.failedTitle') });
     return;
   }
   drawMode = mode;
@@ -489,20 +489,57 @@ qs('#draw-finish').addEventListener('click', async () => {
     openSuccess({ title: t('kitPricing.doneTitle'), description: t('zones.createdToast', { name }) });
   } else {
     const target = drawMode;
-    mockApi
-      .updateZone(target.id, { name: target.name, polygon })
-      .then(async () => {
-        shell.showToast(t('zones.boundaryUpdatedToast', { name: target.name }), 'success');
-        drawMode = null;
-        await load();
-      })
-      .catch((err) => shell.showToast(err.message, 'danger'));
+    // No form is open here, so a failed save is an error toast; Retry resends
+    // the same boundary.
+    const save = () =>
+      mockApi
+        .updateZone(target.id, { name: target.name, polygon })
+        .then(async () => {
+          shell.showToast(t('zones.boundaryUpdatedToast', { name: target.name }), 'success');
+          drawMode = null;
+          await load();
+        })
+        .catch((err) =>
+          shell.showToast(err.message, 'danger', {
+            title: t('toast.boundaryFailedTitle'),
+            action: { label: t('toast.retry'), onClick: save },
+          }),
+        );
+    save();
   }
 });
 
 // ── Pending rate-card changes ─────────────────────────
 
 const pendingBanner = qs('#zones-pending');
+const zonesBanner = qs('#zones-banner');
+let mapFailed = false;
+
+/**
+ * An inactive zone blocks every trip that starts inside it, so it stays on
+ * screen as a banner until each one has a rate card. A missing map outranks it:
+ * it is the reason the admin cannot fix anything here.
+ */
+function renderZonesBanner(zones) {
+  if (mapFailed) {
+    zonesBanner.show({
+      tone: 'warning',
+      heading: t('banner.mapUnavailableHeading'),
+      message: t('banner.mapUnavailableMessage'),
+    });
+    return;
+  }
+  const inactive = zones.filter((z) => z.status !== 'active').length;
+  if (!inactive) {
+    zonesBanner.hide();
+    return;
+  }
+  zonesBanner.show({
+    tone: 'warning',
+    heading: t('banner.zonesInactiveHeading'),
+    message: t('banner.zonesInactiveMessage', { inactive, total: zones.length }),
+  });
+}
 
 function renderPendingNotice(zones) {
   const count = zones.filter((z) => z.pendingChange).length;
@@ -537,6 +574,7 @@ async function load() {
     table.setData(result);
     tintPendingRows();
     renderPendingNotice(allMatching);
+    renderZonesBanner(allMatching);
 
     // The map shows every matching zone, not just the current page.
     if (mapReady) {
@@ -563,6 +601,8 @@ if (map) {
   mapReady = true;
   await load();
 } else {
+  mapFailed = true;
+  renderZonesBanner(allMatching);
   mapSummary.textContent = t('zones.mapUnavailable');
   createBtn.disabled = true;
   createBtn.title = t('zones.createNeedsMap');

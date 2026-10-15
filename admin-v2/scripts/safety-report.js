@@ -8,7 +8,7 @@
  *
  * Presentation (kit v22-09 gender-mismatch-details): the statement in an info
  * alert, four `col-lg-6` cards, Suspend (danger) / Dismiss (success) in a bottom
- * row, each opening the kit's `default-modal`, then a `popup-success`.
+ * row, each opening the kit's `default-modal`, then a toast.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -16,6 +16,7 @@ import { mockApi } from './mock-api.js';
 import { formatDateTime, formatEgp, formatPhone, humanize } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t, hasKey, isRtl, applyAdminTranslations } from './admin-i18n.js';
+import { loadWithBanner } from './page-banner.js';
 import { loadBootstrap } from './design-init.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -24,17 +25,17 @@ if (!adminAuth.requireAdmin()) {
 
 const body = qs('#report-body');
 const missing = qs('#report-missing');
+const banner = qs('#status-banner');
 const suspendBtn = qs('#suspend-btn');
 const dismissBtn = qs('#dismiss-btn');
 const resolveHint = qs('#resolve-hint');
 
 const suspendModal = qs('#suspend-modal');
 const dismissModal = qs('#dismiss-modal');
-const successModal = qs('#success-modal');
 const NOTE_MAX = 500;
 
 // Modals live on <body> so no positioned ancestor inside the shell can trap them.
-[suspendModal, dismissModal, successModal].forEach((el) => {
+[suspendModal, dismissModal].forEach((el) => {
   document.body.appendChild(el);
   applyAdminTranslations(el);
 });
@@ -90,6 +91,7 @@ async function load() {
 
   missing.hidden = true;
   body.hidden = false;
+  renderStatusBanner(report);
 
   // The driver's statement is optional (#1588 / #1687 S9). An empty one must read
   // as a stated absence, not a blank panel — the admin then works from the trip
@@ -175,6 +177,27 @@ async function load() {
   qs('#report-meta').items = metaItems;
 
   renderActions(report);
+}
+
+// ── Status banner ─────────────────────────────────────
+// A resolved report is read-only; the banner says how it ended and by whom.
+
+function renderStatusBanner(report) {
+  if (report.status !== 'resolved') {
+    banner.hide();
+    return;
+  }
+  banner.show({
+    tone: report.resolution === 'suspended' ? 'danger' : 'success',
+    heading:
+      report.resolution === 'suspended'
+        ? t('banner.reportSuspendedHeading')
+        : t('banner.reportDismissedHeading'),
+    message: t('banner.reportResolvedMessage', {
+      who: report.resolvedBy ?? '',
+      when: formatDateTime(report.resolvedAt),
+    }),
+  });
 }
 
 function renderActions(report) {
@@ -278,9 +301,8 @@ function wireResolution({ button, modal, resolution, successTitle, successBody }
       await mockApi.resolveSafetyReport(id, resolution, value);
       await hideModal(modal);
       await load();
-      qs('#success-title', successModal).textContent = t(successTitle);
-      qs('#success-body', successModal).textContent = t(successBody);
-      showModal(successModal);
+      // The result needs no decision, so it is a toast, not the kit's popup-success.
+      qs('ad-shell').showToast(t(successBody), 'success', { title: t(successTitle) });
     } catch (error) {
       setFormError(error?.message ?? t('modal.saveFailed'));
     } finally {
@@ -305,4 +327,4 @@ wireResolution({
   successBody: 'kitDetails.dismissedBody',
 });
 
-await load();
+await loadWithBanner(load, { banner, hide: [body, missing] });

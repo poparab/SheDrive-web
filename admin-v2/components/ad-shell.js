@@ -42,7 +42,8 @@ import {
   initAdminI18n,
   applyAdminTranslations,
 } from '../scripts/admin-i18n.js';
-import '../../shared/components/sd-toast-host.js';
+import { queueToast } from './ad-toast.js';
+import './ad-banner.js';
 import './ad-status-pill.js';
 import './ad-stat-card.js';
 import './ad-data-table.js';
@@ -328,6 +329,7 @@ class AdShell extends HTMLElement {
     logout.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i>';
     logout.appendChild(document.createTextNode(t('shell.signOut')));
     logout.addEventListener('click', () => {
+      queueToast(t('toast.signedOut'), 'success');
       adminAuth.logout();
       window.location.href = './index.html';
     });

@@ -132,12 +132,15 @@ export function injectAdminStyles({ mapbox = false, screenStyles = '' } = {}) {
   ensureFavicon();
 }
 
-/** Mount the shared toast host and return a showToast(message, type) function. */
+/**
+ * Mount the admin toast host (components/ad-toast.js) and return a
+ * showToast(message, type, options) function. The caller imports ad-toast.js.
+ */
 export function ensureToastHost() {
-  let host = document.querySelector('sd-toast-host');
+  let host = document.querySelector('ad-toast-host');
   if (!host) {
-    host = document.createElement('sd-toast-host');
+    host = document.createElement('ad-toast-host');
     document.body.appendChild(host);
   }
-  return (message, type = 'info', duration = 3500) => host.showToast?.(message, type, duration);
+  return (message, type = 'info', options) => host.showToast?.(message, type, options);
 }

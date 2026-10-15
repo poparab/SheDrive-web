@@ -315,14 +315,17 @@ export async function openDialog(config) {
   return closed;
 }
 
-/** popup-success with an optional "View the request" link to the approval. */
+/**
+ * The result of a pricing change. It used to be the kit's popup-success, which
+ * the admin had to close; it needs no decision, so it is a toast. A change that
+ * went to maker-checker keeps its "View the request" link as the toast action.
+ */
 export function openSuccess({ title, description, requestId }) {
-  let body = null;
-  if (requestId) {
-    body = el('p', 'pricing-dialog__link');
-    const link = el('a', '', t('pricingApproval.viewRequest'));
-    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
-    body.appendChild(link);
-  }
-  return openDialog({ variant: 'success', title, description, body });
+  document.querySelector('ad-toast-host')?.showToast?.(description || title, 'success', {
+    title: description ? title : undefined,
+    action: requestId
+      ? { label: t('pricingApproval.viewRequest'), href: `approvals.html?id=${encodeURIComponent(requestId)}` }
+      : null,
+  });
+  return Promise.resolve({ confirmed: true });
 }

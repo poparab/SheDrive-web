@@ -18,7 +18,7 @@
  */
 
 import { injectAdminStyles, ensureToastHost } from '../components/ad-styles.js';
-import '../../shared/components/sd-toast-host.js';
+import '../components/ad-toast.js';
 import { t, initAdminI18n, applyAdminTranslations } from './admin-i18n.js';
 
 // Direction has to be on <html> before the style stack picks LTR or RTL.

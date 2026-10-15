@@ -17,7 +17,7 @@
  */
 
 import { injectAdminStyles, ensureToastHost, iconUrl } from '../components/ad-styles.js';
-import '../../shared/components/sd-toast-host.js';
+import '../components/ad-toast.js';
 import { mockAuth } from './mock-api.js';
 import { initDesignChrome, initOtpInputs, readOtp } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';

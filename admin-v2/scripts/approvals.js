@@ -7,8 +7,8 @@
  * opens one in a kit `default-modal` with who made it, the before → after
  * change and its type context, and records the decision:
  *
- *   Approve → kit `popup-warning` confirm → `popup-success`
- *   Reject  → kit `default-modal` with the reason (10–500) → `popup-success`
+ *   Approve → kit `popup-warning` confirm → success toast
+ *   Reject  → kit `default-modal` with the reason (10–500) → success toast
  *
  * Deep link: approvals.html?id=APR-0004 opens that request on load.
  * Demo only: the switch at the top acts as another admin (spec §7).
@@ -460,7 +460,6 @@ async function transition(from, to) {
 const review = buildModal('approval-modal', 'default-modal', 'modal-lg modal-dialog-scrollable');
 const confirmPopup = buildModal('approval-confirm', 'popup-warning');
 const rejectModal = buildModal('approval-reject', 'default-modal');
-const successPopup = buildModal('approval-success', 'popup-success');
 review.root.classList.add('apr-review');
 
 let current = null;
@@ -846,7 +845,7 @@ async function backToReview(from) {
   }
 }
 
-// ── Approve: popup-warning confirm → popup-success ────
+// ── Approve: popup-warning confirm → success toast ────
 
 async function openConfirm(request) {
   popupBody(confirmPopup, 'warning', t('kitFinance.aprConfirmTitle', { id: request.id }), t(`approvals.typeEffect.${request.type}`));
@@ -878,15 +877,17 @@ async function openConfirm(request) {
   await transition(review, confirmPopup);
 }
 
+/**
+ * The decision went through: close the dialog (which ends the flow) and say so
+ * in a toast. This was the kit's popup-success, but it asked nothing of the
+ * admin except to close it.
+ */
 function showSuccess(from, heading, text) {
-  popupBody(successPopup, 'success', heading, text);
-  const close = kitButton(t('common.close'), 'btn-success', 'fa-solid fa-xmark');
-  close.addEventListener('click', () => successPopup.hide());
-  successPopup.footer.replaceChildren(close);
-  transition(from, successPopup);
+  from.hide();
+  shell.showToast(text, 'success', { title: heading });
 }
 
-// ── Reject: default-modal with the reason → popup-success ──
+// ── Reject: default-modal with the reason → success toast ──
 
 async function openReject(request) {
   rejectModal.setHeader('rejected-file.svg', t('kitFinance.aprRejectTitle'), request.id);

@@ -158,14 +158,19 @@ function downloadText(fileName, text) {
   URL.revokeObjectURL(url);
 }
 
-qs('#btn-template').addEventListener('click', async () => {
+qs('#btn-template').addEventListener('click', downloadTemplate);
+
+async function downloadTemplate() {
   try {
     const template = await live(() => mockApi.getSettlementTemplate());
     downloadText(template.fileName, template.csv);
   } catch {
-    shell.showToast(t('settlementImports.templateFailed'), 'danger');
+    shell.showToast(t('settlementImports.templateFailed'), 'danger', {
+      title: t('toast.failedTitle'),
+      action: { label: t('toast.retry'), onClick: downloadTemplate },
+    });
   }
-});
+}
 
 // ── Step 2 — upload (kit upload box + attachment row) ──
 const attachment = {
@@ -356,7 +361,7 @@ submitButton.addEventListener('click', async () => {
   } catch (error) {
     setSubmitLabel(label);
     submitButton.disabled = false;
-    shell.showToast(error.message || t('settlementImports.submitFailed'), 'danger');
+    shell.showToast(error.message || t('settlementImports.submitFailed'), 'danger', { title: t('toast.failedTitle') });
   }
 });
 

@@ -5,8 +5,8 @@
  *
  * v22-09 kit port (driver-application-view.html): the 6-card grid plus the
  * portal's Payout method and Decision history cards; Approve is the kit's
- * `popup-warning` confirm → `popup-success`, Reject its `default-modal` with a
- * reason → `popup-success`. Closing the result returns to the queue, as before.
+ * `popup-warning` confirm, Reject its `default-modal` with a reason; either
+ * returns to the queue, which shows the result as a toast.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -19,6 +19,7 @@ import { loadBootstrap, bindLightbox } from './design-init.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { reasonKey } from '../i18n/details.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
+import { queueToast } from '../components/ad-toast.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -212,7 +213,7 @@ function renderPayoutMethod(application) {
 // ── Kit modals ────────────────────────────────────────
 // The kit's dialogs, built on <body> per open and removed once closed:
 // `default-modal` / `popup-primary` forms with an icon header, the centred
-// `popup-warning` confirm and the `popup-success` result. <ad-form-modal> only
+// `popup-warning` confirm; results are toasts (kitResult). <ad-form-modal> only
 // renders the centred popup layout, so the header-icon forms are built here.
 
 let modalSeq = 0;
@@ -308,27 +309,14 @@ async function presentModal(root, onShown) {
   });
 }
 
-/** The kit's `popup-success` (or `popup-warning`) result dialog. */
-function kitResult({ tone = 'success', title, text, link }) {
-  modalSeq += 1;
-  const labelId = `people-modal-${modalSeq}`;
-  const m = modalShell(`popup-${tone}`, labelId, { staticBackdrop: false });
-  m.header.appendChild(m.close);
-  const sign = el('div', `status-sign ${tone}`);
-  sign.appendChild(faIcon(tone === 'success' ? 'fa-check' : 'fa-warning'));
-  const heading = el('h4', '', title);
-  heading.id = labelId;
-  m.body.append(sign, heading);
-  if (text) m.body.appendChild(el('p', '', text));
-  const done = kitButton(`btn-${tone}`, 'fa-xmark', t('common.close'));
-  done.setAttribute('data-bs-dismiss', 'modal');
-  m.footer.appendChild(done);
-  if (link) {
-    const a = el('a', 'btn btn-primary-outline', link.label);
-    a.href = link.href;
-    m.footer.appendChild(a);
-  }
-  return presentModal(m.root, () => done.focus());
+/**
+ * The result of a decision. It used to be the kit's popup-success, which the
+ * admin had to close; it needs no decision, so it is a toast. Every decision
+ * here returns to the queue, so the toast is queued for that page.
+ */
+function kitResult({ tone = 'success', title, text }) {
+  queueToast(text || title, tone, { title: text ? title : undefined });
+  return Promise.resolve();
 }
 
 /**

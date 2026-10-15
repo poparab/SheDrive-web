@@ -11,7 +11,7 @@
  */
 
 import { injectAdminStyles, ensureToastHost, iconUrl } from '../components/ad-styles.js';
-import '../../shared/components/sd-toast-host.js';
+import '../components/ad-toast.js';
 import { mockAuth, stateOverride } from './mock-api.js';
 import { adminAuth, DEMO_ADMIN_EMAIL } from './admin-auth.js';
 import { initDesignChrome, initOtpInputs, readOtp } from './design-init.js';
@@ -447,7 +447,7 @@ qs('#enrol-copy').addEventListener('click', async () => {
     await navigator.clipboard.writeText(secret);
     showToast(t('auth.toast.setupKeyCopied'), 'success');
   } catch {
-    showToast(t('auth.toast.copyUnavailable'), 'warning');
+    showToast(t('auth.toast.copyUnavailable'), 'danger');
   }
 });
 

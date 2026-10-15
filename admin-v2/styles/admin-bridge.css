@@ -485,34 +485,183 @@ textarea.input {
 }
 
 /*
- * Bootstrap hides `.toast` unless it also carries `.show`, and the shared
- * sd-toast-host never adds that class. Win on specificity rather than !important.
+ * components/ad-toast.js. A white card with the tone on its leading edge and
+ * icon, so a success, a caveat and a failure read apart at a glance. The
+ * error toast (danger) has no timer bar: it stays until it is dismissed.
  */
-#toast-container .toast {
-  display: block;
-  width: auto;
-  max-width: 24rem;
-  opacity: 1;
-}
-
-.toast {
-  min-width: 16rem;
-  max-width: 24rem;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-text);
+.ad-toast {
+  --ad-toast-tone: var(--color-info);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 24rem;
+  max-width: calc(100vw - 2 * var(--space-6));
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-inline-start: var(--space-1) solid var(--ad-toast-tone);
   border-radius: var(--admin-radius);
-  box-shadow: 0 0.5rem 1.5rem rgba(56, 17, 105, 0.25);
-  color: #fff;
+  box-shadow: 0 0.5rem 1.5rem rgba(56, 17, 105, 0.18);
+  color: var(--color-text);
   font-size: var(--fs-sm);
   line-height: 1.5;
+  animation: ad-toast-in 0.18s ease-out;
 }
 
-.toast--success {
-  background: var(--color-success-strong);
+.ad-toast--success {
+  --ad-toast-tone: var(--color-success);
 }
 
-.toast--danger {
-  background: var(--color-danger);
+.ad-toast--warning {
+  --ad-toast-tone: var(--color-warning);
+}
+
+.ad-toast--danger {
+  --ad-toast-tone: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.ad-toast.is-leaving {
+  opacity: 0;
+  transition: opacity 0.18s ease-in;
+}
+
+.ad-toast__icon {
+  flex: none;
+  margin-block-start: 0.125rem;
+  color: var(--ad-toast-tone);
+  font-size: var(--fs-lg);
+}
+
+.ad-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-toast__body p {
+  margin: 0;
+}
+
+.ad-toast__title {
+  font-family: var(--font-display);
+}
+
+.ad-toast__message {
+  overflow-wrap: anywhere;
+}
+
+.ad-toast__action {
+  flex: none;
+  text-decoration: none;
+  white-space: nowrap;
+  align-self: center;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--ad-toast-tone);
+  border-radius: var(--admin-radius);
+  color: var(--ad-toast-tone);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ad-toast__action:hover,
+.ad-toast__action:focus-visible {
+  background: var(--ad-toast-tone);
+  color: var(--color-surface);
+}
+
+.ad-toast__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.ad-toast__close:hover,
+.ad-toast__close:focus-visible {
+  background: rgba(56, 17, 105, 0.08);
+  color: var(--color-text);
+}
+
+.ad-toast__timer {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 0.1875rem;
+  background: var(--ad-toast-tone);
+  opacity: 0.45;
+  transform-origin: left center;
+  animation-name: ad-toast-timer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+[dir='rtl'] .ad-toast__timer {
+  transform-origin: right center;
+}
+
+.ad-toast.is-paused .ad-toast__timer {
+  animation-play-state: paused;
+}
+
+@keyframes ad-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes ad-toast-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-toast {
+    animation: none;
+  }
+}
+
+/* ── Status banners (components/ad-banner.js) ───────── */
+
+ad-banner {
+  display: block;
+  margin-block-end: var(--space-4);
+}
+
+ad-banner[hidden] {
+  display: none;
+}
+
+.alert.ad-banner {
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+}
+
+.alert.ad-banner > i {
+  margin-block-start: 0.125rem;
+}
+
+.alert.ad-banner .details {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-banner__action {
+  flex: none;
+  align-self: center;
+  white-space: nowrap;
 }
 
 /* ── Spinner ────────────────────────────────────────── */

@@ -13,7 +13,7 @@
  * Presentation (kit v22-09 sos-request-details): standing alerts under the title,
  * a card grid (Case, Trip, Rider, Driver, Location, Contacts alerted), and a
  * full-width Resolution card whose two buttons open the kit's `default-modal`
- * (retitled by what is being recorded), followed by a `popup-success`.
+ * (retitled by what is being recorded), followed by a toast.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -22,6 +22,7 @@ import { statusLabel } from '../components/ad-status-pill.js';
 import { formatDateTime, formatPhone } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t, isRtl, applyAdminTranslations } from './admin-i18n.js';
+import { loadWithBanner } from './page-banner.js';
 import { loadBootstrap } from './design-init.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -31,6 +32,7 @@ if (!adminAuth.requireAdmin()) {
 const shell = qs('ad-shell');
 const body = qs('#case-body');
 const missing = qs('#case-missing');
+const banner = qs('#status-banner');
 const fieldset = qs('#suspend-fieldset');
 const suspendRider = qs('#suspend-rider');
 const suspendDriver = qs('#suspend-driver');
@@ -40,11 +42,10 @@ const falseBtn = qs('#close-false-btn');
 const resolveHint = qs('#resolve-hint');
 
 const closeModal = qs('#close-modal');
-const successModal = qs('#success-modal');
 const NOTE_MAX = 500;
 
 // Modals live on <body> so no positioned ancestor inside the shell can trap them.
-[closeModal, successModal].forEach((el) => {
+[closeModal].forEach((el) => {
   document.body.appendChild(el);
   applyAdminTranslations(el);
 });
@@ -133,6 +134,7 @@ async function load() {
 
   missing.hidden = true;
   body.hidden = false;
+  renderStatusBanner(sosCase);
 
   renderMeta(sosCase);
 
@@ -290,6 +292,36 @@ function renderMeta(sosCase) {
   qs('#case-meta').items = items;
 }
 
+// ── Status banner ─────────────────────────────────────
+// A closed case is read-only. On an open case, an SMS that did not reach an
+// emergency contact is the one thing the admin must act on, so it stays up.
+
+function renderStatusBanner(sosCase) {
+  if (sosCase.status === 'closed') {
+    banner.show({
+      tone: 'info',
+      heading: t('banner.sosClosedHeading'),
+      message: t('banner.sosClosedMessage', {
+        outcome: statusLabel(sosCase.outcome),
+        who: sosCase.closedBy ?? '',
+        when: formatDateTime(sosCase.closedAt),
+      }),
+    });
+    return;
+  }
+  const contacts = sosCase.contactsAlerted ?? [];
+  const failed = contacts.filter((c) => c.delivery !== 'delivered').length;
+  if (failed) {
+    banner.show({
+      tone: 'danger',
+      heading: t('banner.sosAlertFailedHeading'),
+      message: t('banner.sosAlertFailedMessage', { failed, total: contacts.length }),
+    });
+    return;
+  }
+  banner.hide();
+}
+
 function renderActions(sosCase) {
   const open = sosCase.status === 'open';
 
@@ -438,7 +470,8 @@ closeForm.addEventListener('submit', async (event) => {
     await hideModal(closeModal);
     shell.refreshNavCounts();
     await load();
-    showModal(successModal);
+    // The result needs no decision, so it is a toast, not the kit's popup-success.
+    shell.showToast(t('kitDetails.closedBody'), 'success', { title: t('kitDetails.closedTitle') });
   } catch (error) {
     setFormError(error?.message ?? t('modal.saveFailed'));
   } finally {
@@ -462,4 +495,4 @@ async function mountLocationMap(sosCase) {
   ]);
 }
 
-await load();
+await loadWithBanner(load, { banner, hide: [body, missing] });

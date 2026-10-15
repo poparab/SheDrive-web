@@ -39,6 +39,9 @@
  *       fromKey: 'from', toKey: 'to' },
  *   ];
  *   bar.actions = [{ label: 'Export CSV', variant: 'ghost', onClick: () => exportCsv() }];
+ *     Optional `toast`: the success toast shown once onClick resolves. Export
+ *     actions default to "Export ready"; a rejected onClick always shows an
+ *     error toast with Retry.
  *   bar.value;                       // { search: '', status: 'all', from: '', to: '' }
  *
  * Events: 'change' (bubbles) → detail is the full value object.
@@ -62,6 +65,11 @@ import { t } from '../scripts/admin-i18n.js';
 import './ad-combobox.js';
 
 const DEBOUNCE_MS = 300;
+
+/** The shell mounts the toast host; a page without one simply shows nothing. */
+function showToast(message, type, options) {
+  document.querySelector('ad-toast-host')?.showToast?.(message, type, options);
+}
 
 /**
  * Leading Font Awesome glyphs for the action labels the screens use. The
@@ -243,7 +251,26 @@ class AdFilterBar extends HTMLElement {
           btn.title = action.stub;
           btn.disabled = true;
         }
-        btn.addEventListener('click', () => action.onClick?.(this.value));
+        // An export gets a success toast once the file is handed over; any
+        // action that fails gets an error toast with Retry — there is no form
+        // here to show the failure in.
+        const successMessage =
+          action.toast ?? (glyph === 'fa-file-arrow-down' ? t('toast.exported') : '');
+        const run = async () => {
+          btn.disabled = true;
+          try {
+            await action.onClick?.(this.value);
+            if (successMessage) showToast(successMessage, 'success');
+          } catch (error) {
+            showToast(error?.message || t('toast.actionFailed'), 'danger', {
+              title: t('toast.failedTitle'),
+              action: { label: t('toast.retry'), onClick: run },
+            });
+          } finally {
+            btn.disabled = false;
+          }
+        };
+        btn.addEventListener('click', run);
         actions.appendChild(btn);
       });
 
