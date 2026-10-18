@@ -696,8 +696,8 @@ async function loadPayout(driver) {
     }
     items.push(
       { label: isCard ? t('driverPayout.cardName') : t('driverPayout.holderName'), value: method.holderName },
-      // Account and card numbers stay masked (•••• 1234) on every screen.
-      { label: numberLabel(method.type), value: method.masked, ltr: true },
+      // Shown in full — nothing is masked (2026-10-18).
+      { label: numberLabel(method.type), value: method.number, ltr: true },
       { label: t('driverPayout.lastUpdated'), value: updatedByText(method), wide: true },
     );
     qs('#payout').items = items;
@@ -851,11 +851,11 @@ function payoutFields(values) {
   return fields;
 }
 
-/** The kit's `alert.info` with the method in use now — masked, never in full. */
+/** The kit's `alert.info` with the method in use now, number in full. */
 function currentMethodNotice() {
   const method = currentPayout?.method;
   if (!method) return null;
-  const parts = [typeLabel(method.type), method.provider, method.masked].filter(Boolean).join(' · ');
+  const parts = [typeLabel(method.type), method.provider, method.number].filter(Boolean).join(' · ');
   const box = el('div', 'alert info mt-3');
   box.append(faIcon('fa-circle-info'), el('p', '', t('kitPeople.currentMethod', { method: parts })));
   return box;

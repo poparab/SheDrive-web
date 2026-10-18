@@ -1,7 +1,7 @@
 /**
  * payout-method.js — Driver payout method screen (payouts spec §2, §3)
  *
- * Shows her current method (masked), a warning when her last payout failed,
+ * Shows her current method (number in full), a warning when her last payout failed,
  * and the shared form to change it. Her own change needs no approval: saving
  * applies at once and her next payout goes to the new method.
  *
@@ -16,7 +16,7 @@ import {
   LAST_FAILED_PAYOUT,
   getPayoutMethod,
   hasFailedPayout,
-  maskNumber,
+  payoutNumber,
   providerKey,
   savePayoutMethod,
 } from './payout-store.js';
@@ -61,7 +61,7 @@ function renderMethod() {
   holder.hidden = !method.holder;
   holder.textContent = method.holder || '';
 
-  qs('#pm-method-number').textContent = maskNumber(method.last4);
+  qs('#pm-method-number').textContent = payoutNumber(method);
 }
 
 function render() {

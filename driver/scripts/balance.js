@@ -28,7 +28,7 @@ import {
   getOutstanding,
   shouldFailRequest,
 } from './finance-store.js';
-import { LAST_FAILED_PAYOUT, getPayoutMethod, maskNumber, providerKey, PAYOUT_TYPES } from './payout-store.js';
+import { LAST_FAILED_PAYOUT, getPayoutMethod, payoutNumber, providerKey, PAYOUT_TYPES } from './payout-store.js';
 
 auth.requireAuth();
 await initI18n();
@@ -114,7 +114,7 @@ function renderPayouts() {
   const method = getPayoutMethod();
   const sub = qs('#balance-payout-method-sub');
   sub.textContent = method
-    ? [method.provider ? translate(providerKey(method.provider)) : translate(PAYOUT_TYPES[method.type].key), maskNumber(method.last4)].join(' · ')
+    ? [method.provider ? translate(providerKey(method.provider)) : translate(PAYOUT_TYPES[method.type].key), payoutNumber(method)].join(' · ')
     : translate('driver.payout.notAdded');
 }
 

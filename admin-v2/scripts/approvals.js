@@ -710,7 +710,7 @@ function methodColumn(titleText, m, tone) {
     box.appendChild(kvList([
       [t('approvals.field.type'), payoutTypeLabel(m.type)],
       [t('approvals.field.provider'), m.provider && m.provider !== '—' ? ltr(m.provider) : ''],
-      [t('approvals.field.number'), ltr(m.masked ?? '')],
+      [t('approvals.field.number'), ltr(m.number ?? '')],
       [t('approvals.holder'), m.holderName ? ltr(m.holderName) : undefined],
     ]));
   }

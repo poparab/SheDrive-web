@@ -12,7 +12,7 @@
  *
  * The page also shows her payout position (§3: on hold → due → in a batch →
  * sent to bank → paid), her last failed payout, and her payout method — the
- * destination named in both modals, account number masked.
+ * destination named in both modals, account number in full.
  *
  * Both modals are the kit's `default-modal` (header icon + title + her name,
  * explanatory paragraph, `alert.info` destination, fields, receipt upload),
@@ -113,12 +113,12 @@ function proofLink(proof) {
   return link;
 }
 
-/** "Mobile wallet destination · Vodafone Cash · •••• 3205" — never the full number. */
+/** "Mobile wallet destination · Vodafone Cash · 01012343205" — the number in full. */
 function destinationText(method) {
   if (!method) return t('kitBalances.noDestination');
   return t('kitBalances.destination', {
     method: t(`balancesFinance.type${method.type}`),
-    details: [method.provider, method.masked].filter(Boolean).join(' · '),
+    details: [method.provider, method.number].filter(Boolean).join(' · '),
   });
 }
 

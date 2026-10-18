@@ -7,15 +7,14 @@
  * once, and a payout batch uses whatever method she has when it is generated.
  *
  * Only the format is validated (the name is never checked against her national
- * ID). The full card or account number is never kept here: the mock stores the
- * last four digits only, the same way every screen shows it (`•••• 4821`). The
- * real backend encrypts the full number and only the payout export file carries it.
+ * ID). The number is shown in full on every screen — nothing is masked (2026-10-18).
+ * The real backend stores it encrypted.
  *
  * Shared by driver/onboarding.html (step 7), driver/payout-method.html,
  * driver/my-profile.html (summary row) and driver/balance.html (failed banner).
  *
  * Storage (localStorage):
- *   shedrive.payoutMethod   {type, provider, holder, last4, savedAt}
+ *   shedrive.payoutMethod   {type, provider, holder, number, savedAt}
  *
  * Demo switches (query string):
  *   ?state=failed          her last payout failed (payout-method.html)
@@ -56,7 +55,7 @@ export function providerKey(id) {
 }
 
 /** Demo method she gave at onboarding. */
-const DEMO_METHOD = { type: 'wallet', provider: 'vodafone_cash', holder: '', last4: '4821', savedAt: '2026-05-02' };
+const DEMO_METHOD = { type: 'wallet', provider: 'vodafone_cash', holder: '', number: '01012344821', savedAt: '2026-05-02' };
 
 /** Her last payout, when the result file came back FAILED (spec §3). */
 export const LAST_FAILED_PAYOUT = {
@@ -79,9 +78,9 @@ export function getPayoutMethod() {
   return storage.get(STORAGE_KEY) || { ...DEMO_METHOD };
 }
 
-/** `•••• 4821` — the only form a number is ever shown in. */
-export function maskNumber(last4) {
-  return `•••• ${last4}`;
+/** Her number in full. A method saved before 2026-10-18 kept only its last four digits. */
+export function payoutNumber(method) {
+  return method?.number || method?.last4 || '';
 }
 
 /** Whether the screen shows the "last payout failed" warning (demo switch). */
@@ -135,17 +134,14 @@ export function validatePayout(type, values) {
 // ── Writes ───────────────────────────────────────────
 
 
-/**
- * Save a validated method. Applies immediately — no approval (spec §2). Only
- * the last four digits are kept.
- */
+/** Save a validated method. Applies immediately — no approval (spec §2). */
 export function savePayoutMethod(type, values) {
   const number = digits(values.number);
   const method = {
     type,
     provider: type === 'card' ? '' : values.provider,
     holder: type === 'wallet' ? '' : String(values.holder || '').trim(),
-    last4: number.slice(-4),
+    number: number.toUpperCase(),
     savedAt: new Date().toISOString().slice(0, 10),
   };
   storage.set(STORAGE_KEY, method);

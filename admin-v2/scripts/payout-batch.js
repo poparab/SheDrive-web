@@ -573,8 +573,8 @@ linesTable.columns = [
       return stack;
     },
   },
-  // Product rule: payout numbers are masked (•••• 1234).
-  { key: 'masked', label: t('payoutBatch.colNumber'), ltr: true, render: (row) => ltr(row.masked) },
+  // Payout numbers are shown in full (2026-10-18).
+  { key: 'number', label: t('payoutBatch.colNumber'), ltr: true, render: (row) => ltr(row.number) },
   { key: 'amount', label: t('payoutBatch.colAmount'), numeric: true, render: (row) => el('p', 'text-bold ad-ltr', formatEgp(row.amount)) },
   {
     key: 'status',

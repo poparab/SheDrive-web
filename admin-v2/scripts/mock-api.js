@@ -419,8 +419,6 @@ function localDay(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const MASK = (n) => (n ? `•••• ${String(n).slice(-4)}` : '');
-
 /** §2 field rules. Returns an error string or null. */
 function validatePayoutMethod(m) {
   if (!m || !PAYOUT_TYPES.includes(m.type)) return 'Choose a payout method.';
@@ -652,8 +650,7 @@ const ON_REJECT = {
 
 function decorateRequest(r) {
   const me = actingAdmin().email;
-  const before = r.type === 'payout_method' && r.before?.number ? { ...r.before, number: MASK(r.before.number) } : r.before;
-  return { ...r, before, madeByYou: r.maker === me, canDecide: r.status === 'pending' && r.maker !== me };
+  return { ...r, madeByYou: r.maker === me, canDecide: r.status === 'pending' && r.maker !== me };
 }
 
 // ── Generic query helpers ─────────────────────────────
@@ -1746,7 +1743,7 @@ export const mockApi = {
         balance: driver.balance,
         goOnlineBlocked: isGoOnlineBlocked(driver),
         payoutMethod: driver.payoutMethod
-          ? { type: driver.payoutMethod.type, provider: driver.payoutMethod.provider, masked: MASK(driver.payoutMethod.number) }
+          ? { type: driver.payoutMethod.type, provider: driver.payoutMethod.provider, number: driver.payoutMethod.number }
           : null,
         lastPayoutFailure: driver.lastPayoutFailure ?? null,
         position: payoutPosition(driver),
@@ -1947,7 +1944,7 @@ export const mockApi = {
           id: batch.id,
           ref: batch.ref,
           status: batch.status,
-          lines: batch.lines.map((l) => ({ ...l, number: MASK(l.number) })),
+          lines: batch.lines.map((l) => ({ ...l })),
           result: batch.result ?? null,
         };
       }
@@ -1957,8 +1954,8 @@ export const mockApi = {
       if (imp) out.import = structuredClone(imp);
     }
     if (request.type === 'payout_method') {
-      out.methodBefore = request.before.number ? { ...request.before, masked: MASK(request.before.number) } : null;
-      out.methodAfter = { ...request.payload.method, masked: MASK(request.payload.method.number) };
+      out.methodBefore = request.before.number ? { ...request.before } : null;
+      out.methodAfter = { ...request.payload.method };
     }
     return respond(out, { emptyValue: null });
   },
@@ -2012,13 +2009,13 @@ export const mockApi = {
     return respond(payload, { emptyValue: payload, latency: 120 });
   },
 
-  /** The driver's payout method (number masked), last failure, and any pending admin edit. */
+  /** The driver's payout method (number in full), last failure, and any pending admin edit. */
   getDriverPayout(driverId) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
     const m = driver.payoutMethod;
     return respond({
-      method: m ? { type: m.type, provider: m.provider, holderName: m.holderName, masked: MASK(m.number), updatedAt: m.updatedAt, updatedBy: m.updatedBy } : null,
+      method: m ? { type: m.type, provider: m.provider, holderName: m.holderName, number: m.number, updatedAt: m.updatedAt, updatedBy: m.updatedBy } : null,
       lastFailure: driver.lastPayoutFailure ?? null,
       pendingChange: pendingSummary(pendingFor('driver', driver.id, 'payout_method')),
       position: payoutPosition(driver),
@@ -2065,7 +2062,7 @@ export const mockApi = {
         ...base,
         payoutType: driver.payoutMethod.type,
         provider: driver.payoutMethod.provider,
-        masked: MASK(driver.payoutMethod.number),
+        number: driver.payoutMethod.number,
         // §3 — the smaller of her due net and her whole balance.
         amount: round2(Math.min(dueNet, driver.balance)),
         entryIds: due.map((e) => e.id),
@@ -2142,7 +2139,7 @@ export const mockApi = {
     const requests = APPROVALS.filter((a) => a.subject.kind === 'batch' && a.subject.id === batch.id).map(decorateRequest);
     return respond({
       ...structuredClone(batch),
-      lines: batch.lines.map((l) => ({ ...l, masked: MASK(l.number), number: undefined })),
+      lines: batch.lines.map((l) => ({ ...l })),
       total: round2(batch.lines.reduce((t, l) => t + l.amount, 0)),
       paidTotal: round2(batch.lines.filter((l) => l.status === 'paid').reduce((t, l) => t + l.amount, 0)),
       requests,

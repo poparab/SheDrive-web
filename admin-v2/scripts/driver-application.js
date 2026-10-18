@@ -176,9 +176,7 @@ async function load() {
 
 qs('#retry-btn').addEventListener('click', () => load());
 
-// ── Payout method (2026-10-14 spec §2) — read-only, number masked ──
-
-const maskNumber = (number) => (number ? `•••• ${String(number).slice(-4)}` : '—');
+// ── Payout method (2026-10-14 spec §2) — read-only, number in full ──
 
 function renderPayoutMethod(application) {
   const section = qs('#payout');
@@ -203,7 +201,7 @@ function renderPayoutMethod(application) {
         BANK_ACCOUNT: t('driverPayout.accountNumber'),
         PREPAID_CARD: t('driverPayout.cardNumber'),
       }[method.type],
-      value: maskNumber(method.number),
+      value: method.number || '—',
       ltr: true,
     },
   );

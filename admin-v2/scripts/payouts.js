@@ -304,7 +304,7 @@ function renderPreview(body, preview, openBatch) {
       el('td', '', line.driverName),
       el('td', '', typeLabel(line.payoutType)),
       el('td', '', line.provider || '—'),
-      cell('', ltr(line.masked)),
+      cell('', ltr(line.number)),
       cell('text-end', ltr(formatEgp(line.dueNet))),
       cell('text-end', ltr(formatEgp(line.balance))),
       cell('text-end', el('p', 'text-bold success-color ad-ltr', formatEgp(line.amount))),
