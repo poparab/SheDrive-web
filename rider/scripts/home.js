@@ -407,9 +407,21 @@ const accountUnderReview =
   new URLSearchParams(location.search).get('account') === 'review' ||
   storage.get('shedrive.accountStatus') === 'pending_review';
 
+// ── Outside operating hours (#1791) ─────────────────
+// The app asks the platform whether booking is open on home load and on return to the
+// foreground; outside the hours it gets back the next opening time. Places and the fare
+// keep working, only the request is refused. `?hours=closed` previews it — a separate
+// param so it combines with any `?state=` (e.g. `?hours=closed&state=fare`).
+const serviceClosed = demo.get('hours') === 'closed';
+
+if (serviceClosed) {
+  qs('#hours-banner')?.removeAttribute('hidden');
+  confirmRideBtn?.setAttribute('disabled', '');
+}
+
 // ── Confirm fare → navigate to matching (only active path to request a ride) ──
 confirmRideBtn?.addEventListener('click', () => {
-  if (confirmRideBtn.hasAttribute('disabled')) return;
+  if (serviceClosed || confirmRideBtn.hasAttribute('disabled')) return;
   if (!hasFareContext()) return;
   if (checkSameLocation()) return;
   if (accountUnderReview) {
@@ -468,7 +480,7 @@ function checkSameLocation() {
 // ── Fare retry ───────────────────────────────────────
 fareRetryBtn?.addEventListener('click', () => {
   fareErrorRow?.setAttribute('hidden', '');
-  confirmRideBtn?.removeAttribute('disabled');
+  if (!serviceClosed) confirmRideBtn?.removeAttribute('disabled');
   const badge = qs('.fare-estimate-badge');
   if (badge) {
     badge.style.opacity = '0.4';

@@ -506,6 +506,7 @@
   "home.greeting": "Hello",
   "home.greetingNamed": "Hello, {{name}}",
   "home.greetingSub": "Where would you like to go today?",
+  "home.hours.closed": "SheDrive is closed now. We open again at 7:00 AM.",
   "home.search.title": "Where are you going?",
   "home.search.titlePickup": "Where are you starting from?",
   "home.search.saved": "Saved places",

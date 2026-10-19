@@ -232,6 +232,16 @@
           <p class="home-greeting__sub" data-i18n="home.greetingSub">إلى أين تودّين الذهاب اليوم؟</p>
         </div>
 
+        <!-- Outside operating hours (?hours=closed) — #1791. The platform says booking is
+             closed and when it opens next; she can still pick places and see a fare, but
+             Request Ride stays inactive. The hours themselves are still OD-001. -->
+        <div class="home-notice hours-banner" id="hours-banner" role="status" aria-live="polite" hidden>
+          <span class="icon-tile icon-tile--lg home-notice__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="home-notice__text" data-i18n="home.hours.closed">شي درايف مغلقة الآن. نفتح مجدداً الساعة 7:00 صباحاً.</span>
+        </div>
+
         <!-- Outstanding-fee notice. Always dismissible; states her full outstanding
              balance, which is always what her next ride recovers (spec §3, #3998).
              There is deliberately no blocked state — a block would deadlock. -->
@@ -376,7 +386,8 @@
     <script type="module" src="scripts/home.js"></script>
 
     <!-- Demo only: ?state=search | search-pickup | search-error | fare | fare-loading | fare-error | fare-outside | gps-denied | pin-pickup | pin-dest
-         Extra: ?saved=none (no saved places), ?loc=denied | unavailable ("Use my current location" failures) -->
+         Extra: ?saved=none (no saved places), ?loc=denied | unavailable ("Use my current location" failures),
+         ?hours=closed (outside operating hours, #1791 — combines with any ?state=) -->
     <script type="module">
       const s = new URLSearchParams(location.search).get('state');
       if (s) document.body.dataset.state = s;

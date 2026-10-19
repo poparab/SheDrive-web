@@ -506,6 +506,7 @@
   "home.greeting": "أهلاً بكِ",
   "home.greetingNamed": "أهلاً {{name}}",
   "home.greetingSub": "إلى أين تودّين الذهاب اليوم؟",
+  "home.hours.closed": "شي درايف مغلقة الآن. نفتح مجدداً الساعة 7:00 صباحاً.",
   "home.search.title": "إلى أين تذهبين؟",
   "home.search.titlePickup": "من أين تنطلقين؟",
   "home.search.saved": "الأماكن المحفوظة",
