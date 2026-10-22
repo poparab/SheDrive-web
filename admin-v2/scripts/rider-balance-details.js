@@ -16,6 +16,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatDate, formatEgp } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -46,8 +47,6 @@ const ENTRY_LABEL_KEYS = {
   fee_collected: 'riderBalances.entryFeeCollected',
   fee_waived: 'riderBalancesFinance.entryFeeWaived',
 };
-
-const approvalHref = (id) => `approvals.html?id=${encodeURIComponent(id)}`;
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -391,6 +390,9 @@ async function load() {
     else showError(error?.message ?? String(error));
   }
 }
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: load });
 
 if (!riderId) showMissing();
 else load();

@@ -21,6 +21,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatDate, formatDateTime, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -66,8 +67,6 @@ function signedEgp(balance) {
   if (!balance) return formatEgp(0);
   return balance > 0 ? `+${formatEgp(balance)}` : `−${formatEgp(Math.abs(balance))}`;
 }
-
-const approvalHref = (id) => `approvals.html?id=${encodeURIComponent(id)}`;
 
 const ENTRY_LABEL_KEYS = {
   trip_commission: 'balances.entryTripCommission',
@@ -726,6 +725,9 @@ payoutBtn.addEventListener('click', () => {
     },
   });
 });
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: load });
 
 // ── Boot ─────────────────────────────────────────────
 if (!driverId) {

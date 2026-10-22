@@ -12,6 +12,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { REASON_LISTS } from './seed.js';
 import {
@@ -729,7 +730,7 @@ async function loadPayout(driver) {
         'fa-hourglass-half',
         t('driverPayout.pendingHeading'),
         t('driverPayout.pendingMeta', { who: p.maker, when: formatDateTime(p.madeAt) }),
-        { href: `approvals.html?id=${encodeURIComponent(p.id)}`, label: t('driverPayout.viewRequest') },
+        { href: approvalHref(p.id), label: t('driverPayout.viewRequest') },
       ),
     );
   }
@@ -898,7 +899,7 @@ payoutEditBtn.addEventListener('click', async () => {
     title: t('kitPeople.payoutSentTitle'),
     text: t('driverPayout.toastSent'),
     link: requestId
-      ? { href: `approvals.html?id=${encodeURIComponent(requestId)}`, label: t('driverPayout.viewRequest') }
+      ? { href: approvalHref(requestId), label: t('driverPayout.viewRequest') }
       : null,
   });
 });
@@ -1036,5 +1037,8 @@ reinstateBtn.addEventListener('click', async () => {
   if (!result) return;
   await kitResult({ title: t('kitPeople.reinstatedTitle'), text: t('kitPeople.reinstatedText') });
 });
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: load });
 
 await load();

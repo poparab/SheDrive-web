@@ -8,8 +8,8 @@
  * timeline card and a Next-step card, then the lines in a full-width table card.
  *
  * What an admin can do depends only on the status:
- *   pending_approval / result_pending — nothing; another admin decides it on
- *     the Approvals screen (§1), linked from here.
+ *   pending_approval / result_pending — another admin decides it, in the review
+ *     dialog that the link here opens in place (or on the Approvals screen, §1).
  *   ready — export the bank file (kit popup-warning confirm), which moves the
  *     batch to Sent to bank.
  *   sent_to_bank and later — download the file again (a copy, changes nothing).
@@ -20,6 +20,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { formatDateTime, formatEgp, formatCount } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -131,7 +132,7 @@ function requestOf(type, status = null) {
 }
 
 function approvalLink(request) {
-  const a = link(`approvals.html?id=${encodeURIComponent(request.id)}`, '', 'btn btn-primary-outline w-100');
+  const a = link(approvalHref(request.id), '', 'btn btn-primary-outline w-100');
   a.append(glyph('fa-solid fa-arrow-up-right-from-square'), document.createTextNode(t('payoutBatch.openApproval')));
   return a;
 }
@@ -642,6 +643,9 @@ async function load() {
     show('error');
   }
 }
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: load });
 
 qs('#batch-retry').addEventListener('click', load);
 

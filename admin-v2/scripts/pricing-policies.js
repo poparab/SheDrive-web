@@ -14,6 +14,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { formatDateTime, formatEgp, formatPercent } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -262,7 +263,7 @@ function renderCommissionPending() {
     when: formatDateTime(pending.madeAt),
     current: formatPercent(policies.commission.percentage),
   });
-  qs('#commission-pending-link').href = `approvals.html?id=${encodeURIComponent(pending.id)}`;
+  qs('#commission-pending-link').href = approvalHref(pending.id);
 }
 
 /** A worked example makes the percentage concrete for whoever sets it. */
@@ -376,7 +377,7 @@ function openSaved({ applied, sent, requestId }) {
     title: applied.length ? t('kitPricing.savedTitle') : t('kitPricing.sentTitle'),
     action:
       sent && requestId
-        ? { label: t('pricingApproval.viewRequest'), href: `approvals.html?id=${encodeURIComponent(requestId)}` }
+        ? { label: t('pricingApproval.viewRequest'), href: approvalHref(requestId) }
         : null,
   });
 }
@@ -425,6 +426,14 @@ function renderLoadError(error) {
   box.append(icon, heading, message, retry);
   qs('#policies-form').after(box);
 }
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({
+  onDecided: async () => {
+    policies = await mockApi.getPolicies();
+    render();
+  },
+});
 
 try {
   policies = await mockApi.getPolicies();

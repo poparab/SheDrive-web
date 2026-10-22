@@ -344,3 +344,24 @@ scripts because `ad-form-modal` only renders the centred `popup-*` shape.
 
 Known gaps: SOS and safety-report lists have no search box (the mock API takes no search there);
 `listAdmins` has no delete, so `admin-users.js` soft-deletes through `patch('admins', …)`.
+
+## Approvals: one decision dialog, opened from the queue or in place (2026-10-22)
+
+The maker-checker queue stays the one place that lists every request, but the
+review → approve / reject dialog is now a shared module, `scripts/approval-review.js`
+(styles: `styles/approval-review.css`), used in two ways:
+
+| Where | How | After a decision |
+|---|---|---|
+| `approvals.html` | `createApprovalReview({ urlParam: 'id', returnTo })` | Toast and the queue reloads, or, with `&return=<screen>`, back to that screen with the toast held across the redirect |
+| Driver balance, rider balance, driver profile, payout batch, pricing policies, pricing zones, settlement imports | `wireInPlaceApprovals({ onDecided })` — every `approvals.html?id=` link on the screen opens the dialog over the page | Toast and the screen's own reload |
+
+Same rule ("never the admin who made it"), same audit entry, same reject reason on both
+paths, since it is the same code. Links to a request are built with `approvalHref(id)`,
+which adds `return=` for the current screen (used when the link is opened in a new tab);
+`returnTarget()` accepts only another admin-v2 `*.html` page.
+
+The queue gained two filters: **Made by** (anyone / other admins — mine to decide /
+me — waiting for others) and **Area** (`APPROVAL_AREAS` in `finance-seed.js`: payouts &
+settlements, rider fees, pricing, driver details). Area is the hook for scoping the
+queue by role once Finance and Pricing approvers are split; today every admin sees all.

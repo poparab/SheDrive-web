@@ -23,6 +23,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatDateTime, formatEgp, formatCount } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -351,7 +352,7 @@ submitButton.addEventListener('click', async () => {
 
     qs('#submitted-text').textContent = t('settlementImports.submitted', { n, id: response.import.id });
     const link = qs('#submitted-link');
-    link.href = `approvals.html?id=${encodeURIComponent(requestId)}`;
+    link.href = approvalHref(requestId);
     link.textContent = t('settlementImports.submittedLink', { id: requestId });
     submitted.hidden = false;
     // The rows are now in a pending import; resubmitting them would only be rejected.
@@ -540,13 +541,16 @@ async function openImport(id) {
 
     const request = await findRequest(imp.id).catch(() => null);
     if (request) {
-      link.href = `approvals.html?id=${encodeURIComponent(request.id)}`;
+      link.href = approvalHref(request.id);
       link.hidden = false;
     }
   } catch (error) {
     rowsTable.setError(error.message, () => openImport(id));
   }
 }
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: loadHistory });
 
 // ── Boot ─────────────────────────────────────────────
 loadHistory();

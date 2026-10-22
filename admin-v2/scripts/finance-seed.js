@@ -298,6 +298,17 @@ export const APPROVAL_TYPES = [
   'commission',
 ];
 
+/**
+ * Which part of the business each request type belongs to. The queue filters
+ * by it today; once Finance and Pricing approvers are split, a role presets it.
+ */
+export const APPROVAL_AREAS = {
+  payouts: ['payout_batch', 'payout_result', 'payout', 'settlement', 'settlement_import'],
+  fees: ['fee_waiver'],
+  pricing: ['rate_card', 'commission'],
+  drivers: ['payout_method'],
+};
+
 export const nextApprovalId = () =>
   `APR-${String(maxSeq(APPROVALS.map((a) => a.id), /^APR-(\d+)$/) + 1).padStart(4, '0')}`;
 export const nextImportId = () =>

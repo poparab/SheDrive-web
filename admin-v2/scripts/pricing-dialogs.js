@@ -19,6 +19,7 @@
  */
 
 import { loadBootstrap } from './design-init.js';
+import { approvalHref } from './approval-review.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { t } from './admin-i18n.js';
 
@@ -324,7 +325,7 @@ export function openSuccess({ title, description, requestId }) {
   document.querySelector('ad-toast-host')?.showToast?.(description || title, 'success', {
     title: description ? title : undefined,
     action: requestId
-      ? { label: t('pricingApproval.viewRequest'), href: `approvals.html?id=${encodeURIComponent(requestId)}` }
+      ? { label: t('pricingApproval.viewRequest'), href: approvalHref(requestId) }
       : null,
   });
   return Promise.resolve({ confirmed: true });

@@ -58,6 +58,7 @@ import {
   APPROVALS,
   APPROVALS_BY_ID,
   APPROVAL_TYPES,
+  APPROVAL_AREAS,
   BANKS,
   PAYABLE_TYPES,
   PAYOUT_BATCHES,
@@ -1918,9 +1919,15 @@ export const mockApi = {
 
   /**
    * status: 'pending' (default) | 'decided'. type: an APPROVAL_TYPES value or 'all'.
+   * madeBy: 'all' | 'mine' (made by the acting admin) | 'others' (hers to decide).
+   * area: an APPROVAL_AREAS key or 'all'.
    */
-  listApprovals({ status = 'pending', type = 'all', page = 1, pageSize = 20, sort = null } = {}) {
+  listApprovals({ status = 'pending', madeBy = 'all', area = 'all', type = 'all', page = 1, pageSize = 20, sort = null } = {}) {
+    const me = actingAdmin().email;
+    const areaTypes = APPROVAL_AREAS[area] ?? null;
     const rows = APPROVALS.filter((a) => (status === 'pending' ? a.status === 'pending' : a.status !== 'pending'))
+      .filter((a) => madeBy === 'all' || (madeBy === 'mine' ? a.maker === me : a.maker !== me))
+      .filter((a) => !areaTypes || areaTypes.includes(a.type))
       .filter((a) => type === 'all' || a.type === type)
       .map(decorateRequest);
     const key = status === 'pending' ? 'madeAt' : 'decidedAt';
@@ -1930,6 +1937,10 @@ export const mockApi = {
 
   approvalTypes() {
     return APPROVAL_TYPES.slice();
+  },
+
+  approvalAreas() {
+    return Object.keys(APPROVAL_AREAS);
   },
 
   getApproval(id) {

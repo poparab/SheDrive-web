@@ -17,6 +17,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
+import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { downloadCsv, formatDateTime, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -270,7 +271,7 @@ function pendingNotice(zone) {
     `${t('pricingApproval.pendingMeta', { who: pending.maker, when: formatDateTime(pending.madeAt) })} · `,
   );
   const link = document.createElement('a');
-  link.href = `approvals.html?id=${encodeURIComponent(pending.id)}`;
+  link.href = approvalHref(pending.id);
   link.textContent = t('pricingApproval.viewRequest');
   link.addEventListener('click', (event) => event.stopPropagation());
   meta.appendChild(link);
@@ -592,6 +593,9 @@ async function load() {
     table.setError(error.message, load);
   }
 }
+
+// A request's link opens the review here; a decision reloads this screen.
+wireInPlaceApprovals({ onDecided: load });
 
 // Load the list first so the grid is usable even if the map never arrives.
 await load();
