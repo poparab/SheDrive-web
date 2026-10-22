@@ -111,8 +111,14 @@ export function who(email, at, mine = false) {
 
 // ── Links between a screen and the queue ─────────────
 
-/** `return=` only ever names another admin-v2 screen, never an outside address. */
-const RETURN_PATTERN = /^[a-z0-9-]+\.html(\?[^#]*)?$/i;
+/**
+ * `return=` only ever names another admin-v2 screen, never an outside address.
+ * `.html` is optional: the hosted preview serves pages without the extension.
+ */
+const RETURN_PATTERN = /^[a-z0-9-]+(\.html)?(\?[^#]*)?$/i;
+
+/** True for the queue itself, with or without `.html`. */
+const isQueue = (screen) => /^approvals(\.html)?(\?|$)/i.test(screen);
 
 /** The current screen as a `return=` value: file name plus its query. */
 function currentScreen() {
@@ -124,14 +130,14 @@ function currentScreen() {
 export function approvalHref(id) {
   const params = new URLSearchParams({ id: String(id) });
   const back = currentScreen();
-  if (!back.startsWith('approvals.html')) params.set('return', back);
+  if (!isQueue(back)) params.set('return', back);
   return `approvals.html?${params}`;
 }
 
 /** The safe `return=` target of the current URL, or null. */
 export function returnTarget() {
   const value = new URLSearchParams(window.location.search).get('return');
-  if (!value || !RETURN_PATTERN.test(value) || value.startsWith('approvals.html')) return null;
+  if (!value || !RETURN_PATTERN.test(value) || isQueue(value)) return null;
   return value;
 }
 
