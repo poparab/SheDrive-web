@@ -539,7 +539,8 @@ async function openImport(id) {
     note.hidden = imp.status !== 'pending';
     rowsTable.setData(onePage(imp.rows ?? []));
 
-    const request = await findRequest(imp.id).catch(() => null);
+    // Only a pending import has a decision left to make; a decided one has nothing to open.
+    const request = imp.status === 'pending' ? await findRequest(imp.id).catch(() => null) : null;
     if (request) {
       link.href = approvalHref(request.id);
       link.hidden = false;
