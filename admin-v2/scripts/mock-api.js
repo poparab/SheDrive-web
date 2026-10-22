@@ -509,7 +509,14 @@ const EXECUTE = {
     batch.lines.forEach((line, i) => {
       const res = batch.result.find((r) => r.lineRef === line.lineRef);
       const driver = DRIVERS_BY_ID.get(line.driverId);
-      if (!res || !driver) return;
+      if (!res) return;
+      if (!driver) {
+        // A generated review-case payee (finance-seed.js): no ledger to post to.
+        Object.assign(line, res.status === 'SUCCESS'
+          ? { status: 'paid', bankReference: res.bankReference || null }
+          : { status: 'failed', failureReason: res.failureReason || 'Transfer failed' });
+        return;
+      }
       if (res.status === 'SUCCESS') {
         // Keyed on the line: importing the same result twice posts nothing new.
         if (!LEDGER_ENTRIES.some((e) => e.lineRef === line.lineRef)) {
@@ -1955,7 +1962,8 @@ export const mockApi = {
           id: batch.id,
           ref: batch.ref,
           status: batch.status,
-          lines: batch.lines.map((l) => ({ ...l })),
+          // `known`: the payee is a driver on file, so the review can link to her.
+          lines: batch.lines.map((l) => ({ ...l, known: DRIVERS_BY_ID.has(String(l.driverId)) })),
           result: batch.result ?? null,
         };
       }
@@ -1963,10 +1971,6 @@ export const mockApi = {
     if (request.type === 'settlement_import') {
       const imp = SETTLEMENT_IMPORTS.find((i) => i.id === request.payload.importId);
       if (imp) out.import = structuredClone(imp);
-    }
-    if (request.type === 'payout_method') {
-      out.methodBefore = request.before.number ? { ...request.before } : null;
-      out.methodAfter = { ...request.payload.method };
     }
     return respond(out, { emptyValue: null });
   },
@@ -2050,8 +2054,9 @@ export const mockApi = {
     }
     const m = driver.payoutMethod;
     const request = createRequest('payout_method', { kind: 'driver', id: String(driver.id), label: driver.name }, {
-      before: m ? { type: m.type, provider: m.provider ?? '—', number: m.number } : {},
-      after: { type: clean.type, provider: clean.provider ?? '—' },
+      // The review diffs every field of the method, so both sides carry all four.
+      before: m ? { type: m.type, provider: m.provider ?? '—', number: m.number, holderName: m.holderName } : {},
+      after: { type: clean.type, provider: clean.provider ?? '—', number: clean.number, holderName: clean.holderName },
       payload: { driverId: String(driver.id), method: clean },
     });
     return respond({ ok: true, pending: true, request: decorateRequest(request) });

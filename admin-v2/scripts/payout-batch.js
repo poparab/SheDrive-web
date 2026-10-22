@@ -560,7 +560,10 @@ linesTable.columns = [
   {
     key: 'driverName',
     label: t('payoutBatch.colDriver'),
-    render: (row) => link(`driver-balance-details.html?id=${encodeURIComponent(row.driverId)}`, row.driverName),
+    // Generated review-case payees (finance-seed.js) have no driver record to open.
+    render: (row) => (row.driverId
+      ? link(`driver-balance-details.html?id=${encodeURIComponent(row.driverId)}`, row.driverName)
+      : el('span', null, row.driverName)),
   },
   // Product rule: national IDs are shown in full.
   { key: 'nationalId', label: t('payoutBatch.colNid'), ltr: true, render: (row) => ltr(row.nationalId) },

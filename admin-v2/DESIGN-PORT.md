@@ -365,3 +365,28 @@ The queue gained two filters: **Made by** (anyone / other admins — mine to dec
 me — waiting for others) and **Area** (`APPROVAL_AREAS` in `finance-seed.js`: payouts &
 settlements, rider fees, pricing, driver details). Area is the hook for scoping the
 queue by role once Finance and Pricing approvers are split; today every admin sees all.
+
+### One review layout for every request type (2026-10-22)
+
+The review used to have six layouts (one per group of types). It now has one,
+in this order, for all nine types:
+
+| Block | Shown for | Content |
+|---|---|---|
+| Request | every type | subject, amount, made by, status (+ checked by, decided on, rejection reason) |
+| Before → after | every type | every field the request changes; a payout method change diffs all four fields (type, provider, number, holder) |
+| Details | types with facts of their own | one key/value list: batch + status, file, trip + reason, method + reference + payment date + note |
+| Lines | payout batch, payout result, settlement import | summary table (by payout type / result / channel, with a Total row), a search, a Success/Failed filter on a result, and a list paged 10 / 20 / 50 like every grid (`ad-data-table`) |
+
+The dialog is `modal-xl` for every type so the seven-column list never scrolls
+sideways. A 1,000-line batch reads exactly like a 12-line one.
+
+**Review cases in the seed** (`finance-seed.js`, after the original requests so
+APR-0001…0010 keep their ids): APR-0011 / 0012 / 0013 payout batches of 12, 100
+and 1,000 lines; APR-0014 a 100-line payout result with 6 failures; APR-0015 a
+settlement import; APR-0016 a manual payout; APR-0017 a payout method change;
+APR-0018 a commission change. With APR-0008 (rate card), APR-0009 (fee waiver)
+and APR-0010 (settlement), every type is pending at least once. Batch lines are
+generated payees with no driver record (the base seed has 34 drivers); they use
+their own random stream so no other seeded value moves, they show as plain text
+instead of a driver link, and a result file still completes them.

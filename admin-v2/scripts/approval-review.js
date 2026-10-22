@@ -15,6 +15,9 @@
  *   Approve → kit `popup-warning` confirm → success toast
  *   Reject  → kit `default-modal` with the reason (10–500) → success toast
  *
+ * The review has one layout for every request type (see "The standard review"
+ * below): Request → Before → after → Details → Lines.
+ *
  * `approvalHref(id)` builds the queue link with `return=` set to the current
  * screen. Opened that way (a new tab), the queue sends the admin back to that
  * screen after the decision.
@@ -27,6 +30,7 @@ import { qs } from '../../shared/scripts/utils.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { queueToast } from '../components/ad-toast.js';
+import '../components/ad-data-table.js';
 
 // ── Small helpers (the queue's grid uses them too) ────
 
@@ -270,7 +274,8 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
 
   function ensureModals() {
     if (review) return;
-    review = buildModal('approval-modal', 'default-modal', 'modal-lg modal-dialog-scrollable');
+    // Wide enough for the Lines list (seven columns) without sideways scrolling, for every type.
+    review = buildModal('approval-modal', 'default-modal', 'modal-xl modal-dialog-scrollable');
     confirmPopup = buildModal('approval-confirm', 'popup-warning');
     rejectModal = buildModal('approval-reject', 'default-modal');
     review.root.classList.add('apr-review');
@@ -371,6 +376,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
   }
 
   const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total']);
+  const COUNT_KEYS = new Set(['lines', 'rows', 'success', 'failed']);
 
   function fieldLabel(key) {
     const k = `approvals.field.${key}`;
@@ -382,6 +388,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     if (value === undefined || value === null) return t('common.notAvailable');
     if (key === 'removed') return value ? t('approvals.removedValue') : t('common.notAvailable');
     if (MONEY_KEYS.has(key)) return `${money(value)} ${t('common.egp')}`;
+    if (COUNT_KEYS.has(key)) return Number(value).toLocaleString('en-US');
     if (key === 'percentage') return formatPercent(value);
     if (key === 'type') return payoutTypeLabel(value);
     return String(value);
@@ -413,162 +420,266 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     }));
   }
 
-  function resultCell(line, result) {
-    const res = result?.find((r) => r.lineRef === line.lineRef);
-    const status = res?.status ?? (line.status === 'paid' ? 'SUCCESS' : line.status === 'failed' ? 'FAILED' : null);
-    if (status === 'SUCCESS') {
-      const wrap = el('div', 'apr-result');
-      wrap.appendChild(lamp('approved', t('approvals.resultSuccess')));
-      const ref = res?.bankReference ?? line.bankReference;
-      if (ref) wrap.appendChild(ltr(ref, 'small'));
-      return wrap;
-    }
-    if (status === 'FAILED') {
-      const wrap = el('div', 'apr-result');
-      wrap.appendChild(lamp('rejected', t('approvals.resultFailed')));
-      const reason = res?.failureReason ?? line.failureReason;
-      if (reason) wrap.appendChild(el('small', 'danger-color', reason));
-      return wrap;
-    }
-    return el('span', 'apr-muted', t('approvals.resultPending'));
-  }
+  // ── The standard review ───────────────────────────────
+  //
+  // Every request type gets the same blocks in the same order:
+  //
+  //   Request → Before → after → Details → Lines
+  //
+  // Details appears when a type has facts of its own (a reference, a trip, a
+  // reason, the batch or file); Lines appears for the three types that carry
+  // many lines (payout batch, payout result, settlement import). A type only
+  // decides what goes inside those blocks, never the layout, so 12 lines and
+  // 1,000 lines read the same: a summary table, then a searchable list paged
+  // like every grid in the portal.
 
-  function batchContext(request) {
-    const batch = request.batch;
-    if (!batch) return null;
-    const withResult = request.type === 'payout_result';
-    const headers = [
-      { label: t('approvals.colDriver') },
-      { label: t('approvals.colPayoutType') },
-      { label: t('approvals.colNumber') },
-      { label: t('approvals.colLineAmount'), num: true },
-    ];
-    if (withResult) headers.push({ label: t('approvals.colResult') });
-    const rows = batch.lines.map((line) => {
-      const driver = el('a', null, line.driverName);
-      driver.href = `driver-profile.html?id=${encodeURIComponent(line.driverId)}`;
-      const cells = [driver, payoutTypeLabel(line.payoutType), ltr(line.number), el('p', 'text-bold ad-ltr', money(line.amount))];
-      if (withResult) cells.push(resultCell(line, batch.result));
-      return cells;
-    });
-    const batchLink = ltr(batch.ref, 'a');
-    batchLink.href = `payout-batch.html?id=${encodeURIComponent(request.subject?.id ?? batch.id ?? '')}`;
-    return card(
-      t('approvals.sectionLines'),
-      'withdrawal-wallet.svg',
-      kvList([
-        [t('approvals.kvBatch'), batchLink],
-        // Batch status copy is owned by the Payouts screen's locale; fall back to the raw value.
-        [t('approvals.kvBatchStatus'), hasKey(`payouts.status_${batch.status}`) ? t(`payouts.status_${batch.status}`) : batch.status],
-      ]),
-      grid(headers, rows),
-    );
-  }
+  const LINES_PAGE = 10;
 
-  function importContext(request) {
-    const imp = request.import;
-    if (!imp) return null;
-    const rows = imp.rows.map((row) => [
-      ltr(row.rowNo),
-      row.driverName,
-      ltr(row.nationalId),
-      el('p', 'text-bold ad-ltr', money(row.amount)),
-      ltr(row.paymentDate),
-      row.channel,
-      ltr(row.paymentRef),
-      row.receipt ? ltr(row.receipt) : '',
-    ]);
-    return card(
-      t('approvals.sectionRows'),
-      'file-checked.svg',
-      kvList([[t('approvals.kvFile'), ltr(imp.fileName)]]),
-      grid(
-        [
-          { label: t('approvals.colRowNo') },
-          { label: t('approvals.colDriver') },
-          { label: t('approvals.colNationalId') },
-          { label: t('approvals.colLineAmount'), num: true },
-          { label: t('approvals.colPaymentDate') },
-          { label: t('approvals.colChannel') },
-          { label: t('approvals.colPaymentRef') },
-          { label: t('approvals.colReceipt') },
-        ],
-        rows,
-      ),
-    );
-  }
+  const count = (n) => Number(n).toLocaleString('en-US');
+  const moneyCell = (value) => el('p', 'text-bold ad-ltr', money(value));
 
-  function waiverContext(request) {
+  /** Details: the facts a type adds, as one key/value list. Empty when it has none. */
+  function detailPairs(request) {
     const p = request.payload ?? {};
-    let trip = null;
-    if (p.tripId) {
-      trip = ltr(p.tripId, 'a');
-      trip.href = `trip-detail.html?id=${encodeURIComponent(p.tripId)}`;
-    }
-    const reason = el('p', 'apr-reason', p.reason ?? t('common.notAvailable'));
-    return card(
-      t('approvals.sectionWaiver'),
-      'money-slash.svg',
-      kvList([[t('approvals.kvTrip'), trip ?? '']]),
-      el('p', 'text-bold apr-reason-label', t('approvals.kvReason')),
-      reason,
-    );
-  }
-
-  function methodColumn(titleText, m, tone) {
-    const col = el('div', 'col-md-6');
-    const box = el('div', `apr-method apr-method--${tone}`);
-    box.appendChild(el('h6', 'apr-method__title', titleText));
-    if (!m) {
-      box.appendChild(el('p', 'apr-muted', t('approvals.methodNone')));
-    } else {
-      box.appendChild(kvList([
-        [t('approvals.field.type'), payoutTypeLabel(m.type)],
-        [t('approvals.field.provider'), m.provider && m.provider !== '—' ? ltr(m.provider) : ''],
-        [t('approvals.field.number'), ltr(m.number ?? '')],
-        [t('approvals.holder'), m.holderName ? ltr(m.holderName) : undefined],
-      ]));
-    }
-    col.appendChild(box);
-    return col;
-  }
-
-  function methodContext(request) {
-    const row = el('div', 'row g-3');
-    row.append(
-      methodColumn(t('approvals.methodBefore'), request.methodBefore, 'before'),
-      methodColumn(t('approvals.methodAfter'), request.methodAfter, 'after'),
-    );
-    return card(t('approvals.sectionMethod'), 'wallet.svg', row);
-  }
-
-  function ledgerContext(request) {
-    const p = request.payload ?? {};
-    const pairs = [];
-    if (p.method) pairs.push([t('approvals.kvMethod'), p.method]);
-    if (p.reference) pairs.push([t('approvals.kvReference'), ltr(p.reference)]);
-    if (p.at) pairs.push([t('approvals.kvPaymentDate'), formatDateTime(p.at)]);
-    if (p.note) pairs.push([t('approvals.kvNote'), p.note]);
-    return pairs.length ? card(t('approvals.sectionDetails'), 'transactions.svg', kvList(pairs)) : null;
-  }
-
-  function typeContext(request) {
     switch (request.type) {
       case 'payout_batch':
-      case 'payout_result':
-        return batchContext(request);
+      case 'payout_result': {
+        const batch = request.batch;
+        if (!batch) return [];
+        const link = ltr(batch.ref, 'a');
+        link.href = `payout-batch.html?id=${encodeURIComponent(batch.id)}`;
+        return [
+          [t('approvals.kvBatch'), link],
+          // Batch status copy is owned by the Payouts screen's locale; fall back to the raw value.
+          [t('approvals.kvBatchStatus'), hasKey(`payouts.status_${batch.status}`) ? t(`payouts.status_${batch.status}`) : batch.status],
+        ];
+      }
       case 'settlement_import':
-        return importContext(request);
-      case 'fee_waiver':
-        return waiverContext(request);
-      case 'payout_method':
-        return methodContext(request);
+        return request.import ? [[t('approvals.kvFile'), ltr(request.import.fileName)]] : [];
+      case 'fee_waiver': {
+        let trip = '';
+        if (p.tripId) {
+          trip = ltr(p.tripId, 'a');
+          trip.href = `trip-detail.html?id=${encodeURIComponent(p.tripId)}`;
+        }
+        return [
+          [t('approvals.kvTrip'), trip],
+          [t('approvals.kvReason'), p.reason ?? '', 'apr-long'],
+        ];
+      }
       case 'payout':
       case 'settlement':
-        return ledgerContext(request);
+        return [
+          [t('approvals.kvMethod'), p.method || undefined],
+          [t('approvals.kvReference'), p.reference ? ltr(p.reference) : undefined],
+          [t('approvals.kvPaymentDate'), p.at ? formatDateTime(p.at) : undefined],
+          [t('approvals.kvNote'), p.note || undefined, 'apr-long'],
+        ].filter(([, value]) => value !== undefined);
       default:
-        return null;
+        return [];
     }
+  }
+
+  function driverCell(name, driverId, known, type) {
+    if (!known) return el('span', null, name);
+    const a = el('a', null, name);
+    a.href = type === 'import'
+      ? `driver-balance-details.html?id=${encodeURIComponent(driverId)}`
+      : `driver-profile.html?id=${encodeURIComponent(driverId)}`;
+    return a;
+  }
+
+  function methodCell(row) {
+    const stack = el('div', 'apr-method-cell');
+    stack.appendChild(el('span', null, payoutTypeLabel(row.payoutType)));
+    if (row.provider) stack.appendChild(el('small', 'apr-muted', row.provider));
+    return stack;
+  }
+
+  function resultCell(res) {
+    if (!res) return el('span', 'apr-muted', t('approvals.resultPending'));
+    const wrap = el('div', 'apr-result');
+    if (res.status === 'SUCCESS') {
+      wrap.appendChild(lamp('approved', t('approvals.resultSuccess')));
+      if (res.bankReference) wrap.appendChild(ltr(res.bankReference, 'small'));
+    } else {
+      wrap.appendChild(lamp('rejected', t('approvals.resultFailed')));
+      if (res.failureReason) wrap.appendChild(el('small', 'danger-color', res.failureReason));
+    }
+    return wrap;
+  }
+
+  /**
+   * What the Lines block shows for a type: its rows, how the summary groups
+   * them, what the search looks through and the list's columns. Null for the
+   * types without lines.
+   */
+  function lineSpec(request) {
+    if ((request.type === 'payout_batch' || request.type === 'payout_result') && request.batch) {
+      const withResult = request.type === 'payout_result';
+      const results = new Map((request.batch.result ?? []).map((r) => [r.lineRef, r]));
+      const rows = request.batch.lines.map((line) => ({ ...line, res: withResult ? results.get(line.lineRef) ?? null : null }));
+      // A checker clears failures first, so a result lists them at the top.
+      if (withResult) rows.sort((a, b) => (a.res?.status === 'FAILED' ? 0 : 1) - (b.res?.status === 'FAILED' ? 0 : 1));
+      const columns = [
+        { key: 'lineRef', label: t('approvals.colLineRef'), ltr: true, render: (r) => ltr(r.lineRef) },
+        { key: 'driverName', label: t('approvals.colDriver'), render: (r) => driverCell(r.driverName, r.driverId, r.known, 'batch') },
+        { key: 'nationalId', label: t('approvals.colNationalId'), ltr: true, render: (r) => ltr(r.nationalId) },
+        { key: 'payoutType', label: t('approvals.colPayoutType'), render: methodCell },
+        { key: 'number', label: t('approvals.colNumber'), ltr: true, render: (r) => ltr(r.number) },
+        { key: 'amount', label: t('approvals.colLineAmount'), numeric: true, render: (r) => moneyCell(r.amount) },
+      ];
+      if (withResult) columns.push({ key: 'result', label: t('approvals.colResult'), render: (r) => resultCell(r.res) });
+      return {
+        title: t('approvals.sectionLines'),
+        icon: 'withdrawal-wallet.svg',
+        rows,
+        countLabel: t('approvals.sumLines'),
+        groupLabel: withResult ? t('approvals.sumByResult') : t('approvals.sumByType'),
+        groupOf: withResult
+          ? (r) => (r.res?.status === 'FAILED' ? t('approvals.resultFailed') : t('approvals.resultSuccess'))
+          : (r) => payoutTypeLabel(r.payoutType),
+        searchIn: (r) => [r.lineRef, r.driverName, r.nationalId, r.number, r.provider, r.res?.bankReference],
+        resultFilter: withResult,
+        columns,
+      };
+    }
+    if (request.type === 'settlement_import' && request.import) {
+      return {
+        title: t('approvals.sectionRows'),
+        icon: 'file-checked.svg',
+        rows: request.import.rows,
+        countLabel: t('approvals.sumRows'),
+        groupLabel: t('approvals.sumByChannel'),
+        groupOf: (r) => r.channel || t('common.notAvailable'),
+        searchIn: (r) => [r.driverName, r.nationalId, r.paymentRef, r.receipt],
+        resultFilter: false,
+        columns: [
+          { key: 'rowNo', label: t('approvals.colRowNo'), ltr: true, render: (r) => ltr(r.rowNo) },
+          { key: 'driverName', label: t('approvals.colDriver'), render: (r) => driverCell(r.driverName, r.driverId, Boolean(r.driverId), 'import') },
+          { key: 'nationalId', label: t('approvals.colNationalId'), ltr: true, render: (r) => ltr(r.nationalId) },
+          { key: 'amount', label: t('approvals.colLineAmount'), numeric: true, render: (r) => moneyCell(r.amount) },
+          { key: 'paymentDate', label: t('approvals.colPaymentDate'), ltr: true, render: (r) => ltr(r.paymentDate) },
+          { key: 'channel', label: t('approvals.colChannel'), render: (r) => r.channel },
+          { key: 'paymentRef', label: t('approvals.colPaymentRef'), ltr: true, render: (r) => ltr(r.paymentRef) },
+          { key: 'receipt', label: t('approvals.colReceipt'), ltr: true, render: (r) => (r.receipt ? ltr(r.receipt) : '') },
+        ],
+      };
+    }
+    return null;
+  }
+
+  /** Summary: one row per group with its count and amount, then the total. */
+  function summaryTable(spec) {
+    const groups = new Map();
+    spec.rows.forEach((r) => {
+      const key = spec.groupOf(r);
+      const g = groups.get(key) ?? { n: 0, amount: 0 };
+      g.n += 1;
+      g.amount += Number(r.amount) || 0;
+      groups.set(key, g);
+    });
+    const total = spec.rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    const rows = [...groups].map(([key, g]) => [key, ltr(count(g.n)), moneyCell(g.amount)]);
+    const totalRow = [el('strong', null, t('approvals.sumTotal')), ltr(count(spec.rows.length)), moneyCell(total)];
+    totalRow.className = 'apr-total';
+    return grid(
+      [{ label: spec.groupLabel }, { label: spec.countLabel, num: true }, { label: t('approvals.sumAmount'), num: true }],
+      [...rows, totalRow],
+    );
+  }
+
+  /**
+   * Lines block: summary, then a search (and, for a result, a Success / Failed
+   * filter) over a paged list. Returns the card and a start() to call once the
+   * card is in the document, so the grid renders into a connected element.
+   */
+  function linesBlock(request) {
+    const spec = lineSpec(request);
+    if (!spec) return null;
+
+    const toolbar = el('div', 'apr-lines-toolbar');
+    const searchId = `apr-lines-search-${request.id}`;
+    const searchLabel = el('label', 'visually-hidden', t('approvals.linesSearchLabel'));
+    searchLabel.htmlFor = searchId;
+    const searchBox = el('div', 'apr-lines-search');
+    const search = el('input', 'form-control');
+    search.type = 'search';
+    search.id = searchId;
+    search.placeholder = t('approvals.linesSearchPlaceholder');
+    search.autocomplete = 'off';
+    searchBox.append(icon('fa-solid fa-magnifying-glass apr-lines-search__icon'), search);
+    toolbar.append(searchLabel, searchBox);
+
+    let filter = null;
+    if (spec.resultFilter) {
+      const filterId = `apr-lines-result-${request.id}`;
+      const filterLabel = el('label', 'visually-hidden', t('approvals.linesResultLabel'));
+      filterLabel.htmlFor = filterId;
+      filter = el('select', 'form-select apr-lines-filter');
+      filter.id = filterId;
+      [['all', t('approvals.linesAllResults')], ['FAILED', t('approvals.resultFailed')], ['SUCCESS', t('approvals.resultSuccess')]].forEach(([value, label]) => {
+        const option = el('option', null, label);
+        option.value = value;
+        filter.appendChild(option);
+      });
+      toolbar.append(filterLabel, filter);
+    }
+
+    const table = document.createElement('ad-data-table');
+    table.classList.add('apr-lines-table');
+
+    const node = card(spec.title, spec.icon, summaryTable(spec), toolbar, table);
+
+    let page = 1;
+    let pageSize = LINES_PAGE;
+    const matching = () => {
+      const needle = search.value.trim().toLowerCase();
+      const result = filter?.value ?? 'all';
+      return spec.rows.filter((r) => (result === 'all' || r.res?.status === result)
+        && (!needle || spec.searchIn(r).some((v) => v && String(v).toLowerCase().includes(needle))));
+    };
+    const draw = () => {
+      const rows = matching();
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      page = Math.min(page, totalPages);
+      table.setData({
+        rows: rows.slice((page - 1) * pageSize, page * pageSize),
+        total: rows.length,
+        page,
+        pageSize,
+        totalPages,
+      });
+    };
+
+    return {
+      node,
+      start() {
+        table.pageSize = LINES_PAGE;
+        table.columns = spec.columns;
+        table.emptyState = { icon: 'not-found.svg', heading: t('approvals.linesNoMatchHeading'), message: t('approvals.linesNoMatchMessage') };
+        table.addEventListener('pagechange', (event) => {
+          page = event.detail.page;
+          draw();
+        });
+        // The kit's Rows count (10 / 20 / 50), as on every grid.
+        table.addEventListener('pagesizechange', (event) => {
+          pageSize = event.detail.pageSize;
+          table.pageSize = pageSize;
+          page = 1;
+          draw();
+        });
+        search.addEventListener('input', () => {
+          page = 1;
+          draw();
+        });
+        filter?.addEventListener('change', () => {
+          page = 1;
+          draw();
+        });
+        draw();
+      },
+    };
   }
 
   async function openReview(id) {
@@ -617,12 +728,15 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     );
 
     const change = card(t('approvals.sectionChange'), 'edit-file.svg', diffList(request.before, request.after));
-    const context = typeContext(request);
+    const pairs = detailPairs(request);
+    const details = pairs.length ? card(t('approvals.sectionDetails'), 'transactions.svg', kvList(pairs)) : null;
+    const lines = linesBlock(request);
 
     review.body.replaceChildren(
       el('p', 'small lh-sm apr-effect', t(`approvals.typeEffect.${request.type}`)),
-      ...[summary, change, context].filter(Boolean),
+      ...[summary, change, details, lines?.node].filter(Boolean),
     );
+    lines?.start();
     renderReviewFooter(request);
   }
 

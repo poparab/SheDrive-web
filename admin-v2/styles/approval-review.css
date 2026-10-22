@@ -129,34 +129,61 @@
   gap: var(--space-1);
 }
 
-.apr-reason-label {
-  margin: 0;
+/* A long value (a reason, a note) wraps under its label instead of squeezing it. */
+.apr-card .list-row.apr-long {
+  flex-wrap: wrap;
 }
 
-.apr-reason {
-  margin: 0;
-  padding: var(--space-3);
-  border-radius: var(--admin-radius);
-  background: var(--color-surface-alt);
+.apr-card .list-row.apr-long > .list-item.col-auto {
+  flex: 1 1 100%;
+  justify-content: flex-start !important;
+  text-align: start;
+  white-space: normal;
   overflow-wrap: anywhere;
 }
 
-.apr-method {
-  block-size: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--admin-radius);
-  background: var(--color-surface-alt);
+/* ── Lines block (batches, results, imports) ──────────── */
+
+.apr-grid .apr-total td {
+  border-block-start: 2px solid var(--color-border);
+  font-weight: var(--fw-bold);
 }
 
-.apr-method--after {
-  border-color: var(--color-success);
-  background: var(--color-success-soft);
+.apr-lines-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
 }
 
-.apr-method__title {
-  margin: 0 0 var(--space-2);
-  font-size: var(--fs-sm);
+.apr-lines-search {
+  position: relative;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.apr-lines-search__icon {
+  position: absolute;
+  inset-block-start: 50%;
+  /* The kit pads search inputs at the end for their icon (styles.css). */
+  inset-inline-end: var(--space-3);
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.apr-lines-filter {
+  flex: 0 0 auto;
+  inline-size: auto;
+}
+
+.apr-lines-table .table {
+  margin: 0;
+}
+
+.apr-method-cell {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Footers ──────────────────────────────────────────── */

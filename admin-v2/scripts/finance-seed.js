@@ -285,6 +285,128 @@ export const SETTLEMENT_IMPORTS = [];
   }
 }
 
+// ── Review cases (2026-10-22) ─────────────────────────
+// One pending request of every type, so each version of the review can be
+// checked, plus batches at real scale (12, 100 and 1,000 lines) and a result
+// file with failures. Batch lines are generated payees, not seeded drivers —
+// the base seed has 34 drivers. They use their own random stream, so every
+// value above stays exactly as it was.
+
+let s2 = 20261022;
+const rand2 = () => {
+  s2 = (s2 * 1664525 + 1013904223) % 4294967296;
+  return s2 / 4294967296;
+};
+const pick2 = (list) => list[Math.floor(rand2() * list.length)];
+const int2 = (min, max) => Math.floor(min + rand2() * (max - min + 1));
+const digits2 = (n) => Array.from({ length: n }, () => int2(0, 9)).join('');
+
+const FIRSTS = [...new Set(DRIVERS.map((d) => d.name.split(' ')[0]))];
+const LASTS = [...new Set(DRIVERS.map((d) => d.name.split(' ').slice(-1)[0]))];
+const MIDDLES = ['Ahmed', 'Mohamed', 'Ali', 'Hussein', 'Samir', 'Khaled', 'Omar', 'Hany', 'Adel', 'Fawzy'];
+
+/** The n-th generated payee: a unique name, a national ID and a payout method. */
+function payee(n) {
+  const name = `${FIRSTS[n % FIRSTS.length]} ${MIDDLES[Math.floor(n / FIRSTS.length) % MIDDLES.length]} ${
+    LASTS[Math.floor(n / (FIRSTS.length * MIDDLES.length)) % LASTS.length]
+  }`;
+  const born = `${int2(80, 99)}${String(int2(1, 12)).padStart(2, '0')}${String(int2(1, 28)).padStart(2, '0')}`;
+  const type = pick2(PAYOUT_TYPES);
+  const method = type === 'MOBILE_WALLET'
+    ? { type, provider: pick2(WALLET_PROVIDERS), number: `01${pick2(['0', '1', '2', '5'])}${digits2(8)}` }
+    : type === 'BANK_ACCOUNT'
+      ? { type, provider: pick2(BANKS), number: rand2() < 0.5 ? `EG${digits2(27)}` : digits2(12) }
+      : { type, provider: null, number: `5078${digits2(12)}` };
+  return { id: null, name, nid: `2${born}${digits2(7)}`, payoutMethod: { ...method, holderName: name } };
+}
+
+const FAILURES = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
+
+/** A generated batch of `count` lines; `failEvery` > 0 adds a result file with that share failed. */
+function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 }) {
+  const ref = makeBatchRef(createdAt);
+  const lines = Array.from({ length: count }, (_, i) => {
+    const line = makeLine(payee(offset + i), ref, i + 1, int2(8500, 145000) / 100, []);
+    line.driverId = null;
+    line.status = status === 'result_pending' ? 'sent' : 'pending';
+    return line;
+  });
+  const batch = {
+    id: ref,
+    ref,
+    status,
+    createdAt,
+    createdBy: maker.email,
+    approvedBy: null,
+    approvedAt: null,
+    exportedAt: null,
+    exportedBy: null,
+    resultImportedAt: null,
+    resultImportedBy: null,
+    completedAt: null,
+    lines,
+  };
+  if (status === 'result_pending') {
+    Object.assign(batch, {
+      approvedBy: ADMINS[1].email,
+      approvedAt: createdAt + HOUR,
+      exportedAt: createdAt + 2 * HOUR,
+      exportedBy: maker.email,
+      resultImportedAt: createdAt + DAY,
+      resultImportedBy: maker.email,
+    });
+    batch.result = lines.map((l, i) => (failEvery && i % failEvery === failEvery - 1
+      ? { lineRef: l.lineRef, status: 'FAILED', bankReference: null, failureReason: FAILURES[l.payoutType] }
+      : { lineRef: l.lineRef, status: 'SUCCESS', bankReference: `BNK${digits2(8)}`, failureReason: null }));
+  }
+  PAYOUT_BATCHES.push(batch);
+  return batch;
+}
+
+const REVIEW_BATCHES = {
+  small: reviewBatch({ count: 12, createdAt: NOW - 3 * HOUR, maker: ADMINS[2], status: 'pending_approval', offset: 0 }),
+  hundred: reviewBatch({ count: 100, createdAt: NOW - 2 * HOUR, maker: ADMINS[1], status: 'pending_approval', offset: 100 }),
+  thousand: reviewBatch({ count: 1000, createdAt: NOW - 90 * MINUTE, maker: ADMINS[2], status: 'pending_approval', offset: 1000 }),
+  result: reviewBatch({ count: 100, createdAt: NOW - 2 * DAY, maker: ADMINS[1], status: 'result_pending', offset: 3000, failEvery: 16 }),
+};
+PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
+
+// A pending settlement sheet with every driver who owes, except the one whose
+// manual settlement is already waiting (one pending request per subject).
+const owingForImport = DRIVERS.filter((d) => d.balance < 0).sort((a, b) => a.balance - b.balance).slice(1);
+if (owingForImport.length) {
+  const at = NOW - 75 * MINUTE;
+  const rows = owingForImport.map((driver, i) => ({
+    rowNo: i + 2,
+    nationalId: driver.nid,
+    driverName: driver.name,
+    driverId: String(driver.id),
+    amount: -driver.balance,
+    paymentDate: new Date(at - DAY).toISOString().slice(0, 10),
+    channel: pick2(SETTLEMENT_CHANNELS),
+    paymentRef: `FT${digits2(9)}`,
+    status: 'ready',
+    receipt: null,
+  }));
+  SETTLEMENT_IMPORTS.unshift({
+    id: nextImportIdFrom(SETTLEMENT_IMPORTS),
+    fileName: 'finance-settlements-week-43.csv',
+    status: 'pending',
+    createdAt: at,
+    createdBy: ADMINS[3].email,
+    decidedAt: null,
+    decidedBy: null,
+    totalRows: rows.length + 1,
+    readyRows: rows.length,
+    rows,
+    amount: round2(rows.reduce((t, r) => t + r.amount, 0)),
+  });
+}
+
+function nextImportIdFrom(list) {
+  return `IMP-${String(maxSeq(list.map((i) => i.id), /^IMP-(\d+)$/) + 1).padStart(4, '0')}`;
+}
+
 // ── Approval requests (maker-checker, §1) ─────────────
 export const APPROVAL_TYPES = [
   'payout_batch',
@@ -353,7 +475,7 @@ export const APPROVALS = [];
     }));
   });
 
-  SETTLEMENT_IMPORTS.forEach((imp) => {
+  SETTLEMENT_IMPORTS.filter((imp) => imp.status !== 'pending').forEach((imp) => {
     APPROVALS.push(makeApproval('settlement_import', { kind: 'import', id: imp.id, label: imp.fileName }, {
       after: { rows: imp.readyRows }, amount: imp.amount, payload: { importId: imp.id },
       maker: imp.createdBy, madeAt: imp.createdAt, status: 'approved', checker: imp.decidedBy, decidedAt: imp.decidedAt,
@@ -406,6 +528,63 @@ export const APPROVALS = [];
       maker: ADMINS[1].email, madeAt: NOW - 40 * MINUTE,
     }));
   }
+
+  // Review cases — added after the requests above so their ids stay as they were.
+  [REVIEW_BATCHES.small, REVIEW_BATCHES.hundred, REVIEW_BATCHES.thousand].forEach((b) => {
+    const total = round2(b.lines.reduce((t, l) => t + l.amount, 0));
+    APPROVALS.push(makeApproval('payout_batch', { kind: 'batch', id: b.id, label: b.ref }, {
+      after: { lines: b.lines.length, total }, amount: total, payload: { batchId: b.id },
+      maker: b.createdBy, madeAt: b.createdAt,
+    }));
+  });
+
+  {
+    const b = REVIEW_BATCHES.result;
+    const ok = b.result.filter((r) => r.status === 'SUCCESS').map((r) => r.lineRef);
+    APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
+      before: { success: 0, failed: 0 },
+      after: { success: ok.length, failed: b.lines.length - ok.length },
+      amount: round2(b.lines.filter((l) => ok.includes(l.lineRef)).reduce((t, l) => t + l.amount, 0)),
+      payload: { batchId: b.id }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
+    }));
+  }
+
+  const pendingImport = SETTLEMENT_IMPORTS.find((i) => i.status === 'pending');
+  if (pendingImport) {
+    APPROVALS.push(makeApproval('settlement_import', { kind: 'import', id: pendingImport.id, label: pendingImport.fileName }, {
+      after: { rows: pendingImport.readyRows }, amount: pendingImport.amount, payload: { importId: pendingImport.id },
+      maker: pendingImport.createdBy, madeAt: pendingImport.createdAt,
+    }));
+  }
+
+  const payoutDriver = DRIVERS.filter((d) => d.status === 'approved' && d.balance > 0).sort((a, b) => b.balance - a.balance)[0];
+  if (payoutDriver) {
+    const amount = round2(Math.min(payoutDriver.balance, 500));
+    APPROVALS.push(makeApproval('payout', { kind: 'driver', id: String(payoutDriver.id), label: payoutDriver.name }, {
+      before: { balance: payoutDriver.balance }, after: { balance: round2(payoutDriver.balance - amount) }, amount,
+      payload: { driverId: String(payoutDriver.id), amount, at: NOW - 3 * HOUR, reference: `INSTAPAY-${digits2(10)}`, proof: null },
+      maker: ADMINS[3].email, madeAt: NOW - 25 * MINUTE,
+    }));
+  }
+
+  const switching = DRIVERS.find((d) => d.status === 'approved' && d.payoutMethod?.type === 'MOBILE_WALLET' && d.id !== payoutDriver?.id);
+  if (switching) {
+    const m = switching.payoutMethod;
+    const method = { type: 'BANK_ACCOUNT', provider: 'CIB', holderName: switching.name, number: `EG${digits2(27)}` };
+    APPROVALS.push(makeApproval('payout_method', { kind: 'driver', id: String(switching.id), label: switching.name }, {
+      before: { type: m.type, provider: m.provider ?? '—', number: m.number, holderName: m.holderName },
+      after: { type: method.type, provider: method.provider, number: method.number, holderName: method.holderName },
+      payload: { driverId: String(switching.id), method },
+      maker: ADMINS[2].email, madeAt: NOW - 55 * MINUTE,
+    }));
+  }
+
+  APPROVALS.push(makeApproval('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
+    before: { percentage: GLOBAL_POLICIES.commission.percentage },
+    after: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
+    payload: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
+    maker: ADMINS[1].email, madeAt: NOW - 4 * HOUR,
+  }));
 
   APPROVALS.sort((a, b) => b.madeAt - a.madeAt);
 }
