@@ -145,6 +145,21 @@ export const en = {
 
   // ── Global pricing policies (#1759) ─────────────────
   policies: {
+    hoursHeading: 'Operating hours',
+    hoursNote:
+      'Cairo time. Riders can request a trip from opening until closing time; a trip requested before closing runs to its end. A change applies to the next request.',
+    opensAt: 'Opens at',
+    opensAtHint: 'The first minute a rider can request a trip.',
+    opensAtEmpty: 'Enter the opening time',
+    closesAt: 'Closes at',
+    closesAtHint: 'From this minute new requests are refused until the next opening.',
+    closesAtEmpty: 'Enter the closing time',
+    unitCairo: 'Cairo time',
+    timeInvalid: 'Enter a valid time',
+    closesAfterOpens: 'Closing time must be after opening time',
+    statusOpen: 'Open now · closes at {time}',
+    statusClosedToday: 'Closed now · opens today at {time}',
+    statusClosedTomorrow: 'Closed now · opens tomorrow at {time}',
     balanceHeading: 'Driver balance',
     saveBalance: 'Save balance policy',
     balanceSaved: 'Driver balance policy saved.',
@@ -458,7 +473,7 @@ export const en = {
       'Three account states: Active, Pending review (set automatically by a gender-mismatch report), Suspended. Pending review links to the related report. A suspension shows its reason, actor and timestamp; reinstating requires its own recorded reason (a scope change vs #1741) and is written to the audit log.',
     notesZones:
       'Zone status is derived from the rate card and never toggled by hand. Two zones ship with no rate card so the Inactive / "trips will be blocked" warning is visible.',
-    notesPolicies: 'Cancellation policy plus platform commission (must be >0% and ≤50%).',
+    notesPolicies: 'Cancellation policy, platform commission (must be >0% and ≤50%), driver balance limit and operating hours.',
     notesReports:
       'Totals reconcile: gross fares = commission + net driver earnings. CSV export included.',
     notesReconciliation:
@@ -602,6 +617,21 @@ export const ar = {
 
   // ── السياسات العالمية للأسعار ──────────────────────
   policies: {
+    hoursHeading: 'ساعات العمل',
+    hoursNote:
+      'بتوقيت القاهرة. يمكن للراكبة طلب رحلة من وقت الفتح حتى وقت الإغلاق، والرحلة المطلوبة قبل الإغلاق تكتمل حتى نهايتها. يُطبَّق أي تغيير على الطلب التالي.',
+    opensAt: 'وقت الفتح',
+    opensAtHint: 'أول دقيقة يمكن فيها للراكبة طلب رحلة.',
+    opensAtEmpty: 'أدخل وقت الفتح',
+    closesAt: 'وقت الإغلاق',
+    closesAtHint: 'من هذه الدقيقة تُرفض الطلبات الجديدة حتى موعد الفتح التالي.',
+    closesAtEmpty: 'أدخل وقت الإغلاق',
+    unitCairo: 'بتوقيت القاهرة',
+    timeInvalid: 'أدخل وقتًا صحيحًا',
+    closesAfterOpens: 'يجب أن يكون وقت الإغلاق بعد وقت الفتح',
+    statusOpen: 'مفتوح الآن · يغلق الساعة {time}',
+    statusClosedToday: 'مغلق الآن · يفتح اليوم الساعة {time}',
+    statusClosedTomorrow: 'مغلق الآن · يفتح غدًا الساعة {time}',
     balanceHeading: 'رصيد السائقة',
     saveBalance: 'حفظ سياسة الرصيد',
     balanceSaved: 'تم حفظ سياسة رصيد السائقة.',
@@ -905,7 +935,7 @@ export const ar = {
       'ثلاث حالات للحساب: نشط، قيد المراجعة (تُضبط تلقائيًا ببلاغ عدم تطابق النوع)، موقوف. وحالة "قيد المراجعة" ترتبط بالبلاغ المتعلق بها. ويعرض الإيقاف سببه ومنفّذه ووقته؛ وإعادة التفعيل تتطلب سببًا مسجَّلًا خاصًا بها (تغيير في النطاق مقابل القصة #1741) ويُكتب في سجل التدقيق.',
     notesZones:
       'حالة المنطقة مشتقّة من بطاقة الأسعار ولا تُبدَّل يدويًا أبدًا. وتأتي منطقتان بلا بطاقة أسعار حتى يظهر تحذير "غير مفعّلة / سيتم منع الرحلات".',
-    notesPolicies: 'سياسة الإلغاء إضافة إلى عمولة المنصة (يجب أن تزيد عن 0% وألا تتجاوز 50%).',
+    notesPolicies: 'سياسة الإلغاء وعمولة المنصة (يجب أن تزيد عن 0% وألا تتجاوز 50%) وحد رصيد السائقة وساعات العمل.',
     notesReports:
       'الإجماليات متطابقة: إجمالي الأجرة = العمولة + صافي أرباح السائقات. ويتضمن تصدير CSV.',
     notesReconciliation:

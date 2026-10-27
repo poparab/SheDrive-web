@@ -249,6 +249,9 @@ export function applyMutations({
     if (state.policies.driverBalance) {
       Object.assign(GLOBAL_POLICIES.driverBalance, state.policies.driverBalance);
     }
+    if (state.policies.operatingHours) {
+      Object.assign(GLOBAL_POLICIES.operatingHours, state.policies.operatingHours);
+    }
   }
 
   // Ledger entries replay before balances are recomputed, so a settlement made

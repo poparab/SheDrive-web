@@ -3,7 +3,8 @@
  * #1759: the global cancellation policy (rider grace period, driver cancellation
  * fee, driver cancellation grace period, rider no-show wait) and the platform
  * commission percentage. Validation comes from the story's two Field Validation
- * tables.
+ * tables. Operating hours (2026-10-27): the daily booking window, saved
+ * immediately like the cancellation and balance settings.
  *
  * Kit v22-09 port (2026-10-14): three `standard-card-theme2` cards with the
  * kit's `list-multi-column` field rows, ONE global Save / Revert, and a
@@ -15,7 +16,7 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
-import { formatDateTime, formatEgp, formatPercent } from './format.js';
+import { formatDateTime, formatEgp, formatPercent, formatTime } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 
@@ -102,6 +103,31 @@ const BALANCE_FIELDS = [
   },
 ];
 
+/** Operating hours (#1785 / #1791): one same-day window, Cairo time. */
+const HOURS_FIELDS = [
+  {
+    key: 'opensAt',
+    type: 'time',
+    label: t('policies.opensAt'),
+    unit: t('policies.unitCairo'),
+    hint: t('policies.opensAtHint'),
+    emptyError: t('policies.opensAtEmpty'),
+    invalidError: t('policies.timeInvalid'),
+  },
+  {
+    key: 'closesAt',
+    type: 'time',
+    label: t('policies.closesAt'),
+    unit: t('policies.unitCairo'),
+    hint: t('policies.closesAtHint'),
+    emptyError: t('policies.closesAtEmpty'),
+    invalidError: t('policies.timeInvalid'),
+    rangeError: t('policies.closesAfterOpens'),
+  },
+];
+
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 let policies;
 
 // ── Field rendering — the kit's list-multi-column row ─
@@ -132,10 +158,15 @@ function renderField(host, spec, value) {
   input.className = 'form-control ad-ltr';
   input.id = `policy-${spec.key}`;
   input.name = spec.key;
-  input.type = 'number';
-  input.step = spec.integer ? '1' : '0.01';
-  input.min = String(spec.min);
-  if (spec.max !== undefined) input.max = String(spec.max);
+  if (spec.type === 'time') {
+    input.type = 'time';
+    input.step = '60';
+  } else {
+    input.type = 'number';
+    input.step = spec.integer ? '1' : '0.01';
+    input.min = String(spec.min);
+    if (spec.max !== undefined) input.max = String(spec.max);
+  }
   input.value = value ?? '';
 
   const error = document.createElement('span');
@@ -183,6 +214,13 @@ function validate(control) {
     showError(control, spec.emptyError);
     return false;
   }
+  if (spec.type === 'time') {
+    if (!TIME_PATTERN.test(raw)) {
+      showError(control, spec.invalidError);
+      return false;
+    }
+    return true;
+  }
   const numeric = Number(raw);
   if (Number.isNaN(numeric)) {
     showError(control, spec.invalidError);
@@ -208,6 +246,7 @@ function validate(control) {
 let cancellationControls = [];
 let commissionControl = null;
 let balanceControls = [];
+let hoursControls = [];
 
 function lastChanged(section) {
   return t('policies.lastChanged', { when: formatDateTime(section.updatedAt), who: section.updatedBy });
@@ -231,6 +270,12 @@ function render() {
     renderField(balanceHost, spec, policies.driverBalance[spec.key] ?? ''),
   );
   balanceControls.forEach((c) => c.input.addEventListener('input', updateBalanceExample));
+
+  const hoursHost = qs('#hours-fields');
+  hoursHost.textContent = '';
+  hoursControls = HOURS_FIELDS.map((spec) => renderField(hoursHost, spec, policies.operatingHours[spec.key]));
+  qs('#hours-meta').textContent = lastChanged(policies.operatingHours);
+  renderHoursStatus();
 
   qs('#cancel-meta').textContent = lastChanged(policies.cancellation);
   qs('#commission-meta').textContent = lastChanged(policies.commission);
@@ -264,6 +309,27 @@ function renderCommissionPending() {
     current: formatPercent(policies.commission.percentage),
   });
   qs('#commission-pending-link').href = approvalHref(pending.id);
+}
+
+/** Says whether booking is open right now, from the saved hours (not the unsaved inputs). */
+function renderHoursStatus() {
+  const { opensAt, closesAt } = policies.operatingHours;
+  const now = formatTime(Date.now());
+  let text;
+  if (now >= opensAt && now < closesAt) text = t('policies.statusOpen', { time: closesAt });
+  else if (now < opensAt) text = t('policies.statusClosedToday', { time: opensAt });
+  else text = t('policies.statusClosedTomorrow', { time: opensAt });
+  qs('#hours-status').textContent = text;
+}
+
+/** Closing must come after opening on the same day; runs once both times are valid. */
+function validateHoursOrder() {
+  const [opens, closes] = hoursControls;
+  if (closes.input.value <= opens.input.value) {
+    showError(closes, closes.spec.rangeError);
+    return false;
+  }
+  return true;
 }
 
 /** A worked example makes the percentage concrete for whoever sets it. */
@@ -313,8 +379,16 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   errorBox.classList.remove('is-visible');
 
   const commissionLocked = Boolean(policies.pendingCommission);
-  const controls = [...cancellationControls, ...(commissionLocked ? [] : [commissionControl]), ...balanceControls];
+  const controls = [
+    ...cancellationControls,
+    ...(commissionLocked ? [] : [commissionControl]),
+    ...balanceControls,
+    ...hoursControls,
+  ];
   const results = controls.map(validate);
+  if (!results.slice(-hoursControls.length).includes(false) && !validateHoursOrder()) {
+    results[results.length - 1] = false;
+  }
   if (results.includes(false)) {
     controls[results.indexOf(false)].input.focus();
     return;
@@ -329,6 +403,10 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   if (changed(balanceControls, policies.driverBalance)) {
     payload.driverBalance = readValues(balanceControls);
     applied.push(t('policies.balanceHeading'));
+  }
+  if (hoursControls.some((c) => c.input.value !== policies.operatingHours[c.spec.key])) {
+    payload.operatingHours = Object.fromEntries(hoursControls.map((c) => [c.spec.key, c.input.value]));
+    applied.push(t('policies.hoursHeading'));
   }
   const before = Number(policies.commission.percentage);
   const percentage = Number(commissionControl.input.value);
@@ -392,6 +470,10 @@ qs('#policies-revert').addEventListener('click', () => {
   });
   balanceControls.forEach((c) => {
     c.input.value = policies.driverBalance[c.spec.key] ?? '';
+    clearError(c);
+  });
+  hoursControls.forEach((c) => {
+    c.input.value = policies.operatingHours[c.spec.key];
     clearError(c);
   });
   if (!policies.pendingCommission) {

@@ -1668,6 +1668,13 @@ export const mockApi = {
         updatedBy: CURRENT_ADMIN.email,
       });
     }
+    // Operating hours apply on save, like the dispatch setting — no approval.
+    if (next.operatingHours) {
+      Object.assign(GLOBAL_POLICIES.operatingHours, next.operatingHours, {
+        updatedAt: Date.now(),
+        updatedBy: CURRENT_ADMIN.email,
+      });
+    }
     recordPolicies(structuredClone(GLOBAL_POLICIES));
     return respond({ ok: true, pending: Boolean(request), request: request ? decorateRequest(request) : null });
   },

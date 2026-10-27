@@ -333,6 +333,14 @@ export const GLOBAL_POLICIES = {
     updatedAt: NOW - 9 * DAY,
     updatedBy: ADMINS[0].email,
   },
+  // One daily booking window, Cairo wall-clock time (#1785 / #1791). Same day only:
+  // closing is after opening, never past midnight.
+  operatingHours: {
+    opensAt: '07:00',
+    closesAt: '23:00',
+    updatedAt: NOW - 3 * DAY,
+    updatedBy: ADMINS[0].email,
+  },
   driverBalance: {
     // 0 disables the go-online block entirely (#TBD-F)
     outstandingLimit: 500,
