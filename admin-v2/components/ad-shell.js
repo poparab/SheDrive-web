@@ -31,6 +31,7 @@
 import { NAV_SECTIONS, NAV_INDEX } from '../scripts/nav.js';
 import {
   ROLES,
+  SCREEN_ROLES,
   DEMO_PEOPLE,
   canOpen,
   currentRole,
@@ -177,13 +178,15 @@ class AdShell extends HTMLElement {
     const account = mockApi.adminByEmail(session.email);
     const legacy = !isRole(session.role) && session.role !== null;
     if (session.auto || legacy || !account || account.status !== 'active') {
-      // A demo session: keep its role while it can open this screen.
-      const keep = account && account.status === 'active' && isRole(account.role) && canOpen(active, account.role);
+      // An automatic demo session: every screen opens as the role that shows it
+      // best (demoRoleFor). A screen outside the matrix keeps the current role.
+      const keep = account && account.status === 'active' && isRole(account.role) && (!active || !SCREEN_ROLES[active]);
       if (keep) {
         if (account.role !== session.role) adminAuth.setRole(account.role);
         return;
       }
       const role = demoRoleFor(active);
+      if (account && account.email === DEMO_PEOPLE[role] && session.role === role) return;
       adminAuth.login(DEMO_PEOPLE[role], { role, auto: true });
       return;
     }

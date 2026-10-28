@@ -11,9 +11,9 @@
  * in step. "View" screens get no action buttons at all — not disabled ones.
  *
  * DEMO: `?as=<role>` (or `?as=<email>`) on any screen signs the browser in as
- * that role's demo person; the top bar has the same switch. A cold visit with
- * no chosen role gets an automatic demo role that can open the screen (see
- * `demoRoleFor`), so every story link renders.
+ * that role's demo person; the top bar has the same switch. With no chosen
+ * role the session is automatic: each screen opens as the role that shows it
+ * best (`demoRoleFor`), so every story link renders.
  */
 
 import { adminAuth } from './admin-auth.js';
