@@ -16,6 +16,7 @@ import { mockApi } from './mock-api.js';
 import { formatDateTime, formatEgp, formatPhone, humanize } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t, hasKey, isRtl, applyAdminTranslations } from './admin-i18n.js';
+import { can } from './roles.js';
 import { loadWithBanner } from './page-banner.js';
 import { loadBootstrap } from './design-init.js';
 
@@ -203,8 +204,10 @@ function renderStatusBanner(report) {
 function renderActions(report) {
   // #1811 S4 — a resolved report cannot be actioned again.
   const open = report.status === 'open';
-  suspendBtn.hidden = !open;
-  dismissBtn.hidden = !open;
+  // #6210 — dismissing is any Operations role's; acting against the rider
+  // (suspending her) is the Operations lead's only.
+  suspendBtn.hidden = !open || !can('safety.actAgainst');
+  dismissBtn.hidden = !open || !can('safety.handle');
 
   resolveHint.textContent = open
     ? t('safetyReport.hintOpen')

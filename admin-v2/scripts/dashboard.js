@@ -10,6 +10,7 @@ import { mockApi, stateOverride } from './mock-api.js';
 import { formatCount, formatEgp, formatElapsed, formatTime, humanize } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -162,13 +163,16 @@ if (stateOverride() !== t('screens.state_loading')) {
   window.setInterval(refreshMetrics, METRIC_REFRESH_MS);
 }
 
-const map = await mapPanel.mount({ zoom: 10.4 });
+// #6210 — the live operations map is for Operations roles only; Finance sees the cards.
+const showMap = can('map.live');
+qs('.dash__map').hidden = !showMap;
+const map = showMap ? await mapPanel.mount({ zoom: 10.4 }) : null;
 
 if (map) {
   refreshMap();
   if (stateOverride() !== t('screens.state_loading')) {
     window.setInterval(refreshMap, MAP_REFRESH_MS);
   }
-} else {
+} else if (showMap) {
   mapStatus.textContent = t('dashboard.mapUnavailable');
 }

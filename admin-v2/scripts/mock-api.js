@@ -74,6 +74,8 @@ import {
   makeLine,
   nextImportId,
 } from './finance-seed.js';
+import { can, AUDIT_SCOPE } from './roles.js';
+import { adminAuth } from './admin-auth.js';
 
 // Replay this session's recorded actions onto the seed before any screen reads
 // it, so a decision made on one screen is visible on the next.
@@ -287,21 +289,21 @@ function makeAuditEntry(actionType, targetType, targetId, before, after) {
 
 // ── Maker-checker, payouts, settlement imports (2026-10-14 spec) ──
 
-const ACTING_KEY = 'shedrive.adminActingAs';
-
 /**
- * Who is acting. The mockup has one signed-in admin, so the Approvals screen
- * offers a demo switch to act as a second admin and show the checker side.
+ * Who is acting: the signed-in admin's account (#6210). The role is read from
+ * the account on every request, so a role change applies at once. The demo
+ * role switch (`?as=`, the top bar) changes the session, and so who this is.
  */
 function actingAdmin() {
-  try {
-    const email = sessionStorage.getItem(ACTING_KEY);
-    const admin = email && ADMINS.find((a) => a.email === email && a.status === 'active');
-    if (admin) return admin;
-  } catch {
-    // storage blocked — fall back to the signed-in admin
-  }
-  return CURRENT_ADMIN;
+  const email = adminAuth.getSession()?.email;
+  const admin = email && ADMINS.find((a) => a.email === email && a.status === 'active');
+  return admin ?? CURRENT_ADMIN;
+}
+
+/** The server-side role check (#6210 Rule 4): refused, and nothing changes. */
+function refusedFor(capability) {
+  if (can(capability, actingAdmin().role)) return null;
+  return Promise.reject(new MockApiError("Your role can't do this. Nothing was changed.", 403));
 }
 
 const isOpenBatch = (b) => ['pending_approval', 'ready', 'sent_to_bank', 'result_pending'].includes(b.status);
@@ -425,15 +427,29 @@ function validatePayoutMethod(m) {
   if (!m || !PAYOUT_TYPES.includes(m.type)) return 'Choose a payout method.';
   const holder = String(m.holderName ?? '').trim();
   const number = String(m.number ?? '').replace(/\s+/g, '');
+  // #5624 Field Validation, exactly: wallet = 01 + 9 digits; holder / name on
+  // card = letters and spaces, 3–100 (bank and card); account = 10–20 digits or
+  // EG + 27 digits; card = 16 digits.
+  const holderError = () => {
+    if (!holder) return 'Enter the name.';
+    if (holder.length < 3 || holder.length > 100) return 'Name must be 3–100 characters.';
+    if (!/^[\p{L} ]+$/u.test(holder)) return 'Use letters and spaces only.';
+    return null;
+  };
   if (m.type === 'MOBILE_WALLET') {
     if (!WALLET_PROVIDERS.includes(m.provider)) return 'Choose the wallet provider.';
-    if (!/^01[0125]\d{8}$/.test(number)) return 'Enter a valid Egyptian mobile number (01 + 9 digits).';
+    if (!number) return 'Enter the wallet number.';
+    if (!/^01\d{9}$/.test(number)) return 'Enter a valid Egyptian mobile number.';
   } else if (m.type === 'BANK_ACCOUNT') {
     if (!BANKS.includes(m.provider)) return 'Choose the bank.';
-    if (holder.length < 3 || holder.length > 100) return 'Enter the account holder name (3–100 characters).';
-    if (!/^\d{10,20}$/.test(number) && !/^EG\d{27}$/i.test(number)) return 'Enter a 10–20 digit account number or an IBAN (EG + 27 digits).';
+    const error = holderError();
+    if (error) return error;
+    if (!number) return 'Enter the account number.';
+    if (!/^\d{10,20}$/.test(number) && !/^EG\d{27}$/i.test(number)) return 'Enter a valid account number or IBAN.';
   } else {
-    if (holder.length < 3 || holder.length > 100) return 'Enter the name on the card (3–100 characters).';
+    const error = holderError();
+    if (error) return error;
+    if (!number) return 'Enter the card number.';
     if (!/^\d{16}$/.test(number)) return 'Enter the 16-digit card number.';
   }
   return null;
@@ -626,6 +642,7 @@ const EXECUTE = {
     const card = request.payload.rateCard;
     zone.rateCard = card ? { ...card, updatedAt: Date.now() } : null;
     patch('zones', zone.id, { rateCard: zone.rateCard });
+    pricingAudit(request);
   },
   commission(request) {
     Object.assign(GLOBAL_POLICIES.commission, {
@@ -634,8 +651,32 @@ const EXECUTE = {
       updatedBy: request.maker,
     });
     recordPolicies(structuredClone(GLOBAL_POLICIES));
+    pricingAudit(request);
+  },
+  cancellation_policy(request) {
+    Object.assign(GLOBAL_POLICIES.cancellation, request.payload.cancellation, {
+      updatedAt: Date.now(),
+      updatedBy: request.maker,
+    });
+    recordPolicies(structuredClone(GLOBAL_POLICIES));
+    pricingAudit(request);
+  },
+  balance_limit(request) {
+    Object.assign(GLOBAL_POLICIES.driverBalance, request.payload.driverBalance, {
+      updatedAt: Date.now(),
+      updatedBy: request.maker,
+    });
+    recordPolicies(structuredClone(GLOBAL_POLICIES));
+    pricingAudit(request);
   },
 };
+
+/** #5623 / #1760 — an approved pricing change is written to the pricing audit log, before → after. */
+function pricingAudit(request) {
+  const before = { ...(request.before ?? {}) };
+  const after = { ...(request.after ?? {}), request: request.id, requestedBy: request.maker };
+  makeAuditEntry('pricing change', request.subject.kind, request.subject.id, before, after);
+}
 
 /** What rejecting a request undoes (§1). */
 const ON_REJECT = {
@@ -656,9 +697,22 @@ const ON_REJECT = {
   },
 };
 
+/** True when an active Financial lead other than `email` exists to decide her request (#6212). */
+function otherLeadExists(email) {
+  return ADMINS.some((a) => a.status === 'active' && a.role === 'fin_lead' && a.email !== email);
+}
+
 function decorateRequest(r) {
-  const me = actingAdmin().email;
-  return { ...r, madeByYou: r.maker === me, canDecide: r.status === 'pending' && r.maker !== me };
+  const me = actingAdmin();
+  const pending = r.status === 'pending';
+  return {
+    ...r,
+    madeByYou: r.maker === me.email,
+    // #6212 — only a Financial lead decides, and never her own request.
+    canDecide: pending && r.maker !== me.email && can('finance.approve', me.role),
+    // No other active Financial lead can decide it: it stays pending.
+    waitingForLead: pending && !otherLeadExists(r.maker),
+  };
 }
 
 // ── Generic query helpers ─────────────────────────────
@@ -799,7 +853,7 @@ export const mockApi = {
   stateOverride,
 
   getCurrentAdmin() {
-    return CURRENT_ADMIN;
+    return actingAdmin();
   },
 
   getDashboardMetrics() {
@@ -923,13 +977,15 @@ export const mockApi = {
   },
 
   approveApplication(id) {
+    const refused = refusedFor('applications.decide');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(id));
     if (!driver) return Promise.reject(new MockApiError('Application not found.', 404));
     driver.status = 'approved';
     driver.decisionHistory.push({
       state: 'approved',
       at: Date.now(),
-      actor: CURRENT_ADMIN.email,
+      actor: actingAdmin().email,
       note: null,
     });
     reindexApplications();
@@ -941,6 +997,8 @@ export const mockApi = {
   },
 
   rejectApplication(id, reason) {
+    const refused = refusedFor('applications.decide');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(id));
     if (!driver) return Promise.reject(new MockApiError('Application not found.', 404));
     driver.status = 'rejected';
@@ -948,7 +1006,7 @@ export const mockApi = {
     driver.decisionHistory.push({
       state: 'rejected',
       at: Date.now(),
-      actor: CURRENT_ADMIN.email,
+      actor: actingAdmin().email,
       note: reason,
     });
     reindexApplications();
@@ -989,6 +1047,8 @@ export const mockApi = {
   },
 
   suspendDriver(id, reason, note) {
+    const refused = refusedFor('drivers.suspend');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(id));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
     // #1742: a driver mid-trip goes to Pending Suspension until the trip ends.
@@ -1000,7 +1060,7 @@ export const mockApi = {
     driver.decisionHistory.push({
       state: driver.status,
       at: Date.now(),
-      actor: CURRENT_ADMIN.email,
+      actor: actingAdmin().email,
       note: driver.suspensionReason,
     });
     patch('drivers', id, {
@@ -1014,6 +1074,8 @@ export const mockApi = {
   },
 
   reinstateDriver(id, reason, note) {
+    const refused = refusedFor('drivers.suspend');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(id));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
@@ -1025,11 +1087,11 @@ export const mockApi = {
 
     driver.status = 'approved';
     driver.suspensionReason = null;
-    driver.reinstatement = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
+    driver.reinstatement = { reason: recordedReason, note: note || null, by: actingAdmin().email, at };
     driver.decisionHistory.push({
       state: 'reinstated',
       at,
-      actor: CURRENT_ADMIN.email,
+      actor: actingAdmin().email,
       note: recordedReason,
     });
     patch('drivers', id, {
@@ -1074,13 +1136,15 @@ export const mockApi = {
   },
 
   suspendRider(id, reason, note) {
+    const refused = refusedFor('riders.suspend');
+    if (refused) return refused;
     const rider = RIDERS_BY_ID.get(String(id));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
     const at = Date.now();
     rider.status = 'suspended';
     rider.suspensionReason = reason === 'Other' && note ? note : reason;
     rider.suspendedAt = at;
-    rider.suspendedBy = CURRENT_ADMIN.email;
+    rider.suspendedBy = actingAdmin().email;
     rider.reinstatement = null;
     patch('riders', id, {
       status: rider.status,
@@ -1097,6 +1161,8 @@ export const mockApi = {
   },
 
   reinstateRider(id, reason, note) {
+    const refused = refusedFor('riders.suspend');
+    if (refused) return refused;
     const rider = RIDERS_BY_ID.get(String(id));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
 
@@ -1110,7 +1176,7 @@ export const mockApi = {
     rider.suspensionReason = null;
     rider.suspendedAt = null;
     rider.suspendedBy = null;
-    rider.reinstatement = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
+    rider.reinstatement = { reason: recordedReason, note: note || null, by: actingAdmin().email, at };
 
     patch('riders', id, {
       status: 'active',
@@ -1208,6 +1274,8 @@ export const mockApi = {
   },
 
   cancelTrip(id, reason, note) {
+    const refused = refusedFor('trips.intervene');
+    if (refused) return refused;
     const trip = TRIPS_BY_ID.get(String(id));
     if (!trip) return Promise.reject(new MockApiError('Trip not found.', 404));
     if (!this.isInterveneable(trip)) {
@@ -1220,7 +1288,7 @@ export const mockApi = {
     const recordedReason = reason === 'Other' && note ? note : reason;
 
     trip.status = 'cancelled';
-    trip.cancellation = { reason: recordedReason, note: note || null, by: CURRENT_ADMIN.email, at };
+    trip.cancellation = { reason: recordedReason, note: note || null, by: actingAdmin().email, at };
     trip.stateHistory = [
       ...trip.stateHistory,
       { state: 'cancelled_by_admin', at, note: recordedReason },
@@ -1243,6 +1311,8 @@ export const mockApi = {
   },
 
   reassignTrip(id, driverId, reason, note) {
+    const refused = refusedFor('trips.intervene');
+    if (refused) return refused;
     const trip = TRIPS_BY_ID.get(String(id));
     if (!trip) return Promise.reject(new MockApiError('Trip not found.', 404));
     if (!this.isInterveneable(trip)) {
@@ -1336,6 +1406,13 @@ export const mockApi = {
 
   /** #1811: resolution is 'suspended' or 'dismissed'. */
   resolveSafetyReport(id, resolution, note) {
+    const refused = refusedFor('safety.handle');
+    if (refused) return refused;
+    // Acting against the rider (suspending her) is the Operations lead's (#6210).
+    if (resolution === 'suspended') {
+      const refusedAct = refusedFor('safety.actAgainst');
+      if (refusedAct) return refusedAct;
+    }
     const report = REPORTS_BY_ID.get(String(id));
     if (!report) return Promise.reject(new MockApiError('Report not found.', 404));
     if (report.status === 'resolved') {
@@ -1347,14 +1424,14 @@ export const mockApi = {
     report.resolution = resolution;
     report.resolutionNote = note || null;
     report.resolvedAt = Date.now();
-    report.resolvedBy = CURRENT_ADMIN.email;
+    report.resolvedBy = actingAdmin().email;
 
     if (rider) {
       if (resolution === 'suspended') {
         rider.status = 'suspended';
         rider.suspensionReason = note || 'Gender-mismatch report upheld';
         rider.suspendedAt = report.resolvedAt;
-        rider.suspendedBy = CURRENT_ADMIN.email;
+        rider.suspendedBy = actingAdmin().email;
       } else {
         // A dismissal is not a manual reinstatement: the resolved report is the
         // record, and the profile links to it.
@@ -1432,6 +1509,8 @@ export const mockApi = {
    * identically however it was raised.
    */
   actionSosCase(id, { suspendRider = false, suspendDriver = false, outcome = 'resolved', note } = {}) {
+    const refused = refusedFor('sos.act');
+    if (refused) return refused;
     const sosCase = SOS_CASES_BY_ID.get(String(id));
     if (!sosCase) return Promise.reject(new MockApiError('SOS case not found.', 404));
     if (sosCase.status === 'closed') {
@@ -1447,7 +1526,7 @@ export const mockApi = {
       rider.status = 'suspended';
       rider.suspensionReason = reason;
       rider.suspendedAt = now;
-      rider.suspendedBy = CURRENT_ADMIN.email;
+      rider.suspendedBy = actingAdmin().email;
       patch('riders', rider.id, {
         status: rider.status,
         suspensionReason: rider.suspensionReason,
@@ -1460,7 +1539,7 @@ export const mockApi = {
       driver.status = 'suspended';
       driver.suspensionReason = reason;
       driver.suspendedAt = now;
-      driver.suspendedBy = CURRENT_ADMIN.email;
+      driver.suspendedBy = actingAdmin().email;
       patch('drivers', driver.id, {
         status: driver.status,
         suspensionReason: driver.suspensionReason,
@@ -1482,7 +1561,7 @@ export const mockApi = {
     sosCase.outcome = recorded;
     sosCase.resolutionNote = note || null;
     sosCase.closedAt = now;
-    sosCase.closedBy = CURRENT_ADMIN.email;
+    sosCase.closedBy = actingAdmin().email;
 
     patch('sosCases', id, {
       status: sosCase.status,
@@ -1535,6 +1614,8 @@ export const mockApi = {
   },
 
   createZone({ name, polygon }) {
+    const refused = refusedFor('zones.edit');
+    if (refused) return refused;
     const clash = ZONES.some((z) => z.name.toLowerCase() === String(name).trim().toLowerCase());
     if (clash) {
       return Promise.reject(new MockApiError('A zone with this name already exists.', 409));
@@ -1545,7 +1626,7 @@ export const mockApi = {
       rateCard: null,
       polygon,
       centre: polygonCentre(polygon),
-      createdBy: CURRENT_ADMIN.email,
+      createdBy: actingAdmin().email,
       createdAt: Date.now(),
     };
     const zone = makeZone(spec);
@@ -1556,6 +1637,8 @@ export const mockApi = {
   },
 
   updateZone(id, { name, polygon }) {
+    const refused = refusedFor('zones.edit');
+    if (refused) return refused;
     const zone = ZONES_BY_ID.get(String(id));
     if (!zone) return Promise.reject(new MockApiError('Zone not found.', 404));
     const clash = ZONES.some(
@@ -1574,6 +1657,8 @@ export const mockApi = {
   },
 
   deleteZone(id) {
+    const refused = refusedFor('zones.edit');
+    if (refused) return refused;
     const index = ZONES.findIndex((z) => String(z.id) === String(id));
     if (index === -1) return Promise.reject(new MockApiError('Zone not found.', 404));
     ZONES.splice(index, 1);
@@ -1584,6 +1669,8 @@ export const mockApi = {
 
   /** #1757: saving a valid rate card is what makes a zone Active. */
   saveRateCard(id, rateCard) {
+    const refused = refusedFor('pricing.request');
+    if (refused) return refused;
     const zone = ZONES_BY_ID.get(String(id));
     if (!zone) return Promise.reject(new MockApiError('Zone not found.', 404));
     if (Number(rateCard.minFare) < Number(rateCard.baseFare)) {
@@ -1612,6 +1699,8 @@ export const mockApi = {
   },
 
   removeRateCard(id) {
+    const refused = refusedFor('pricing.request');
+    if (refused) return refused;
     const zone = ZONES_BY_ID.get(String(id));
     if (!zone) return Promise.reject(new MockApiError('Zone not found.', 404));
     if (pendingFor('zone', zone.id, 'rate_card')) {
@@ -1631,52 +1720,73 @@ export const mockApi = {
       ...structuredClone(GLOBAL_POLICIES),
       // A commission change waits for approval (§1); the screen shows it as pending.
       pendingCommission: pendingSummary(pendingFor('policy', 'commission', 'commission')),
+      pendingCancellation: pendingSummary(pendingFor('policy', 'cancellation', 'cancellation_policy')),
+      pendingBalanceLimit: pendingSummary(pendingFor('policy', 'balance-limit', 'balance_limit')),
     };
     return respond(payload, { emptyValue: payload });
   },
 
+  /**
+   * #5623 / #6212: commission, the cancellation policy and the driver balance
+   * limit each become a request a Financial lead makes and another approves —
+   * nothing changes until then. Operating hours (#6268) save immediately and
+   * are the Operations lead's. Every part is checked against the role first, so
+   * a mixed save never half-applies.
+   */
   savePolicies(next) {
-    let request = null;
+    const role = actingAdmin().role;
+    const wantsPricing = Boolean(next.commission || next.cancellation || next.driverBalance);
+    if ((wantsPricing && !can('pricing.request', role)) || (next.operatingHours && !can('hours.edit', role))) {
+      return Promise.reject(new MockApiError("Your role can't do this. Nothing was changed.", 403));
+    }
+
+    const strip = ({ updatedAt, updatedBy, ...rest }) => rest;
+    const changes = [];
     if (next.commission && Number(next.commission.percentage) !== Number(GLOBAL_POLICIES.commission.percentage)) {
-      if (pendingFor('policy', 'commission', 'commission')) {
-        return Promise.reject(new MockApiError('A commission change is already awaiting approval.', 409));
-      }
       const percentage = Number(next.commission.percentage);
-      request = createRequest('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
-        before: { percentage: GLOBAL_POLICIES.commission.percentage },
-        after: { percentage },
-        payload: { percentage },
-      });
+      changes.push(['commission', 'commission', 'Platform commission',
+        { percentage: GLOBAL_POLICIES.commission.percentage }, { percentage }, { percentage }]);
     }
-    // Commission never applies on save — only through the request above.
-    next = { ...next, commission: undefined };
     if (next.cancellation) {
-      Object.assign(GLOBAL_POLICIES.cancellation, next.cancellation, {
-        updatedAt: Date.now(),
-        updatedBy: CURRENT_ADMIN.email,
-      });
+      const before = strip(GLOBAL_POLICIES.cancellation);
+      const after = { ...before, ...next.cancellation };
+      if (Object.keys(after).some((k) => Number(after[k]) !== Number(before[k]))) {
+        changes.push(['cancellation_policy', 'cancellation', 'Cancellation policy', before, after, { cancellation: after }]);
+      }
     }
-    if (next.commission) {
-      Object.assign(GLOBAL_POLICIES.commission, next.commission, {
-        updatedAt: Date.now(),
-        updatedBy: CURRENT_ADMIN.email,
-      });
+    if (next.driverBalance && Number(next.driverBalance.outstandingLimit) !== Number(GLOBAL_POLICIES.driverBalance.outstandingLimit)) {
+      const before = { outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit };
+      const after = { outstandingLimit: Number(next.driverBalance.outstandingLimit) };
+      changes.push(['balance_limit', 'balance-limit', 'Driver balance limit', before, after, { driverBalance: after }]);
     }
-    if (next.driverBalance) {
-      Object.assign(GLOBAL_POLICIES.driverBalance, next.driverBalance, {
-        updatedAt: Date.now(),
-        updatedBy: CURRENT_ADMIN.email,
-      });
+    const busy = changes.find(([type, id]) => pendingFor('policy', id, type));
+    if (busy) {
+      return Promise.reject(new MockApiError('A change to this setting is already awaiting approval.', 409));
     }
-    // Operating hours apply on save, like the dispatch setting — no approval.
+    const requests = changes.map(([type, id, label, before, after, payload]) =>
+      createRequest(type, { kind: 'policy', id, label }, { before, after, payload }),
+    );
+
+    // Operating hours apply on save, with no approval (#6268), and are audited.
     if (next.operatingHours) {
-      Object.assign(GLOBAL_POLICIES.operatingHours, next.operatingHours, {
-        updatedAt: Date.now(),
-        updatedBy: CURRENT_ADMIN.email,
-      });
+      const before = { opensAt: GLOBAL_POLICIES.operatingHours.opensAt, closesAt: GLOBAL_POLICIES.operatingHours.closesAt };
+      const after = { opensAt: next.operatingHours.opensAt, closesAt: next.operatingHours.closesAt };
+      if (before.opensAt !== after.opensAt || before.closesAt !== after.closesAt) {
+        Object.assign(GLOBAL_POLICIES.operatingHours, after, {
+          updatedAt: Date.now(),
+          updatedBy: actingAdmin().email,
+        });
+        makeAuditEntry('operating hours changed', 'policy', 'operating-hours', before, after);
+      }
     }
     recordPolicies(structuredClone(GLOBAL_POLICIES));
-    return respond({ ok: true, pending: Boolean(request), request: request ? decorateRequest(request) : null });
+    const decorated = requests.map(decorateRequest);
+    return respond({
+      ok: true,
+      pending: decorated.length > 0,
+      requests: decorated,
+      request: decorated[0] ?? null,
+    });
   },
 
   // ── Driver balance ledger (#TBD-A / #1813) ──────────
@@ -1758,7 +1868,7 @@ export const mockApi = {
         balance: driver.balance,
         goOnlineBlocked: isGoOnlineBlocked(driver),
         payoutMethod: driver.payoutMethod
-          ? { type: driver.payoutMethod.type, provider: driver.payoutMethod.provider, number: driver.payoutMethod.number }
+          ? { type: driver.payoutMethod.type, provider: driver.payoutMethod.provider, number: driver.payoutMethod.number, holderName: driver.payoutMethod.holderName }
           : null,
         lastPayoutFailure: driver.lastPayoutFailure ?? null,
         position: payoutPosition(driver),
@@ -1775,6 +1885,8 @@ export const mockApi = {
    * Posts a `settlement` credit; never edits the balance directly.
    */
   recordSettlement(driverId, { amount, date, method, note = '', proof = null } = {}) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
@@ -1810,6 +1922,8 @@ export const mockApi = {
    * oldest due entries first, up to the amount.
    */
   recordPayout(driverId, { amount, date, reference, proof = null } = {}) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
 
@@ -1905,30 +2019,29 @@ export const mockApi = {
 
   // ── Maker-checker (2026-10-14 spec §1) ──────────────
 
-  /** Demo only: who is acting, and the switch to act as a second admin. */
+  /** The admin account behind the session, with its role (#6210). Sync. */
   getActingAdmin() {
     const admin = actingAdmin();
-    return { email: admin.email, isSignedInAdmin: admin.email === CURRENT_ADMIN.email, signedIn: CURRENT_ADMIN.email };
+    return { email: admin.email, role: admin.role ?? null };
   },
 
-  setActingAdmin(email = null) {
-    try {
-      if (email && email !== CURRENT_ADMIN.email) sessionStorage.setItem(ACTING_KEY, email);
-      else sessionStorage.removeItem(ACTING_KEY);
-    } catch {
-      // storage blocked — the switch simply does not stick
-    }
-    return this.getActingAdmin();
+  /** Sync lookup for the demo role switch: an account by email. */
+  adminByEmail(email) {
+    const admin = ADMINS.find((a) => a.email.toLowerCase() === String(email ?? '').toLowerCase());
+    return admin ? { ...admin } : null;
   },
 
-  /** Other active admins the demo switch can act as. */
-  listCheckers() {
-    return ADMINS.filter((a) => a.status === 'active' && a.email !== CURRENT_ADMIN.email).map((a) => a.email);
+  /** Sync: active accounts, for the demo role switch in the top bar. */
+  listActiveAdmins() {
+    return ADMINS.filter((a) => a.status === 'active').map((a) => ({ email: a.email, role: a.role ?? null }));
   },
 
   /** Sync — the sidebar badge reads it on every render (ad-shell NAV_COUNTS). */
   pendingApprovalCount() {
-    return APPROVALS.filter((a) => a.status === 'pending').length;
+    const me = actingAdmin();
+    // #6212 — a Financial officer's count is her own pending requests.
+    const ownOnly = me.role === 'fin_officer';
+    return APPROVALS.filter((a) => a.status === 'pending' && (!ownOnly || a.maker === me.email)).length;
   },
 
   /**
@@ -1938,6 +2051,8 @@ export const mockApi = {
    */
   listApprovals({ status = 'pending', madeBy = 'all', area = 'all', type = 'all', page = 1, pageSize = 20, sort = null } = {}) {
     const me = actingAdmin().email;
+    // #6212 — a Financial officer sees only her own requests.
+    if (actingAdmin().role === 'fin_officer') madeBy = 'mine';
     const areaTypes = APPROVAL_AREAS[area] ?? null;
     const rows = APPROVALS.filter((a) => (status === 'pending' ? a.status === 'pending' : a.status !== 'pending'))
       .filter((a) => madeBy === 'all' || (madeBy === 'mine' ? a.maker === me : a.maker !== me))
@@ -1983,6 +2098,8 @@ export const mockApi = {
   },
 
   approveRequest(id) {
+    const refused = refusedFor('finance.approve');
+    if (refused) return refused;
     const request = APPROVALS_BY_ID.get(String(id));
     if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
     if (request.status !== 'pending') {
@@ -1990,7 +2107,7 @@ export const mockApi = {
     }
     const actor = actingAdmin();
     if (request.maker === actor.email) {
-      return Promise.reject(new MockApiError('You made this request, so another admin must approve it.', 403));
+      return Promise.reject(new MockApiError('You made this request, so another Financial lead must approve it.', 403));
     }
     EXECUTE[request.type]?.(request);
     patchApproval(request, { status: 'approved', checker: actor.email, decidedAt: Date.now() });
@@ -1999,6 +2116,8 @@ export const mockApi = {
   },
 
   rejectRequest(id, reason) {
+    const refused = refusedFor('finance.approve');
+    if (refused) return refused;
     const request = APPROVALS_BY_ID.get(String(id));
     if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
     if (request.status !== 'pending') {
@@ -2006,7 +2125,7 @@ export const mockApi = {
     }
     const actor = actingAdmin();
     if (request.maker === actor.email) {
-      return Promise.reject(new MockApiError('You made this request, so another admin must decide it.', 403));
+      return Promise.reject(new MockApiError('You made this request, so another Financial lead must decide it.', 403));
     }
     const text = String(reason ?? '').trim();
     if (text.length < 10 || text.length > 500) {
@@ -2046,6 +2165,8 @@ export const mockApi = {
 
   /** An admin editing it on her behalf is a request (§2); her own change in the app is not. */
   requestPayoutMethodChange(driverId, method) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
     const clean = {
@@ -2097,6 +2218,8 @@ export const mockApi = {
   },
 
   createPayoutBatch() {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const now = Date.now();
     const drivers = DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status));
     const ref = makeBatchRef(now);
@@ -2171,6 +2294,8 @@ export const mockApi = {
 
   /** The bank file (§3). Exporting an approved batch moves it to Sent to bank; later downloads are copies. */
   exportPayoutBatch(id) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
     if (['pending_approval', 'rejected'].includes(batch.status)) {
@@ -2206,6 +2331,8 @@ export const mockApi = {
    * SUCCESS or FAILED. A valid file becomes a `payout_result` request.
    */
   importPayoutResult(id, csvText) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
     if (batch.status !== 'sent_to_bank') {
@@ -2332,8 +2459,12 @@ export const mockApi = {
         paymentRef: row.payment_reference,
         status: 'ready',
       };
+      // #5620 Field Validation: payment_date not in the future; payment_channel one of the four.
+      const future = /^\d{4}-\d{2}-\d{2}$/.test(row.payment_date ?? '') && row.payment_date > localDay();
       if (!driver) out.status = 'unknown_driver';
       else if (!row.payment_reference || usedRefs.has(row.payment_reference) || fileRefs.has(row.payment_reference)) out.status = 'duplicate';
+      else if (future) out.status = 'future_date';
+      else if (!SETTLEMENT_CHANNELS.includes(row.payment_channel)) out.status = 'bad_channel';
       if (row.payment_reference) fileRefs.add(row.payment_reference);
       if (driver) {
         const before = running.has(driver.id) ? running.get(driver.id) : driver.balance;
@@ -2359,6 +2490,8 @@ export const mockApi = {
 
   /** Submit the ready rows as one `settlement_import` request. */
   submitSettlementImport({ fileName = 'settlements.csv', rows = [] } = {}) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const ready = rows.filter((r) => r.status === 'ready');
     if (!ready.length) return Promise.reject(new MockApiError('There are no ready rows to import.', 422));
     const imp = {
@@ -2384,7 +2517,7 @@ export const mockApi = {
     return respond({ ok: true, import: { id: imp.id }, request: decorateRequest(request) });
   },
 
-  listSettlementImports({ page = 1, pageSize = 20 } = {}) {
+  listSettlementImports({ page = 1, pageSize = 20, sort = null } = {}) {
     const rows = SETTLEMENT_IMPORTS.map((i) => ({
       id: i.id,
       fileName: i.fileName,
@@ -2397,7 +2530,8 @@ export const mockApi = {
       readyRows: i.readyRows,
       amount: i.amount,
     }));
-    return respond(paginate(rows, page, pageSize), { emptyValue: emptyPage(pageSize) });
+    const sorted = sortRows(rows, sort, { key: 'createdAt', dir: 'desc' });
+    return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
   /** The approval request behind a subject (batch / import / driver …), newest first, or null. */
@@ -2414,6 +2548,8 @@ export const mockApi = {
   // ── Fee waiver (§5) ─────────────────────────────────
 
   requestFeeWaiver(riderId, entryId, reason) {
+    const refused = refusedFor('finance.request');
+    if (refused) return refused;
     const rider = RIDERS_BY_ID.get(String(riderId));
     if (!rider) return Promise.reject(new MockApiError('Rider not found.', 404));
     const fee = RIDER_LEDGER_ENTRIES.find((e) => e.id === entryId && e.riderId === String(riderId));
@@ -2643,6 +2779,7 @@ export const mockApi = {
   } = {}) {
     const filtered = AUDIT_ENTRIES.filter(
       (entry) =>
+        auditVisible(entry) &&
         (actor === 'all' || entry.actor === actor) &&
         (actionType === 'all' || entry.actionType === actionType) &&
         (!target ||
@@ -2654,25 +2791,42 @@ export const mockApi = {
     return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
+  /** Sync — #6210: whether the signed-in role may read this audit entry, and its scope name. */
+  auditEntryVisible(entry) {
+    return auditVisible(entry);
+  },
+
+  auditScope() {
+    return AUDIT_SCOPE[actingAdmin().role] ?? null;
+  },
+
   // ── Admin users (#1807, #1820, #1821) ───────────────
 
-  listAdmins({ search = '', status = 'all', page = 1, pageSize = 20, sort } = {}) {
+  listAdmins({ search = '', status = 'all', role = 'all', page = 1, pageSize = 20, sort } = {}) {
     const filtered = ADMINS.filter(
       (admin) =>
-        matchesText(admin.email, search) && (status === 'all' || admin.status === status),
+        matchesText(admin.email, search) &&
+        (status === 'all' || admin.status === status) &&
+        (role === 'all' || (admin.role ?? 'none') === role),
     );
     const sorted = sortRows(filtered, sort, { key: 'createdAt', dir: 'desc' });
     return respond(paginate(sorted, page, pageSize), { emptyValue: emptyPage(pageSize) });
   },
 
-  createAdmin({ email }) {
+  createAdmin({ email, role }) {
+    const refused = refusedFor('admins.manage');
+    if (refused) return refused;
     const normalised = String(email).trim().toLowerCase();
+    if (!ROLE_VALUES.includes(role)) {
+      return Promise.reject(new MockApiError('Choose a role.', 422));
+    }
     if (ADMINS.some((a) => a.email.toLowerCase() === normalised)) {
       return Promise.reject(new MockApiError('An admin with this email already exists.', 409));
     }
     const admin = {
       id: Date.now(),
       email: normalised,
+      role,
       status: 'active',
       createdAt: Date.now(),
       lastLoginAt: null,
@@ -2680,20 +2834,127 @@ export const mockApi = {
     };
     ADMINS.unshift(admin);
     recordAdminCreate(admin);
+    makeAuditEntry('admin-account change', 'admin', admin.id, { exists: false }, { email: admin.email, role, status: 'active' });
     return respond({ ok: true, id: admin.id });
   },
 
   setAdminStatus(id, status) {
-    const admin = ADMINS.find((a) => String(a.id) === String(id));
-    if (!admin) return Promise.reject(new MockApiError('Admin not found.', 404));
-    if (String(admin.id) === String(CURRENT_ADMIN.id) && status === 'disabled') {
-      return Promise.reject(new MockApiError('You cannot disable your own account.', 422));
-    }
-    admin.status = status;
+    const target = adminForChange(id);
+    if (target instanceof Promise) return target;
+    const before = target.status;
+    target.status = status;
     patch('admins', id, { status });
+    makeAuditEntry('admin-account change', 'admin', target.id, { status: before }, { status });
     return respond({ ok: true, status });
   },
+
+  /** #6211 — one Admin (users & IT) decides alone; no second approval. */
+  changeAdminRole(id, role) {
+    const target = adminForChange(id);
+    if (target instanceof Promise) return target;
+    if (!ROLE_VALUES.includes(role)) return Promise.reject(new MockApiError('Choose a role.', 422));
+    const before = target.role ?? null;
+    if (before === role) return Promise.reject(new MockApiError('The account already has this role.', 422));
+    target.role = role;
+    patch('admins', target.id, { role });
+    // Finance requests she already made stay pending as they are.
+    makeAuditEntry('role changed', 'admin', target.id, { role: before }, { role });
+    return respond({ ok: true, role });
+  },
+
+  /** #4122 — soft delete: the account is gone from the list, its history stays. */
+  deleteAdmin(id) {
+    const target = adminForChange(id);
+    if (target instanceof Promise) return target;
+    const before = target.status;
+    const fields = { status: 'deleted', deletedAt: Date.now(), deletedBy: actingAdmin().email };
+    Object.assign(target, fields);
+    patch('admins', target.id, fields);
+    makeAuditEntry('admin-account change', 'admin', target.id, { status: before }, { status: 'deleted' });
+    return respond({ ok: true });
+  },
+
+  /** #1822 — she sets a new password at her next sign-in. */
+  resetAdminPassword(id) {
+    const target = adminForChange(id);
+    if (target instanceof Promise) return target;
+    makeAuditEntry('password reset', 'admin', target.id, {}, { email: target.email });
+    return respond({ ok: true });
+  },
+
+  /** #6211 — authenticator and recovery codes removed, sessions ended; she enrols again at next sign-in. */
+  resetAdminTwoFactor(id) {
+    const target = adminForChange(id);
+    if (target instanceof Promise) return target;
+    target.twoFactorEnrolled = false;
+    patch('admins', target.id, { twoFactorEnrolled: false });
+    makeAuditEntry('two-factor reset', 'admin', target.id, { twoFactor: 'enrolled' }, { twoFactor: 'removed' });
+    return respond({ ok: true });
+  },
+
+  /**
+   * #6211 — what a role change, suspension or deletion of this account would
+   * leave: 'one' active Financial lead, 'none', or null when two or more remain
+   * (or the account is not an active Financial lead). Sync.
+   */
+  financialLeadWarning(id, nextRole = null) {
+    const target = ADMINS.find((a) => String(a.id) === String(id));
+    if (!target || target.role !== 'fin_lead' || target.status !== 'active' || nextRole === 'fin_lead') return null;
+    const left = ADMINS.filter((a) => a.status === 'active' && a.role === 'fin_lead' && a !== target).length;
+    if (left === 0) return 'none';
+    if (left === 1) return 'one';
+    return null;
+  },
 };
+
+const ROLE_VALUES = ['admin_it', 'ops_officer', 'ops_lead', 'fin_officer', 'fin_lead'];
+
+/** #6211 — only Admin (users & IT), never on her own account. Returns the record or a rejection. */
+function adminForChange(id) {
+  const refused = refusedFor('admins.manage');
+  if (refused) return refused;
+  const target = ADMINS.find((a) => String(a.id) === String(id));
+  if (!target || target.status === 'deleted') return Promise.reject(new MockApiError('Admin not found.', 404));
+  if (target.email === actingAdmin().email) {
+    return Promise.reject(new MockApiError('You cannot change your own account.', 422));
+  }
+  return target;
+}
+
+// ── Audit log scope (#6210) ───────────────────────────
+// Admin (users & IT) reads every entry. The Operations lead reads driver
+// applications, rider and driver suspensions, safety reports, zones, the
+// dispatch setting and operating hours. The Financial lead reads finance
+// requests and their decisions, settlements, payouts, settlement imports, fee
+// waivers, payout methods and pricing.
+
+const FINANCE_AUDIT_ACTIONS = new Set([
+  'approval requested', 'approval approved', 'approval rejected', 'settlement', 'payout',
+  'payout batch exported', 'payout result imported', 'fee waived', 'payout method changed', 'pricing change',
+]);
+const OPS_POLICY_IDS = new Set(['operating-hours', 'dispatch']);
+
+function isOperationsEntry(e) {
+  if (e.targetType === 'driver') return ['approve', 'reject', 'suspend', 'reinstate'].includes(e.actionType);
+  if (e.targetType === 'rider') return ['suspend', 'reinstate'].includes(e.actionType);
+  if (e.targetType === 'safety_report') return true;
+  if (e.targetType === 'zone') return !FINANCE_AUDIT_ACTIONS.has(e.actionType);
+  if (e.targetType === 'policy') return OPS_POLICY_IDS.has(String(e.targetId));
+  return false;
+}
+
+function isFinanceEntry(e) {
+  if (e.targetType === 'policy' && OPS_POLICY_IDS.has(String(e.targetId))) return false;
+  return FINANCE_AUDIT_ACTIONS.has(e.actionType);
+}
+
+function auditVisible(entry) {
+  const scope = AUDIT_SCOPE[actingAdmin().role];
+  if (scope === 'all') return true;
+  if (scope === 'operations') return isOperationsEntry(entry);
+  if (scope === 'finance') return isFinanceEntry(entry);
+  return false;
+}
 
 // ── Internals ─────────────────────────────────────────
 

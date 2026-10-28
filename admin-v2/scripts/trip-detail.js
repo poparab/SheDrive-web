@@ -36,6 +36,7 @@ import {
   humanize,
 } from './format.js';
 import { t, hasKey, applyAdminTranslations } from './admin-i18n.js';
+import { can } from './roles.js';
 import { loadWithBanner } from './page-banner.js';
 import { loadBootstrap } from './design-init.js';
 import { reasonKey } from '../i18n/details.js';
@@ -427,8 +428,10 @@ function render(trip) {
   }
 
   // ── Intervention actions (#1671 S5) — in-progress only ──
-  qs('#actions-section').hidden = !isInProgress;
-  if (isInProgress) {
+  // #6210 — trip detail is View for every role, so the actions are not rendered.
+  const canIntervene = isInProgress && can('trips.intervene');
+  qs('#actions-section').hidden = !canIntervene;
+  if (canIntervene) {
     qs('#intervention-hint').textContent = trip.driverId
       ? t('tripDetail.interventionHint')
       : t('tripDetail.interventionHintNoDriver');

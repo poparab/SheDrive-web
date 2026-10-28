@@ -19,9 +19,10 @@
 import { adminAuth } from './admin-auth.js';
 import { mockAuth } from './mock-api.js';
 import { ADMINS, CURRENT_ADMIN } from './seed.js';
-import { formatDateTime, humanize } from './format.js';
+import { formatDateTime } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { roleLabelKey } from './roles.js';
 import { queueToast } from '../components/ad-toast.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -62,7 +63,8 @@ function setHtml(id, value) {
 // ── Account ───────────────────────────────────────────
 
 setText('account-email', record.email);
-setText('account-role', humanize(session?.role ?? 'super_admin'));
+// #6210 — the account's role by name.
+setText('account-role', t(roleLabelKey(session?.role ?? null)));
 
 setHtml(
   'account-status',

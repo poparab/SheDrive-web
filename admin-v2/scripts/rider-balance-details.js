@@ -21,6 +21,7 @@ import { createRequestGuard } from './request-guard.js';
 import { formatDate, formatEgp } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { loadBootstrap } from './design-init.js';
 
@@ -305,6 +306,8 @@ ledgerTable.columns = [
         link.appendChild(statusChip('status-pending', 'fa-regular fa-hourglass-half', t('riderBalancesFinance.waiverPending')));
         return link;
       }
+      // #6210 — the Operations lead sees rider fees read-only.
+      if (!can('finance.request')) return null;
       const button = el('button', 'btn grid-options-btn approved-icon');
       button.type = 'button';
       button.title = t('riderBalancesFinance.waive');

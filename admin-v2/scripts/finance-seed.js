@@ -27,6 +27,15 @@ import {
 
 const { generatedAt: NOW, MINUTE, HOUR, DAY } = SEED_META;
 
+// Who makes and decides finance requests (#6210 / #6212): Financial officers
+// (Mona, finance@) and Financial leads (Hala, Nour) make them; only a lead
+// decides, never on her own request.
+const byEmail = (email) => ADMINS.find((a) => a.email === email);
+const NOUR = byEmail('nour.hassan@shedrive.app');
+const HALA = byEmail('hala.mahmoud@shedrive.app');
+const MONA = byEmail('mona.adel@shedrive.app');
+const FIN_OFFICER = byEmail('finance@shedrive.app');
+
 // Own deterministic stream, so the base seed's sequence is untouched.
 let s = 20261014;
 const rand = () => {
@@ -132,8 +141,8 @@ export const PAYOUT_BATCHES = [];
 // Two completed batches, built from payouts already on the ledger so a paid
 // line and its `payout` entry agree.
 [
-  { from: 16, to: 9, maker: ADMINS[1], checker: ADMINS[2] },
-  { from: 9, to: 2, maker: ADMINS[2], checker: ADMINS[1] },
+  { from: 16, to: 9, maker: MONA, checker: NOUR },
+  { from: 9, to: 2, maker: FIN_OFFICER, checker: HALA },
 ].forEach(({ from, to, maker, checker }) => {
   const payouts = LEDGER_ENTRIES.filter(
     (e) => e.type === 'payout' && e.at <= NOW - to * DAY && e.at > NOW - from * DAY && findDriver(e.driverId)?.payoutMethod,
@@ -203,11 +212,11 @@ export const PAYOUT_BATCHES = [];
       ref,
       status: 'sent_to_bank',
       createdAt,
-      createdBy: ADMINS[2].email,
-      approvedBy: ADMINS[1].email,
+      createdBy: MONA.email,
+      approvedBy: NOUR.email,
       approvedAt: createdAt + HOUR,
       exportedAt: createdAt + 90 * MINUTE,
-      exportedBy: ADMINS[2].email,
+      exportedBy: MONA.email,
       resultImportedAt: null,
       resultImportedBy: null,
       completedAt: null,
@@ -274,9 +283,9 @@ export const SETTLEMENT_IMPORTS = [];
       fileName: 'finance-settlements-week-37.csv',
       status: 'approved',
       createdAt: at,
-      createdBy: ADMINS[1].email,
+      createdBy: NOUR.email,
       decidedAt: at + 3 * HOUR,
-      decidedBy: ADMINS[0].email,
+      decidedBy: HALA.email,
       totalRows: rows.length + 1,
       readyRows: rows.length,
       rows,
@@ -348,7 +357,7 @@ function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 })
   };
   if (status === 'result_pending') {
     Object.assign(batch, {
-      approvedBy: ADMINS[1].email,
+      approvedBy: NOUR.email,
       approvedAt: createdAt + HOUR,
       exportedAt: createdAt + 2 * HOUR,
       exportedBy: maker.email,
@@ -364,10 +373,10 @@ function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 })
 }
 
 const REVIEW_BATCHES = {
-  small: reviewBatch({ count: 12, createdAt: NOW - 3 * HOUR, maker: ADMINS[2], status: 'pending_approval', offset: 0 }),
-  hundred: reviewBatch({ count: 100, createdAt: NOW - 2 * HOUR, maker: ADMINS[1], status: 'pending_approval', offset: 100 }),
-  thousand: reviewBatch({ count: 1000, createdAt: NOW - 90 * MINUTE, maker: ADMINS[2], status: 'pending_approval', offset: 1000 }),
-  result: reviewBatch({ count: 100, createdAt: NOW - 2 * DAY, maker: ADMINS[1], status: 'result_pending', offset: 3000, failEvery: 16 }),
+  small: reviewBatch({ count: 12, createdAt: NOW - 3 * HOUR, maker: MONA, status: 'pending_approval', offset: 0 }),
+  hundred: reviewBatch({ count: 100, createdAt: NOW - 2 * HOUR, maker: NOUR, status: 'pending_approval', offset: 100 }),
+  thousand: reviewBatch({ count: 1000, createdAt: NOW - 90 * MINUTE, maker: MONA, status: 'pending_approval', offset: 1000 }),
+  result: reviewBatch({ count: 100, createdAt: NOW - 2 * DAY, maker: NOUR, status: 'result_pending', offset: 3000, failEvery: 16 }),
 };
 PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
 
@@ -393,7 +402,7 @@ if (owingForImport.length) {
     fileName: 'finance-settlements-week-43.csv',
     status: 'pending',
     createdAt: at,
-    createdBy: ADMINS[3].email,
+    createdBy: FIN_OFFICER.email,
     decidedAt: null,
     decidedBy: null,
     totalRows: rows.length + 1,
@@ -418,6 +427,8 @@ export const APPROVAL_TYPES = [
   'payout_method',
   'rate_card',
   'commission',
+  'cancellation_policy',
+  'balance_limit',
 ];
 
 /**
@@ -427,7 +438,7 @@ export const APPROVAL_TYPES = [
 export const APPROVAL_AREAS = {
   payouts: ['payout_batch', 'payout_result', 'payout', 'settlement', 'settlement_import'],
   fees: ['fee_waiver'],
-  pricing: ['rate_card', 'commission'],
+  pricing: ['rate_card', 'commission', 'cancellation_policy', 'balance_limit'],
   drivers: ['payout_method'],
 };
 
@@ -471,7 +482,7 @@ export const APPROVALS = [];
       after: { success: paid.length, failed: b.lines.length - paid.length },
       amount: round2(paid.reduce((t, l) => t + l.amount, 0)),
       payload: { batchId: b.id }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
-      status: 'approved', checker: ADMINS[0].email, decidedAt: b.completedAt,
+      status: 'approved', checker: HALA.email, decidedAt: b.completedAt,
     }));
   });
 
@@ -485,7 +496,7 @@ export const APPROVALS = [];
   APPROVALS.push(makeApproval('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
     before: { percentage: GLOBAL_POLICIES.commission.percentage }, after: { percentage: 20 },
     payload: { percentage: 20 },
-    maker: ADMINS[2].email, madeAt: NOW - 6 * DAY, status: 'rejected', checker: ADMINS[0].email,
+    maker: NOUR.email, madeAt: NOW - 6 * DAY, status: 'rejected', checker: HALA.email,
     decidedAt: NOW - 6 * DAY + 4 * HOUR, rejectReason: 'Commission stays at 18% until the quarterly review.',
   }));
 
@@ -505,7 +516,7 @@ export const APPROVALS = [];
     const after = { ...before, perKm: round2(before.perKm + 0.5), minFare: before.minFare + 5 };
     APPROVALS.push(makeApproval('rate_card', { kind: 'zone', id: String(zone.id), label: zone.name }, {
       before, after, payload: { zoneId: String(zone.id), rateCard: after },
-      maker: ADMINS[2].email, madeAt: NOW - 5 * HOUR,
+      maker: NOUR.email, madeAt: NOW - 5 * HOUR,
     }));
   }
 
@@ -515,7 +526,7 @@ export const APPROVALS = [];
     APPROVALS.push(makeApproval('fee_waiver', { kind: 'rider', id: String(feeRider.id), label: feeRider.name }, {
       before: { fee: -fee.amount }, after: { fee: 0 }, amount: -fee.amount,
       payload: { riderId: String(feeRider.id), entryId: fee.id, tripId: fee.tripId, reason: 'Driver waited at the wrong pickup point; the rider cancelled after 6 minutes.' },
-      maker: ADMINS[3].email, madeAt: NOW - 2 * HOUR,
+      maker: FIN_OFFICER.email, madeAt: NOW - 2 * HOUR,
     }));
   }
 
@@ -525,7 +536,7 @@ export const APPROVALS = [];
     APPROVALS.push(makeApproval('settlement', { kind: 'driver', id: String(d.id), label: d.name }, {
       before: { balance: d.balance }, after: { balance: 0 }, amount: -d.balance,
       payload: { driverId: String(d.id), amount: -d.balance, method: 'Field agent', date: null, note: 'Cash collected by field agent', proof: null },
-      maker: ADMINS[1].email, madeAt: NOW - 40 * MINUTE,
+      maker: NOUR.email, madeAt: NOW - 40 * MINUTE,
     }));
   }
 
@@ -563,7 +574,7 @@ export const APPROVALS = [];
     APPROVALS.push(makeApproval('payout', { kind: 'driver', id: String(payoutDriver.id), label: payoutDriver.name }, {
       before: { balance: payoutDriver.balance }, after: { balance: round2(payoutDriver.balance - amount) }, amount,
       payload: { driverId: String(payoutDriver.id), amount, at: NOW - 3 * HOUR, reference: `INSTAPAY-${digits2(10)}`, proof: null },
-      maker: ADMINS[3].email, madeAt: NOW - 25 * MINUTE,
+      maker: FIN_OFFICER.email, madeAt: NOW - 25 * MINUTE,
     }));
   }
 
@@ -575,7 +586,7 @@ export const APPROVALS = [];
       before: { type: m.type, provider: m.provider ?? '—', number: m.number, holderName: m.holderName },
       after: { type: method.type, provider: method.provider, number: method.number, holderName: method.holderName },
       payload: { driverId: String(switching.id), method },
-      maker: ADMINS[2].email, madeAt: NOW - 55 * MINUTE,
+      maker: MONA.email, madeAt: NOW - 55 * MINUTE,
     }));
   }
 
@@ -583,8 +594,27 @@ export const APPROVALS = [];
     before: { percentage: GLOBAL_POLICIES.commission.percentage },
     after: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
     payload: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
-    maker: ADMINS[1].email, madeAt: NOW - 4 * HOUR,
+    maker: HALA.email, madeAt: NOW - 4 * HOUR,
   }));
+
+  // #6212 — the cancellation policy and the balance limit wait for approval too.
+  // Added last so every earlier request keeps its id (APR-0019, APR-0020).
+  {
+    const { updatedAt, updatedBy, ...current } = GLOBAL_POLICIES.cancellation;
+    const next = { ...current, driverCancellationFee: current.driverCancellationFee + 5 };
+    APPROVALS.push(makeApproval('cancellation_policy', { kind: 'policy', id: 'cancellation', label: 'Cancellation policy' }, {
+      before: current, after: next, payload: { cancellation: next },
+      maker: NOUR.email, madeAt: NOW - 70 * MINUTE,
+    }));
+  }
+  {
+    const current = { outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit };
+    const next = { outstandingLimit: current.outstandingLimit + 100 };
+    APPROVALS.push(makeApproval('balance_limit', { kind: 'policy', id: 'balance-limit', label: 'Driver balance limit' }, {
+      before: current, after: next, payload: { driverBalance: next },
+      maker: NOUR.email, madeAt: NOW - 35 * MINUTE,
+    }));
+  }
 
   APPROVALS.sort((a, b) => b.madeAt - a.madeAt);
 }

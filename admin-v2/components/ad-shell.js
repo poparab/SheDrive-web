@@ -28,7 +28,17 @@
  * screen markup, ids, and ARIA attributes all survive.
  */
 
-import { NAV_SECTIONS } from '../scripts/nav.js';
+import { NAV_SECTIONS, NAV_INDEX } from '../scripts/nav.js';
+import {
+  ROLES,
+  DEMO_PEOPLE,
+  canOpen,
+  currentRole,
+  demoRoleFor,
+  isRole,
+  roleLabelKey,
+  startPage,
+} from '../scripts/roles.js';
 import { adminAuth } from '../scripts/admin-auth.js';
 import { clearMutations } from '../scripts/mutations.js';
 import { mockApi } from '../scripts/mock-api.js';
@@ -84,6 +94,13 @@ class AdShell extends HTMLElement {
     // Guard before painting anything the admin should not see (#1656 Scenario 6).
     if (!this.hasAttribute('no-auth') && !adminAuth.requireAdmin()) return;
 
+    // #6210 — who is signed in, with which role; then whether she may see this screen.
+    const active = this.getAttribute('active');
+    this.resolveIdentity(active);
+    this.role = currentRole();
+    this.denied = !this.hasAttribute('no-auth') && (!this.role || !canOpen(active, this.role));
+    if (this.denied) document.documentElement.dataset.adAccess = 'denied';
+
     const content = Array.from(this.childNodes);
     this.textContent = '';
     this.classList.add('wrapper', 'ad-shell');
@@ -104,9 +121,19 @@ class AdShell extends HTMLElement {
       .forEach((cls) => contentRegion.classList.add(cls));
 
     const heading = this.buildSectionTitle();
-    if (heading) contentRegion.appendChild(heading);
-
-    content.forEach((node) => contentRegion.appendChild(node));
+    if (this.denied) {
+      // The screen's own markup stays in the document, hidden, so its script
+      // still finds its elements; nothing of it is shown (#6210).
+      const hidden = document.createElement('div');
+      hidden.hidden = true;
+      hidden.className = 'ad-denied-content';
+      if (heading) hidden.appendChild(heading);
+      content.forEach((node) => hidden.appendChild(node));
+      contentRegion.append(this.buildNoAccess(), hidden);
+    } else {
+      if (heading) contentRegion.appendChild(heading);
+      content.forEach((node) => contentRegion.appendChild(node));
+    }
 
     main.appendChild(contentRegion);
     this.appendChild(main);
@@ -117,8 +144,154 @@ class AdShell extends HTMLElement {
 
     this.showToast = ensureToastHost();
     applyAdminTranslations(this);
-    document.title = `${t('shell.brand')} — ${this.pageTitle() || t('shell.sections')}`;
+    const docTitle = this.denied ? (this.role ? t('access.title') : t('access.noRoleTitle')) : this.pageTitle();
+    document.title = `${t('shell.brand')} — ${docTitle || t('shell.sections')}`;
     initDesignChrome();
+  }
+
+  /**
+   * #6210 demo identity. `?as=<role>` or `?as=<email>` signs this browser in as
+   * that role's demo person (a chosen session). A session the portal provisioned
+   * itself (`auto`) is re-pointed at a role that can open this screen, so a cold
+   * story link always renders; a chosen role is enforced as it is. The session's
+   * role always follows the account, so a role change applies on the next load.
+   */
+  resolveIdentity(active) {
+    if (this.hasAttribute('no-auth')) return;
+    let as = null;
+    try {
+      as = new URLSearchParams(window.location.search).get('as');
+    } catch {
+      as = null;
+    }
+    if (as) {
+      const email = isRole(as) ? DEMO_PEOPLE[as] : as;
+      const admin = mockApi.adminByEmail(email);
+      if (admin && admin.status === 'active') {
+        adminAuth.login(admin.email, { role: admin.role ?? null });
+        return;
+      }
+    }
+    const session = adminAuth.getSession();
+    if (!session) return;
+    const account = mockApi.adminByEmail(session.email);
+    const legacy = !isRole(session.role) && session.role !== null;
+    if (session.auto || legacy || !account || account.status !== 'active') {
+      // A demo session: keep its role while it can open this screen.
+      const keep = account && account.status === 'active' && isRole(account.role) && canOpen(active, account.role);
+      if (keep) {
+        if (account.role !== session.role) adminAuth.setRole(account.role);
+        return;
+      }
+      const role = demoRoleFor(active);
+      adminAuth.login(DEMO_PEOPLE[role], { role, auto: true });
+      return;
+    }
+    if ((account.role ?? null) !== session.role) adminAuth.setRole(account.role ?? null);
+  }
+
+  /** "You don't have access to this page" (#6210) or "no role yet" (#6211), with the way out. */
+  buildNoAccess() {
+    const box = document.createElement('div');
+    box.className = 'result-message warning ad-no-access mt-4';
+    box.id = 'ad-no-access';
+    const iconWrap = document.createElement('span');
+    iconWrap.className = 'icon';
+    const img = document.createElement('img');
+    img.src = iconUrl('stop-hand.svg');
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    iconWrap.appendChild(img);
+    const heading = document.createElement('h3');
+    const text = document.createElement('p');
+    const action = document.createElement('a');
+    action.className = 'btn btn-primary-rounded-outline';
+    action.id = 'ad-no-access-start';
+    if (this.role) {
+      heading.textContent = t('access.title');
+      text.textContent = t('access.message', { role: t(roleLabelKey(this.role)) });
+      const target = startPage(this.role);
+      action.href = target;
+      const key = Object.values(NAV_INDEX).find((item) => item.href === target)?.labelKey;
+      action.textContent = t('access.goStart', { page: key ? t(key) : target });
+    } else {
+      heading.textContent = t('access.noRoleTitle');
+      text.textContent = t('access.noRoleMessage');
+      action.href = 'javascript:;';
+      action.textContent = t('access.signOut');
+      action.addEventListener('click', () => {
+        adminAuth.logout();
+        window.location.href = './index.html';
+      });
+    }
+    box.append(iconWrap, heading, text, action);
+    return box;
+  }
+
+  /**
+   * The demo role switch (mockup only): one select in the top bar, grouped by
+   * role, listing every active account. Picking one signs in as her; "Automatic"
+   * hands back a role per screen. `?as=` does the same from a link.
+   */
+  buildDemoSwitch() {
+    const item = document.createElement('li');
+    item.className = 'nav-item ad-demo-role';
+    const session = adminAuth.getSession();
+
+    const badge = document.createElement('span');
+    badge.className = 'ad-demo-role__badge';
+    badge.textContent = t('demoRole.badge');
+
+    const select = document.createElement('select');
+    select.className = 'form-select ad-demo-role__select';
+    select.id = 'ad-demo-role';
+    select.title = t('demoRole.hint');
+
+    const auto = document.createElement('option');
+    auto.value = '__auto';
+    auto.textContent = t('demoRole.auto');
+    if (session?.auto) auto.selected = true;
+    select.appendChild(auto);
+
+    const admins = mockApi.listActiveAdmins();
+    ROLES.forEach((role) => {
+      const people = admins.filter((a) => a.role === role);
+      if (!people.length) return;
+      const group = document.createElement('optgroup');
+      group.label = t(`roles.${role}`);
+      const lead = DEMO_PEOPLE[role];
+      people
+        .sort((a, b) => (a.email === lead ? -1 : b.email === lead ? 1 : a.email.localeCompare(b.email)))
+        .forEach((person) => {
+          const option = document.createElement('option');
+          option.value = person.email;
+          option.textContent = person.email;
+          if (!session?.auto && session?.email === person.email) option.selected = true;
+          group.appendChild(option);
+        });
+      select.appendChild(group);
+    });
+
+    select.addEventListener('change', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('as');
+      if (select.value === '__auto') {
+        const role = demoRoleFor(this.getAttribute('active'));
+        adminAuth.login(DEMO_PEOPLE[role], { role, auto: true });
+      } else {
+        const admin = mockApi.adminByEmail(select.value);
+        adminAuth.login(select.value, { role: admin?.role ?? null });
+      }
+      window.location.replace(url.href);
+    });
+
+    const label = document.createElement('label');
+    label.className = 'ad-demo-role__label';
+    label.htmlFor = select.id;
+    label.textContent = t('demoRole.label');
+
+    item.append(badge, label, select);
+    return item;
   }
 
   /**
@@ -151,7 +324,7 @@ class AdShell extends HTMLElement {
     header.className = 'sidebar-header';
     const logoWrap = document.createElement('a');
     logoWrap.className = 'logo';
-    logoWrap.href = 'dashboard.html';
+    logoWrap.href = startPage(this.role);
     const logo = document.createElement('img');
     logo.src = assetUrl('vendor/img/logo.png');
     logo.alt = t('aria.logo');
@@ -164,12 +337,15 @@ class AdShell extends HTMLElement {
     list.id = 'main-menu';
 
     NAV_SECTIONS.forEach((section) => {
+      // #6210 — the sidebar shows only the screens this role can open.
+      const items = section.items.filter((item) => canOpen(item.key, this.role));
+      if (!items.length) return;
       const sectionLabel = document.createElement('span');
       sectionLabel.className = 'category';
       sectionLabel.textContent = t(section.labelKey);
       list.appendChild(sectionLabel);
 
-      section.items.forEach((item) => {
+      items.forEach((item) => {
         const li = document.createElement('li');
         if (item.key === active) li.classList.add('active');
 
@@ -276,6 +452,7 @@ class AdShell extends HTMLElement {
 
     const menu = document.createElement('ul');
     menu.className = 'navbar navbar-expand topbar-menu';
+    menu.appendChild(this.buildDemoSwitch());
     menu.appendChild(this.buildLanguageMenu());
 
     const session = adminAuth.getSession();
@@ -304,7 +481,9 @@ class AdShell extends HTMLElement {
     name.classList.add('ad-ltr');
     const title = document.createElement('span');
     title.className = 'user-title';
-    title.textContent = t('shell.superAdmin');
+    // #6210 — the role, not "Super admin".
+    title.textContent = t(roleLabelKey(this.role));
+    title.id = 'ad-user-role';
     info.append(name, title);
 
     toggle.append(avatar, info);

@@ -29,6 +29,7 @@ import { loadBootstrap, bindLightbox } from './design-init.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { reasonKey } from '../i18n/details.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
+import { can, canOpen } from './roles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -250,7 +251,8 @@ async function load() {
     { label: t('field.fullName'), value: driver.name },
     { label: t('common.phone'), value: formatPhone(driver.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(driver.dob) },
-    { label: t('field.nid'), value: driver.nid, ltr: true },
+    // #6210 — the national ID goes to Operations roles only.
+    ...(can('driver.nationalId') ? [{ label: t('field.nid'), value: driver.nid, ltr: true }] : []),
     { label: t('docs.profilePhoto'), value: profilePhoto(driver.profilePhoto, t('docs.profilePhoto')) },
   ];
 
@@ -280,7 +282,10 @@ async function load() {
 
   // Kit artwork stands in for the seed's flat placeholders (presentation only).
   qs('#docs').docs = withKitArt(
-    driver.documents.map((doc) => ({
+    driver.documents
+      // #6210 — the national ID card image is the national ID too: Operations only.
+      .filter((doc) => doc.key !== 'national_id' || can('driver.nationalId'))
+      .map((doc) => ({
       // The seed is the frozen data layer, so the label is translated here.
       label: hasKey(`docs.${doc.key}`) ? t(`docs.${doc.key}`) : doc.label,
       src: doc.src,
@@ -310,7 +315,10 @@ async function load() {
   qs('#ledger-link').href = `driver-balance-details.html?id=${encodeURIComponent(driver.id)}`;
 
   renderActions(driver);
-  await loadPayout(driver);
+  // #6210 — the payout method is Finance's; the payout position follows the ledger.
+  qs('#payout-col').hidden = !can('driver.payoutMethod');
+  qs('#payout-position-col').hidden = !canOpen('balances');
+  if (can('driver.payoutMethod') || canOpen('balances')) await loadPayout(driver);
   loadTrips();
 }
 
@@ -738,7 +746,9 @@ async function loadPayout(driver) {
 
   // An admin edit is a request (§1); one pending request per driver.
   const editable = ['approved', 'suspended', 'pending_suspension', 'pending'].includes(driver.status);
-  payoutEditBtn.hidden = !editable;
+  // #6210 — a Financial officer or lead requests the edit; nobody else sees the button.
+  payoutEditBtn.hidden = !editable || !can('finance.request');
+  payoutHint.hidden = !can('finance.request');
   payoutEditBtn.disabled = Boolean(payout.pendingChange);
   payoutHint.textContent = payout.pendingChange ? t('driverPayout.editLockedHint') : t('driverPayout.editHint');
 
@@ -765,8 +775,10 @@ function holderField(label, emptyError) {
     emptyError,
     lengthError: t('driverPayout.holderLength'),
     validate: (value) => {
-      const length = String(value).trim().length;
-      return length < 3 || length > 100 ? t('driverPayout.holderLength') : null;
+      const text = String(value).trim();
+      if (text.length < 3 || text.length > 100) return t('driverPayout.holderLength');
+      // #5624 — letters and spaces only.
+      return /^[\p{L} ]+$/u.test(text) ? null : t('driverPayout.holderLetters');
     },
   };
 }
@@ -808,7 +820,7 @@ function payoutFields(values) {
         placeholder: '01XXXXXXXXX',
         hint: t('driverPayout.walletNumberHint'),
         emptyError: t('driverPayout.walletNumberEmpty'),
-        validate: (value) => (/^01[0125]\d{8}$/.test(digitsOnly(value)) ? null : t('driverPayout.walletNumberInvalid')),
+        validate: (value) => (/^01\d{9}$/.test(digitsOnly(value)) ? null : t('driverPayout.walletNumberInvalid')),
       },
     );
   } else if (type === 'BANK_ACCOUNT') {
@@ -948,6 +960,9 @@ function renderStatusBanner(driver) {
 // ── #1742 suspend / #1743 reinstate ───────────────────
 
 function renderActions(driver) {
+  // #6210 — suspend and reinstate are the Operations lead's; every other role
+  // gets no action row at all (not disabled buttons).
+  qs('#account-actions').hidden = !can('drivers.suspend');
   const suspendable = driver.status === 'approved';
   const reinstatable = driver.status === 'suspended' || driver.status === 'pending_suspension';
 

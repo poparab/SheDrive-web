@@ -292,7 +292,7 @@ export const en = {
     emailEmptyError: 'Enter an email address',
     emailInvalidError: 'Invalid email address',
     emailLengthError: 'Email must be ≤ 254 characters',
-    roleValue: 'Super admin — the only role in this phase',
+    roleValue: 'One of five roles, set by an Admin (users & IT)',
     createdToast: 'Admin account created for {email}.',
 
     emptyHeading: 'No admin accounts match these filters',
@@ -696,7 +696,7 @@ export const ar = {
     emailEmptyError: 'أدخلي عنوان بريد إلكتروني',
     emailInvalidError: 'عنوان البريد الإلكتروني غير صالح',
     emailLengthError: 'يجب ألا يتجاوز البريد الإلكتروني 254 حرفًا',
-    roleValue: 'مدير عام — الصلاحية الوحيدة في هذه المرحلة',
+    roleValue: 'واحدة من خمس صلاحيات يحددها مسؤول النظام',
     createdToast: 'تم إنشاء حساب مدير لـ {email}.',
 
     emptyHeading: 'لا توجد حسابات مديرين مطابقة لعوامل التصفية',

@@ -31,7 +31,6 @@ export const en = {
 
   shell: {
     brand: 'SheDrive',
-    superAdmin: 'Super admin',
     signedOut: 'Signed out',
     profile: 'Profile',
     signOut: 'Sign out',
@@ -199,7 +198,6 @@ export const ar = {
 
   shell: {
     brand: 'شي درايف',
-    superAdmin: 'مدير عام',
     signedOut: 'غير مسجّل الدخول',
     profile: 'الملف الشخصي',
     signOut: 'تسجيل الخروج',

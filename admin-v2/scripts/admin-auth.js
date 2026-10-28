@@ -43,10 +43,24 @@ export const adminAuth = {
     return session && session.email ? session : null;
   },
 
-  login(email) {
-    const session = { email, role: 'super_admin', loginAt: Date.now() };
+  /**
+   * Start a session. `role` is the account's role (#6210); `auto` marks a demo
+   * session the portal provisioned itself, whose role may be re-picked so a cold
+   * deep link always renders (see scripts/roles.js).
+   */
+  login(email, { role = null, auto = false } = {}) {
+    const session = { email, role, loginAt: Date.now(), ...(auto ? { auto: true } : {}) };
     storage.set(ADMIN_SESSION_KEY, session);
     return session;
+  },
+
+  /** Keep the session's role in step with the account (a role change applies on the next page load). */
+  setRole(role) {
+    const session = this.getSession();
+    if (!session) return null;
+    const next = { ...session, role };
+    storage.set(ADMIN_SESSION_KEY, next);
+    return next;
   },
 
   logout() {
@@ -70,7 +84,7 @@ export const adminAuth = {
     }
 
     // Open-access mockup: provision a demo session so the screen renders.
-    this.login(DEMO_ADMIN_EMAIL);
+    this.login(DEMO_ADMIN_EMAIL, { role: 'ops_lead', auto: true });
     return true;
   },
 

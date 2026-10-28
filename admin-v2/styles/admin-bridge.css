@@ -1111,3 +1111,43 @@ html:not([dir='rtl']) table.custom-grid-list tfoot .pagination .page-link i.fa-c
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+/* ── Roles (#6210) — demo role switch in the top bar (mockup only) ─── */
+
+.topbar-menu .ad-demo-role {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-end: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border: 1px dashed var(--color-warning);
+  border-radius: var(--radius-md);
+}
+
+.ad-demo-role__badge {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-warning-strong);
+  color: var(--color-surface);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ad-demo-role__label {
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.ad-demo-role__select.form-select {
+  inline-size: auto;
+  max-inline-size: calc(var(--space-16) * 4.5);
+  padding-block: var(--space-1);
+  font-size: var(--fs-sm);
+}
+
+/* No-access page (#6210) — the kit result message, centred in the content. */
+.result-message.ad-no-access {
+  max-inline-size: calc(var(--space-16) * 10);
+  margin-inline: auto;
+}

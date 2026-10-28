@@ -19,6 +19,7 @@ import { loadBootstrap } from './design-init.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { reasonKey } from '../i18n/details.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
+import { can } from './roles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -547,6 +548,8 @@ function renderStatusBanner(rider) {
 // ── #1740 suspend / #1741 reinstate ───────────────────
 
 function renderActions(rider) {
+  // #6210 — suspend and reinstate are the Operations lead's; no action row otherwise.
+  qs('#account-actions').hidden = !can('riders.suspend');
   // A Pending review rider is resolved from the safety report, not from here,
   // so this screen only offers the two plain account actions.
   const suspendable = rider.status === 'active';

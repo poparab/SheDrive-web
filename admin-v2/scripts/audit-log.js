@@ -71,13 +71,22 @@ const FINANCE_ACTION_TYPES = [
 
 const unique = (list) => [...new Set(list.filter(Boolean))];
 
-const ACTION_TYPES = unique([
-  ...AUDIT_ACTION_TYPES,
-  ...FINANCE_ACTION_TYPES,
-  ...AUDIT_ENTRIES.map((entry) => entry.actionType),
-]);
+// #6210 — each role reads only its own part of the log (Admin (users & IT):
+// all; Operations lead: operations; Financial lead: finance), so the filter
+// options come from the entries this role can see.
+const SCOPE = mockApi.auditScope();
+const VISIBLE = AUDIT_ENTRIES.filter((entry) => mockApi.auditEntryVisible(entry));
+const SCOPE_TYPES = {
+  all: [...AUDIT_ACTION_TYPES, ...FINANCE_ACTION_TYPES, 'pricing change', 'operating hours changed', 'role changed', 'password reset', 'two-factor reset'],
+  operations: ['approve', 'reject', 'suspend', 'reinstate', 'gender-mismatch resolution', 'operating hours changed'],
+  finance: [...FINANCE_ACTION_TYPES, 'settlement', 'pricing change'],
+};
 
-const ACTORS = unique([...AUDIT_ACTOR_OPTIONS, ...AUDIT_ENTRIES.map((entry) => entry.actor)]).sort();
+const ACTION_TYPES = unique([...(SCOPE_TYPES[SCOPE] ?? []), ...VISIBLE.map((entry) => entry.actionType)]);
+
+const ACTORS = unique(
+  SCOPE === 'all' ? [...AUDIT_ACTOR_OPTIONS, ...VISIBLE.map((entry) => entry.actor)] : VISIBLE.map((entry) => entry.actor),
+).sort();
 
 /** The kit draws every event as a lamp; the tone says what kind of change it was. */
 const EVENT_TONES = {
@@ -250,9 +259,15 @@ function diffRows(entry) {
     .filter((key) => has(before, key) || has(after, key))
     .map((key) => ({
       label: enumLabel('field', key),
-      before: has(before, key) ? String(before[key]) : null,
-      after: has(after, key) ? String(after[key]) : null,
+      before: has(before, key) ? fieldText(key, before[key]) : null,
+      after: has(after, key) ? fieldText(key, after[key]) : null,
     }));
+}
+
+/** A role is stored as its id (#6211 "Financial officer → Financial lead"). */
+function fieldText(key, value) {
+  if (key === 'role' && hasKey(`roles.${value}`)) return t(`roles.${value}`);
+  return String(value);
 }
 
 function valueCell(value, className) {

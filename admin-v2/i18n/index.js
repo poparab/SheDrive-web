@@ -33,8 +33,9 @@ import * as kitPricing from './kit-pricing.js';
 import * as kitAdmin from './kit-admin.js';
 import * as kitFinance from './kit-finance.js';
 import * as feedback from './feedback.js';
+import * as roles from './roles.js';
 
-const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits, profilePricing, kitLists, kitBalances, kitDetails, kitPeople, kitPricing, kitAdmin, kitFinance, feedback];
+const AREAS = [core, components, lists, details, config, auth, finance, approvals, payouts, settlementImports, financeEdits, profilePricing, kitLists, kitBalances, kitDetails, kitPeople, kitPricing, kitAdmin, kitFinance, feedback, roles];
 
 function merge(code) {
   const out = {};

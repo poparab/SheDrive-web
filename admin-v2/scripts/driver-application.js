@@ -19,6 +19,7 @@ import { loadBootstrap, bindLightbox } from './design-init.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { reasonKey } from '../i18n/details.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
+import { can } from './roles.js';
 import { queueToast } from '../components/ad-toast.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -108,12 +109,12 @@ async function load() {
   missing.hidden = true;
   body.hidden = false;
 
-  // National ID in full — product rule.
+  // National ID in full — product rule; Operations roles only (#6210).
   qs('#personal').items = [
     { label: t('field.fullName'), value: application.name },
     { label: t('common.phone'), value: formatPhone(application.phone), ltr: true },
     { label: t('field.dob'), value: formatDate(application.dob) },
-    { label: t('field.nid'), value: application.nid, ltr: true },
+    ...(can('driver.nationalId') ? [{ label: t('field.nid'), value: application.nid, ltr: true }] : []),
     { label: t('docs.profilePhoto'), value: profilePhoto(application.profilePhoto, t('docs.profilePhoto')) },
   ];
   bindLightbox(qs('#personal'));
@@ -144,11 +145,15 @@ async function load() {
     { label: t('field.homeArea'), value: application.homeArea },
   ];
 
-  renderPayoutMethod(application);
+  // #6210 — the payout method goes to Finance roles only.
+  qs('#payout-col').hidden = !can('driver.payoutMethod');
+  if (can('driver.payoutMethod')) renderPayoutMethod(application);
 
   // Kit artwork stands in for the seed's flat placeholders (presentation only).
   qs('#docs').docs = withKitArt(
-    application.documents.map((doc) => ({
+    application.documents
+      .filter((doc) => doc.key !== 'national_id' || can('driver.nationalId'))
+      .map((doc) => ({
       // The seed is the frozen data layer, so the label is translated here.
       label: hasKey(`docs.${doc.key}`) ? t(`docs.${doc.key}`) : doc.label,
       src: doc.src,
@@ -203,6 +208,14 @@ function renderPayoutMethod(application) {
       }[method.type],
       value: method.number || '—',
       ltr: true,
+    },
+    // #5624 — who changed it last: the driver in the app, or an admin.
+    {
+      label: t('driverPayout.lastChangedBy'),
+      value: method.updatedBy && method.updatedBy !== 'driver'
+        ? t('driverPayout.changedByAdmin', { who: method.updatedBy })
+        : t('driverPayout.changedByDriver'),
+      wide: true,
     },
   );
   section.items = items;

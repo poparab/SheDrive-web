@@ -185,6 +185,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'ops.lead@shedrive.app',
+    role: 'ops_lead',
     status: 'active',
     createdAt: NOW - 210 * DAY,
     lastLoginAt: NOW - 42 * MINUTE,
@@ -193,6 +194,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'nour.hassan@shedrive.app',
+    role: 'fin_lead',
     status: 'active',
     createdAt: NOW - 168 * DAY,
     lastLoginAt: NOW - 3 * HOUR,
@@ -201,6 +203,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'compliance@shedrive.app',
+    role: 'ops_officer',
     status: 'active',
     createdAt: NOW - 121 * DAY,
     lastLoginAt: NOW - 1 * DAY - 2 * HOUR,
@@ -209,6 +212,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'finance@shedrive.app',
+    role: 'fin_officer',
     status: 'active',
     createdAt: NOW - 96 * DAY,
     lastLoginAt: NOW - 5 * DAY,
@@ -217,6 +221,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'onboarding.desk@shedrive.app',
+    role: 'ops_officer',
     status: 'active',
     createdAt: NOW - 61 * DAY,
     lastLoginAt: NOW - 26 * MINUTE,
@@ -225,6 +230,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'temp.auditor@shedrive.app',
+    role: 'fin_officer',
     status: 'disabled',
     createdAt: NOW - 54 * DAY,
     lastLoginAt: NOW - 31 * DAY,
@@ -233,6 +239,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'former.supervisor@shedrive.app',
+    role: 'ops_lead',
     status: 'disabled',
     createdAt: NOW - 188 * DAY,
     lastLoginAt: NOW - 74 * DAY,
@@ -241,6 +248,7 @@ export const ADMINS = [
   {
     id: nextId(),
     email: 'night.desk@shedrive.app',
+    role: 'ops_officer',
     status: 'active',
     createdAt: NOW - 17 * DAY,
     lastLoginAt: null,
@@ -248,7 +256,14 @@ export const ADMINS = [
   },
 ];
 
-/** The signed-in admin for the mockup session. */
+/**
+ * Every account holds one of five roles (#6210): admin_it, ops_officer,
+ * ops_lead, fin_officer, fin_lead. Four more accounts (Admin users & IT, Hala,
+ * Mona, Sara) are appended at the very end of this file so no seeded id or
+ * random draw above moves.
+ *
+ * The signed-in admin when no session says otherwise.
+ */
 export const CURRENT_ADMIN = ADMINS[0];
 
 // ── Service zones ─────────────────────────────────────
@@ -1293,3 +1308,45 @@ export const REASON_LISTS = {
   tripCancellation: TRIP_CANCELLATION_REASONS,
   tripReassignment: TRIP_REASSIGNMENT_REASONS,
 };
+
+// ── Admin accounts added for roles (#6210, 2026-10-29) ─
+// Appended last, with fixed ids, so every id and random draw above is unchanged.
+// They have no audit history of their own beyond what the screens write.
+ADMINS.push(
+  {
+    id: 9901,
+    email: 'it.admin@shedrive.app',
+    role: 'admin_it',
+    status: 'active',
+    createdAt: NOW - 240 * DAY,
+    lastLoginAt: NOW - 15 * MINUTE,
+    twoFactorEnrolled: true,
+  },
+  {
+    id: 9902,
+    email: 'hala.mahmoud@shedrive.app',
+    role: 'fin_lead',
+    status: 'active',
+    createdAt: NOW - 140 * DAY,
+    lastLoginAt: NOW - 50 * MINUTE,
+    twoFactorEnrolled: true,
+  },
+  {
+    id: 9903,
+    email: 'mona.adel@shedrive.app',
+    role: 'fin_officer',
+    status: 'active',
+    createdAt: NOW - 80 * DAY,
+    lastLoginAt: NOW - 2 * HOUR,
+    twoFactorEnrolled: true,
+  },
+  {
+    id: 9904,
+    email: 'sara.ali@shedrive.app',
+    role: 'ops_officer',
+    status: 'active',
+    createdAt: NOW - 70 * DAY,
+    lastLoginAt: NOW - 35 * MINUTE,
+    twoFactorEnrolled: true,
+  },
+);

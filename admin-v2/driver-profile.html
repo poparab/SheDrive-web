@@ -50,24 +50,27 @@
           <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="stats" icon="chart.svg" section-title="Performance" data-i18n-section-title="driverProfile.statsHeading"></ad-detail-section>
           </div>
-          <div class="col-lg-6 col-xl-4">
-            <ad-detail-section id="docs-card" icon="upload-file.svg" section-title="Uploaded documents" data-i18n-section-title="application.docsHeading">
-              <ad-doc-viewer id="docs"></ad-doc-viewer>
-            </ad-detail-section>
-          </div>
-          <div class="col-lg-6 col-xl-4">
-            <ad-detail-section id="photos-card" icon="image.svg" section-title="Vehicle photos" data-i18n-section-title="kitPeople.vehiclePhotos">
-              <ad-doc-viewer id="photos"></ad-doc-viewer>
+          <!-- §3 — where her earnings stand in the payout cycle (kit v22-10 order: position, then method) -->
+          <div class="col-lg-6 col-xl-4" id="payout-position-col" hidden>
+            <ad-detail-section id="payout-position" icon="money.svg" section-title="Payout position" data-i18n-section-title="driverPayout.positionHeading">
+              <div class="people-card-extra">
+                <p class="small lh-sm mb-0" id="payout-position-hint"></p>
+                <div>
+                  <a class="btn btn-primary-outline" id="ledger-link" href="driver-balance-details.html">
+                    <span data-i18n="kitPeople.openLedger">Open her ledger</span><i class="fa-solid fa-arrow-right people-flip" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
             </ad-detail-section>
           </div>
 
-          <!-- 2026-10-14 spec §2 — payout method; an admin edit is a maker-checker request -->
-          <div class="col-lg-6 col-xl-4">
+          <!-- 2026-10-14 spec §2 — payout method (Finance roles only, #6210); an admin edit is a maker-checker request -->
+          <div class="col-lg-6 col-xl-4" id="payout-col" hidden>
             <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading">
               <div class="people-card-extra" id="payout-extra">
                 <div class="people-card-extra" id="payout-notices"></div>
                 <p class="small lh-sm mb-0" id="payout-hint" data-i18n="driverPayout.editHint">
-                  An edit made here needs another admin's approval. The driver's own change in the app applies immediately.
+                  An edit made here needs a Financial lead's approval. The driver's own change in the app applies immediately.
                 </p>
                 <div>
                   <button class="btn btn-primary-outline" type="button" id="payout-edit-btn">
@@ -78,17 +81,14 @@
             </ad-detail-section>
           </div>
 
-          <!-- §3 — where her earnings stand in the payout cycle -->
           <div class="col-lg-6 col-xl-4">
-            <ad-detail-section id="payout-position" icon="deposit-wallet.svg" section-title="Payout position" data-i18n-section-title="driverPayout.positionHeading">
-              <div class="people-card-extra">
-                <p class="small lh-sm mb-0" id="payout-position-hint"></p>
-                <div>
-                  <a class="btn btn-primary-outline" id="ledger-link" href="driver-balance-details.html">
-                    <span data-i18n="kitPeople.openLedger">Open her ledger</span><i class="fa-solid fa-arrow-right people-flip" aria-hidden="true"></i>
-                  </a>
-                </div>
-              </div>
+            <ad-detail-section id="docs-card" icon="upload-file.svg" section-title="Uploaded documents" data-i18n-section-title="application.docsHeading">
+              <ad-doc-viewer id="docs"></ad-doc-viewer>
+            </ad-detail-section>
+          </div>
+          <div class="col-lg-6 col-xl-4">
+            <ad-detail-section id="photos-card" icon="image.svg" section-title="Vehicle photos" data-i18n-section-title="kitPeople.vehiclePhotos">
+              <ad-doc-viewer id="photos"></ad-doc-viewer>
             </ad-detail-section>
           </div>
 

@@ -12,7 +12,8 @@
 
 import { injectAdminStyles, ensureToastHost, iconUrl } from '../components/ad-styles.js';
 import '../components/ad-toast.js';
-import { mockAuth, stateOverride } from './mock-api.js';
+import { mockApi, mockAuth, stateOverride } from './mock-api.js';
+import { startPage } from './roles.js';
 import { adminAuth, DEMO_ADMIN_EMAIL } from './admin-auth.js';
 import { initDesignChrome, initOtpInputs, readOtp } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
@@ -36,7 +37,7 @@ const showToast = ensureToastHost();
 initDesignChrome({ lightbox: false });
 
 // An already-signed-in admin has no business on the login screen.
-adminAuth.redirectIfSignedIn();
+adminAuth.redirectIfSignedIn(`./${startPage(adminAuth.getSession()?.role ?? null)}`);
 
 const MAX_TOTP_ATTEMPTS = 3;
 const LOCKOUT_MS = 30_000;
@@ -453,9 +454,13 @@ qs('#enrol-copy').addEventListener('click', async () => {
 
 // ── Completion ─────────────────────────────────────────
 
+// #6210 — the session carries the account's role; she lands on her role's start
+// page (Admin users for Admin (users & IT), the Dashboard otherwise). An account
+// with no role yet lands on the Dashboard URL, which shows the "no role" page.
 function completeSignIn() {
-  adminAuth.login(pendingAdmin.email);
-  window.location.href = './dashboard.html';
+  const role = mockApi.adminByEmail(pendingAdmin.email)?.role ?? null;
+  adminAuth.login(pendingAdmin.email, { role });
+  window.location.href = `./${startPage(role)}`;
 }
 
 // ── Translate the static markup ───────────────────────

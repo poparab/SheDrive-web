@@ -39,6 +39,11 @@
           <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="personal" icon="user-2.svg" section-title="Personal details" data-i18n-section-title="driverProfile.personal"></ad-detail-section>
           </div>
+          <!-- 2026-10-14 spec §2 — payout method, read-only; kit v22-10 puts it after Personal details.
+               Finance roles only (#6210), so it renders for none of the roles that can open an application. -->
+          <div class="col-lg-6 col-xl-4" id="payout-col" hidden>
+            <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading"></ad-detail-section>
+          </div>
           <div class="col-lg-6 col-xl-4">
             <ad-detail-section id="vehicle" icon="vehicle.svg" section-title="Vehicle details" data-i18n-section-title="driverProfile.vehicle"></ad-detail-section>
           </div>
@@ -57,11 +62,6 @@
             <ad-detail-section id="photos-card" icon="image.svg" section-title="Vehicle photos" data-i18n-section-title="kitPeople.vehiclePhotos">
               <ad-doc-viewer id="photos"></ad-doc-viewer>
             </ad-detail-section>
-          </div>
-
-          <!-- 2026-10-14 spec §2 — payout method is the last onboarding step; read-only here -->
-          <div class="col-lg-6 col-xl-4">
-            <ad-detail-section id="payout" icon="wallet.svg" section-title="Payout method" data-i18n-section-title="driverPayout.heading"></ad-detail-section>
           </div>
 
           <!-- Decisions already made on this application, when there are any -->

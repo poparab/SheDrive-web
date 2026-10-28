@@ -26,6 +26,7 @@ import { createRequestGuard } from './request-guard.js';
 import { formatDate, formatDateTime, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 import { assetUrl, iconUrl } from '../components/ad-styles.js';
 import { bindLightbox, loadBootstrap } from './design-init.js';
 
@@ -500,6 +501,15 @@ function renderTitle(d) {
   document.title = `${t('shell.brand')} — ${title}`;
 }
 
+/** #5622 — the ledger shows her payout method with the full number. */
+function renderMethod(d) {
+  const m = d.payoutMethod;
+  qs('#ledger-method').className = `alert ${m ? 'info' : 'warning'} ledger-alert`;
+  qs('#ledger-method-text').textContent = m
+    ? [t(`balancesFinance.type${m.type}`), m.provider, m.number, m.holderName].filter(Boolean).join(' · ')
+    : t('kitBalances.noDestination');
+}
+
 function renderFailure(d) {
   const band = qs('#ledger-failure');
   const failure = d.lastPayoutFailure;
@@ -515,7 +525,8 @@ function renderFailure(d) {
 /** One pending request per subject (§1): its button gives way to a notice. */
 function renderPending(button, noticeId, pending, key) {
   const notice = qs(noticeId);
-  button.hidden = Boolean(pending);
+  // #6210 — the Operations lead sees the ledger read-only: no record buttons.
+  button.hidden = Boolean(pending) || !can('finance.request');
   notice.hidden = !pending;
   notice.textContent = '';
   if (!pending) return;
@@ -539,6 +550,7 @@ function renderKpis(d) {
 
 function render(d) {
   renderTitle(d);
+  renderMethod(d);
   renderFailure(d);
   renderKpis(d);
   renderPending(settleBtn, '#settle-pending', d.pendingSettlement, 'balancesFinance.pendingSettlement');

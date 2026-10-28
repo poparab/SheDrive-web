@@ -22,6 +22,7 @@ import { createRequestGuard } from './request-guard.js';
 import { downloadCsv, formatDateTime, formatEgp, toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 import { openDialog, openSuccess } from './pricing-dialogs.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -37,9 +38,14 @@ const drawCount = qs('#draw-count');
 const drawError = qs('#draw-error');
 const mapSummary = qs('#map-summary');
 const createBtn = qs('#create-zone');
+// #6210 — every role but the Operations lead (zones) and the Financial lead
+// (rate cards) sees zones read-only: those buttons are not rendered.
+const CAN_ZONES = can('zones.edit');
+const CAN_RATE = can('pricing.request');
 
 // The kit puts "Create Zone" at the end of the page-title row.
-qs('#ad-page-actions')?.appendChild(createBtn);
+if (CAN_ZONES) qs('#ad-page-actions')?.appendChild(createBtn);
+else createBtn.remove();
 
 const query = {
   search: '',
@@ -198,18 +204,21 @@ table.columns = [
         rateBtn.title = t('pricingApproval.lockedTitle');
         rateBtn.setAttribute('aria-label', `${t('zones.rateCard')} — ${t('pricingApproval.lockedTitle')}`);
       }
-      wrap.append(
-        rateBtn,
-        iconButton('view-icon', 'fa-regular fa-pen-to-square', t('zones.rename'), () => openRename(zone)),
-        iconButton('pause-icon', 'fa-solid fa-bezier-curve', t('zones.redraw'), () =>
-          startDraw({ id: zone.id, name: zone.name }, zone.polygon),
-        ),
-        iconButton('delete-icon', 'fa-solid fa-trash-can', t('common.delete'), () => openDelete(zone)),
-      );
+      // #6210 — a zone is the Operations lead's; its rate card a Financial lead's request.
+      if (CAN_RATE) wrap.append(rateBtn);
+      if (CAN_ZONES) {
+        wrap.append(
+          iconButton('view-icon', 'fa-regular fa-pen-to-square', t('zones.rename'), () => openRename(zone)),
+          iconButton('pause-icon', 'fa-solid fa-bezier-curve', t('zones.redraw'), () =>
+            startDraw({ id: zone.id, name: zone.name }, zone.polygon),
+          ),
+          iconButton('delete-icon', 'fa-solid fa-trash-can', t('common.delete'), () => openDelete(zone)),
+        );
+      }
       return wrap;
     },
   },
-];
+].filter((column) => column.key !== 'actions' || CAN_ZONES || CAN_RATE);
 
 function iconButton(kind, glyph, label, onClick) {
   const btn = document.createElement('button');
