@@ -3,72 +3,12 @@
  * Screen owner: admin-v2/approvals.html
  *
  * The screen is built from kit parts (alert, neutral-widjet, filter row,
- * custom-grid-list). What is local: the demo switch layout and the grid's
+ * custom-grid-list). What is local: the hint spacing and the grid's
  * actions column. The review dialog and the who/when cells live in
  * approval-review.css, shared with the business screens that open a request
  * in place.
  * Every value comes from a token. Logical properties only (RTL-safe).
  */
-
-/* ── Demo switch (mockup only) — a kit alert.warning ──── */
-
-.alert.apr-demo {
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-5);
-  margin-block-end: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-style: dashed;
-}
-
-.alert.apr-demo--acting {
-  border-style: solid;
-}
-
-.apr-demo__text {
-  flex: 1 1 calc(var(--space-16) * 6);
-  min-inline-size: 0;
-}
-
-.alert .apr-demo__title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-base);
-}
-
-.apr-demo__badge {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-warning-strong);
-  color: var(--color-surface);
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-}
-
-.alert .apr-demo__sub {
-  font-size: var(--fs-sm);
-  color: var(--color-text);
-}
-
-.apr-demo__controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin-inline-start: auto;
-}
-
-.apr-demo__controls .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.apr-demo__select {
-  inline-size: auto;
-  min-inline-size: calc(var(--space-16) * 3.5);
-}
 
 .alert.apr-hint {
   margin-block-end: var(--space-4);

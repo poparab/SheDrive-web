@@ -12,12 +12,12 @@ export const en = {
       'On cash trips the driver keeps the fare and owes the platform its commission. ' +
       'Record what she hands in to clear it. When her balance is positive, SheDrive owes ' +
       'her — her earnings are paid in batches once their 7-day hold ends. A settlement or ' +
-      'a manual payout is a request: nothing posts to her ledger until another admin approves it.',
-    needsApproval: "Needs another admin's approval — her balance does not change until then.",
+      'a manual payout is a request: nothing posts to her ledger until a Financial lead approves it.',
+    needsApproval: "Needs a Financial lead's approval — her balance does not change until then.",
     payoutDescription:
       'SheDrive owes her {amount}. Use this only for a one-off transfer Finance has already ' +
       'sent outside a batch.',
-    sentForApproval: 'Sent for approval — another admin must approve it.',
+    sentForApproval: 'Sent for approval — a Financial lead must approve it.',
     openRequest: 'Open the request',
     pendingSettlement: 'Settlement awaiting approval (by {maker}, {time})',
     pendingPayout: 'Payout awaiting approval (by {maker}, {time})',
@@ -48,7 +48,7 @@ export const en = {
     lead:
       'A rider who cancels after the grace period owes a fee. It is recovered as a surcharge ' +
       'on her next cash trip. An admin can waive one fee with a reason — the waiver needs ' +
-      "another admin's approval, and the driver's share of the fee is removed with it. " +
+      "a Financial lead's approval, and the driver's share of the fee is removed with it. " +
       'Persistent abuse is a human decision, handled from her profile.',
     filterCredit: 'Has a credit',
     colCredit: 'Credit (EGP)',
@@ -61,7 +61,7 @@ export const en = {
     entryFeeWaived: 'Fee waived',
     waiveTitle: 'Waive fee — {name}',
     waiveDescription:
-      "The driver's share of this fee is removed too. Needs another admin's approval.",
+      "The driver's share of this fee is removed too. Needs a Financial lead's approval.",
     waiveAmount: 'Fee amount',
     waiveTrip: 'Trip',
     waiveReason: 'Reason',
@@ -69,7 +69,7 @@ export const en = {
     errReasonEmpty: 'Enter a reason',
     errReasonLength: 'Reason must be 10–500 characters',
     waiveConfirm: 'Send for approval',
-    sentForApproval: 'Sent for approval — another admin must approve it.',
+    sentForApproval: 'Sent for approval — a Financial lead must approve it.',
     openRequest: 'Open the request',
   },
 };
@@ -80,12 +80,12 @@ export const ar = {
       'في الرحلات النقدية تحتفظ السائقة بالأجرة وتدين للمنصة بعمولتها. ' +
       'سجّلي ما تسلّمينه منها لتسوية الرصيد. وعندما يكون رصيدها موجباً، فشي درايف مدينة لها — ' +
       'وتُصرف أرباحها على دفعات بعد انتهاء فترة الانتظار ٧ أيام. التسوية والدفعة اليدوية طلبان: ' +
-      'لا يُقيَّد شيء في كشف حسابها حتى يوافق عليه مدير آخر.',
-    needsApproval: 'يحتاج إلى موافقة مدير آخر — لا يتغيّر رصيدها قبل ذلك.',
+      'لا يُقيَّد شيء في كشف حسابها حتى يوافق عليه رئيس فريق مالي.',
+    needsApproval: 'يحتاج إلى موافقة رئيس فريق مالي — لا يتغيّر رصيدها قبل ذلك.',
     payoutDescription:
       'شي درايف مدينة لها بـ {amount}. استخدمي هذا فقط لتحويل استثنائي أرسلته إدارة المالية ' +
       'فعلياً خارج الدفعات.',
-    sentForApproval: 'أُرسل للموافقة — يجب أن يوافق عليه مدير آخر.',
+    sentForApproval: 'أُرسل للموافقة — يجب أن يوافق عليه رئيس فريق مالي.',
     openRequest: 'فتح الطلب',
     pendingSettlement: 'تسوية بانتظار الموافقة (من {maker}، {time})',
     pendingPayout: 'دفعة بانتظار الموافقة (من {maker}، {time})',
@@ -115,7 +115,7 @@ export const ar = {
   riderBalancesFinance: {
     lead:
       'الراكبة التي تُلغي بعد فترة السماح مدينة برسوم، تُسترد كرسم إضافي على رحلتها النقدية ' +
-      'التالية. يمكن للمدير الإعفاء من رسم واحد مع ذكر السبب — ويحتاج الإعفاء إلى موافقة مدير آخر، ' +
+      'التالية. يمكن للمدير الإعفاء من رسم واحد مع ذكر السبب — ويحتاج الإعفاء إلى موافقة رئيس فريق مالي، ' +
       'وتُلغى معه حصة السائقة من الرسم. إساءة الاستخدام المتكررة قرار بشري، يُدار من صفحة ملفها الشخصي.',
     filterCredit: 'لديها رصيد دائن',
     colCredit: 'الرصيد الدائن (جم)',
@@ -127,7 +127,7 @@ export const ar = {
     waiverPending: 'إعفاء بانتظار الموافقة',
     entryFeeWaived: 'إعفاء من رسم',
     waiveTitle: 'إعفاء من الرسم — {name}',
-    waiveDescription: 'تُلغى حصة السائقة من هذا الرسم أيضاً. يحتاج إلى موافقة مدير آخر.',
+    waiveDescription: 'تُلغى حصة السائقة من هذا الرسم أيضاً. يحتاج إلى موافقة رئيس فريق مالي.',
     waiveAmount: 'مبلغ الرسم',
     waiveTrip: 'الرحلة',
     waiveReason: 'السبب',
@@ -135,7 +135,7 @@ export const ar = {
     errReasonEmpty: 'أدخل السبب',
     errReasonLength: 'يجب أن يكون السبب من 10 إلى 500 حرف',
     waiveConfirm: 'إرسال للموافقة',
-    sentForApproval: 'أُرسل للموافقة — يجب أن يوافق عليه مدير آخر.',
+    sentForApproval: 'أُرسل للموافقة — يجب أن يوافق عليه رئيس فريق مالي.',
     openRequest: 'فتح الطلب',
   },
 };

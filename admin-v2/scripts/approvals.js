@@ -13,7 +13,8 @@
  *
  * Deep link: approvals.html?id=APR-0004 opens that request on load; with
  * `&return=<screen>` the admin goes back to that screen after deciding.
- * Demo only: the switch at the top acts as another admin (spec §7).
+ * Roles (#6212): only a Financial lead decides; a Financial officer sees her own
+ * requests read-only. Demo: the role switch in the top bar (`?as=<role>`).
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -22,6 +23,7 @@ import { createRequestGuard } from './request-guard.js';
 import { toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 import { mountStatRow } from './list-metrics.js';
 import {
   createApprovalReview,
@@ -57,59 +59,11 @@ const query = {
 
 
 
-// ── Demo switch (mockup only) ─────────────────────────
-
-function renderDemo() {
-  const host = qs('#approvals-demo');
-  const acting = mockApi.getActingAdmin();
-  const checkers = mockApi.listCheckers();
-
-  const text = el('div', 'details apr-demo__text');
-  const title = el('h6', 'apr-demo__title');
-  title.appendChild(el('span', 'apr-demo__badge', t('approvals.demoBadge')));
-  const [before, after] = t('approvals.demoTitle').split('{email}');
-  title.append(document.createTextNode(before ?? ''), ltr(acting.email, 'strong'), document.createTextNode(after ?? ''));
-  text.appendChild(title);
-  if (!acting.isSignedInAdmin) {
-    const signed = el('p', 'apr-demo__sub');
-    const [b2, a2] = t('approvals.demoSignedIn').split('{email}');
-    signed.append(document.createTextNode(b2 ?? ''), ltr(acting.signedIn), document.createTextNode(a2 ?? ''));
-    text.appendChild(signed);
-  }
-  text.appendChild(el('p', 'apr-demo__sub', t('approvals.demoHint')));
-
-  const controls = el('div', 'apr-demo__controls');
-  const selectId = 'approvals-demo-select';
-  const label = el('label', 'visually-hidden', t('approvals.demoSelectLabel'));
-  label.htmlFor = selectId;
-  const select = el('select', 'form-select apr-demo__select');
-  select.id = selectId;
-  checkers.forEach((email) => {
-    const option = el('option', null, email);
-    option.value = email;
-    if (email === acting.email) option.selected = true;
-    select.appendChild(option);
-  });
-  const actAs = kitButton(t('approvals.demoActAs'), 'btn-warning', 'fa-solid fa-user-group');
-  actAs.addEventListener('click', () => {
-    mockApi.setActingAdmin(select.value);
-    window.location.reload();
-  });
-  controls.append(label, select, actAs);
-  if (!acting.isSignedInAdmin) {
-    const back = kitButton(t('approvals.demoBack'), 'btn-warning-outline', 'fa-solid fa-rotate-left');
-    back.addEventListener('click', () => {
-      mockApi.setActingAdmin(null);
-      window.location.reload();
-    });
-    controls.appendChild(back);
-  }
-
-  host.replaceChildren(icon('fa-solid fa-user-secret'), text, controls);
-  host.classList.toggle('apr-demo--acting', !acting.isSignedInAdmin);
-}
-
-renderDemo();
+// ── Role (#6212) ──────────────────────────────────────
+// A Financial officer sees only her own requests, read-only, with no Made-by
+// filter. Only a Financial lead decides. The demo role switch is in the top bar.
+const isOfficer = !can('finance.approve');
+if (isOfficer) qs('#approvals-officer-note').hidden = false;
 
 // ── KPI row ───────────────────────────────────────────
 
@@ -167,17 +121,21 @@ filters.fields = [
       { value: 'decided', label: t('approvals.tabDecided') },
     ],
   },
-  {
-    type: 'select',
-    key: 'madeBy',
-    label: t('approvals.madeByLabel'),
-    value: 'all',
-    options: [
-      { value: 'all', label: t('approvals.madeByAll') },
-      { value: 'others', label: t('approvals.madeByOthers') },
-      { value: 'mine', label: t('approvals.madeByMine') },
-    ],
-  },
+  ...(isOfficer
+    ? []
+    : [
+        {
+          type: 'select',
+          key: 'madeBy',
+          label: t('approvals.madeByLabel'),
+          value: 'all',
+          options: [
+            { value: 'all', label: t('approvals.madeByAll') },
+            { value: 'others', label: t('approvals.madeByOthers') },
+            { value: 'mine', label: t('approvals.madeByMine') },
+          ],
+        },
+      ]),
   {
     type: 'select',
     key: 'area',
@@ -224,11 +182,12 @@ function configureColumns() {
     {
       key: 'id',
       label: t('approvals.colId'),
-      sortable: true,
+      // #5617 grid spec: Request ID and Type are not sortable.
+      sortable: false,
       className: 'ad-table__id',
       render: (row) => ltr(row.id),
     },
-    { key: 'type', label: t('approvals.colType'), sortable: true, render: (row) => typeLabel(row.type) },
+    { key: 'type', label: t('approvals.colType'), sortable: false, render: (row) => typeLabel(row.type) },
     { key: 'subject', label: t('approvals.colSubject'), render: (row) => subjectLink(row.subject, row.type) },
     {
       key: 'amount',
@@ -239,7 +198,12 @@ function configureColumns() {
       render: (row) => (row.amount === null || row.amount === undefined ? '' : el('p', 'text-bold ad-ltr', money(Math.abs(row.amount)))),
     },
     { key: 'madeAt', label: t('approvals.colMadeBy'), sortable: true, render: (row) => who(row.maker, row.madeAt, row.madeByYou) },
-    { key: 'status', label: t('approvals.colStatus'), render: (row) => lamp(row.status) },
+    {
+      key: 'status',
+      label: t('approvals.colStatus'),
+      // #6212 — a lead's own request with no other lead to decide it.
+      render: (row) => (row.waitingForLead ? lamp('pending', t('approvalRoles.waitingForLead')) : lamp(row.status)),
+    },
   ];
   if (query.status === 'decided') {
     columns.push({

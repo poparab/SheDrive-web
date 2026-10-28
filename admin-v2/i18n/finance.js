@@ -18,7 +18,7 @@ export const en = {
   screens: {
     titleApprovals: 'Approvals',
     notesApprovals:
-      'Maker-checker queue. Every finance action waits here until a different admin approves or rejects it. Use "Act as another admin" to see the checker side.',
+      'Maker-checker queue. Every finance request waits here until a Financial lead approves or rejects it; an officer sees only her own requests. Try ?as=fin_officer and ?as=fin_lead.',
     titlePayouts: 'Payouts',
     notesPayouts:
       'Payout batches. Generate a batch from earnings past their 7-day hold, then approve, export the bank file and import the result.',
@@ -39,7 +39,7 @@ export const ar = {
   nav: {
     finance: 'المالية',
     pricing: 'التسعير',
-    reporting: 'التقارير المالية',
+    reporting: 'التقارير والمصالحات',
     approvals: 'الموافقات',
     approvalsPendingCount: '{n} طلبات بانتظار الموافقة',
     payouts: 'المدفوعات',
@@ -48,7 +48,7 @@ export const ar = {
   screens: {
     titleApprovals: 'الموافقات',
     notesApprovals:
-      'قائمة الموافقات (منشئ ومراجع). كل إجراء مالي ينتظر هنا حتى يوافق عليه مدير آخر أو يرفضه. استخدم "العمل كمدير آخر" لرؤية جانب المراجع.',
+      'قائمة الموافقات (منشئ ومراجع). ينتظر كل طلب مالي هنا حتى يعتمده رئيس فريق مالي أو يرفضه؛ ويرى الموظف المالي طلباته فقط. جرّب ?as=fin_officer و?as=fin_lead.',
     titlePayouts: 'المدفوعات',
     notesPayouts:
       'دفعات المدفوعات. أنشئ دفعة من الأرباح التي تجاوزت فترة الانتظار ٧ أيام، ثم وافق عليها وصدّر ملف البنك واستورد النتيجة.',

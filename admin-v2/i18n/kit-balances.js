@@ -40,7 +40,7 @@ export const en = {
     uploadLimits: 'JPG or PNG • Maximum file size 5 MB',
     removeFile: 'Remove the file',
     sentTitle: 'Sent for approval',
-    sentMessage: 'Another admin must approve it. Nothing changes on her ledger until then.',
+    sentMessage: 'A Financial lead must approve it. Nothing changes on her ledger until then.',
 
     // Rider balances list
     kpiRiderOutstanding: 'Total outstanding',
@@ -63,7 +63,7 @@ export const en = {
     waiveButton: 'Waive fee',
     waiveReasonPlaceholder: 'Type a reason ...',
     waiverSentMessage:
-      "Another admin must approve it. The fee and the driver's share stay as they are until then.",
+      "A Financial lead must approve it. The fee and the driver's share stay as they are until then.",
   },
 };
 
@@ -97,7 +97,7 @@ export const ar = {
     uploadLimits: 'JPG أو PNG • الحجم الأقصى 5 ميجابايت',
     removeFile: 'إزالة الملف',
     sentTitle: 'أُرسل للموافقة',
-    sentMessage: 'يجب أن يوافق عليه مدير آخر. لا يتغيّر شيء في سجلها قبل ذلك.',
+    sentMessage: 'يجب أن يوافق عليه رئيس فريق مالي. لا يتغيّر شيء في سجلها قبل ذلك.',
 
     kpiRiderOutstanding: 'إجمالي المبالغ المستحقة',
     kpiRidersDue: 'رسوم الركاب المستحقة',
@@ -117,6 +117,6 @@ export const ar = {
     waiveIntro: 'قيمة هذا الرسم {amount} (الرحلة {trip}). يتطلب الإعفاء ذكر سبب.',
     waiveButton: 'إعفاء من الرسوم',
     waiveReasonPlaceholder: 'اكتبي السبب ...',
-    waiverSentMessage: 'يجب أن يوافق عليه مدير آخر. يبقى الرسم وحصة السائقة كما هما حتى ذلك الحين.',
+    waiverSentMessage: 'يجب أن يوافق عليه رئيس فريق مالي. يبقى الرسم وحصة السائقة كما هما حتى ذلك الحين.',
   },
 };

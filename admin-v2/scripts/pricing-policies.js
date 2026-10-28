@@ -8,9 +8,12 @@
  *
  * Kit v22-09 port (2026-10-14): three `standard-card-theme2` cards with the
  * kit's `list-multi-column` field rows, ONE global Save / Revert, and a
- * toast that says what applied now and what went for approval —
- * a commission change is still a maker-checker request (§1), every other
- * field applies on save.
+ * toast that says what applied now and what went for approval.
+ *
+ * Roles (2026-10-29, #6210 / #6212 / #6268): commission, the cancellation
+ * policy and the balance limit are requests a Financial lead makes and another
+ * approves; operating hours are the Operations lead's and apply on save. Every
+ * other role sees the screen read-only, with no Save.
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -19,12 +22,21 @@ import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { formatDateTime, formatEgp, formatPercent, formatTime } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { can } from './roles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
 const shell = qs('ad-shell');
+
+// #6210 / #6212 / #6268 — what this role may change. Commission, the
+// cancellation policy and the balance limit are a Financial lead's request;
+// operating hours are the Operations lead's and save at once. Everything else
+// is read-only, and with nothing to change there is no Save at all.
+const CAN_PRICING = can('pricing.request');
+const CAN_HOURS = can('hours.edit');
+qs('#policies-actions').hidden = !CAN_PRICING && !CAN_HOURS;
 
 /** Field spec straight from the #1759 Field Validation tables. */
 const CANCELLATION_FIELDS = [
@@ -284,6 +296,43 @@ function render() {
   updateCommissionExample();
   updateBalanceExample();
   renderCommissionPending();
+  renderSettingPending('cancel', policies.pendingCancellation, cancellationControls, t('pricingApproval.cancellationPending'));
+  renderSettingPending('balance', policies.pendingBalanceLimit, balanceControls,
+    t('pricingApproval.balancePending', { limit: formatEgp(policies.pendingBalanceLimit?.after?.outstandingLimit ?? 0) }));
+  applyRoleLocks();
+}
+
+/** A section this role cannot change is read-only (inputs read-only, never a button). */
+function applyRoleLocks() {
+  const lock = (controls, editable) => controls.forEach((c) => {
+    c.input.readOnly = !editable;
+    if (!editable) c.input.setAttribute('aria-readonly', 'true');
+  });
+  lock(cancellationControls, CAN_PRICING);
+  lock([commissionControl], CAN_PRICING);
+  lock(balanceControls, CAN_PRICING);
+  lock(hoursControls, CAN_HOURS);
+  qs('#commission-approval-hint').hidden = !CAN_PRICING;
+}
+
+/** #6212 — a cancellation-policy or balance-limit change waiting for another Financial lead locks its card. */
+function renderSettingPending(key, pending, controls, title) {
+  const card = qs(`#${key}-card`);
+  qs(`#${key}-pending`).hidden = !pending;
+  controls.forEach((c) => {
+    c.input.disabled = Boolean(pending);
+    if (pending) c.input.title = t('pricingApproval.lockedTitle');
+  });
+  card.classList.toggle('warning-alert-bg', Boolean(pending));
+  card.classList.toggle('warning-alert-br', Boolean(pending));
+  card.classList.toggle('white-bg', !pending);
+  if (!pending) return;
+  qs(`#${key}-pending-title`).textContent = title;
+  qs(`#${key}-pending-meta`).textContent = t('pricingApproval.settingPendingMeta', {
+    who: pending.maker,
+    when: formatDateTime(pending.madeAt),
+  });
+  qs(`#${key}-pending-link`).href = approvalHref(pending.id);
 }
 
 // ── Commission maker-checker (2026-10-14 §1) ──────────
@@ -378,15 +427,18 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   errorBox.textContent = '';
   errorBox.classList.remove('is-visible');
 
-  const commissionLocked = Boolean(policies.pendingCommission);
+  const commissionLocked = Boolean(policies.pendingCommission) || !CAN_PRICING;
+  const cancelLocked = Boolean(policies.pendingCancellation) || !CAN_PRICING;
+  const balanceLocked = Boolean(policies.pendingBalanceLimit) || !CAN_PRICING;
+  const hoursEditable = CAN_HOURS;
   const controls = [
-    ...cancellationControls,
+    ...(cancelLocked ? [] : cancellationControls),
     ...(commissionLocked ? [] : [commissionControl]),
-    ...balanceControls,
-    ...hoursControls,
+    ...(balanceLocked ? [] : balanceControls),
+    ...(hoursEditable ? hoursControls : []),
   ];
   const results = controls.map(validate);
-  if (!results.slice(-hoursControls.length).includes(false) && !validateHoursOrder()) {
+  if (hoursEditable && !results.slice(-hoursControls.length).includes(false) && !validateHoursOrder()) {
     results[results.length - 1] = false;
   }
   if (results.includes(false)) {
@@ -394,27 +446,35 @@ qs('#policies-form').addEventListener('submit', async (event) => {
     return;
   }
 
+  // #6212 — commission, cancellation policy and balance limit become requests;
+  // only operating hours apply on save (#6268).
   const payload = {};
   const applied = [];
-  if (changed(cancellationControls, policies.cancellation)) {
+  const sent = [];
+  if (!cancelLocked && changed(cancellationControls, policies.cancellation)) {
     payload.cancellation = readValues(cancellationControls);
-    applied.push(t('policies.cancelHeading'));
+    sent.push(t('kitPricing.cancellationChange'));
   }
-  if (changed(balanceControls, policies.driverBalance)) {
+  if (!balanceLocked && changed(balanceControls, policies.driverBalance)) {
     payload.driverBalance = readValues(balanceControls);
-    applied.push(t('policies.balanceHeading'));
+    sent.push(t('kitPricing.balanceLimitChange', {
+      from: formatEgp(policies.driverBalance.outstandingLimit),
+      to: formatEgp(payload.driverBalance.outstandingLimit),
+    }));
   }
-  if (hoursControls.some((c) => c.input.value !== policies.operatingHours[c.spec.key])) {
+  if (hoursEditable && hoursControls.some((c) => c.input.value !== policies.operatingHours[c.spec.key])) {
     payload.operatingHours = Object.fromEntries(hoursControls.map((c) => [c.spec.key, c.input.value]));
     applied.push(t('policies.hoursHeading'));
   }
   const before = Number(policies.commission.percentage);
   const percentage = Number(commissionControl.input.value);
   const commissionChanged = !commissionLocked && percentage !== before;
-  // A commission change never applies on save — savePolicies turns it into a request (§1).
-  if (commissionChanged) payload.commission = { percentage };
+  if (commissionChanged) {
+    payload.commission = { percentage };
+    sent.unshift(t('kitPricing.commissionChange', { from: formatPercent(before), to: formatPercent(percentage) }));
+  }
 
-  if (!applied.length && !commissionChanged) {
+  if (!applied.length && !sent.length) {
     shell.showToast(t('kitPricing.nothingChanged'), 'info');
     return;
   }
@@ -427,9 +487,7 @@ qs('#policies-form').addEventListener('submit', async (event) => {
     render();
     openSaved({
       applied,
-      sent: result.pending
-        ? t('kitPricing.commissionChange', { from: formatPercent(before), to: formatPercent(percentage) })
-        : '',
+      sent: result.pending ? sent.join(t('kitPricing.listSeparator')) : '',
       requestId: result.request?.id,
     });
   } catch (error) {

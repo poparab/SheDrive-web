@@ -37,6 +37,15 @@
                 <div class="icon"><img src="vendor/icons/policies.svg" alt="" /></div>
               </div>
               <div class="card-body">
+                <!-- #6212 — a cancellation policy change waits for another Financial lead -->
+                <div class="alert warning" id="cancel-pending" role="status" hidden>
+                  <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                  <div class="details flex-column gap-1">
+                    <h6 id="cancel-pending-title"></h6>
+                    <p id="cancel-pending-meta"></p>
+                    <a id="cancel-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+                  </div>
+                </div>
                 <div id="cancel-fields"></div>
               </div>
             </section>
@@ -65,7 +74,7 @@
                 <div id="commission-fields"></div>
                 <p class="small mb-1" id="commission-example"></p>
                 <p class="small pricing__meta mb-0" id="commission-approval-hint" data-i18n="pricingApproval.commissionHint">
-                  Commission changes need another admin's approval. Cancellation and balance settings save immediately.
+                  Commission, cancellation policy and balance limit changes need another Financial lead's approval. Operating hours save immediately.
                 </p>
               </div>
             </section>
@@ -82,6 +91,15 @@
                 <div class="icon"><img src="vendor/icons/balance.svg" alt="" /></div>
               </div>
               <div class="card-body">
+                <!-- #6212 — a balance limit change waits for another Financial lead -->
+                <div class="alert warning" id="balance-pending" role="status" hidden>
+                  <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                  <div class="details flex-column gap-1">
+                    <h6 id="balance-pending-title"></h6>
+                    <p id="balance-pending-meta"></p>
+                    <a id="balance-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+                  </div>
+                </div>
                 <div id="balance-fields"></div>
                 <p class="small mb-0" id="balance-example"></p>
               </div>
@@ -113,7 +131,7 @@
         <div class="ad-form-error mt-3" id="policies-error" role="alert"></div>
 
         <!-- One global Save / Revert, as the kit draws it -->
-        <div class="flex-row">
+        <div class="flex-row" id="policies-actions">
           <div class="col d-flex flex-wrap gap-3 mt-4 mb-3">
             <button class="btn btn-success d-flex" type="submit" id="policies-save">
               <i class="fa-solid fa-check" aria-hidden="true"></i><span data-i18n="kitPricing.saveChanges">Save changes</span>

@@ -17,15 +17,18 @@ export const en = {
 
     // Global policies
     policiesIntro:
-      "These policies apply across all zones. Changes take effect immediately for new trips; a trip already in progress keeps the values active when the driver accepted it. Per-zone amounts live on each zone's rate card.",
+      "These policies apply across all zones. Commission, the cancellation policy and the balance limit change only once another Financial lead approves; operating hours apply at once. A trip already in progress keeps the values active when the driver accepted it. Per-zone amounts live on each zone's rate card.",
     saveChanges: 'Save changes',
     policiesLoadError: 'Could not load the policies',
     nothingChanged: 'Nothing has changed — there is nothing to save.',
     savedTitle: 'Changes have been saved successfully',
     savedBody: 'The new changes apply to new rides.',
     appliedNow: 'Applied now: {list}.',
-    sentForApproval: 'Sent for approval: {list}. It applies only once another admin approves it.',
+    sentForApproval: 'Sent for approval: {list}. It applies only once another Financial lead approves it.',
     commissionChange: 'platform commission {from} → {to}',
+    cancellationChange: 'cancellation policy',
+    balanceLimitChange: 'driver balance limit {from} → {to}',
+    readOnlyNote: 'Read-only for your role.',
     listSeparator: ', ',
 
     // Revenue summary
@@ -69,15 +72,18 @@ export const ar = {
     confirmDelete: 'تأكيد وحذف',
 
     policiesIntro:
-      'تنطبق هذه السياسات على جميع المناطق. تسري التغييرات فورًا على الرحلات الجديدة، بينما تحتفظ الرحلات الجارية بالقيم المعتمدة عند قبولها. وتُحدد مبالغ كل منطقة في بطاقة أسعارها.',
+      'تنطبق هذه السياسات على جميع المناطق. لا تتغير العمولة وسياسة الإلغاء وحد الرصيد إلا بعد موافقة رئيس فريق مالي آخر، أما ساعات العمل فتُطبَّق فورًا. تحتفظ الرحلات الجارية بالقيم المعتمدة عند قبولها. وتُحدد مبالغ كل منطقة في بطاقة أسعارها.',
     saveChanges: 'حفظ التغييرات',
     policiesLoadError: 'تعذّر تحميل السياسات',
     nothingChanged: 'لم يتغير شيء — لا يوجد ما يُحفظ.',
     savedTitle: 'تم حفظ التغييرات بنجاح',
     savedBody: 'سيتم تطبيق التغييرات الجديدة على الرحلات الجديدة.',
     appliedNow: 'طُبّق الآن: {list}.',
-    sentForApproval: 'أُرسل للموافقة: {list}. لا يُطبَّق إلا بعد موافقة مدير آخر.',
+    sentForApproval: 'أُرسل للموافقة: {list}. لا يُطبَّق إلا بعد موافقة رئيس فريق مالي آخر.',
     commissionChange: 'عمولة المنصة {from} ← {to}',
+    cancellationChange: 'سياسة الإلغاء',
+    balanceLimitChange: 'حد رصيد السائقة {from} ← {to}',
+    readOnlyNote: 'للعرض فقط بصلاحيتك.',
     listSeparator: '، ',
 
     zonesMatching: 'المناطق المطابقة لـ «{term}»',

@@ -128,6 +128,8 @@ const channelLabel = (value) => (CHANNEL_KEYS[value] ? t(CHANNEL_KEYS[value]) : 
 function resultLamp(row) {
   if (row.status === 'unknown_driver') return lamp('status-danger-lamp', t('settlementImports.resultUnknownDriver'));
   if (row.status === 'duplicate') return lamp('status-danger-lamp', t('settlementImports.resultDuplicate'));
+  if (row.status === 'future_date') return lamp('status-danger-lamp', t('settlementImports.resultFutureDate'));
+  if (row.status === 'bad_channel') return lamp('status-danger-lamp', t('settlementImports.resultBadChannel'));
   switch (row.outcome) {
     case 'full': return lamp('status-active-lamp', t('settlementImports.outcomeFull'));
     case 'partial': return lamp('status-warning-lamp', t('settlementImports.outcomePartial', { owed: formatEgp(-row.balanceAfter) }));
@@ -367,13 +369,15 @@ submitButton.addEventListener('click', async () => {
 });
 
 // ── History ──────────────────────────────────────────
-const historyQuery = { page: 1, pageSize: 20 };
+// #5620 grid spec: Uploaded (default, newest first), Amount and Decided sort.
+const historyQuery = { page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' } };
 
 historyTable.pageSize = historyQuery.pageSize;
+historyTable.sort = historyQuery.sort;
 historyTable.columns = [
   { key: 'id', label: t('settlementImports.colImportId'), ltr: true, render: (r) => ltr(r.id, 'si-mono') },
   { key: 'fileName', label: t('settlementImports.colFile'), ltr: true, className: 'si-wrap', render: (r) => ltr(r.fileName) },
-  { key: 'createdAt', label: t('settlementImports.colUploaded'), render: (r) => whoWhen(r.createdBy, r.createdAt) },
+  { key: 'createdAt', label: t('settlementImports.colUploaded'), sortable: true, render: (r) => whoWhen(r.createdBy, r.createdAt) },
   {
     key: 'rows',
     label: t('settlementImports.colRows'),
@@ -381,9 +385,9 @@ historyTable.columns = [
     numeric: true,
     render: (r) => t('settlementImports.rowsOf', { ready: formatCount(r.readyRows), total: formatCount(r.totalRows) }),
   },
-  { key: 'amount', label: t('settlementImports.colAmountTotal'), numeric: true, ltr: true, render: (r) => el('p', 'text-bold ad-ltr', formatEgp(r.amount)) },
+  { key: 'amount', label: t('settlementImports.colAmountTotal'), sortable: true, numeric: true, ltr: true, render: (r) => el('p', 'text-bold ad-ltr', formatEgp(r.amount)) },
   { key: 'status', label: t('settlementImports.colStatus'), render: (r) => importLamp(r.status) },
-  { key: 'decidedAt', label: t('settlementImports.colDecided'), render: (r) => whoWhen(r.decidedBy, r.decidedAt) },
+  { key: 'decidedAt', label: t('settlementImports.colDecided'), sortable: true, render: (r) => whoWhen(r.decidedBy, r.decidedAt) },
   {
     key: 'actions',
     label: t('common.actions'),
@@ -416,6 +420,12 @@ historyTable.emptyState = {
 
 historyTable.addEventListener('pagechange', (event) => {
   historyQuery.page = event.detail.page;
+  loadHistory();
+});
+historyTable.addEventListener('sortchange', (event) => {
+  historyQuery.sort = event.detail;
+  historyTable.sort = historyQuery.sort;
+  historyQuery.page = 1;
   loadHistory();
 });
 modalEl.addEventListener('hidden.bs.modal', () => {

@@ -30,6 +30,7 @@ import { qs } from '../../shared/scripts/utils.js';
 import { t, hasKey, isRtl } from './admin-i18n.js';
 import { iconUrl } from '../components/ad-styles.js';
 import { queueToast } from '../components/ad-toast.js';
+import { can } from './roles.js';
 import '../components/ad-data-table.js';
 
 // ── Small helpers (the queue's grid uses them too) ────
@@ -375,7 +376,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     return wrap;
   }
 
-  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total']);
+  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total', 'driverCancellationFee', 'outstandingLimit']);
   const COUNT_KEYS = new Set(['lines', 'rows', 'success', 'failed']);
 
   function fieldLabel(key) {
@@ -752,10 +753,24 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     approve.id = 'approval-approve';
     reject.id = 'approval-reject-open';
 
+    // #6212 — only a Financial lead decides. A Financial officer sees her
+    // request read-only: no Approve or Reject at all.
+    if (!can('finance.approve')) {
+      const note = alertBox('info', request.waitingForLead ? t('approvalRoles.waitingForLead') : t('approvalRoles.officerReadOnly'));
+      note.classList.add('apr-own-note');
+      note.removeAttribute('role');
+      review.footer.append(note, closeButton(review));
+      return;
+    }
+    // A lead's own request: disabled, decided by a different lead — or, with
+    // none left, "Waiting for another Financial lead".
     if (request.madeByYou || !request.canDecide) {
       approve.disabled = true;
       reject.disabled = true;
-      const note = alertBox('info', t('approvals.madeByYouNote'));
+      const note = alertBox(
+        request.waitingForLead ? 'warning' : 'info',
+        request.waitingForLead ? `${t('approvalRoles.waitingForLead')}. ${t('approvalRoles.waitingForLeadMeta')}` : t('approvalRoles.madeByYouLead'),
+      );
       note.classList.add('apr-own-note');
       note.removeAttribute('role');
       review.footer.append(note, approve, reject);

@@ -5,7 +5,7 @@ export const en = {
     pageTitle: 'Approvals',
     heading: 'Request queue',
     hint:
-      'Every finance action waits here until a different admin approves or rejects it. Nothing changes and nothing is posted to a ledger until it is approved. The admin who made a request cannot decide it.',
+      'Every finance action waits here until a Financial lead approves or rejects it. Nothing changes and nothing is posted to a ledger until it is approved. The admin who made a request cannot decide it.',
     statsLabel: 'Approvals summary',
     statPending: 'Pending requests',
     statOldest: 'Oldest waiting',
@@ -52,15 +52,6 @@ export const en = {
     emptyDecidedHeading: 'No decided requests',
     emptyDecidedMessage: 'Approved and rejected requests appear here.',
 
-    // Demo switch — mockup only
-    demoBadge: 'Demo',
-    demoTitle: 'You are acting as {email}',
-    demoSignedIn: 'Signed in as {email}.',
-    demoHint:
-      'The mockup has one signed-in admin, so this switch lets you act as a second admin and see the checker side. A real deployment has no such switch — each admin signs in as herself.',
-    demoSelectLabel: 'Admin to act as',
-    demoActAs: 'Act as this admin',
-    demoBack: 'Back to my account',
 
     // Request types
     type: {
@@ -73,6 +64,8 @@ export const en = {
       payout_method: 'Payout method change',
       rate_card: 'Rate card change',
       commission: 'Commission change',
+      cancellation_policy: 'Cancellation policy change',
+      balance_limit: 'Balance limit change',
     },
     typeEffect: {
       payout_batch: 'On approval the batch becomes Ready to export.',
@@ -84,6 +77,8 @@ export const en = {
       payout_method: "On approval the driver's payout method is replaced.",
       rate_card: "On approval the zone's rate card is saved.",
       commission: 'On approval the platform commission is saved.',
+      cancellation_policy: 'On approval the cancellation policy is saved and applies to new trips.',
+      balance_limit: 'On approval the driver balance limit is saved.',
     },
 
     // Before → after field labels
@@ -106,6 +101,11 @@ export const en = {
       failed: 'Failed lines',
       rows: 'Rows',
       holderName: 'Account holder',
+      riderGracePeriodMin: 'Rider grace period (min)',
+      driverCancellationFee: 'Driver cancellation fee',
+      driverCancellationGracePeriodMin: 'Driver grace period (min)',
+      riderNoShowWaitMin: 'Rider no-show wait (min)',
+      outstandingLimit: 'Balance limit',
     },
     removedValue: 'Removed',
     payoutType: {
@@ -162,7 +162,7 @@ export const en = {
     noChange: 'No field-level change — see the details below.',
     you: '(you)',
 
-    madeByYouNote: 'You made this request — another admin must approve it.',
+    madeByYouNote: 'You made this request — a Financial lead must approve it.',
     approve: 'Approve',
     reject: 'Reject',
     confirmReject: 'Confirm rejection',
@@ -201,7 +201,7 @@ export const ar = {
     pageTitle: 'الموافقات',
     heading: 'قائمة الطلبات',
     hint:
-      'ينتظر كل إجراء مالي هنا حتى يوافق عليه مدير آخر أو يرفضه. لا يتغير شيء ولا يُسجَّل أي قيد في الدفتر قبل الموافقة. لا يمكن للمدير الذي أنشأ الطلب أن يبتّ فيه.',
+      'ينتظر كل إجراء مالي هنا حتى يوافق عليه رئيس فريق مالي أو يرفضه. لا يتغير شيء ولا يُسجَّل أي قيد في الدفتر قبل الموافقة. لا يمكن للمدير الذي أنشأ الطلب أن يبتّ فيه.',
     statsLabel: 'ملخص الموافقات',
     statPending: 'طلبات بانتظار الموافقة',
     statOldest: 'أقدم طلب منتظر',
@@ -248,14 +248,6 @@ export const ar = {
     emptyDecidedHeading: 'لا توجد طلبات تم البتّ فيها',
     emptyDecidedMessage: 'تظهر هنا الطلبات المقبولة والمرفوضة.',
 
-    demoBadge: 'عرض تجريبي',
-    demoTitle: 'أنت تعمل الآن بصفة {email}',
-    demoSignedIn: 'تم تسجيل الدخول بحساب {email}.',
-    demoHint:
-      'في هذا النموذج مدير واحد مسجَّل الدخول، لذا يتيح هذا المفتاح العمل بصفة مدير ثانٍ لرؤية جانب المراجع. لا يوجد هذا المفتاح في النظام الفعلي — كل مدير يسجّل الدخول بحسابه.',
-    demoSelectLabel: 'المدير المراد العمل بصفته',
-    demoActAs: 'العمل بصفة هذا المدير',
-    demoBack: 'العودة إلى حسابي',
 
     type: {
       payout_batch: 'دفعة مدفوعات',
@@ -267,6 +259,8 @@ export const ar = {
       payout_method: 'تغيير وسيلة الصرف',
       rate_card: 'تغيير بطاقة الأسعار',
       commission: 'تغيير العمولة',
+      cancellation_policy: 'تغيير سياسة الإلغاء',
+      balance_limit: 'تغيير حد الرصيد',
     },
     typeEffect: {
       payout_batch: 'عند الموافقة تصبح الدفعة جاهزة للتصدير.',
@@ -278,6 +272,8 @@ export const ar = {
       payout_method: 'عند الموافقة تُستبدل وسيلة صرف السائقة.',
       rate_card: 'عند الموافقة تُحفظ بطاقة أسعار المنطقة.',
       commission: 'عند الموافقة تُحفظ عمولة المنصة.',
+      cancellation_policy: 'عند الموافقة تُحفظ سياسة الإلغاء وتسري على الرحلات الجديدة.',
+      balance_limit: 'عند الموافقة يُحفظ حد رصيد السائقة.',
     },
 
     field: {
@@ -299,6 +295,11 @@ export const ar = {
       failed: 'البنود الفاشلة',
       rows: 'الصفوف',
       holderName: 'صاحبة الحساب',
+      riderGracePeriodMin: 'مهلة الراكبة (دقيقة)',
+      driverCancellationFee: 'رسوم إلغاء السائقة',
+      driverCancellationGracePeriodMin: 'مهلة السائقة (دقيقة)',
+      riderNoShowWaitMin: 'انتظار عدم حضور الراكبة (دقيقة)',
+      outstandingLimit: 'حد الرصيد',
     },
     removedValue: 'محذوفة',
     payoutType: {
@@ -354,7 +355,7 @@ export const ar = {
     noChange: 'لا يوجد تغيير على مستوى الحقول — راجع التفاصيل أدناه.',
     you: '(أنت)',
 
-    madeByYouNote: 'أنت من أنشأ هذا الطلب — يجب أن يوافق عليه مدير آخر.',
+    madeByYouNote: 'أنت من أنشأ هذا الطلب — يجب أن يوافق عليه رئيس فريق مالي.',
     approve: 'موافقة',
     reject: 'رفض',
     confirmReject: 'تأكيد الرفض',
