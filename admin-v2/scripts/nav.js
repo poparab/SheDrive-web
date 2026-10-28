@@ -40,12 +40,12 @@ export const NAV_SECTIONS = [
     items: [
       { key: 'approvals', labelKey: 'nav.approvals', href: 'approvals.html', icon: 'checked-2.svg', count: 'pendingApprovals' },
       { key: 'balances', labelKey: 'nav.balances', href: 'balances.html', icon: 'balance.svg' },
-      { key: 'payouts', labelKey: 'nav.payouts', href: 'payouts.html', icon: 'withdrawal-wallet.svg' },
+      { key: 'payouts', labelKey: 'nav.payouts', href: 'payouts.html', icon: 'wallet-minus.svg' },
       {
         key: 'settlement-imports',
         labelKey: 'nav.settlementImports',
         href: 'settlement-imports.html',
-        icon: 'deposit-wallet.svg',
+        icon: 'wallet-plus.svg',
       },
       { key: 'rider-balances', labelKey: 'nav.riderBalances', href: 'rider-balances.html', icon: 'wallet.svg' },
     ],
@@ -63,7 +63,7 @@ export const NAV_SECTIONS = [
     labelKey: 'nav.reporting',
     items: [
       { key: 'reports', labelKey: 'nav.reports', href: 'reports.html', icon: 'reports.svg' },
-      { key: 'reconciliation', labelKey: 'nav.reconciliation', href: 'reconciliation.html', icon: 'handshake.svg' },
+      { key: 'reconciliation', labelKey: 'nav.reconciliation', href: 'reconciliation.html', icon: 'money.svg' },
     ],
   },
   {
