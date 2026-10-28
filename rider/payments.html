@@ -61,13 +61,14 @@
               </span>
               <span class="credit-row__text">
                 <span class="credit-row__amount" id="credit-amount">رصيد: 20.00 ج.م.</span>
-                <span class="credit-row__note" data-i18n="payments.creditNote">من رسوم إلغاء تم إعفاؤكِ منها. لا يُستخدم في الرحلات حالياً.</span>
+                <span class="credit-row__source" id="credit-source"></span>
+                <span class="credit-row__note" data-i18n="payments.creditNote">لا يُستخدم في الرحلات حالياً.</span>
               </span>
             </div>
           </section>
 
           <!-- ── Outstanding fees ─────────────────────── -->
-          <section class="payments-section" aria-labelledby="fees-heading">
+          <section class="payments-section payments-section--fees" aria-labelledby="fees-heading">
             <div class="section-head payments-section__head">
               <h2 class="section-title payments-section__title" id="fees-heading" data-i18n="payments.outstandingTitle">الرسوم المستحقة</h2>
               <span class="badge badge--brand payments-pending" id="fees-pending-badge" hidden data-i18n="payments.pendingNextRide">تُضاف لرحلتكِ القادمة</span>
@@ -88,8 +89,13 @@
               <p class="payments-state__body fees-zero__hint" data-i18n="payments.zeroFeesHint">رائع! حسابكِ خالٍ من أي رسوم مستحقة.</p>
             </div>
 
-            <!-- Fee rows -->
+          </section>
+
+          <!-- ── Fee history (API #5913) — every fee, newest first, 20 per page ── -->
+          <section class="payments-section payments-section--history" id="fees-history" hidden aria-labelledby="history-heading">
+            <h2 class="section-title payments-section__title" id="history-heading" data-i18n="payments.historyTitle">سجل الرسوم</h2>
             <div class="fees-list" id="fees-list" role="list"></div>
+            <button type="button" class="btn btn--ghost btn--full fees-more" id="fees-more" hidden data-i18n="payments.loadMore">عرض المزيد</button>
           </section>
 
         </div>

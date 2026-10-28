@@ -350,3 +350,25 @@
   color: var(--color-text-subtle);
   line-height: var(--leading-snug);
 }
+
+.credit-row__source {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+/* ── Fee history (API #5913) ─────────────────────────── */
+
+.payments-section[hidden] {
+  display: none;
+}
+
+/* With no history, the outstanding section takes the rest of the screen so the
+   no-fees state stays centred, as the Figma "No Fees Due" frame draws it. */
+.payments-section--fees:has(~ .payments-section--history[hidden]) {
+  flex: 1 0 auto;
+}
+
+.fees-more[hidden] {
+  display: none;
+}

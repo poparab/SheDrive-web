@@ -3,21 +3,24 @@
  *
  * Payment is cash-only — the method section is a static statement, not a
  * selectable option, so there is no online-payment affordance to wire up.
- * Outstanding fees are read from fee-store.js — a fee is recovered as a
- * cash surcharge on her next trip, so this screen only ever shows what is still
- * unpaid, oldest first.
+ * Fees are read from fee-store.js. The outstanding total is the sum of her
+ * unsettled fees (a fee is recovered as a cash surcharge on her next trip); the
+ * fee history lists every fee she has been charged, newest first, 20 at a time,
+ * each with its status and when it was charged (API #5913).
  *
- * Demo switches are documented in fee-store.js (?fees=N, ?zero, ?error), plus
- * ?state=credit — she has a credit from a waived fee she had already paid
- * (payouts spec §5). The credit is shown, not spent, in this phase.
+ * Demo switches are documented in fee-store.js (?fees=N, ?zero, ?error,
+ * ?state=credit). The credit (#5632) comes from a waived fee she had already
+ * paid, and names that fee; it is shown, not spent, in this phase.
  */
 
 import { auth } from '../../shared/scripts/auth.js';
-import { initI18n, setLanguage, translate, I18N_EVENT } from '../../shared/scripts/i18n.js';
+import { initI18n, setLanguage, translate, getLanguage, I18N_EVENT } from '../../shared/scripts/i18n.js';
 import { qs } from '../../shared/scripts/utils.js';
 import {
+  FEE_STATUS,
   FEE_TYPES,
-  getOutstandingFees,
+  getCredit,
+  getFeeHistory,
   getOutstandingTotal,
   shouldFailRequest,
 } from './fee-store.js';
@@ -30,11 +33,25 @@ document.querySelectorAll('[data-lang-btn]').forEach((btn) =>
 );
 
 const isAr = () => document.documentElement.lang === 'ar';
+const PAGE_SIZE = 20;
 
 let failed = shouldFailRequest;
+let shown = PAGE_SIZE;
 
-/** Credit left by a waived cancellation fee she had already paid (demo: ?state=credit). */
-const CREDIT = new URLSearchParams(location.search).get('state') === 'credit' ? 20 : 0;
+const locale = () => (getLanguage() === 'ar' ? 'ar-EG' : 'en-US');
+
+/** "Sep 10, 2026" — `chargedAt` is Cairo local time, so it is read and shown as UTC. */
+function feeDate(fee) {
+  const at = new Date(`${fee.chargedAt}:00Z`);
+  return new Intl.DateTimeFormat(locale(), { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' }).format(at);
+}
+
+/** "Sep 10, 2026 • 6:38 pm" (API #5913 "Charged at"). */
+function chargedAt(fee) {
+  const at = new Date(`${fee.chargedAt}:00Z`);
+  const time = new Intl.DateTimeFormat(locale(), { timeZone: 'UTC', hour: 'numeric', minute: '2-digit' }).format(at);
+  return `${feeDate(fee)} • ${getLanguage() === 'ar' ? time : time.toLowerCase()}`;
+}
 
 function showError(on) {
   const box = qs('#payments-error');
@@ -67,13 +84,18 @@ const CALENDAR_ICON =
   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
 function renderFees() {
-  const fees = getOutstandingFees();
+  const history = getFeeHistory();
+  const fees = history.slice(0, shown);
   const list = qs('#fees-list');
   const zero = qs('#fees-zero');
-  const isEmpty = fees.length === 0;
+  const owesNothing = getOutstandingTotal() === 0;
 
-  zero.hidden = !isEmpty;
-  zero.setAttribute('aria-hidden', String(!isEmpty));
+  zero.hidden = !owesNothing;
+  zero.setAttribute('aria-hidden', String(!owesNothing));
+  qs('#fees-history').hidden = history.length === 0;
+
+  const more = qs('#fees-more');
+  more.hidden = history.length <= shown;
 
   list.textContent = '';
   const currency = translate('home.fare.egp');
@@ -115,12 +137,13 @@ function renderFees() {
     date.className = 'fee-row__date';
     date.innerHTML = CALENDAR_ICON;
     const dateText = document.createElement('span');
-    dateText.textContent = (fee.date || '').replace(/-/g, '/');
+    dateText.textContent = chargedAt(fee);
     date.appendChild(dateText);
 
+    const status = FEE_STATUS[fee.status] || FEE_STATUS.unsettled;
     const note = document.createElement('span');
-    note.className = 'badge badge--brand fee-row__note';
-    note.textContent = translate('fees.recoveryNote');
+    note.className = `badge badge--${status.tone} fee-row__note`;
+    note.textContent = translate(status.key);
 
     meta.append(date, note);
     row.appendChild(meta);
@@ -128,11 +151,18 @@ function renderFees() {
   });
 }
 
+/** Her credit (#5632) and the waived fee it came from — trip and date. */
 function renderCredit() {
+  const { amount, fees } = getCredit();
   const section = qs('#credit-section');
-  section.hidden = CREDIT <= 0;
-  if (CREDIT <= 0) return;
-  qs('#credit-amount').textContent = translate('payments.credit', { amount: CREDIT.toFixed(2) });
+  section.hidden = amount <= 0;
+  if (amount <= 0) return;
+  qs('#credit-amount').textContent = translate('payments.credit', { amount: amount.toFixed(2) });
+  const [source] = fees;
+  qs('#credit-source').textContent = translate('payments.creditFrom', {
+    route: (isAr() ? source.route?.ar : source.route?.en) || '',
+    date: feeDate(source),
+  });
 }
 
 function render() {
@@ -141,6 +171,11 @@ function render() {
   renderRecoveryNotice();
   renderFees();
 }
+
+qs('#fees-more')?.addEventListener('click', () => {
+  shown += PAGE_SIZE;
+  renderFees();
+});
 
 qs('#payments-retry')?.addEventListener('click', () => {
   failed = false;
