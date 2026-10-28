@@ -4,11 +4,12 @@
  * One batch through its whole life: Pending approval → Ready to export →
  * Sent to bank → Result pending approval → Completed (or Rejected).
  *
- * Laid out as the kit's trip-detail card grid: a summary card, a State
- * timeline card and a Next-step card, then the lines in a full-width table card.
+ * Laid out as the kit's v22-10 payout-batch page: a summary card (with the
+ * "download bank file again" footer) beside the State timeline card, then the
+ * batch contents table, then the next step full width.
  *
  * What an admin can do depends only on the status:
- *   pending_approval / result_pending — another admin decides it, in the review
+ *   pending_approval / result_pending — a Financial lead decides it, in the review
  *     dialog that the link here opens in place (or on the Approvals screen, §1).
  *   ready — export the bank file (kit popup-warning confirm), which moves the
  *     batch to Sent to bank.
@@ -347,7 +348,7 @@ async function importText(fileName, csvText, ui) {
 function importBlock() {
   const wrap = el('div', 'batch-import');
   wrap.appendChild(el('h6', 'batch-import__title', t('payoutBatch.importHeading')));
-  wrap.appendChild(el('p', 'small lh-sm batch-muted', t('payoutBatch.importHint')));
+  wrap.appendChild(el('small', 'batch-muted', t('payoutBatch.importHint')));
 
   // Kit upload component (driver-balance-details #recordPayoutModal).
   const group = el('div', 'input-group mt-2 batch-upload');
@@ -476,7 +477,8 @@ function renderTimeline() {
 
   const list = el('ol', 'timeline-vertical batch-timeline');
   items.forEach((item) => {
-    const li = el('li', item.tone);
+    // Kit v22-10 colours success / warning / danger itself; the step in hand is `current-state`.
+    const li = el('li', item.tone === 'warning' ? 'warning current-state' : item.tone);
     // The kit's own tag name for a timeline label.
     li.appendChild(el('lable', '', item.label));
     li.appendChild(el('span', '', item.meta));
@@ -538,13 +540,17 @@ function renderActions() {
     nodes.push(importBlock());
   }
 
+  // Kit v22-10: "Download bank file again" is the summary card's footer.
+  const footer = qs('#batch-summary-footer');
   if (['sent_to_bank', 'result_pending', 'completed'].includes(s)) {
-    const again = el('div', 'batch-again');
-    const b = button(t('payoutBatch.exportAgain'), 'btn-primary-outline w-100', 'fa-download');
+    const b = button(t('payoutBatch.exportAgain'), 'btn-primary-outline d-flex', 'fa-download');
     b.id = 'btn-export-again';
     b.addEventListener('click', () => exportFile(false));
-    again.append(b, el('p', 'small lh-sm batch-muted', t('payoutBatch.exportAgainHint')));
-    nodes.push(again);
+    footer.replaceChildren(b, el('p', 'small lh-sm batch-muted', t('payoutBatch.exportAgainHint')));
+    footer.hidden = false;
+  } else {
+    footer.replaceChildren();
+    footer.hidden = true;
   }
 
   host.replaceChildren(...nodes);

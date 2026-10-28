@@ -46,22 +46,24 @@
       </div>
 
       <div id="batch-body" hidden>
-        <!-- Kit card grid (trip-completed): summary, state timeline, next step -->
-        <div class="row g-3">
-          <div class="col-lg-6 col-xl-4">
+        <!-- Kit v22-10 payout-batch: summary + state timeline side by side, then the
+             batch contents, then the next step (result file / approval) full width. -->
+        <div class="row row-cols-1 row-cols-lg-2 g-3">
+          <div class="col">
             <div class="standard-card-theme2 white-bg batch-card" id="batch-summary">
               <div class="card-header">
                 <div class="card-title">
                   <h5 data-i18n="kitFinance.pbSummaryTitle">Batch summary</h5>
                   <span class="ad-ltr" id="batch-ref"></span>
                 </div>
-                <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
+                <div class="icon"><img src="vendor/icons/layers.svg" alt="" /></div>
               </div>
               <div class="card-body pb-0" id="batch-summary-body"></div>
+              <div class="card-footer d-flex flex-column align-items-end batch-again" id="batch-summary-footer" hidden></div>
             </div>
           </div>
 
-          <div class="col-lg-6 col-xl-4">
+          <div class="col">
             <div class="standard-card-theme2 white-bg batch-card" id="batch-progress">
               <div class="card-header">
                 <div class="card-title">
@@ -73,32 +75,31 @@
               <div class="card-body pb-0" id="batch-timeline-body"></div>
             </div>
           </div>
-
-          <div class="col-lg-12 col-xl-4">
-            <div class="standard-card-theme2 white-bg batch-card" id="batch-actions">
-              <div class="card-header">
-                <div class="card-title">
-                  <h5 data-i18n="payoutBatch.actionsHeading">Next step</h5>
-                  <span></span>
-                </div>
-                <div class="icon"><img src="vendor/icons/upload-file.svg" alt="" /></div>
-              </div>
-              <div class="card-body" id="batch-actions-body"></div>
-            </div>
-          </div>
         </div>
 
-        <!-- Full width: the lines table (kit driver-profile "Completed trips" card). -->
+        <!-- Full width: the lines table (kit "Batch contents" card). -->
         <div class="standard-card light-medium-bg batch-lines" aria-labelledby="lines-heading">
           <div class="card-header mb-3">
             <div class="card-title">
-              <img class="icon" src="vendor/icons/withdrawal-wallet.svg" alt="" />
-              <h4 id="lines-heading" data-i18n="payoutBatch.linesHeading">Lines</h4>
+              <img class="icon" src="vendor/icons/layers.svg" alt="" />
+              <h4 id="lines-heading" data-i18n="payoutBatch.contentsHeading">Batch contents</h4>
             </div>
           </div>
           <div class="card-body">
             <ad-data-table id="lines-table"></ad-data-table>
           </div>
+        </div>
+
+        <!-- Next step: the kit's "Import result file" card, full width. -->
+        <div class="standard-card-theme2 white-bg batch-next" id="batch-actions">
+          <div class="card-header">
+            <div class="card-title">
+              <h4 data-i18n="payoutBatch.actionsHeading">Next step</h4>
+              <span></span>
+            </div>
+            <div class="icon"><img src="vendor/icons/upload-file.svg" alt="" /></div>
+          </div>
+          <div class="card-body" id="batch-actions-body"></div>
         </div>
       </div>
     </ad-shell>

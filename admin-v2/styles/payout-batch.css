@@ -2,11 +2,10 @@
  * payout-batch.css — one payout batch: summary, state timeline, next step, lines
  * Screen owner: admin-v2/payout-batch.html
  *
- * Kit card grid (trip-detail): three standard-card-theme2 cards and a
- * full-width standard-card table card. What is local: the timeline's
- * done / current / to-do dots (the kit only colours the last step), the
- * next-step card's stacking, the result-file upload block and the two-line
- * method and line-status cells.
+ * Kit v22-10 payout-batch layout: summary + timeline cards side by side, the
+ * batch contents table card, then the next-step card full width. What is
+ * local: the to-do timeline steps, the next-step card's stacking, the
+ * result-file upload block and the two-line method and line-status cells.
  * Every value comes from a token. Logical properties only (RTL-safe).
  */
 
@@ -50,31 +49,8 @@
 }
 
 /* ── State timeline ───────────────────────────────────── */
-
-.batch-timeline li.success::before {
-  background: var(--color-success);
-}
-
-.batch-timeline li.warning::before {
-  background: var(--color-warning);
-  box-shadow: 0 0 0 var(--space-1) rgba(var(--color-warning-rgb), 0.25);
-}
-
-.batch-timeline li.danger::before {
-  background: var(--color-danger);
-}
-
-.batch-timeline li.success lable {
-  color: var(--color-success-strong);
-}
-
-.batch-timeline li.warning lable {
-  color: var(--color-warning-strong);
-}
-
-.batch-timeline li.danger lable {
-  color: var(--color-danger);
-}
+/* Kit v22-10 colours success / warning / danger and the `current-state` ring
+   itself; only the not-yet steps and the rejection note are local. */
 
 .batch-timeline li.todo lable,
 .batch-timeline li.todo span {
@@ -126,9 +102,9 @@
   position: relative;
 }
 
-/* The next-step card is a third of the row; give the drop zone room for its two lines. */
+/* Give the drop zone room for its two lines. */
 .batch-upload input.custom-file-input {
-  min-block-size: calc(var(--space-16) * 2.75);
+  min-block-size: calc(var(--space-16) * 2);
 }
 
 .batch-upload label.custom-file-label {
@@ -173,8 +149,17 @@
 
 /* ── Lines table card ─────────────────────────────────── */
 
-.batch-lines {
+.batch-lines,
+.batch-next {
   margin-block-start: var(--space-5);
+}
+
+.batch-again[hidden] {
+  display: none !important;
+}
+
+.batch-again {
+  gap: var(--space-1);
 }
 
 .batch-method {

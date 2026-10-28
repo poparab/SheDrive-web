@@ -20,15 +20,15 @@
         <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
         <p data-i18n="payouts.lead">
           Trip earnings and cancellation-fee credits become due 7 calendar days after they happen.
-          On working days an admin generates a payout batch; another admin approves it before the
-          bank file can be exported.
+          On working days a Financial officer or lead generates a payout batch; a Financial lead
+          approves it before the bank file can be exported.
         </p>
       </div>
 
       <div class="ad-stats" id="payouts-stats">
-        <ad-stat-card id="card-due" label="Due now" data-i18n-label="payouts.kpiDue" value="—" tone="warning" icon="wallet-plus.svg"></ad-stat-card>
+        <ad-stat-card id="card-due" label="Due now" data-i18n-label="payouts.kpiDue" value="—" tone="primary" icon="wallet-plus.svg"></ad-stat-card>
         <ad-stat-card id="card-open" label="In open batches" data-i18n-label="payouts.kpiOpen" value="—" tone="blue" icon="wallet-minus.svg"></ad-stat-card>
-        <ad-stat-card id="card-paid" label="Paid this month" data-i18n-label="payouts.kpiPaid" value="—" tone="success" icon="withdrawal-wallet.svg"></ad-stat-card>
+        <ad-stat-card id="card-paid" label="Paid this month" data-i18n-label="payouts.kpiPaid" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
       </div>
 
       <ad-filter-bar id="batch-filters"></ad-filter-bar>

@@ -13,11 +13,12 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatDate, formatEgp, formatCount } from './format.js';
+import { formatDate, formatEgp, formatCount, downloadCsv, toDateInputValue } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 import { iconUrl } from '../components/ad-styles.js';
+import { gridAction } from '../components/ad-data-table.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -75,6 +76,37 @@ filters.fields = [
   },
 ];
 
+// Kit v22-10: Export CSV sits beside Reset / Search.
+filters.actions = [{ label: t('common.exportCsv'), variant: 'gradient', onClick: exportCsv }];
+
+async function exportCsv() {
+  const all = await mockApi.listPayoutBatches({ ...query, page: 1, pageSize: 10000 });
+  const rows = all.rows ?? [];
+  downloadCsv(
+    `shedrive-payout-batches-${toDateInputValue(Date.now())}.csv`,
+    [
+      t('payouts.colRef'),
+      t('payouts.colCreated'),
+      t('payouts.csvCreatedBy'),
+      t('payouts.colLines'),
+      t('payouts.colTotal'),
+      t('payouts.csvPaid'),
+      t('payouts.csvFailed'),
+      t('payouts.colStatus'),
+    ],
+    rows.map((b) => [
+      b.ref,
+      formatDate(b.createdAt),
+      b.createdBy,
+      b.lineCount,
+      Number(b.total ?? 0).toFixed(2),
+      b.paidCount ?? 0,
+      b.failedCount ?? 0,
+      t(`payouts.status_${b.status}`),
+    ]),
+  );
+}
+
 filters.addEventListener('change', (event) => {
   Object.assign(query, event.detail);
   query.page = 1;
@@ -115,11 +147,12 @@ table.columns = [
     label: t('payouts.colPaidFailed'),
     numeric: true,
     render: (row) => {
-      const span = el('span', 'payouts-counts');
+      // Kit: paid in success colour, failed in danger colour, always.
+      const span = el('span', 'payouts-counts text-bold ad-ltr');
       span.append(
-        el('span', 'payouts-counts__paid', formatCount(row.paidCount)),
+        el('span', 'success-color', formatCount(row.paidCount)),
         document.createTextNode(' / '),
-        el('span', row.failedCount ? 'payouts-counts__failed' : '', formatCount(row.failedCount)),
+        el('span', 'text-danger', formatCount(row.failedCount)),
       );
       return span;
     },
@@ -128,12 +161,12 @@ table.columns = [
   {
     key: 'actions',
     label: t('common.actions'),
-    render: (row) => {
-      const a = el('a', 'btn btn-primary-outline', t('common.view'));
-      a.href = `payout-batch.html?id=${encodeURIComponent(row.id)}`;
-      a.setAttribute('aria-label', `${t('common.view')} ${row.ref}`);
-      return a;
-    },
+    render: (row) =>
+      gridAction({
+        href: `payout-batch.html?id=${encodeURIComponent(row.id)}`,
+        label: t('common.view'),
+        ariaLabel: `${t('common.view')} ${row.ref}`,
+      }),
   },
 ];
 table.emptyState = {
@@ -208,7 +241,7 @@ async function load() {
 let modal = null;
 
 function buildModal() {
-  const root = el('div', 'modal fade default-modal payouts-preview');
+  const root = el('div', 'modal modal-xl fade default-modal payouts-preview');
   root.id = 'preview-modal';
   root.tabIndex = -1;
   root.dataset.bsBackdrop = 'static';
@@ -219,7 +252,10 @@ function buildModal() {
       <div class="modal-content">
         <div class="modal-header">
           <img class="icon" alt="" />
-          <h3 id="preview-title"></h3>
+          <div class="title">
+            <h3 id="preview-title"></h3>
+            <span id="preview-subtitle"></span>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body payouts-preview__body" id="preview-body"></div>
@@ -229,7 +265,7 @@ function buildModal() {
         </div>
       </div>
     </div>`;
-  qs('img.icon', root).src = iconUrl('wallet-plus.svg');
+  qs('img.icon', root).src = iconUrl('layers.svg');
   qs('#preview-title', root).textContent = t('payouts.previewTitle');
   qs('.btn-close', root).setAttribute('aria-label', t('aria.closeDialog'));
   qs('#preview-confirm span', root).textContent = t('payouts.confirm');
@@ -263,6 +299,11 @@ function cell(className, node) {
 
 function renderPreview(body, preview, openBatch) {
   body.textContent = '';
+  // Kit v22-10: the summary is the header's subtitle line.
+  const subtitle = qs('#preview-subtitle', modal);
+  subtitle.textContent = preview.lines.length
+    ? t('payouts.previewSummary', { n: formatCount(preview.count), total: formatEgp(preview.total) })
+    : '';
 
   if (!preview.lines.length) {
     const empty = el('div', 'result-message info payouts-preview__empty');
@@ -277,10 +318,7 @@ function renderPreview(body, preview, openBatch) {
     return;
   }
 
-  body.append(
-    el('p', 'payouts-preview__summary', t('payouts.previewSummary', { n: formatCount(preview.count), total: formatEgp(preview.total) })),
-    alertBox('info', t('payouts.previewApprovalNote')),
-  );
+  body.append(alertBox('info', t('payouts.previewApprovalNote')));
   if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
 
   // Only the drivers this batch pays — nobody left out is listed (2026-10-14).
@@ -329,6 +367,7 @@ async function openPreview() {
   const confirm = qs('#preview-confirm', modal);
   confirm.disabled = true;
   body.textContent = '';
+  qs('#preview-subtitle', modal).textContent = '';
   const loading = el('p', 'payouts-preview__loading');
   loading.append(el('span', 'spinner'), document.createTextNode(` ${t('payouts.previewLoading')}`));
   body.appendChild(loading);
@@ -390,7 +429,7 @@ async function confirmBatch() {
 (() => {
   const host = qs('#ad-page-actions');
   if (!host) return;
-  const btn = el('button', 'btn btn-success d-flex gap-2');
+  const btn = el('button', 'btn btn-success d-flex gap-2 align-items-center');
   btn.type = 'button';
   btn.id = 'btn-generate';
   const glyph = el('i', 'fa-solid fa-plus');

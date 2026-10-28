@@ -210,9 +210,13 @@ function openFormModal({ iconName, title, name, description, alertText, alertTon
   const headIcon = el('img', 'icon');
   headIcon.src = iconUrl(iconName);
   headIcon.alt = '';
-  const h3 = el('h3', '', title);
+  // The name now sits on its own line under the title, so drop the old "Title —" joiner.
+  const h3 = el('h3', '', String(title).replace(/\s*[—–-]\s*$/, ''));
   h3.id = `${root.id}-title`;
-  header.append(headIcon, h3, el('span', 'tertiary-color text-bold', name), closeButton());
+  // Kit v22-10: the title and the driver's name stack in a `.title` block.
+  const titleBlock = el('div', 'title');
+  titleBlock.append(h3, el('span', '', name));
+  header.append(headIcon, titleBlock, closeButton());
 
   const mbody = el('div', 'modal-body');
   mbody.appendChild(el('p', 'small lh-sm', description));
