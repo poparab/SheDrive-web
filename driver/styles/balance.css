@@ -304,3 +304,9 @@ a.statement-row:focus-visible {
   align-self: flex-start;
   margin-block-start: var(--space-1);
 }
+
+/* A failed payout names its reason under the chip (API #5631). */
+.statement-row__reason {
+  font-size: var(--fs-sm);
+  color: var(--color-danger);
+}

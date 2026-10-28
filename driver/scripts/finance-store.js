@@ -103,7 +103,9 @@ function seedEntries() {
  * `rider_cancellation_fee_credit` are what SheDrive owes her, so each carries
  * `dueAt` (= `at` + 7 days) and a `payoutStatus`. The demo's "today" is DEMO_TODAY.
  * The three paid trips are the 245.50 EGP batch line sent to her Vodafone Cash
- * wallet (payout PO-2245, and the "Payout sent" notification).
+ * wallet (payout PO-2245, and the "Payout sent" notification); each carries that
+ * transfer's bank reference (`payoutRef`, API #5631). A failed entry carries its
+ * reason (`failReasonKey`).
  */
 export const DEMO_TODAY = '2026-06-23';
 
@@ -124,9 +126,9 @@ function payableSeed() {
     { id: 'p2', type: 'trip_earnings', amount: 46,     at: '2026-06-15', dueAt: '2026-06-22', payoutStatus: 'due',         tripId: 't-879', route: { ar: 'المعادي ← الدقي',       en: 'Maadi → Dokki' } },
     { id: 'p3', type: 'trip_earnings', amount: 54,     at: '2026-06-12', dueAt: '2026-06-19', payoutStatus: 'in_transfer', tripId: 't-869', route: { ar: 'التجمع ← مصر الجديدة',  en: 'New Cairo → Heliopolis' } },
     { id: 'p4', type: 'payout',        amount: -245.5, at: '2026-06-16', ref: 'PO-2245' },
-    { id: 'p5', type: 'trip_earnings', amount: 65,     at: '2026-06-07', dueAt: '2026-06-14', payoutStatus: 'paid',        tripId: 't-843', route: { ar: 'الهرم ← المهندسين',     en: 'Haram → Mohandessin' } },
-    { id: 'p6', type: 'trip_earnings', amount: 82,     at: '2026-06-05', dueAt: '2026-06-12', payoutStatus: 'paid',        tripId: 't-832', route: { ar: 'الزمالك ← المعادي',     en: 'Zamalek → Maadi' } },
-    { id: 'p7', type: 'trip_earnings', amount: 98.5,   at: '2026-06-03', dueAt: '2026-06-10', payoutStatus: 'paid',        tripId: 't-826', route: { ar: 'الشيخ زايد ← التجمع',   en: 'Sheikh Zayed → New Cairo' } },
+    { id: 'p5', type: 'trip_earnings', amount: 65,     at: '2026-06-07', dueAt: '2026-06-14', payoutStatus: 'paid', payoutRef: 'TRX-5528104',        tripId: 't-843', route: { ar: 'الهرم ← المهندسين',     en: 'Haram → Mohandessin' } },
+    { id: 'p6', type: 'trip_earnings', amount: 82,     at: '2026-06-05', dueAt: '2026-06-12', payoutStatus: 'paid', payoutRef: 'TRX-5528104',        tripId: 't-832', route: { ar: 'الزمالك ← المعادي',     en: 'Zamalek → Maadi' } },
+    { id: 'p7', type: 'trip_earnings', amount: 98.5,   at: '2026-06-03', dueAt: '2026-06-10', payoutStatus: 'paid', payoutRef: 'TRX-5528104',        tripId: 't-826', route: { ar: 'الشيخ زايد ← التجمع',   en: 'Sheikh Zayed → New Cairo' } },
   ];
 }
 
@@ -202,7 +204,9 @@ if (params.has('zero')) {
 // spec §3): its entry is due again, and balance.html shows the failed banner.
 export const payoutFailed = params.get('state') === 'payout-failed';
 if (payoutFailed) {
-  state.entries = state.entries.map((e) => (e.payoutStatus === 'in_transfer' ? { ...e, payoutStatus: 'failed' } : e));
+  state.entries = state.entries.map((e) => (e.payoutStatus === 'in_transfer'
+    ? { ...e, payoutStatus: 'failed', failReasonKey: 'driver.payout.failReason.accountNotFound' }
+    : e));
 }
 
 export const shouldFailRequest = params.has('error');
@@ -232,15 +236,17 @@ export function getEntries() {
   return state.entries.filter((e) => e.type !== 'demo_override');
 }
 
-/** What is on hold and what is due for payout, from the payable entries (payouts spec §3). */
+/** What is on hold, due for payout and being transferred, from the payable entries (payouts spec §3, API #5631). */
 export function getPayoutSummary() {
   let onHold = 0;
   let due = 0;
+  let inTransfer = 0;
   state.entries.forEach((e) => {
     if (e.payoutStatus === 'on_hold') onHold += e.amount;
     if (e.payoutStatus === 'due' || e.payoutStatus === 'failed') due += e.amount;
+    if (e.payoutStatus === 'in_transfer') inTransfer += e.amount;
   });
-  return { onHold: round2(onHold), due: round2(due) };
+  return { onHold: round2(onHold), due: round2(due), inTransfer: round2(inTransfer) };
 }
 
 export function getLastSettlement() {

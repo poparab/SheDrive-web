@@ -6,7 +6,8 @@
  * money — it states the direction in words and colours the statement rows instead.
  *
  * Payable entries (trip earnings, rider fee credits) carry a payout status chip,
- * and the card sums what is on hold and what is due (payouts spec §3).
+ * and the card sums what is on hold, due and being transferred (payouts spec §3,
+ * API #5631). Paid chips name the bank reference; a failed row names its reason.
  *
  * Demo switches are documented in finance-store.js (?owed, ?available, ?warn,
  * ?blocked, ?zero, ?error, ?state=payout-failed).
@@ -96,11 +97,17 @@ function renderBand() {
 const money = (n) => Number(n).toFixed(2);
 
 function renderPayouts() {
-  const { onHold, due } = getPayoutSummary();
+  const { onHold, due, inTransfer } = getPayoutSummary();
   const line = qs('#balance-payouts');
-  const show = onHold > 0 || due > 0;
+  const show = onHold > 0 || due > 0 || inTransfer > 0;
   line.hidden = !show;
-  if (show) line.textContent = translate('driver.balance.payoutSummary', { onHold: money(onHold), due: money(due) });
+  if (show) {
+    line.textContent = translate('driver.balance.payoutSummary', {
+      onHold: money(onHold),
+      due: money(due),
+      inTransfer: money(inTransfer),
+    });
+  }
 
   const failed = qs('#balance-payout-failed');
   failed.hidden = !payoutFailed;
@@ -118,14 +125,30 @@ function renderPayouts() {
     : translate('driver.payout.notAdded');
 }
 
-/** The payout status chip of a payable entry, or null. */
+/**
+ * The payout status chip of a payable entry, or null (API #5631). On hold, due and
+ * being transferred carry the due date; paid carries the payout's bank reference.
+ */
 function payoutChip(entry) {
   const meta = PAYOUT_STATUS[entry.payoutStatus];
   if (!meta) return null;
   const chip = document.createElement('span');
   chip.className = `badge badge--${meta.tone} statement-row__payout`;
-  chip.textContent = translate(meta.key, { date: (entry.dueAt || '').replace(/-/g, '/') });
+  const key = entry.payoutStatus === 'paid' && entry.payoutRef ? 'driver.payoutStatus.paidRef' : meta.key;
+  chip.textContent = translate(key, {
+    date: (entry.dueAt || '').replace(/-/g, '/'),
+    ref: entry.payoutRef || '',
+  });
   return chip;
+}
+
+/** Why a failed payout failed, shown under its chip, or null. */
+function failReason(entry) {
+  if (entry.payoutStatus !== 'failed' || !entry.failReasonKey) return null;
+  const reason = document.createElement('span');
+  reason.className = 'statement-row__reason';
+  reason.textContent = translate('driver.payoutStatus.failReason', { reason: translate(entry.failReasonKey) });
+  return reason;
 }
 
 // ── Last settlement ──────────────────────────────────
@@ -193,6 +216,8 @@ function renderStatement() {
     info.append(label, sub);
     const chip = payoutChip(entry);
     if (chip) info.append(chip);
+    const reason = failReason(entry);
+    if (reason) info.append(reason);
 
     const amount = document.createElement('span');
     amount.className = 'statement-row__amount';
