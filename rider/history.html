@@ -44,11 +44,18 @@
           </svg>
           <h1 class="history-topbar__title-text" data-i18n="history.title">رحلاتي</h1>
         </sd-app-header>
+
+        <!-- Period tabs (#1567): Today is selected on open; weeks start on Saturday (Africa/Cairo). -->
+        <div class="sd-segmented history-tabs" role="tablist" aria-label="فترة الرحلات" data-i18n-aria-label="history.tabsAria">
+          <button type="button" class="sd-segmented__btn history-tab" id="tab-today" role="tab" aria-selected="true" aria-controls="history-panel" data-period="today" data-i18n="history.today">اليوم</button>
+          <button type="button" class="sd-segmented__btn history-tab" id="tab-week" role="tab" aria-selected="false" aria-controls="history-panel" tabindex="-1" data-period="week" data-i18n="history.thisWeek">هذا الأسبوع</button>
+          <button type="button" class="sd-segmented__btn history-tab" id="tab-month" role="tab" aria-selected="false" aria-controls="history-panel" tabindex="-1" data-period="month" data-i18n="history.thisMonth">هذا الشهر</button>
+        </div>
       </div>
 
-      <main class="sd-panel history-content" aria-label="قائمة الرحلات" data-i18n-aria-label="aria.history">
+      <main class="sd-panel history-content fill-screen" id="history-panel" role="tabpanel" aria-labelledby="tab-today">
 
-        <!-- ── Trip list (default state) — populated by scripts/history.js, paginated on scroll (#1567) ─── -->
+        <!-- ── Trip list — the selected period's completed trips, newest first, paginated on scroll (#1567) ─── -->
         <section class="history-list state--has-trips" aria-label="الرحلات السابقة" data-i18n-aria-label="aria.history">
 
           <div id="history-list-items" class="history-list__items" role="list"></div>
@@ -73,7 +80,7 @@
           </div>
         </section>
 
-        <!-- ── Empty state (state=empty) ─────────────── -->
+        <!-- ── Empty state: the selected tab has no trips (or ?state=empty) ── -->
         <section class="history-empty state--empty" aria-labelledby="history-empty-title">
           <div class="history-empty__icon" aria-hidden="true">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -90,6 +97,9 @@
           </a>
         </section>
 
+        <div class="action-dock history-dock">
+          <a href="./home.html" class="btn btn--primary btn--full" data-i18n="history.backHome">العودة للرئيسية</a>
+        </div>
       </main>
     </sd-page>
 

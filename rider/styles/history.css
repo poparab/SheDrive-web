@@ -1,26 +1,28 @@
 /* history.css — Rider trip history screen (#1567)
    Figma "Trip History": purple hero band with the header, white panel with a
    32px top radius, lavender trip cards (date + status, pickup → destination,
-   fare + driver, chevron). <sd-page> is the scroll container. */
+   fare + driver, chevron), Today / This Week / This Month tabs and a pinned
+   Back to Home. <sd-page> is the scroll container. */
 
 /* ── Page layout ────────────────────────────────────── */
 
-/* Stack hero + panel so the panel reaches the bottom of the screen even when
-   the list is short or empty. sd-page keeps its overflow-y:auto scroll. */
-.history-page sd-page {
-  display: flex;
-  flex-direction: column;
-}
-
-.history-hero {
-  flex: none;
-}
-
+/* The panel is .fill-screen, so it reaches the bottom of the screen even when
+   the list is short or empty, and Back to Home stays pinned in .action-dock.
+   The dock supplies the bottom padding. */
 .history-content {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding-block-end: calc(var(--space-8) + env(safe-area-inset-bottom));
+  padding-block-end: 0;
+}
+
+/* ── Period tabs (inside the hero) ──────────────────── */
+
+.history-tabs {
+  margin-block-start: var(--space-2);
+}
+
+/* F7 stretches plain buttons to 100% — the segments share the row instead. */
+.history-tabs .sd-segmented__btn {
+  inline-size: auto;
+  min-inline-size: 0;
 }
 
 /* ── Header (inside the hero) ───────────────────────── */
@@ -70,6 +72,7 @@
 /* ── Trip list ──────────────────────────────────────── */
 
 .history-list {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
