@@ -1,7 +1,7 @@
 /*
  * admin-users.css — SheDrive admin accounts (kit page: admin-accounts.html)
  * The cards, filter row, grid, row actions and modals are kit markup; this sheet
- * only spaces the three summary cards and the role notice. Every value is a token.
+ * only spaces the three summary cards and the actions column. Every value is a token.
  */
 
 .admin-kpis {
@@ -9,13 +9,9 @@
   margin-block-end: var(--admin-gutter-tight);
 }
 
-.admin-role-notice {
-  margin-block-end: var(--space-3);
-}
-
-/* Disabled own-row actions stay visible (with their title) but read as inert. */
-.admin-users__actions .grid-options-btn:disabled {
-  cursor: not-allowed;
+/* #6211 — her own row carries a note instead of actions; keep it on one line. */
+.admin-users__actions {
+  white-space: nowrap;
 }
 
 /* The create form's Latin email keeps LTR inside the Arabic dialog. */

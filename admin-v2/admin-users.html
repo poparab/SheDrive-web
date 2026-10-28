@@ -15,7 +15,7 @@
       breadcrumb-keys="nav.administration > nav.adminUsers"
       screen-styles="styles/list.css, styles/admin-users.css"
     >
-      <!-- #1820 list · #4121 summary cards · #1807 add · #1821 suspend/unsuspend · #4122 delete.
+      <!-- #1820 list · #4121 summary cards · #1807 add · #1821 suspend/unsuspend · #4122 delete · #6211 roles.
            Kit page: admin-accounts.html. The add button moves into the title row's end side. -->
       <button
         class="btn btn-success d-flex gap-2 align-items-center"
@@ -32,14 +32,6 @@
         <ad-stat-card id="kpi-suspended" tone="danger" icon="user-locked2.svg" value="—"></ad-stat-card>
       </div>
 
-      <!-- Shown only to the Admin role (#1821 Scenario 3); demo it with ?role=admin. -->
-      <div class="alert info admin-role-notice" id="role-notice" hidden>
-        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-        <p data-i18n="kitAdmin.roleNotice">
-          You are signed in with the Admin role. Only a Super admin can suspend, unsuspend or
-          delete admin accounts.
-        </p>
-      </div>
 
       <ad-filter-bar id="admins-filters"></ad-filter-bar>
       <div class="row mt-2">
@@ -99,6 +91,14 @@
                   />
                   <div class="invalid-feedback" id="create-admin-email-error"></div>
                 </div>
+                <!-- #6211 — Role, required (single-select) -->
+                <div class="col-12">
+                  <label for="create-admin-role" data-i18n="adminRoles.fieldRole">Role</label>
+                  <select class="form-select" id="create-admin-role" name="role" aria-describedby="create-admin-role-error">
+                    <option value="" data-i18n="adminRoles.choosePlaceholder">Choose a role</option>
+                  </select>
+                  <div class="invalid-feedback" id="create-admin-role-error"></div>
+                </div>
               </form>
             </div>
             <div class="modal-footer">
@@ -139,6 +139,11 @@
               <div class="status-sign warning"><i class="fa-solid fa-warning" aria-hidden="true"></i></div>
               <h4 id="adminConfirmTitle"></h4>
               <p id="adminConfirmText"></p>
+              <!-- #6211 — fewer than two active Financial leads would be left -->
+              <div class="alert warning mt-2 mb-0 text-start" id="adminConfirmWarning" role="status" hidden>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <p></p>
+              </div>
               <div class="alert danger mt-2 mb-0 text-start" id="adminConfirmError" role="alert" hidden>
                 <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                 <p></p>
@@ -152,6 +157,68 @@
               <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal">
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
                 <span data-i18n="kitAdmin.backToReview">Back to review</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── #6211 Change role (kit default-modal) — one Admin decides alone ── -->
+      <div
+        class="modal fade default-modal"
+        id="changeRoleModal"
+        data-bs-backdrop="static"
+        tabindex="-1"
+        aria-labelledby="changeRoleTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <img class="icon" src="vendor/icons/users.svg" alt="" aria-hidden="true" />
+              <h3 id="changeRoleTitle" data-i18n="adminRoles.changeTitle">Change role</h3>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-i18n-aria-label="aria.closeDialog"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <form class="row gy-3" id="change-role-form" novalidate>
+                <div class="col-12">
+                  <p class="small lh-sm mb-0" id="change-role-text"></p>
+                </div>
+                <div class="col-12">
+                  <label for="change-role-select" data-i18n="adminRoles.newRole">New role</label>
+                  <select class="form-select" id="change-role-select" name="role" aria-describedby="change-role-select-error">
+                    <option value="" data-i18n="adminRoles.choosePlaceholder">Choose a role</option>
+                  </select>
+                  <div class="invalid-feedback" id="change-role-select-error"></div>
+                </div>
+                <div class="col-12">
+                  <div class="alert warning mb-0" id="change-role-warning" role="status" hidden>
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <p></p>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="alert danger mb-0" id="change-role-error" role="alert" hidden>
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <p></p>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success" form="change-role-form" id="change-role-confirm">
+                <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
+                <span data-i18n="adminRoles.changeConfirm">Confirm &amp; change role</span>
+              </button>
+              <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span data-i18n="common.cancel">Cancel</span>
               </button>
             </div>
           </div>

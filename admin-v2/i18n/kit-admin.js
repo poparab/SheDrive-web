@@ -10,18 +10,16 @@ export const en = {
     createTitle: 'Create new account',
     confirmSave: 'Confirm & save',
     emailDuplicateError: 'An admin with this email already exists',
-    roleNotice:
-      'You are signed in with the Admin role. Only a Super admin can suspend, unsuspend or delete admin accounts.',
     selfNote: 'This is your account',
 
     suspend: 'Suspend account',
     unsuspend: 'Unsuspend account',
     deleteAccount: 'Delete account',
-    cannotActOnSelf: 'You cannot suspend or delete your own account',
+    cannotActOnSelf: 'You cannot change your own account',
 
     suspendTitle: 'Are you sure you want to suspend this account?',
     suspendText:
-      '{email} is signed out at once and cannot sign in until a Super admin unsuspends the account.',
+      '{email} is signed out at once and cannot sign in until an Admin (users & IT) unsuspends the account.',
     suspendConfirm: 'Confirm & suspend',
     unsuspendTitle: 'Are you sure you want to unsuspend this account?',
     unsuspendText: '{email} can sign in again with her existing password.',
@@ -62,8 +60,6 @@ export const ar = {
     createTitle: 'إنشاء حساب جديد',
     confirmSave: 'تأكيد وحفظ',
     emailDuplicateError: 'يوجد مشرف بهذا البريد الإلكتروني بالفعل',
-    roleNotice:
-      'أنتِ مسجّلة الدخول بدور مدير. المدير العام وحده يستطيع وقف حسابات المديرين أو إعادة فتحها أو حذفها.',
     selfNote: 'هذا حسابك',
 
     suspend: 'وقف الحساب',
@@ -72,7 +68,7 @@ export const ar = {
     cannotActOnSelf: 'لا يمكنكِ وقف حسابك الخاص أو حذفه',
 
     suspendTitle: 'هل تريد تأكيد وقف هذا الحساب؟',
-    suspendText: 'يُسجَّل خروج {email} فوراً ولا يمكنه تسجيل الدخول حتى يعيد مدير عام فتح الحساب.',
+    suspendText: 'يُسجَّل خروج {email} فوراً ولا يمكنه تسجيل الدخول حتى يعيد مسؤول النظام فتح الحساب.',
     suspendConfirm: 'تأكيد ووقف',
     unsuspendTitle: 'هل تريد إعادة فتح حساب المستخدم؟',
     unsuspendText: 'يستطيع {email} تسجيل الدخول مرة أخرى بكلمة المرور الحالية.',

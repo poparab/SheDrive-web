@@ -1,30 +1,26 @@
 /**
  * admin-users.js — SheDrive admin user accounts (kit page: admin-accounts.html)
- * #1820 list (20/page, newest first: Email / Status / Created / Last login),
- * #4121 three summary cards, #1807 add an account, #1821 suspend and unsuspend,
- * #4122 delete (soft).
+ * #1820 list (Email / Role / Created / Last login / Status), #4121 three summary
+ * cards, #1807 add an account, #1821 suspend and unsuspend, #4122 delete (soft),
+ * #6211 roles: a required Role on Add, a sortable Role column and a role
+ * filter, and the row actions Change role, Reset password, Reset two-factor,
+ * Suspend / Unsuspend and Delete.
  *
- * Roles (#1821): Super admin and Admin use every screen the same way; only a
- * Super admin suspends, unsuspends and deletes OTHER admin accounts, and nobody
- * acts on her own row. The mock session is always a Super admin, so `?role=admin`
- * on the URL shows the Admin view (no row actions) to keep Scenario 3 reviewable.
- *
- * Delete: the mock API has no delete endpoint and its data layer is frozen, so
- * this screen soft-deletes through the same session patch store the mock uses
- * (`patch('admins', …)` → status 'deleted' + deletedAt/deletedBy) and writes the
- * audit entry the same way the mock's own interventions do. Deleted accounts are
- * filtered out of the grid and the cards here (#4121 Scenario 4).
+ * Only Admin (users & IT) opens this screen (#6210), and nobody acts on her
+ * own row — it has no actions at all (#6211 Scenario 3). A role change,
+ * suspension or deletion that would leave fewer than two active Financial
+ * leads shows the story's warning in its confirmation; the Admin can still go
+ * ahead. Every change is written to the audit log by the mock API.
  */
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
-import { ADMINS, AUDIT_ENTRIES } from './seed.js';
-import { patch, recordAuditEntry } from './mutations.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatDateTime } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
+import { ROLES, can } from './roles.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
@@ -36,25 +32,18 @@ const table = qs('#admins-table');
 const session = adminAuth.getSession();
 const currentEmail = session?.email;
 
-/** #1821 — only a Super admin sees row actions. `?role=admin` demos the Admin view. */
-const viewerRole = (() => {
-  try {
-    if (new URLSearchParams(window.location.search).get('role') === 'admin') return 'admin';
-  } catch {
-    /* ignore */
-  }
-  return session?.role === 'admin' ? 'admin' : 'super_admin';
-})();
-const isSuperAdmin = viewerRole === 'super_admin';
-qs('#role-notice').hidden = isSuperAdmin;
+const canManage = can('admins.manage');
+const roleLabel = (role) => t(role ? `roles.${role}` : 'roles.none');
 
-// The kit puts "Add new admin" at the end of the title row (#1807: any role may add).
+// The kit puts "Add new admin" at the end of the title row (#6211: Admin (users & IT) only).
 const addButton = qs('#add-admin');
-qs('#ad-page-actions')?.appendChild(addButton);
+if (canManage) qs('#ad-page-actions')?.appendChild(addButton);
+else addButton.remove();
 
 const query = {
   search: '',
   status: 'all',
+  role: 'all',
   page: 1,
   pageSize: 10,
   sort: { key: 'createdAt', dir: 'desc' },
@@ -109,6 +98,17 @@ filters.fields = [
       { value: 'active', label: t('status.active') },
       // The data keeps 'disabled'; #1821 renamed the label to Suspended.
       { value: 'disabled', label: t('status.suspended') },
+    ],
+  },
+  {
+    // #6211 — filter by role.
+    type: 'select',
+    key: 'role',
+    label: t('adminRoles.filterRole'),
+    value: 'all',
+    options: [
+      { value: 'all', label: t('adminRoles.allRoles') },
+      ...ROLES.map((role) => ({ value: role, label: roleLabel(role) })),
     ],
   },
 ];
@@ -176,6 +176,13 @@ const columns = [
     },
   },
   {
+    // #6211 — the Role column, sortable.
+    key: 'role',
+    label: t('adminRoles.colRole'),
+    sortable: true,
+    render: (row) => roleLabel(row.role),
+  },
+  {
     key: 'createdAt',
     label: t('adminUsers.colCreated'),
     sortable: true,
@@ -208,8 +215,8 @@ const columns = [
   },
 ];
 
-// #1821 Scenario 3 / #4122 Scenario 4 — the Admin role gets no action column at all.
-if (isSuperAdmin) {
+// #6211 — row actions for Admin (users & IT); never on her own row.
+if (canManage) {
   columns.push({
     key: 'actions',
     label: t('common.actions'),
@@ -217,36 +224,53 @@ if (isSuperAdmin) {
     render: (row) => {
       const wrap = document.createElement('div');
       wrap.className = 'd-flex gap-1';
-      // Scenario 4 / #4122 Scenario 5 — never on her own row.
-      const self = row.email === currentEmail;
-      const selfTitle = t('kitAdmin.cannotActOnSelf');
-
-      const toggle =
+      // Scenario 3 — her own row has no Change role, Suspend, Delete, Reset password or Reset two-factor.
+      if (row.email === currentEmail) {
+        const none = document.createElement('span');
+        none.className = 'ad-muted small';
+        none.textContent = t('adminRoles.noActionsOnSelf');
+        wrap.appendChild(none);
+        return wrap;
+      }
+      wrap.append(
+        iconButton({
+          tone: 'edit-icon',
+          icon: 'fa-solid fa-user-tag',
+          label: t('adminRoles.changeRole'),
+          onClick: () => openChangeRole(row),
+        }),
+        iconButton({
+          tone: 'view-icon',
+          icon: 'fa-solid fa-key',
+          label: t('adminRoles.resetPassword'),
+          onClick: () => confirmAction('resetPassword', row),
+        }),
+        iconButton({
+          tone: 'view-icon',
+          icon: 'fa-solid fa-mobile-screen-button',
+          label: t('adminRoles.resetTwoFactor'),
+          onClick: () => confirmAction('resetTwoFactor', row),
+        }),
         row.status === 'active'
           ? iconButton({
               tone: 'pause-icon',
               icon: 'fa-solid fa-ban',
-              label: self ? selfTitle : t('kitAdmin.suspend'),
-              disabled: self,
+              label: t('kitAdmin.suspend'),
               onClick: () => confirmAction('suspend', row),
             })
           : iconButton({
               tone: 'approved-icon',
               icon: 'fa-solid fa-lock-open',
-              label: self ? selfTitle : t('kitAdmin.unsuspend'),
-              disabled: self,
+              label: t('kitAdmin.unsuspend'),
               onClick: () => confirmAction('unsuspend', row),
-            });
-
-      const remove = iconButton({
-        tone: 'delete-icon',
-        icon: 'fa-solid fa-user-xmark',
-        label: self ? selfTitle : t('kitAdmin.deleteAccount'),
-        disabled: self,
-        onClick: () => confirmAction('delete', row),
-      });
-
-      wrap.append(toggle, remove);
+            }),
+        iconButton({
+          tone: 'delete-icon',
+          icon: 'fa-solid fa-user-xmark',
+          label: t('kitAdmin.deleteAccount'),
+          onClick: () => confirmAction('delete', row),
+        }),
+      );
       return wrap;
     },
   });
@@ -278,6 +302,7 @@ table.addEventListener('pagechange', (event) => {
 const modalEls = {
   create: qs('#createAdminModal'),
   confirm: qs('#adminConfirmModal'),
+  role: qs('#changeRoleModal'),
 };
 // <body> keeps them clear of any positioned ancestor in the shell.
 Object.values(modalEls).forEach((el) => document.body.appendChild(el));
@@ -316,7 +341,8 @@ const ACTIONS = {
     variant: 'btn-warning',
     icon: 'fa-solid fa-ban',
     done: 'kitAdmin.suspendedDone',
-    run: (admin) => setStatus(admin, 'disabled'),
+    leadCheck: true,
+    run: (admin) => mockApi.setAdminStatus(admin.id, 'disabled'),
   },
   unsuspend: {
     title: 'kitAdmin.unsuspendTitle',
@@ -325,7 +351,7 @@ const ACTIONS = {
     variant: 'btn-success',
     icon: 'fa-solid fa-lock-open',
     done: 'kitAdmin.unsuspendedDone',
-    run: (admin) => setStatus(admin, 'active'),
+    run: (admin) => mockApi.setAdminStatus(admin.id, 'active'),
   },
   delete: {
     title: 'kitAdmin.deleteTitle',
@@ -334,12 +360,45 @@ const ACTIONS = {
     variant: 'btn-danger',
     icon: 'fa-solid fa-user-xmark',
     done: 'kitAdmin.deletedDone',
-    run: (admin) => softDelete(admin),
+    leadCheck: true,
+    run: (admin) => mockApi.deleteAdmin(admin.id),
+  },
+  resetPassword: {
+    title: 'adminRoles.resetPasswordTitle',
+    text: 'adminRoles.resetPasswordText',
+    confirm: 'adminRoles.resetPasswordConfirm',
+    variant: 'btn-warning',
+    icon: 'fa-solid fa-key',
+    done: 'adminRoles.resetPasswordDone',
+    run: (admin) => mockApi.resetAdminPassword(admin.id),
+  },
+  resetTwoFactor: {
+    title: 'adminRoles.resetTwoFactorTitle',
+    text: 'adminRoles.resetTwoFactorText',
+    confirm: 'adminRoles.resetTwoFactorConfirm',
+    variant: 'btn-warning',
+    icon: 'fa-solid fa-mobile-screen-button',
+    done: 'adminRoles.resetTwoFactorDone',
+    run: (admin) => mockApi.resetAdminTwoFactor(admin.id),
   },
 };
 
+/** #6211 — the story's warning when fewer than two active Financial leads would be left. */
+function leadWarningText(admin, nextRole = null) {
+  const level = mockApi.financialLeadWarning(admin.id, nextRole);
+  if (level === 'one') return t('adminRoles.leadOne');
+  if (level === 'none') return t('adminRoles.leadNone');
+  return '';
+}
+
+function showWarning(box, message) {
+  box.querySelector('p').textContent = message;
+  box.hidden = !message;
+}
+
 const confirmButton = qs('#adminConfirmButton');
 const confirmError = qs('#adminConfirmError');
+const confirmWarning = qs('#adminConfirmWarning');
 let pending = null;
 
 async function confirmAction(kind, admin) {
@@ -350,6 +409,7 @@ async function confirmAction(kind, admin) {
   confirmButton.className = `btn ${spec.variant}`;
   confirmButton.querySelector('i').className = spec.icon;
   confirmButton.querySelector('span').textContent = t(spec.confirm);
+  showWarning(confirmWarning, spec.leadCheck ? leadWarningText(admin) : '');
   showError(confirmError, '');
   setBusy(confirmButton, false);
   (await modal(modalEls.confirm)).show();
@@ -371,41 +431,72 @@ confirmButton.addEventListener('click', async () => {
   await Promise.all([load(), loadCards()]);
 });
 
-/** Audit entry, written the way the mock's own interventions write one (#1821 S7, #4122 S7). */
-function audit(admin, before, after) {
-  const at = Date.now();
-  const entry = {
-    id: `AUD-admin-${admin.id}-${at}`,
-    at,
-    actor: mockApi.getActingAdmin().email,
-    actionType: 'admin-account change',
-    targetType: 'admin',
-    targetId: admin.id,
-    before,
-    after,
-  };
-  AUDIT_ENTRIES.unshift(entry);
-  AUDIT_ENTRIES.sort((a, b) => b.at - a.at);
-  recordAuditEntry(entry);
+// ── #6211 change role — one Admin decides alone, no second approval ──
+
+const roleSelect = qs('#change-role-select');
+const roleError = qs('#change-role-select-error');
+const roleWarning = qs('#change-role-warning');
+const roleFormError = qs('#change-role-error');
+const roleConfirm = qs('#change-role-confirm');
+let roleTarget = null;
+
+ROLES.forEach((role) => {
+  const option = document.createElement('option');
+  option.value = role;
+  option.textContent = roleLabel(role);
+  roleSelect.appendChild(option);
+});
+
+function setRoleError(message) {
+  roleError.textContent = message;
+  roleSelect.classList.toggle('is-invalid', Boolean(message));
+  roleSelect.setAttribute('aria-invalid', String(Boolean(message)));
 }
 
-async function setStatus(admin, status) {
-  if (!isSuperAdmin || admin.email === currentEmail) throw new Error(t('kitAdmin.cannotActOnSelf'));
-  const before = admin.status;
-  await mockApi.setAdminStatus(admin.id, status);
-  audit(admin, { status: before }, { status });
+async function openChangeRole(admin) {
+  roleTarget = admin;
+  qs('#change-role-text').textContent = t('adminRoles.changeText', { email: admin.email, role: roleLabel(admin.role) });
+  roleSelect.value = '';
+  setRoleError('');
+  showWarning(roleWarning, '');
+  showError(roleFormError, '');
+  setBusy(roleConfirm, false);
+  (await modal(modalEls.role)).show();
 }
 
-async function softDelete(admin) {
-  if (!isSuperAdmin || admin.email === currentEmail) throw new Error(t('kitAdmin.cannotActOnSelf'));
-  const record = ADMINS.find((a) => String(a.id) === String(admin.id));
-  if (!record || isDeleted(record)) throw new Error(t('common.notAvailable'));
-  const before = record.status;
-  const fields = { status: 'deleted', deletedAt: Date.now(), deletedBy: mockApi.getActingAdmin().email };
-  Object.assign(record, fields);
-  patch('admins', record.id, fields);
-  audit(record, { status: before }, { status: 'deleted' });
-}
+roleSelect.addEventListener('change', () => {
+  setRoleError('');
+  // The warning follows the role chosen: moving one of the last leads off Financial lead.
+  showWarning(roleWarning, roleTarget && roleSelect.value ? leadWarningText(roleTarget, roleSelect.value) : '');
+});
+
+qs('#change-role-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!roleTarget) return;
+  const role = roleSelect.value;
+  if (!role) {
+    setRoleError(t('adminRoles.roleEmpty'));
+    roleSelect.focus();
+    return;
+  }
+  if (role === roleTarget.role) {
+    setRoleError(t('adminRoles.sameRoleError'));
+    roleSelect.focus();
+    return;
+  }
+  setBusy(roleConfirm, true);
+  try {
+    await mockApi.changeAdminRole(roleTarget.id, role);
+  } catch (error) {
+    setBusy(roleConfirm, false);
+    showError(roleFormError, error.message);
+    return;
+  }
+  const email = roleTarget.email;
+  roleTarget = null;
+  await done(modalEls.role, t('adminRoles.changedDone', { email, role: roleLabel(role) }));
+  await Promise.all([load(), loadCards()]);
+});
 
 // ── #1807 add an admin account ────────────────────────
 
@@ -414,6 +505,23 @@ const emailInput = qs('#create-admin-email');
 const emailError = qs('#create-admin-email-error');
 const createError = qs('#create-admin-error');
 const createConfirm = qs('#create-admin-confirm');
+const createRole = qs('#create-admin-role');
+const createRoleError = qs('#create-admin-role-error');
+
+ROLES.forEach((role) => {
+  const option = document.createElement('option');
+  option.value = role;
+  option.textContent = roleLabel(role);
+  createRole.appendChild(option);
+});
+
+function setCreateRoleError(message) {
+  createRoleError.textContent = message;
+  createRole.classList.toggle('is-invalid', Boolean(message));
+  createRole.setAttribute('aria-invalid', String(Boolean(message)));
+}
+
+createRole.addEventListener('change', () => setCreateRoleError(''));
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function setFieldError(message) {
@@ -432,6 +540,7 @@ function validateEmail(value) {
 addButton.addEventListener('click', async () => {
   createForm.reset();
   setFieldError('');
+  setCreateRoleError('');
   showError(createError, '');
   setBusy(createConfirm, false);
   const instance = await modal(modalEls.create);
@@ -447,16 +556,23 @@ createForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = emailInput.value.trim();
   const invalid = validateEmail(email);
+  const role = createRole.value;
   setFieldError(invalid);
+  // #6211 — Role is required: "Choose a role".
+  setCreateRoleError(role ? '' : t('adminRoles.roleEmpty'));
   showError(createError, '');
   if (invalid) {
     emailInput.focus();
     return;
   }
+  if (!role) {
+    createRole.focus();
+    return;
+  }
 
   setBusy(createConfirm, true);
   try {
-    await mockApi.createAdmin({ email });
+    await mockApi.createAdmin({ email, role });
   } catch (error) {
     setBusy(createConfirm, false);
     // Scenario 3 — the mock answers 409 for a duplicate.
