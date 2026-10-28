@@ -1,8 +1,9 @@
 # admin-v2 — SheDrive Admin Panel on the delivered design kit
 
 `shedrive-web/admin-v2/` is a **full copy** of `shedrive-web/admin/` re-skinned onto the
-delivered design kit `SheDrive.AdminPanel_v18-08-2026`. The original `admin/` is
-untouched, so nothing that exists today can break.
+delivered design kit — first `SheDrive.AdminPanel_v18-08-2026`, now
+**`SheDrive.AdminPanel_v22-10-2026`** (see the port sections at the end). The original
+`admin/` is untouched, so nothing that exists today can break.
 
 ## Ground rules
 
@@ -343,7 +344,7 @@ Component APIs are unchanged; additions: `ad-filter-bar` toolbar (`toolbar = {re
 scripts because `ad-form-modal` only renders the centred `popup-*` shape.
 
 Known gaps: SOS and safety-report lists have no search box (the mock API takes no search there);
-`listAdmins` has no delete, so `admin-users.js` soft-deletes through `patch('admins', …)`.
+`deleteAdmin` (added with roles, 2026-10-29) soft-deletes an admin account.
 
 ## Approvals: one decision dialog, opened from the queue or in place (2026-10-22)
 
@@ -390,3 +391,72 @@ and APR-0010 (settlement), every type is pending at least once. Batch lines are
 generated payees with no driver record (the base seed has 34 drivers); they use
 their own random stream so no other seeded value moves, they show as plain text
 instead of a driver link, and a result file still completes them.
+
+## Port to kit v22-10 (2026-10-29)
+
+admin-v2 now follows the designer's `SheDrive.AdminPanel_v22-10-2026` kit. Against v22-09
+the kit changed only a little:
+
+| Area | What changed |
+|---|---|
+| `vendor/css/styles.css`, `styles-ar.css` | Copied verbatim: `default-modal` header `.title` block (title + subtitle span), timeline `current-state` / tone colours, a smaller `section-title`, a raised z-index. Icons and Bootstrap are byte-identical (CRLF aside). |
+| Sidebar icons | Approvals `checked-2.svg`, Payouts `wallet-minus.svg`, Settlement imports `wallet-plus.svg`, Driver earnings `money.svg`. **Deviation:** the kit uses `balance.svg` for both balances; we keep Driver balances `balance.svg` and Rider balances `wallet.svg` (#5663: no two items share an icon). |
+| Payouts (new kit page) | KPI tiles wallet-plus / wallet-minus / checked-2 with a sub-line, the info alert, kit filter with Export CSV, View action, create-batch `modal-xl default-modal` with header subtitle. |
+| Payout batch (new kit page) | Summary + timeline side by side, "Batch contents" card, next-step card full width. |
+| Driver profile | Kit card order: Performance → Payout position (`money.svg`) → Payout method (`wallet.svg`) → documents → photos. |
+| Driver application | Payout method card right after Personal details. |
+| Driver ledger | Dialog headers use the kit's icon + `.title` (title, driver name under it). Her payout method with the full number sits above the KPIs (#5622) — the kit page does not draw it. |
+
+**Copy deviation:** wherever the kit says "another admin approves", the portal says a
+Financial lead approves (#6212 wins over kit copy).
+
+## Admin roles (2026-10-29, #6210 / #6211 / #6212)
+
+Every account holds one of five roles: `admin_it` (Admin, users & IT), `ops_officer`,
+`ops_lead`, `fin_officer`, `fin_lead`. **`scripts/roles.js` is the access matrix** —
+`SCREEN_ROLES` (which screens a role opens), `CAPABILITIES` (actions and personal data),
+`AUDIT_SCOPE`, `startPage()`. Keep it in step with the #6210 matrix in
+`docs/backlog/admin-stories.md`.
+
+| Layer | What it does |
+|---|---|
+| `admin-auth.js` | The session carries `role`; `auto: true` marks a session the portal provisioned itself |
+| `components/ad-shell.js` | Resolves the identity, filters the sidebar, renders the **no-access page** (screen markup kept hidden so its script still runs), shows the role in the top bar, and the **demo role switch** |
+| `mock-api.js` | The acting admin is the session's account; `refusedFor(capability)` refuses a forbidden action (403, nothing changes) on every action endpoint; the role is read per request, so a role change applies at once |
+| Screens | View roles get **no** action buttons (not disabled): suspend/reinstate (Ops lead), application decisions and safety dismiss (Ops), safety suspend (Ops lead), trip intervention (nobody — the matrix makes trip detail View), zones (Ops lead), rate cards / commission / cancellation / balance limit (Fin lead), record settlement / payout, waive, payout-method edit (Finance), approve / reject (Fin lead) |
+| Personal data | National ID (field and ID-card image) on driver profile / application: Operations only. Payout method section: Finance only. Payout position: whoever opens Driver balances. Batch and import lines keep the national ID for Finance |
+| Audit log | Admin (users & IT) all; Ops lead operations entries; Fin lead finance entries (`auditVisible()` in `mock-api.js`) |
+
+**Demo identity.** `?as=<role>` (or `?as=<email>`) on any screen signs the browser in as
+that role's demo person (`DEMO_PEOPLE`: it.admin, sara.ali, ops.lead, mona.adel,
+hala.mahmoud). The top bar's dashed **Demo — View as** select lists every active account
+grouped by role (so Nour, the second Financial lead, is one click away); "Automatic"
+hands back a role per screen. A visit with no chosen role is an automatic demo session:
+each screen opens as the role that shows it best (`demoRoleFor` — Financial lead on
+finance and pricing screens, Admin (users & IT) on admin users and the audit log, the
+Operations lead elsewhere), so every old story link still renders with its actions.
+This replaces the Approvals screen's old "Act as this admin" switch
+(`sessionStorage shedrive.adminActingAs`, `getActingAdmin`/`setActingAdmin`/`listCheckers` — removed).
+
+**Seed.** Roles were added to the eight seeded accounts; four accounts are appended at
+the very end of `seed.js` with fixed ids (9901–9904: it.admin, Hala, Mona, Sara) so no
+seeded id or random draw moves. `finance-seed.js` names its makers and checkers by
+person (Nour, Hala — Financial leads; Mona, finance@ — Financial officers) so every
+historical decision was made by a lead. Two pending requests were appended:
+APR-0019 cancellation policy change and APR-0020 balance limit change (both by Nour).
+
+**Maker-checker by role (#6212).** Only a Financial lead decides, never her own request.
+A Financial officer's Approvals lists only her own requests, read-only, with no Made-by
+filter; her sidebar count is her own pending. With no other active Financial lead, a
+lead's own request shows "Waiting for another Financial lead". Commission, the
+cancellation policy and the balance limit are requests (`savePolicies` → `commission`,
+`cancellation_policy`, `balance_limit`), approved changes are audited as
+`pricing change` (before → after, #1760); operating hours save at once, Ops lead only,
+audited with old and new times (#6268). The Type filter lists all eleven types; Request
+ID and Type do not sort (#5617).
+
+**Admin users (#6211).** Required Role on Add; sortable Role column and role filter;
+row actions Change role, Reset password, Reset two-factor, Suspend / Unsuspend,
+Delete — Admin (users & IT) only and never on her own row. The two Financial-lead
+warnings show in the change-role, suspend and delete confirmations. The legacy
+`?role=admin` Super admin / Admin model is gone.

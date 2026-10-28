@@ -13,6 +13,7 @@
  */
 
 import { NAV_SECTIONS } from './nav.js';
+import { ROLES, canOpen } from './roles.js';
 import { injectAdminStyles, iconUrl } from '../components/ad-styles.js';
 import { qs } from '../../shared/scripts/utils.js';
 import {
@@ -182,7 +183,7 @@ export const SCREENS = [
     icon: 'warning-sign.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[3945, 'Super admin reviews the SOS request queue']],
+    stories: [[3945, 'Admin reviews the SOS request queue']],
     states: LIST_STATES,
     notes:
       t('screens.notesSosQueue'),
@@ -194,7 +195,7 @@ export const SCREENS = [
     icon: 'warning-sign.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[3946, 'Super admin actions an SOS request']],
+    stories: [[3946, 'Admin actions an SOS request']],
     states: [],
     notes:
       t('screens.notesSosDetail'),
@@ -206,7 +207,7 @@ export const SCREENS = [
     icon: 'shield.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1810, 'Super admin reviews the gender-mismatch report queue']],
+    stories: [[1810, 'Admin reviews the gender-mismatch report queue']],
     states: LIST_STATES,
     notes:
       t('screens.notesSafetyQueue'),
@@ -218,7 +219,7 @@ export const SCREENS = [
     icon: 'safety.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1811, 'Super admin actions a gender-mismatch report']],
+    stories: [[1811, 'Admin actions a gender-mismatch report']],
     states: [],
     notes:
       t('screens.notesSafetyDetail'),
@@ -313,10 +314,10 @@ export const SCREENS = [
     status: 'built',
     track: t('screens.statusBuilt'),
     stories: [
-      [1831, 'Super admin views the service-zone list and map'],
-      [1756, 'Super admin creates a service zone'],
-      [1830, 'Super admin edits and deletes service zones'],
-      [1757, 'Super admin configures zone rate card'],
+      [1831, 'Admin views the service-zone list and map'],
+      [1756, 'Admin creates a service zone'],
+      [1830, 'Admin edits and deletes service zones'],
+      [1757, 'Admin configures zone rate card'],
     ],
     states: LIST_STATES,
     notes:
@@ -329,7 +330,12 @@ export const SCREENS = [
     icon: 'policies.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1759, 'Super admin configures global pricing policies']],
+    stories: [
+      [1759, 'Global pricing policies'],
+      [5623, 'Rate card and commission changes need another Financial lead\'s approval'],
+      [6212, 'Only Financial leads approve finance requests (cancellation policy, balance limit)'],
+      [6268, 'Operations lead sets the daily operating hours'],
+    ],
     states: [],
     notes: t('screens.notesPolicies'),
   },
@@ -340,7 +346,7 @@ export const SCREENS = [
     icon: 'reports.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1832, 'Super admin views revenue & commission summary report']],
+    stories: [[1832, 'Admin views revenue & commission summary report']],
     states: [t('screens.state_empty'), t('screens.state_loading'), t('screens.state_error')],
     notes: t('screens.notesReports'),
   },
@@ -351,7 +357,7 @@ export const SCREENS = [
     icon: 'handshake.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1833, 'Super admin views per-driver earnings & settlement report']],
+    stories: [[1833, 'Admin views per-driver earnings & settlement report']],
     states: [t('screens.state_empty'), t('screens.state_loading'), t('screens.state_error')],
     notes:
       t('screens.notesReconciliation'),
@@ -363,7 +369,7 @@ export const SCREENS = [
     icon: 'handshake.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[1813, 'Super admin reconciles driver balances and records settlements']],
+    stories: [[1813, 'Admin reconciles driver balances and records settlements']],
     states: LIST_STATES,
     notes: t('screens.notesBalances'),
   },
@@ -374,7 +380,7 @@ export const SCREENS = [
     icon: 'user-star.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[0, '[Admin] Super admin reviews rider outstanding fees and their recovery (FIN-11 — awaiting an ADO id)']],
+    stories: [[0, '[Admin] Admin reviews rider outstanding fees and their recovery (FIN-11 — awaiting an ADO id)']],
     states: LIST_STATES,
     notes: t('screens.notesRiderBalances'),
   },
@@ -407,7 +413,10 @@ export const SCREENS = [
     icon: 'checked-2.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[0, '[Admin] Maker-checker approvals (2026-10-14 — ADO id pending)']],
+    stories: [
+      [5617, 'Admin approves or rejects finance requests (maker-checker)'],
+      [6212, 'Only Financial leads approve finance requests'],
+    ],
     states: LIST_STATES,
     notes: t('screens.notesApprovals'),
   },
@@ -451,7 +460,7 @@ export const SCREENS = [
     icon: 'file-checked.svg',
     status: 'built',
     track: t('screens.trackFoundation'),
-    stories: [[1816, 'Super admin views the admin activity audit log']],
+    stories: [[1816, 'Admin views the admin activity audit log']],
     states: LIST_STATES,
     notes:
       t('screens.notesAuditLog'),
@@ -464,9 +473,11 @@ export const SCREENS = [
     status: 'built',
     track: t('screens.statusBuilt'),
     stories: [
-      [1820, 'Super admin views the admin user accounts list'],
-      [1807, 'Super admin adds an admin user account'],
-      [1821, 'Super admin enables and disables admin user accounts'],
+      [1820, 'Admin views the admin user accounts list'],
+      [1807, 'Admin adds an admin user account'],
+      [1821, 'Admin suspends and unsuspends admin user accounts'],
+      [6210, 'Each admin role sees only its own screens and actions'],
+      [6211, 'Admin sets and changes an admin user\'s role'],
     ],
     states: LIST_STATES,
     notes: t('screens.notesAdminUsers'),
@@ -487,6 +498,23 @@ export const SCREENS = [
       t('screens.notesProfile'),
   },
 ];
+
+// ── Roles (#6210) ─────────────────────────────────────
+// Which access-matrix screen each file belongs to, so a card can link to the
+// screen as every role that can open it (`?as=<role>`).
+const ROLE_SCREEN_BY_FILE = {
+  ...Object.fromEntries(NAV_SECTIONS.flatMap((section) => section.items).map((item) => [item.href, item.key])),
+  'driver-profile.html': 'drivers',
+  'driver-application.html': 'driver-applications',
+  'rider-profile.html': 'riders',
+  'trip-detail.html': 'trips',
+  'safety-report.html': 'safety',
+  'sos-request.html': 'sos',
+  'payout-batch.html': 'payouts',
+  'driver-balance-details.html': 'balances',
+  'rider-balance-details.html': 'rider-balances',
+  'admin-profile.html': 'admin-profile',
+};
 
 // ── Rendering ─────────────────────────────────────────
 
@@ -611,6 +639,18 @@ function renderCard(screen) {
           href: `${screen.file}${variant.query}`,
         })),
         { linked: screen.status === 'built' },
+      ),
+    );
+  }
+
+  // #6210 — open the screen as each role that can (the demo role switch).
+  const roleScreen = ROLE_SCREEN_BY_FILE[screen.file];
+  if (roleScreen && screen.status === 'built') {
+    const roles = ROLES.filter((role) => canOpen(roleScreen, role));
+    body.appendChild(
+      chipRow(
+        `${t('demoRole.label')}:`,
+        roles.map((role) => ({ text: t(`roles.${role}`), href: `${screen.file}?as=${role}` })),
       ),
     );
   }

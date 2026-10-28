@@ -72,6 +72,22 @@
         ['safety-reports.html', 'safety-report.html', { cards: '.standard-card-theme2, .ad-section' }],
       ];
 
+      // #6210 — the same screens seen by a chosen role (`?as=`). Run last: `?as`
+      // pins the session to that role, and the run ends by handing it back.
+      const ROLE_PAGES = [
+        ['driver-application.html?id=1061&as=fin_officer', { noAccess: '#ad-no-access' }],
+        ['dashboard.html?as=ops_officer', { stats: 'ad-stat-card', map: '#ops-map' }],
+        ['driver-profile.html?id=1069&as=ops_lead', { suspend: '#account-actions:not([hidden])' }],
+        ['driver-profile.html?id=1069&as=fin_officer', { payout: '#payout-col:not([hidden])' }],
+        ['approvals.html?as=fin_officer', { officer: '#approvals-officer-note:not([hidden])', rows: 'tbody tr' }],
+        ['approvals.html?as=fin_lead', { rows: 'tbody tr' }],
+        ['pricing-policies.html?as=ops_lead', { save: '#policies-actions:not([hidden])' }],
+        ['pricing-policies.html?as=ops_officer', { readOnly: '#policies-actions[hidden]' }],
+        ['admin-users.html?as=admin_it', { rows: 'tbody tr', role: '#admins-table th' }],
+        ['audit-log.html?as=fin_lead', { rows: 'tbody tr' }],
+        ['audit-log.html?as=ops_lead', { rows: 'tbody tr' }],
+      ];
+
       // The five deep-link auth pages redirect into index.html, so `dir` is
       // asserted on the page they land on, not the redirector itself.
       const REDIRECTORS = /^(2fa|2fa-setup|recovery-code|password-forgot|password-new)\.html/;
@@ -167,6 +183,13 @@
 
       let failures = 0;
 
+      // Start from an automatic demo session so every screen opens (#6210).
+      try {
+        localStorage.removeItem('shedrive.adminSession');
+      } catch {
+        /* storage blocked */
+      }
+
       for (const code of ['en', 'ar']) {
         for (const [url, markers] of PAGES) {
           progress.textContent = `checking ${url} (${code}) …`;
@@ -195,6 +218,23 @@
             failures += 1;
           }
         }
+      }
+
+      for (const code of ['en', 'ar']) {
+        for (const [url, markers] of ROLE_PAGES) {
+          progress.textContent = `checking ${url} (${code}) …`;
+          try {
+            if (!(await check(url, markers, code))) failures += 1;
+          } catch (error) {
+            row(`${url}&lang=${code}`, false, String(error));
+            failures += 1;
+          }
+        }
+      }
+      try {
+        localStorage.removeItem('shedrive.adminSession');
+      } catch {
+        /* storage blocked */
       }
 
       progress.textContent = `done — ${failures} failing page(s)`;
