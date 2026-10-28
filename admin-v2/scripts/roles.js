@@ -65,8 +65,9 @@ export const CAPABILITIES = {
   'applications.decide': OPS,
   'drivers.suspend': ['ops_lead'],
   'riders.suspend': ['ops_lead'],
-  // Trip list and detail are View for every role (#6210 matrix).
-  'trips.intervene': [],
+  // Trip list and detail are View for every role; the Operations lead also
+  // cancels or reassigns a trip still in progress (#6210 matrix, 2026-10-29).
+  'trips.intervene': ['ops_lead'],
   'safety.handle': OPS,
   'safety.actAgainst': ['ops_lead'],
   'sos.act': OPS,
