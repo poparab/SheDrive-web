@@ -68,6 +68,7 @@
   "trip.title": "Your Ride",
   "trip.eta": "Arriving in",
   "trip.minutes": "min",
+  "trip.etaUnknown": "Arrival time not available yet",
   "trip.driver": "Your Driver",
   "trip.plate": "Plate",
   "trip.rating": "Rating",

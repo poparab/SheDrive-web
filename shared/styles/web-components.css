@@ -291,6 +291,19 @@ sd-confirm-dialog .confirm-dialog__body {
   flex-shrink: 0;
 }
 
+/* sd-driver-card photo — fills the round avatar; the initial shows without one. */
+.driver-avatar--photo {
+  overflow: hidden;
+}
+
+.driver-avatar__img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+}
+
 .driver-card__info {
   display: flex;
   flex-direction: column;

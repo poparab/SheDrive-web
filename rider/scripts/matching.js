@@ -2,6 +2,13 @@
  * matching.js — "Finding your driver" screen controller
  * Flow: searching → confirmed (2 s) → active-trip.html
  * Also handles: no-driver retry and return-home actions.
+ *
+ * The searching state shows no driver card — which driver is being offered the
+ * trip is never shown (API #1631). The matched card follows the #1631 payload:
+ * the photo URL and the ETA can each be null.
+ *
+ * Demo switches (with ?state=confirmed): ?eta=none — the ETA cannot be computed;
+ * ?photo=<url> — the driver has a photo (without it, her initial shows).
  */
 
 import { auth } from '../../shared/scripts/auth.js';
@@ -60,23 +67,19 @@ if (map) {
 }
 
 // ── Mock driver data ──────────────────────────────────
+const demo = new URLSearchParams(location.search);
 const mockDriver = {
   name: 'نورا أحمد',
   nameEn: 'Nora Ahmed',
   plate: 'ق أ ب 123',
   rating: 4.9,
-  eta: 4,
+  eta: demo.get('eta') === 'none' ? null : 4,
   vehicle: 'تويوتا كورولا 2023 — أبيض',
   vehicleEn: 'Toyota Corolla 2023 — White',
-  photo: null,
+  photo: demo.get('photo') || null,
 };
 
-// ── Populate searching-state preview card ─────────────
-const driverNameEl  = document.getElementById('matching-driver-name');
-const driverRatingEl = document.getElementById('matching-driver-rating');
-const driverVehicleEl = document.getElementById('matching-driver-vehicle');
-const driverEtaEl   = document.getElementById('matching-driver-eta');
-
+// ── Populate the matched driver card ──────────────────
 function populateDriverCard(nameId, ratingId, vehicleId, etaId) {
   const n  = document.getElementById(nameId);
   const r  = document.getElementById(ratingId);
@@ -84,16 +87,21 @@ function populateDriverCard(nameId, ratingId, vehicleId, etaId) {
   const e  = document.getElementById(etaId);
   const en = document.documentElement.lang === 'en';
   if (n) n.textContent  = en ? mockDriver.nameEn : mockDriver.name;
-  // The placeholder avatar shows her initial in the current language.
-  const avatar = n?.closest('sd-driver-card')?.querySelector('.driver-avatar');
-  if (avatar && n) avatar.textContent = n.textContent.trim().charAt(0);
+  // Her photo when there is one; otherwise her initial in the current language.
+  n?.closest('sd-driver-card')?.setAvatar?.({
+    photo: mockDriver.photo,
+    initial: n.textContent.trim().charAt(0),
+  });
   if (r) r.textContent  = `${'★'.repeat(Math.round(mockDriver.rating))} ${mockDriver.rating}`;
   if (v) v.textContent  = `${en ? mockDriver.vehicleEn : mockDriver.vehicle} | ${mockDriver.plate}`;
-  if (e) e.textContent  = `${translate('trip.eta')} ${mockDriver.eta} ${translate('trip.minutes')}`;
+  if (e) {
+    e.textContent = mockDriver.eta == null
+      ? translate('trip.etaUnknown')
+      : `${translate('trip.eta')} ${mockDriver.eta} ${translate('trip.minutes')}`;
+  }
 }
 
 function populateDriverCards() {
-  populateDriverCard('matching-driver-name', 'matching-driver-rating', 'matching-driver-vehicle', 'matching-driver-eta');
   populateDriverCard('confirmed-driver-name', 'confirmed-driver-rating', 'confirmed-driver-vehicle', 'confirmed-driver-eta');
 }
 populateDriverCards();

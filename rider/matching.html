@@ -108,20 +108,8 @@
             <span data-i18n="matching.safety">نوافق فقط على السائقات الحاصلات على شارة السلامة الكاملة</span>
           </div>
 
-          <sd-driver-card
-            class="matching-driver-card"
-            variant="preview"
-            name-id="matching-driver-name"
-            name-fallback="نورا أحمد"
-            rating-id="matching-driver-rating"
-            rating-fallback="★★★★★ 4.9"
-            vehicle-id="matching-driver-vehicle"
-            vehicle-fallback="تويوتا كورولا 2023 — أبيض"
-            eta-id="matching-driver-eta"
-            eta-fallback="الوصول خلال 4 دقيقة"
-            avatar="ن"
-          ></sd-driver-card>
-
+          <!-- No driver card while searching: the rider never sees which driver is
+               being offered the trip (API #1631, out of scope). -->
           <sd-button type="button" variant="primary" size="lg" full id="cancel-btn" data-i18n="matching.cancel">
             إلغاء الطلب
           </sd-button>

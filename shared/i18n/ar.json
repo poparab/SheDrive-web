@@ -68,6 +68,7 @@
   "trip.title": "رحلتك الآن",
   "trip.eta": "الوصول خلال",
   "trip.minutes": "دقيقة",
+  "trip.etaUnknown": "وقت الوصول غير متاح بعد",
   "trip.driver": "سائقتك",
   "trip.plate": "لوحة السيارة",
   "trip.rating": "التقييم",

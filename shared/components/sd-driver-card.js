@@ -1,5 +1,13 @@
 import { applyTranslations, I18N_EVENT, isI18nReady } from '../scripts/i18n.js';
 
+/**
+ * sd-driver-card — shared driver summary card (light DOM).
+ *
+ * The avatar shows her photo when `photo` holds a URL, and her initial (`avatar`)
+ * otherwise — also when the photo fails to load. A page script that learns the
+ * photo or name later calls `setAvatar({ photo, initial })` (API #1631: the photo
+ * URL can be null).
+ */
 class SdDriverCard extends HTMLElement {
   connectedCallback() {
     if (this.dataset.sdMounted === 'true') return;
@@ -8,6 +16,7 @@ class SdDriverCard extends HTMLElement {
 
     const variant = this.getAttribute('variant') || 'detailed';
     const avatarFallback = this.getAttribute('avatar') || 'ش';
+    const photo = this.getAttribute('photo') || '';
     const nameId = this.getAttribute('name-id') || 'driver-name';
     const nameFallback = this.getAttribute('name-fallback') || 'نورا أحمد';
     const ratingId = this.getAttribute('rating-id');
@@ -38,12 +47,38 @@ class SdDriverCard extends HTMLElement {
       );
     }
 
+    this.setAvatar({ photo, initial: avatarFallback });
+
     if (isI18nReady()) {
       applyTranslations();
       return;
     }
 
     document.addEventListener(I18N_EVENT, () => applyTranslations(), { once: true });
+  }
+
+  /** Show her photo, or her initial when there is no photo or it fails to load. */
+  setAvatar({ photo, initial } = {}) {
+    const avatar = this.querySelector('.driver-avatar, .driver-card__avatar');
+    if (!avatar) return;
+    if (initial) avatar.dataset.initial = initial;
+    if (photo !== undefined) avatar.dataset.photo = photo || '';
+    const showInitial = () => {
+      avatar.classList.remove('driver-avatar--photo');
+      avatar.textContent = avatar.dataset.initial || '';
+    };
+    if (!avatar.dataset.photo) {
+      showInitial();
+      return;
+    }
+    const img = document.createElement('img');
+    img.className = 'driver-avatar__img';
+    img.alt = '';
+    img.decoding = 'async';
+    img.addEventListener('error', showInitial, { once: true });
+    img.src = avatar.dataset.photo;
+    avatar.classList.add('driver-avatar--photo');
+    avatar.replaceChildren(img);
   }
 
   buildDetailedAvatar(avatarFallback) {
