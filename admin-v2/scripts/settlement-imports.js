@@ -1,24 +1,35 @@
 /**
  * settlement-imports.js — SheDrive admin settlement sheet import
  * Spec: docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md §4 (§1 approvals)
+ * Story: #5620 · design #5636
  *
- * Finance sends a CSV of payments drivers have already made to SheDrive. Every
- * row is applied as paid — any amount: less than she owes settles part of it,
- * more adds the extra to her balance. Only two rows can't be applied: a
- * national ID that matches no driver, and a payment reference already imported.
- * The screen sends the rows that can be applied as one `settlement_import`
- * request. Nothing is settled here: a different admin approves it on
+ * The screen opens on the import history (kit settlements.html). "Import
+ * settlement" opens the kit's three-step wizard (settlement-import-step1..3):
+ *
+ *   1  Download template — the six columns and how each is written.
+ *   2  Upload sheet      — the template and format check: the columns are the
+ *                          template's, and every cell is written as it says
+ *                          (14-digit ID, plain number, YYYY-MM-DD, one of the
+ *                          four channels …). Any problem stops the file here,
+ *                          every problem listed; nothing is read about drivers.
+ *   3  Review result     — the business check, row by row: a registered
+ *                          driver, a reference not imported before or repeated
+ *                          in the file, a date not in the future. **One failed
+ *                          row rejects the whole file**: nothing is sent, and
+ *                          Finance uploads the corrected file again.
+ *
+ * Only a file that passes both goes, whole, as one `settlement_import`
+ * request. Nothing is settled here: a Financial lead approves it on
  * approvals.html, and only then does each row post a settlement with an
- * S-nnnnn receipt. Rows that can't be applied are never stored.
+ * S-nnnnn receipt.
  *
- * Kit parts: the upload box + attachment row from driver-balance-details'
- * #recordPayoutModal, neutral-widjet KPI tiles, custom-grid-list grids with
- * status lamps, kit alerts, a light-medium-bg table card for the history and a
- * default-modal for an import's detail (`?id=IMP-0001` opens it on load).
- *
- * `?state=empty|loading|error|long` applies to the history grid only. The
- * upload steps are a tool, not a list, so their calls run with the override
- * lifted (see `live()`), and the steps stay usable in every state.
+ * `?step=1|2|3` opens the wizard on that step (a step that needs a file it
+ * doesn't have falls back to step 2). Demo deep links:
+ * `?step=2&sample=format` (fails step 2), `?step=3&sample=business` (rejected
+ * at step 3), `?step=3&sample=clean` (ready to send). `?id=IMP-0001` opens an
+ * import's detail. `?state=empty|loading|error|long` applies to the history
+ * grid only: the wizard is a tool, not a list, so its calls run with the
+ * override lifted (see `live()`).
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -26,7 +37,8 @@ import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { formatDateTime, formatEgp, formatCount } from './format.js';
-import { qs } from '../../shared/scripts/utils.js';
+import { can } from './roles.js';
+import { qs, qsa } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 import { loadBootstrap } from './design-init.js';
 import '../components/ad-data-table.js';
@@ -36,14 +48,22 @@ if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
+const MAX_BYTES = 5 * 1024 * 1024;
+
 const shell = qs('ad-shell');
+const wizardEl = qs('#wizard');
+const historySection = qs('#history');
 const fileInput = qs('#sheet-file');
 const busy = qs('#upload-busy');
 const sheetError = qs('#upload-error');
-const resultPanel = qs('#step-result');
+const formatOk = qs('#format-ok');
+const formatTable = qs('#format-table');
 const checkTable = qs('#check-table');
+const backButton = qs('#btn-back');
+const nextButton = qs('#btn-next');
 const submitButton = qs('#btn-submit');
 const submitLabel = qs('#btn-submit-label');
+const againButton = qs('#btn-again');
 const submitted = qs('#submitted');
 const historyTable = qs('#imports-table');
 const modalEl = qs('#import-modal');
@@ -52,8 +72,15 @@ const rowsTable = qs('#import-rows');
 // The kit's Bootstrap modal must sit on <body> so no positioned ancestor traps it.
 document.body.appendChild(modalEl);
 
-/** The sheet currently on screen: { fileName, result } or null. */
-let current = null;
+/**
+ * The wizard's state.
+ *   step     1 | 2 | 3
+ *   file     { fileName, csv } once a sheet is chosen
+ *   format   null (not checked) | 'checking' | 'ok' | 'failed'
+ *   result   the step 3 business check, or null
+ *   sent     true once the file went for approval
+ */
+const wizard = { step: 1, file: null, format: null, result: null, sent: false };
 
 /**
  * Run a mock-api call with `?state=` lifted from the URL for the duration of
@@ -111,6 +138,15 @@ function whoWhen(who, when) {
 /** Give an in-memory row list the paginated shape ad-data-table expects. */
 const onePage = (rows) => ({ rows, total: rows.length, page: 1, pageSize: Math.max(rows.length, 1), totalPages: 1 });
 
+function setUrlParams(params) {
+  const url = new URL(window.location.href);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === null || value === undefined) url.searchParams.delete(key);
+    else url.searchParams.set(key, String(value));
+  });
+  window.history.replaceState(window.history.state, '', url);
+}
+
 // ── Labels ───────────────────────────────────────────
 const CHANNEL_KEYS = {
   'Bank transfer': 'settlementImports.channelBank',
@@ -120,21 +156,51 @@ const CHANNEL_KEYS = {
 };
 const channelLabel = (value) => (CHANNEL_KEYS[value] ? t(CHANNEL_KEYS[value]) : value || null);
 
+/** Step 2 problems about the file as a whole (no row). */
+const FILE_ISSUE_KEYS = {
+  not_csv: 'settlementImports.notCsv',
+  too_large: 'settlementImports.tooLarge',
+  read_failed: 'settlementImports.readFailed',
+  missing_column: 'settlementImports.missingColumn',
+  unknown_column: 'settlementImports.unknownColumn',
+  duplicate_column: 'settlementImports.duplicateColumn',
+  empty: 'settlementImports.emptySheet',
+  too_many_rows: 'settlementImports.tooManyRows',
+};
+/** Step 2 problems in one cell (or one row). */
+const CELL_ISSUE_KEYS = {
+  cell_count: 'settlementImports.fmtCells',
+  required: 'settlementImports.fmtRequired',
+  nid_format: 'settlementImports.fmtNid',
+  name_length: 'settlementImports.fmtName',
+  amount_format: 'settlementImports.fmtAmount',
+  amount_zero: 'settlementImports.fmtAmountZero',
+  date_format: 'settlementImports.fmtDate',
+  channel_value: 'settlementImports.fmtChannel',
+  ref_format: 'settlementImports.fmtRef',
+};
+
+/** Step 3 business failures. */
+const FAIL_KEYS = {
+  unknown_driver: 'settlementImports.resultUnknownDriver',
+  duplicate: 'settlementImports.resultDuplicate',
+  repeated_in_file: 'settlementImports.resultRepeated',
+  future_date: 'settlementImports.resultFutureDate',
+};
+
 /**
- * What a row does to her balance (§4), as a kit lamp: every row is a payment
- * that already went through, so any amount applies. Only an unknown national
- * ID or an already-imported payment reference can't be applied.
+ * A row's step 3 result as a kit lamp. In an accepted file a row says what it
+ * will do to her balance (§4); in a rejected file nothing applies, so a row
+ * that passed only says so.
  */
 function resultLamp(row) {
-  if (row.status === 'unknown_driver') return lamp('status-danger-lamp', t('settlementImports.resultUnknownDriver'));
-  if (row.status === 'duplicate') return lamp('status-danger-lamp', t('settlementImports.resultDuplicate'));
-  if (row.status === 'future_date') return lamp('status-danger-lamp', t('settlementImports.resultFutureDate'));
-  if (row.status === 'bad_channel') return lamp('status-danger-lamp', t('settlementImports.resultBadChannel'));
+  if (FAIL_KEYS[row.status]) return lamp('status-danger-lamp', t(FAIL_KEYS[row.status]));
+  if (!wizard.result?.accepted) return lamp('status-active-lamp', t('settlementImports.resultPassed'));
   switch (row.outcome) {
     case 'full': return lamp('status-active-lamp', t('settlementImports.outcomeFull'));
     case 'partial': return lamp('status-warning-lamp', t('settlementImports.outcomePartial', { owed: formatEgp(-row.balanceAfter) }));
     case 'credit': return lamp('status-blue-lamp', t('settlementImports.outcomeCredit', { extra: formatEgp(Math.min(row.amount, row.balanceAfter)) }));
-    default: return lamp('status-active-lamp', t('settlementImports.resultReady'));
+    default: return lamp('status-active-lamp', t('settlementImports.resultPassed'));
   }
 }
 
@@ -147,6 +213,140 @@ function importLamp(status) {
   const [cls, key] = IMPORT_STATUS[status] ?? ['status-disabled-lamp', null];
   return lamp(cls, key ? t(key) : status);
 }
+
+// ── List ↔ wizard ────────────────────────────────────
+const pageActions = qs('#ad-page-actions');
+
+const importButton = el('button', 'btn btn-success d-flex');
+importButton.type = 'button';
+importButton.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>';
+importButton.append(el('span', '', t('settlementImports.importButton')));
+importButton.addEventListener('click', () => openWizard(1));
+
+const exitButton = el('button', 'btn btn-back btn-back-outline');
+exitButton.type = 'button';
+exitButton.setAttribute('aria-label', t('settlementImports.backToHistory'));
+exitButton.title = t('settlementImports.backToHistory');
+exitButton.innerHTML = '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>';
+exitButton.addEventListener('click', closeWizard);
+
+// View roles get no import action (the role matrix); they still see the history.
+const canImport = can('finance.request');
+
+function showHeaderAction(button) {
+  if (!pageActions) return;
+  importButton.remove();
+  exitButton.remove();
+  if (button) pageActions.appendChild(button);
+}
+
+function openWizard(step) {
+  resetWizard();
+  wizardEl.hidden = false;
+  historySection.hidden = true;
+  showHeaderAction(exitButton);
+  goTo(step);
+}
+
+function closeWizard() {
+  resetWizard();
+  wizardEl.hidden = true;
+  historySection.hidden = false;
+  showHeaderAction(canImport ? importButton : null);
+  setUrlParams({ step: null, sample: null });
+}
+
+function resetWizard() {
+  wizard.step = 1;
+  wizard.file = null;
+  wizard.format = null;
+  wizard.result = null;
+  wizard.sent = false;
+  clearUpload();
+}
+
+/** The furthest step the wizard can show with what it has. */
+function reachable(step) {
+  if (step >= 3 && wizard.format === 'ok') return 3;
+  return Math.min(step, 2);
+}
+
+function goTo(step) {
+  wizard.step = Math.max(1, reachable(step));
+  qsa('[data-step-panel]').forEach((panel) => {
+    panel.hidden = Number(panel.dataset.stepPanel) !== wizard.step;
+  });
+  // The buttons line up with the step's card: narrow on 1–2, full width on 3 (kit).
+  qs('#step-nav').className = `${wizard.step === 3 ? 'container-fluid' : 'container-md-stays'} si-step-nav`;
+  renderStepper();
+  renderNav();
+  setUrlParams({ step: wizard.step });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/** Kit stepper states: completed, active, warning, error. */
+function stepState(n) {
+  if (n < wizard.step) return 'completed';
+  if (n > wizard.step) return '';
+  if (n === 2 && wizard.format === 'failed') return 'error';
+  if (n === 3 && wizard.sent) return 'completed';
+  if (n === 3 && wizard.result && !wizard.result.accepted) return 'error';
+  return 'active';
+}
+
+function renderStepper() {
+  qsa('#stepper li').forEach((li) => {
+    const n = Number(li.dataset.step);
+    li.className = stepState(n);
+    if (n === wizard.step) li.setAttribute('aria-current', 'step');
+    else li.removeAttribute('aria-current');
+    // A step you have passed (or the next one, when it is open) can be clicked.
+    const open = !wizard.sent && n !== wizard.step && reachable(n) === n && (n < wizard.step || n === wizard.step + 1);
+    li.tabIndex = open ? 0 : -1;
+    li.classList.toggle('si-step-open', open);
+  });
+}
+
+qsa('#stepper li').forEach((li) => {
+  const jump = () => {
+    if (li.classList.contains('si-step-open')) goStep(Number(li.dataset.step));
+  };
+  li.addEventListener('click', jump);
+  li.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      jump();
+    }
+  });
+});
+
+function renderNav() {
+  const { step, format, result, sent } = wizard;
+  backButton.disabled = step === 1 || sent;
+  nextButton.hidden = step === 3;
+  nextButton.disabled = step === 2 && format !== 'ok';
+  submitButton.hidden = !(step === 3 && result?.accepted && !sent);
+  againButton.hidden = !(step === 3 && result && !result.accepted);
+}
+
+/** Moving to step 3 runs the business check first. */
+async function goStep(step) {
+  if (step === 3 && wizard.format === 'ok' && !wizard.result) {
+    const ok = await runBusinessCheck();
+    if (!ok) return;
+  }
+  goTo(step);
+}
+
+backButton.addEventListener('click', () => goTo(wizard.step - 1));
+nextButton.addEventListener('click', () => goStep(wizard.step + 1));
+againButton.addEventListener('click', () => {
+  clearUpload();
+  wizard.file = null;
+  wizard.format = null;
+  wizard.result = null;
+  goTo(2);
+});
 
 // ── Step 1 — template ────────────────────────────────
 function downloadText(fileName, text) {
@@ -175,7 +375,7 @@ async function downloadTemplate() {
   }
 }
 
-// ── Step 2 — upload (kit upload box + attachment row) ──
+// ── Step 2 — upload + template / format check ────────
 const attachment = {
   item: qs('#sheet-attachment'),
   name: qs('#sheet-attachment-name'),
@@ -193,70 +393,122 @@ const attachment = {
   },
 };
 
-qs('#sheet-attachment-remove').addEventListener('click', resetSteps);
+function clearUpload() {
+  fileInput.value = '';
+  attachment.set(null);
+  sheetError.hidden = true;
+  formatOk.hidden = true;
+  formatTable.hidden = true;
+  submitted.hidden = true;
+}
+
+qs('#sheet-attachment-remove').addEventListener('click', () => {
+  clearUpload();
+  wizard.file = null;
+  wizard.format = null;
+  wizard.result = null;
+  goTo(2);
+});
 
 fileInput.addEventListener('change', () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   if (!/\.csv$/i.test(file.name) && file.type !== 'text/csv') {
-    attachment.set(file.name, 'failed');
-    showSheetError([t('settlementImports.notCsv')]);
+    formatFailed(file.name, [{ code: 'not_csv' }]);
+    return;
+  }
+  if (file.size > MAX_BYTES) {
+    formatFailed(file.name, [{ code: 'too_large' }]);
     return;
   }
   const reader = new FileReader();
-  reader.onload = () => checkSheet(file.name, String(reader.result ?? ''));
-  reader.onerror = () => {
-    attachment.set(file.name, 'failed');
-    showSheetError([t('settlementImports.readFailed')]);
-  };
+  reader.onload = () => checkFormat(file.name, String(reader.result ?? ''));
+  reader.onerror = () => formatFailed(file.name, [{ code: 'read_failed' }]);
   reader.readAsText(file);
 });
 
-qs('#btn-sample').addEventListener('click', async () => {
+qsa('[data-sample]').forEach((button) => button.addEventListener('click', () => loadSample(button.dataset.sample)));
+
+async function loadSample(kind) {
   try {
-    const sample = await live(() => mockApi.buildSampleSettlementSheet());
+    const sample = await live(() => mockApi.buildSampleSettlementSheet(kind));
     fileInput.value = '';
-    await checkSheet(sample.fileName, sample.csv);
+    return await checkFormat(sample.fileName, sample.csv);
   } catch (error) {
-    showSheetError([error.message || t('settlementImports.checkFailed')]);
+    shell.showToast(error.message || t('settlementImports.checkFailed'), 'danger', { title: t('toast.failedTitle') });
+    return false;
   }
-});
-
-function showSheetError(messages) {
-  const list = qs('#upload-error-list');
-  list.textContent = '';
-  messages.forEach((message) => list.appendChild(el('li', '', message)));
-  sheetError.hidden = false;
-  resultPanel.hidden = true;
-  current = null;
 }
 
-function detailMessage(detail) {
-  if (detail.code === 'missing_column') return t('settlementImports.missingColumn', { column: detail.column });
-  if (detail.code === 'empty') return t('settlementImports.emptySheet');
-  return detail.message ?? detail.code;
-}
-
-async function checkSheet(fileName, csvText) {
+async function checkFormat(fileName, csv) {
+  wizard.file = { fileName, csv };
+  wizard.format = 'checking';
+  wizard.result = null;
   sheetError.hidden = true;
-  submitted.hidden = true;
+  formatOk.hidden = true;
+  formatTable.hidden = true;
   busy.hidden = false;
   attachment.set(fileName, 'checking');
+  renderNav();
   try {
-    const result = await live(() => mockApi.checkSettlementSheet(csvText));
-    current = { fileName, result };
+    const { total } = await live(() => mockApi.validateSettlementSheet(csv));
+    wizard.format = 'ok';
     attachment.set(fileName, 'done');
-    renderResult();
+    qs('#format-ok-text').textContent = total === 1 ? t('settlementImports.formatOkOne') : t('settlementImports.formatOk', { n: formatCount(total) });
+    formatOk.hidden = false;
+    return true;
   } catch (error) {
-    attachment.set(fileName, 'failed');
-    const details = Array.isArray(error.details) && error.details.length ? error.details.map(detailMessage) : [error.message || t('settlementImports.checkFailed')];
-    showSheetError(details);
+    const details = Array.isArray(error.details) && error.details.length ? error.details : null;
+    if (details) formatFailed(fileName, details);
+    else {
+      formatFailed(fileName, []);
+      qs('#upload-error-summary').textContent = error.message || t('settlementImports.checkFailed');
+    }
+    return false;
   } finally {
     busy.hidden = true;
+    renderStepper();
+    renderNav();
   }
 }
 
-// ── Step 3 — check result ────────────────────────────
+/** Show every step 2 problem: file-level ones as a list, cell ones in a grid. */
+function formatFailed(fileName, issues) {
+  wizard.file = wizard.file?.fileName === fileName ? wizard.file : { fileName, csv: null };
+  wizard.format = 'failed';
+  wizard.result = null;
+  attachment.set(fileName, 'failed');
+
+  const fileIssues = issues.filter((i) => FILE_ISSUE_KEYS[i.code]);
+  const cellIssues = issues.filter((i) => CELL_ISSUE_KEYS[i.code]);
+
+  const list = qs('#upload-error-list');
+  list.textContent = '';
+  fileIssues.forEach((i) => list.appendChild(el('li', '', t(FILE_ISSUE_KEYS[i.code], { column: i.column ?? '', n: formatCount(i.value ?? 0) }))));
+  list.hidden = !fileIssues.length;
+
+  const rowCount = new Set(cellIssues.map((i) => i.rowNo)).size;
+  qs('#upload-error-summary').textContent = cellIssues.length
+    ? t('settlementImports.formatSummary', { n: formatCount(cellIssues.length), rows: formatCount(rowCount) })
+    : '';
+
+  formatTable.hidden = !cellIssues.length;
+  if (cellIssues.length) formatTable.setData(onePage(cellIssues));
+
+  formatOk.hidden = true;
+  sheetError.hidden = false;
+  renderStepper();
+  renderNav();
+}
+
+formatTable.columns = [
+  { key: 'rowNo', label: t('settlementImports.colRow'), numeric: true, render: (r) => String(r.rowNo) },
+  { key: 'column', label: t('settlementImports.colColumn'), ltr: true, render: (r) => ltr(r.column ?? '—', 'si-mono') },
+  { key: 'value', label: t('settlementImports.colValue'), ltr: true, className: 'si-wrap', render: (r) => ltr(r.value, 'si-mono') ?? el('span', 'si-muted', t('settlementImports.valueEmpty')) },
+  { key: 'code', label: t('settlementImports.colProblem'), className: 'si-wrap-wide', render: (r) => lamp('status-danger-lamp', t(CELL_ISSUE_KEYS[r.code])) },
+];
+
+// ── Step 3 — business check ──────────────────────────
 checkTable.columns = [
   { key: 'rowNo', label: t('settlementImports.colRow'), numeric: true, render: (r) => String(r.rowNo) },
   // Product rule: national IDs are shown in full.
@@ -268,8 +520,8 @@ checkTable.columns = [
     className: 'si-wrap',
     render: (r) => {
       const stack = el('div', 'si-stack');
-      stack.appendChild(r.systemName ? el('p', 'text-bold', r.systemName) : el('p', 'danger-color', t('settlementImports.noMatch')));
-      if (r.driverName) stack.appendChild(el('span', 'si-muted', t('kitFinance.siNameInSheet', { name: r.driverName })));
+      stack.appendChild(r.systemName ? el('p', 'text-bold', r.systemName) : el('p', 'text-bold danger-color', t('settlementImports.noMatch')));
+      if (r.driverName) stack.appendChild(el('span', 'info-color', t('kitFinance.siNameInSheet', { name: r.driverName })));
       return stack;
     },
   },
@@ -281,90 +533,91 @@ checkTable.columns = [
     render: (r) => el('p', 'text-bold ad-ltr', formatEgp(r.amount)),
   },
   { key: 'balanceBefore', label: t('settlementImports.colBalanceBefore'), numeric: true, ltr: true, render: (r) => balance(r.balanceBefore) },
-  { key: 'balanceAfter', label: t('settlementImports.colBalanceAfter'), numeric: true, ltr: true, render: (r) => balance(r.balanceAfter) },
+  // Balance after only means something when the file will be applied.
+  { key: 'balanceAfter', label: t('settlementImports.colBalanceAfter'), numeric: true, ltr: true, render: (r) => (wizard.result?.accepted ? balance(r.balanceAfter) : null) },
   {
-    // Payment reference, with the channel under it.
+    // Payment reference, with the payment date and channel under it.
     key: 'paymentRef',
     label: t('settlementImports.colPaymentRef'),
     render: (r) => {
       const stack = el('div', 'si-stack');
       stack.appendChild(ltr(r.paymentRef, 'si-mono') ?? el('span', '', t('common.notAvailable')));
-      const channel = channelLabel(r.channel);
-      if (channel) stack.appendChild(el('span', 'si-muted', channel));
+      const under = [r.paymentDate, channelLabel(r.channel)].filter(Boolean).join(' • ');
+      if (under) stack.appendChild(el('span', 'info-color', under));
       return stack;
     },
   },
   { key: 'status', label: t('settlementImports.colResult'), className: 'si-wrap-wide', render: resultLamp },
 ];
 
-function setSubmitLabel(text) {
-  submitLabel.textContent = text;
-}
-
-function readyLabel(readyCount) {
-  if (readyCount === 0) return t('settlementImports.submitNone');
-  return readyCount === 1 ? t('settlementImports.submitOne') : t('settlementImports.submit', { n: readyCount });
+async function runBusinessCheck() {
+  if (!wizard.file?.csv) return false;
+  nextButton.disabled = true;
+  busy.hidden = false;
+  try {
+    wizard.result = await live(() => mockApi.checkSettlementSheet(wizard.file.csv));
+    renderResult();
+    return true;
+  } catch (error) {
+    // The file changed under step 2's check (it shouldn't); send her back to it.
+    const details = Array.isArray(error.details) && error.details.length ? error.details : null;
+    if (details) formatFailed(wizard.file.fileName, details);
+    else shell.showToast(error.message || t('settlementImports.checkFailed'), 'danger', { title: t('toast.failedTitle') });
+    return false;
+  } finally {
+    busy.hidden = true;
+    renderNav();
+  }
 }
 
 function renderResult() {
-  const { fileName, result } = current;
-  // A sheet can come back null only if the mock is in a designer state; treat it as empty.
+  const { result } = wizard;
   const rows = result?.rows ?? [];
-  const readyCount = result?.readyCount ?? 0;
-  const rejected = rows.length - readyCount;
+  const failed = result?.failedCount ?? 0;
 
-  qs('#result-file').textContent = fileName;
+  qs('#result-file').textContent = wizard.file.fileName;
   qs('#stat-total').setAttribute('value', formatCount(rows.length));
-  qs('#stat-ready').setAttribute('value', formatCount(readyCount));
-  qs('#stat-amount').setAttribute('value', formatEgp(result?.readyAmount ?? 0));
-  qs('#stat-rejected').setAttribute('value', formatCount(rejected));
-  qs('#rejected-note').hidden = rejected === 0;
+  qs('#stat-ready').setAttribute('value', formatCount(result?.readyCount ?? 0));
+  qs('#stat-rejected').setAttribute('value', formatCount(failed));
+  qs('#stat-amount').setAttribute('value', result?.accepted ? formatEgp(result.amount) : '—');
+
+  qs('#verdict-rejected').hidden = result.accepted;
+  qs('#verdict-rejected-title').textContent = failed === 1
+    ? t('settlementImports.rejectedTitleOne')
+    : t('settlementImports.rejectedTitle', { n: formatCount(failed) });
+  qs('#verdict-accepted').hidden = !result.accepted;
+  submitted.hidden = true;
 
   checkTable.setData(onePage(rows));
-
-  submitButton.disabled = readyCount === 0;
-  setSubmitLabel(readyLabel(readyCount));
-
-  resultPanel.hidden = false;
-  resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
-function resetSteps() {
-  current = null;
-  fileInput.value = '';
-  attachment.set(null);
-  sheetError.hidden = true;
-  submitted.hidden = true;
-  resultPanel.hidden = true;
-  submitButton.disabled = false;
-}
-
-qs('#btn-reset').addEventListener('click', resetSteps);
 
 submitButton.addEventListener('click', async () => {
-  if (!current?.result?.readyCount) return;
+  if (!wizard.result?.accepted || wizard.sent) return;
   const label = submitLabel.textContent;
   submitButton.disabled = true;
-  setSubmitLabel(t('settlementImports.submitting'));
+  submitLabel.textContent = t('settlementImports.submitting');
   try {
-    const response = await live(() => mockApi.submitSettlementImport({ fileName: current.fileName, rows: current.result.rows }));
+    const response = await live(() => mockApi.submitSettlementImport({ fileName: wizard.file.fileName, rows: wizard.result.rows }));
     const requestId = response.request.id;
-    const n = current.result.readyCount;
-    shell.showToast(t('settlementImports.submitted', { n, id: response.import.id }), 'success');
+    const n = wizard.result.rows.length;
+    const text = t('settlementImports.submitted', { n: formatCount(n), id: response.import.id });
+    shell.showToast(text, 'success');
 
-    qs('#submitted-text').textContent = t('settlementImports.submitted', { n, id: response.import.id });
+    qs('#submitted-text').textContent = text;
     const link = qs('#submitted-link');
     link.href = approvalHref(requestId);
     link.textContent = t('settlementImports.submittedLink', { id: requestId });
     submitted.hidden = false;
-    // The rows are now in a pending import; resubmitting them would only be rejected.
-    setSubmitLabel(label);
-    submitButton.disabled = true;
+    qs('#verdict-accepted').hidden = true;
+    wizard.sent = true;
+    renderStepper();
+    renderNav();
     loadHistory();
   } catch (error) {
-    setSubmitLabel(label);
-    submitButton.disabled = false;
     shell.showToast(error.message || t('settlementImports.submitFailed'), 'danger', { title: t('toast.failedTitle') });
+  } finally {
+    submitLabel.textContent = label;
+    submitButton.disabled = false;
   }
 });
 
@@ -383,7 +636,7 @@ historyTable.columns = [
     label: t('settlementImports.colRows'),
     headerClass: 'si-wrap',
     numeric: true,
-    render: (r) => t('settlementImports.rowsOf', { ready: formatCount(r.readyRows), total: formatCount(r.totalRows) }),
+    render: (r) => formatCount(r.totalRows),
   },
   { key: 'amount', label: t('settlementImports.colAmountTotal'), sortable: true, numeric: true, ltr: true, render: (r) => el('p', 'text-bold ad-ltr', formatEgp(r.amount)) },
   { key: 'status', label: t('settlementImports.colStatus'), render: (r) => importLamp(r.status) },
@@ -540,7 +793,7 @@ async function openImport(id) {
     const decidedWho = imp.decidedBy ? whoWhen(imp.decidedBy, imp.decidedAt) : t('common.notAvailable');
     detail.appendChild(kvColumns([
       [t('settlementImports.detailStatus'), importLamp(imp.status)],
-      [t('settlementImports.detailRows'), t('settlementImports.rowsOf', { ready: formatCount(imp.readyRows), total: formatCount(imp.totalRows) })],
+      [t('settlementImports.detailRows'), formatCount(imp.totalRows)],
       [t('settlementImports.detailAmount'), el('p', 'text-bold ad-ltr', formatEgp(imp.amount))],
       [t('settlementImports.detailUploaded'), whoWhen(imp.createdBy, imp.createdAt)],
       [t('settlementImports.detailDecided'), decidedWho],
@@ -565,5 +818,21 @@ wireInPlaceApprovals({ onDecided: loadHistory });
 
 // ── Boot ─────────────────────────────────────────────
 loadHistory();
-const deepLink = new URLSearchParams(window.location.search).get('id');
+const params = new URLSearchParams(window.location.search);
+const deepLink = params.get('id');
+const startStep = Number(params.get('step'));
+if ([1, 2, 3].includes(startStep) && canImport) {
+  openWizard(startStep);
+  const sample = params.get('sample');
+  // Demo deep links: load a sample sheet, then walk on to the asked-for step.
+  if (['clean', 'format', 'business'].includes(sample)) {
+    goTo(2);
+    loadSample(sample).then((ok) => {
+      if (ok && startStep === 3) goStep(3);
+      setUrlParams({ sample });
+    });
+  }
+} else {
+  closeWizard();
+}
 if (deepLink) openImport(deepLink);

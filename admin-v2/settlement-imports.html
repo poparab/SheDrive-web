@@ -15,44 +15,90 @@
       breadcrumb-keys="nav.money > nav.settlementImports"
       screen-styles="styles/list.css, styles/settlement-imports.css, styles/approval-review.css"
     >
-      <div class="alert info si-lead">
+      <div class="alert info align-items-start si-lead">
         <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
         <p data-i18n="settlementImports.lead">
           Finance sends a sheet of payments drivers have already made to SheDrive. Each row is matched by national ID and applied as paid: less than she owes settles part of it, more than she owes adds the extra to her balance. Approved rows lift her go-online block once she is under the limit.
         </p>
       </div>
 
-      <div class="row g-3 si-steps">
+      <!-- ══ Import wizard (kit settlement-import-step1..3, `?step=`) ══ -->
+      <div class="si-wizard" id="wizard" hidden>
+        <!-- Kit stepper. `lable` is the kit's own element name; its CSS targets it. -->
+        <div class="stepper-container si-stepper">
+          <ol class="stepper horizontal" id="stepper">
+            <li data-step="1">
+              <div class="details">
+                <lable data-i18n="settlementImports.stepperTemplate">Download template</lable>
+                <span data-i18n="settlementImports.stepperTemplateHint">Get the template and fill it in</span>
+              </div>
+            </li>
+            <li data-step="2">
+              <div class="details">
+                <lable data-i18n="settlementImports.stepperUpload">Upload sheet</lable>
+                <span data-i18n="settlementImports.stepperUploadHint">Template and formats are checked</span>
+              </div>
+            </li>
+            <li data-step="3">
+              <div class="details">
+                <lable data-i18n="settlementImports.stepperReview">Review result</lable>
+                <span data-i18n="settlementImports.stepperReviewHint">Business rules are checked</span>
+              </div>
+            </li>
+          </ol>
+        </div>
+
         <!-- ── Step 1 — template ─────────────────────────── -->
-        <div class="col-lg-6">
-          <div class="standard-card-theme2 white-bg si-card" id="step-template">
+        <div class="container-md-stays si-step" id="step-1" data-step-panel="1">
+          <div class="standard-card-theme2 white-bg">
             <div class="card-header">
               <div class="card-title">
-                <h5 data-i18n="settlementImports.step1Title">Step 1 — Template</h5>
-                <span data-i18n="settlementImports.step1Subtitle">The columns Finance fills in</span>
+                <h5>
+                  <bdi data-i18n="settlementImports.step1Title">Step 1 /</bdi>
+                  <small class="info-color" data-i18n="settlementImports.step1Name">(Download template)</small>
+                </h5>
+                <span data-i18n="settlementImports.step1Subtitle">The payment details Finance fills in for each driver.</span>
               </div>
               <div class="icon"><img src="vendor/icons/download-file.svg" alt="" /></div>
             </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table custom-grid-list si-columns">
-                  <thead>
-                    <tr>
-                      <th scope="col" data-i18n="settlementImports.colColumn">Column</th>
-                      <th scope="col" data-i18n="settlementImports.colMeaning">What it holds</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td class="ad-ltr si-mono">national_id</td><td data-i18n="settlementImports.colNationalId">Matches the driver.</td></tr>
-                    <tr><td class="ad-ltr si-mono">driver_name</td><td data-i18n="settlementImports.colDriverName">Reference only — never used to match.</td></tr>
-                    <tr><td class="ad-ltr si-mono">amount_egp</td><td data-i18n="settlementImports.colAmount">The amount she paid — any amount. Less settles part of what she owes; more adds to her balance.</td></tr>
-                    <tr><td class="ad-ltr si-mono">payment_date</td><td data-i18n="settlementImports.colPaymentDate">The day she paid (YYYY-MM-DD).</td></tr>
-                    <tr><td class="ad-ltr si-mono">payment_channel</td><td data-i18n="settlementImports.colPaymentChannel">Bank transfer, Fawry, Mobile wallet or Field agent.</td></tr>
-                    <tr><td class="ad-ltr si-mono">payment_reference</td><td data-i18n="settlementImports.colPaymentReference">Unique. A reference already used is rejected.</td></tr>
-                  </tbody>
-                </table>
+            <div class="card-body pb-0 mb-1">
+              <p class="info-color text-bold small lh-sm my-3">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <span data-i18n="settlementImports.step1Guide">Fill in each column of the template as described below. Step 2 rejects a file that does not follow it.</span>
+              </p>
+              <div class="list-multi-column no-border p-0">
+                <div class="row gx-4">
+                  <div class="col">
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">national_id</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colNationalId">Required. 14 digits. Matches the driver.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">driver_name</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colDriverName">Optional, up to 100 characters. Reference only — never used to match.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">amount_egp</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colAmount">Required. A number above 0 with up to 2 decimals, no currency or commas (245.50). Less than she owes settles part of it; more adds to her balance.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">payment_date</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colPaymentDate">Required. The day she paid, YYYY-MM-DD, not in the future.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">payment_channel</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colPaymentChannel">Required. Bank transfer, Fawry, Mobile wallet or Field agent, spelled exactly.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">payment_reference</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colPaymentReference">Required. Up to 60 letters, digits or hyphens. Unique — a reference already imported fails.</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button type="button" class="btn btn-primary d-flex gap-2 si-template-btn" id="btn-template">
+            </div>
+            <div class="card-footer justify-content-end">
+              <button type="button" class="btn btn-primary d-flex" id="btn-template">
                 <i class="fa-solid fa-file-csv" aria-hidden="true"></i>
                 <span data-i18n="settlementImports.downloadTemplate">Download template</span>
               </button>
@@ -60,18 +106,23 @@
           </div>
         </div>
 
-        <!-- ── Step 2 — upload (kit upload component) ────── -->
-        <div class="col-lg-6">
-          <div class="standard-card-theme2 white-bg si-card" id="step-upload">
+        <!-- ── Step 2 — upload + template / format check ─── -->
+        <div class="container-md-stays si-step" id="step-2" data-step-panel="2" hidden>
+          <div class="standard-card-theme2 white-bg">
             <div class="card-header">
               <div class="card-title">
-                <h5 data-i18n="settlementImports.step2Title">Step 2 — Upload</h5>
-                <span data-i18n="settlementImports.step2Subtitle">The sheet Finance sent (.csv)</span>
+                <h5>
+                  <bdi data-i18n="settlementImports.step2Title">Step 2 /</bdi>
+                  <small class="info-color" data-i18n="settlementImports.step2Name">(Upload CSV file)</small>
+                </h5>
+                <span data-i18n="settlementImports.step2Subtitle">The file is checked against the template and every cell's format.</span>
               </div>
               <div class="icon"><img src="vendor/icons/upload-file.svg" alt="" /></div>
             </div>
-            <div class="card-body">
-              <div class="input-group si-upload">
+            <div class="card-body pb-0 mb-1">
+              <small data-i18n="settlementImports.step2Intro">Select and upload the completed template (.csv).</small>
+
+              <div class="input-group mt-3 si-upload">
                 <input
                   class="form-control custom-file-input"
                   type="file"
@@ -81,13 +132,14 @@
                 />
                 <label class="custom-file-label" for="sheet-file">
                   <img src="vendor/icons/upload.svg" alt="" />
-                  <b class="si-upload__prompt" data-i18n="kitFinance.siUploadPrompt">Press to upload the settlement sheet, or drop it here</b>
-                  <span data-i18n="kitFinance.siUploadLimits">CSV • the six template columns</span>
+                  <span class="si-upload__prompt" data-i18n="kitFinance.siUploadPrompt">Press to upload the settlement sheet, or drop it here</span>
+                  <span data-i18n="kitFinance.siUploadLimits">CSV file only • Maximum file size 5 MB</span>
                 </label>
               </div>
 
               <!-- Kit attachment row: the chosen sheet, its check progress, remove. -->
-              <div class="attachment-item" id="sheet-attachment" hidden>
+              <div class="attachment-item mt-3" id="sheet-attachment" hidden>
+                <div class="file-icon"><img src="vendor/icons/csv-file.svg" alt="" /></div>
                 <div class="progress-title">
                   <div class="details">
                     <span class="title ad-ltr" id="sheet-attachment-name"></span>
@@ -98,99 +150,123 @@
                   </div>
                 </div>
                 <div class="close-button-container">
-                  <button type="button" class="close-button btn btn-link p-0" id="sheet-attachment-remove" aria-label="Start over" data-i18n-aria-label="settlementImports.startOver">
+                  <button type="button" class="close-button btn btn-link p-0" id="sheet-attachment-remove" aria-label="Remove the file" data-i18n-aria-label="settlementImports.removeFile">
                     <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
 
               <p class="small lh-sm si-muted si-hint" id="sheet-file-hint" data-i18n="settlementImports.fileHint">
-                CSV with the six template columns. Nothing is stored until it is approved.
+                Nothing is stored until a Financial lead approves the file.
               </p>
 
               <p class="visually-hidden" id="upload-busy" role="status" data-i18n="settlementImports.checking" hidden>Checking the sheet…</p>
 
-              <div class="si-demo">
-                <button type="button" class="btn btn-secondary-outline d-flex gap-2" id="btn-sample">
-                  <span class="si-demo-tag" data-i18n="settlementImports.demoBadge">Demo</span>
-                  <span data-i18n="settlementImports.useSample">Use a sample sheet</span>
-                </button>
-                <p class="small lh-sm si-muted" data-i18n="settlementImports.sampleHint">
-                  Demo only: builds a sheet with three good rows and one of each common mistake.
-                </p>
+              <div class="alert success si-check-ok" id="format-ok" role="status" hidden>
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <p id="format-ok-text"></p>
               </div>
 
               <div class="alert danger si-sheet-error" id="upload-error" role="alert" hidden>
                 <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                 <div class="details">
-                  <h6 id="upload-error-title" data-i18n="settlementImports.sheetRejected">The sheet was not checked</h6>
+                  <h6 id="upload-error-title" data-i18n="settlementImports.formatRejected">The file does not match the template</h6>
+                  <p id="upload-error-summary"></p>
                   <ul id="upload-error-list"></ul>
-                  <p data-i18n="settlementImports.sheetRejectedHint">Fix the sheet and upload it again.</p>
+                  <p data-i18n="settlementImports.formatRejectedHint">Nothing was checked against drivers. Fix the file and upload it again.</p>
                 </div>
+              </div>
+
+              <ad-data-table id="format-table" hidden></ad-data-table>
+
+              <div class="si-demo">
+                <span class="si-demo-tag" data-i18n="settlementImports.demoBadge">Demo</span>
+                <button type="button" class="btn btn-secondary-outline btn--sm" data-sample="clean" data-i18n="settlementImports.sampleClean">Correct file</button>
+                <button type="button" class="btn btn-secondary-outline btn--sm" data-sample="format" data-i18n="settlementImports.sampleFormat">File with format errors</button>
+                <button type="button" class="btn btn-secondary-outline btn--sm" data-sample="business" data-i18n="settlementImports.sampleBusiness">File with business errors</button>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- ── Step 3 — business check ───────────────────── -->
+        <div class="container-fluid si-step" id="step-3" data-step-panel="3" hidden>
+          <div class="standard-card-theme2 light-medium-bg">
+            <div class="card-header mb-1">
+              <div class="card-title">
+                <h5>
+                  <bdi data-i18n="settlementImports.step3Title">Step 3 /</bdi>
+                  <small class="info-color" data-i18n="settlementImports.step3Name">(Review result)</small>
+                </h5>
+                <span class="ad-ltr" id="result-file">—</span>
+              </div>
+              <div class="icon"><img src="vendor/icons/file-checked.svg" alt="" /></div>
+            </div>
+            <div class="card-body pb-0 mb-1">
+              <div class="alert danger align-items-start" id="verdict-rejected" role="alert" hidden>
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <div class="details">
+                  <h6 id="verdict-rejected-title"></h6>
+                  <p data-i18n="settlementImports.rejectedNote">The whole file is rejected: no row from it is sent or stored. Fix the failed rows and upload the whole file again.</p>
+                </div>
+              </div>
+              <div class="alert success align-items-start" id="verdict-accepted" role="status" hidden>
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <p data-i18n="settlementImports.acceptedNote">Every row passed. Send the file for approval; nothing is applied until a Financial lead approves it.</p>
+              </div>
+
+              <div class="ad-stats si-stats">
+                <ad-stat-card id="stat-amount" label="Amount to apply" data-i18n-label="settlementImports.statAmount" value="—" tone="blue" icon="money.svg"></ad-stat-card>
+                <ad-stat-card id="stat-total" label="Sheet rows" data-i18n-label="settlementImports.statTotal" value="—" tone="primary" icon="csv-file.svg"></ad-stat-card>
+                <ad-stat-card id="stat-ready" label="Passed rows" data-i18n-label="settlementImports.statReady" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
+                <ad-stat-card id="stat-rejected" label="Failed rows" data-i18n-label="settlementImports.statRejected" value="—" tone="danger" icon="rejected.svg"></ad-stat-card>
+              </div>
+
+              <ad-data-table id="check-table"></ad-data-table>
+
+              <div class="alert success si-submitted" id="submitted" role="status" hidden>
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <div class="details">
+                  <h6 id="submitted-text"></h6>
+                  <p data-i18n="settlementImports.submittedNote">A Financial lead must approve it before any driver is settled.</p>
+                </div>
+                <a class="btn btn-success-outline ms-auto" id="submitted-link" href="approvals.html"></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kit step buttons: Back on the start side, Next / Send file on the end side. -->
+        <div class="container-md-stays si-step-nav" id="step-nav">
+          <div class="col d-flex justify-content-between gap-2 flex-wrap mb-4">
+            <button type="button" class="btn btn-primary-outline d-flex" id="btn-back">
+              <i class="fa-solid fa-angle-left" aria-hidden="true"></i>
+              <span data-i18n="settlementImports.back">Back</span>
+            </button>
+            <button type="button" class="btn btn-light-outline d-flex" id="btn-next">
+              <span data-i18n="settlementImports.next">Next</span>
+              <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-primary d-flex" id="btn-submit" hidden>
+              <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+              <span id="btn-submit-label" data-i18n="settlementImports.submit">Send file for approval</span>
+            </button>
+            <button type="button" class="btn btn-primary d-flex" id="btn-again" hidden>
+              <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+              <span data-i18n="settlementImports.uploadAgain">Upload the corrected file</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- ── Step 3 — check result ───────────────────────── -->
-      <section class="standard-card-theme2 white-bg si-card si-result" id="step-result" hidden>
-        <div class="card-header">
-          <div class="card-title">
-            <h5 data-i18n="settlementImports.step3Title">Step 3 — Check result</h5>
-            <span class="ad-ltr" id="result-file">—</span>
-          </div>
-          <div class="icon"><img src="vendor/icons/file-checked.svg" alt="" /></div>
-        </div>
-        <div class="card-body">
-          <div class="ad-stats si-stats">
-            <ad-stat-card id="stat-total" label="Rows in sheet" data-i18n-label="settlementImports.statTotal" value="—" tone="primary" icon="file-checked.svg"></ad-stat-card>
-            <ad-stat-card id="stat-ready" label="Rows to apply" data-i18n-label="settlementImports.statReady" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
-            <ad-stat-card id="stat-amount" label="Amount to apply" data-i18n-label="settlementImports.statReadyAmount" value="—" tone="success" icon="money.svg"></ad-stat-card>
-            <ad-stat-card id="stat-rejected" label="Can't apply" data-i18n-label="settlementImports.statRejected" value="—" tone="danger" icon="rejected.svg"></ad-stat-card>
-          </div>
-
-          <div class="alert warning si-note" id="rejected-note">
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            <p data-i18n="settlementImports.rejectedNote">
-              Rows that can't be applied are not stored. Finance fixes them and sends them again.
-            </p>
-          </div>
-
-          <ad-data-table id="check-table"></ad-data-table>
-
-          <div class="alert success si-submitted" id="submitted" role="status" hidden>
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            <div class="details">
-              <h6 id="submitted-text"></h6>
-              <p data-i18n="settlementImports.submittedNote">
-                A different admin must approve it before any driver is settled.
-              </p>
-            </div>
-            <a class="btn btn-success-outline ms-auto" id="submitted-link" href="approvals.html"></a>
-          </div>
-
-          <div class="d-flex flex-wrap gap-3 si-actions">
-            <button type="button" class="btn btn-success d-flex gap-2" id="btn-submit">
-              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-              <span id="btn-submit-label">Send ready rows for approval</span>
-            </button>
-            <button type="button" class="btn btn-primary-outline d-flex gap-2" id="btn-reset">
-              <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
-              <span data-i18n="settlementImports.startOver">Start over</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── History (kit full-width table card) ─────────── -->
-      <section class="standard-card light-medium-bg si-history" aria-labelledby="history-heading">
+      <!-- ══ History (kit settlements.html) ══ -->
+      <section class="standard-card light-medium-bg si-history" id="history" aria-labelledby="history-heading">
         <div class="card-header mb-3">
           <div class="card-title">
-            <img class="icon" src="vendor/icons/timeline.svg" alt="" />
-            <h4 id="history-heading" data-i18n="settlementImports.historyTitle">Import history</h4>
+            <img class="icon" src="vendor/icons/calendar.svg" alt="" />
+            <h4 id="history-heading" data-i18n="settlementImports.historyTitle">Settlements history</h4>
           </div>
-          <span class="si-muted small" data-i18n="settlementImports.historySubtitle">Every sheet sent for approval</span>
+          <span class="si-muted small" data-i18n="settlementImports.historySubtitle">Every file sent for approval</span>
         </div>
         <div class="card-body">
           <ad-data-table id="imports-table"></ad-data-table>

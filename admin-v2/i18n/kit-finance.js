@@ -24,7 +24,7 @@ export const en = {
 
     // Settlement imports — kit upload box
     siUploadPrompt: 'Press to upload the settlement sheet, or drop it here',
-    siUploadLimits: 'CSV • the six template columns',
+    siUploadLimits: 'CSV file only • Maximum file size 5 MB',
     siNameInSheet: 'In sheet: {name}',
   },
 };
@@ -50,7 +50,7 @@ export const ar = {
     pbUploadLimits: 'CSV • ملف طريقة دفع واحدة • كل سطر مرة واحدة، بحالة SUCCESS أو FAILED',
 
     siUploadPrompt: 'إضغط لرفع كشف التسويات، أو اسحبه هنا',
-    siUploadLimits: 'CSV • أعمدة القالب الستة',
+    siUploadLimits: 'ملف CSV فقط • الحد الأقصى للحجم ٥ ميجابايت',
     siNameInSheet: 'في الكشف: {name}',
   },
 };

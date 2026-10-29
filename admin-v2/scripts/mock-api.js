@@ -489,7 +489,9 @@ function parseCsv(text) {
   if (!nonEmpty.length) return { headers: [], rows: [] };
   const headers = nonEmpty[0].map((h) => h.trim().toLowerCase());
   const rows = nonEmpty.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, (r[i] ?? '').trim()])));
-  return { headers, rows };
+  // Cells per data row, so a sheet check can tell a row that lost or gained a cell.
+  const widths = nonEmpty.slice(1).map((r) => r.length);
+  return { headers, rows, widths };
 }
 
 /**
@@ -507,6 +509,54 @@ const FILE_HEADERS = {
 const RESULT_COLUMNS = ['status', 'bank_reference', 'failure_reason'];
 const FILE_SLUG = { MOBILE_WALLET: 'mobile-wallet', BANK_ACCOUNT: 'bank-account', PREPAID_CARD: 'prepaid-card' };
 const SETTLEMENT_HEADERS = ['national_id', 'driver_name', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+const SETTLEMENT_MAX_ROWS = 1000;
+
+/** A real calendar day written YYYY-MM-DD. */
+function isIsoDay(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
+
+/**
+ * #5620 step 2 — template and format. Nothing about drivers or the ledger is
+ * read here: only whether the file is the template and every cell is written
+ * the way the template says. Returns the problems found, each
+ * `{ code, rowNo?, column?, value? }`; none means the sheet goes to step 3.
+ * A header problem stops the check before any row is read.
+ */
+function settlementFormatIssues(csvText) {
+  const { headers, rows, widths } = parseCsv(csvText);
+  const issues = [];
+  SETTLEMENT_HEADERS.filter((h) => !headers.includes(h)).forEach((column) => issues.push({ code: 'missing_column', column }));
+  headers.filter((h) => h && !SETTLEMENT_HEADERS.includes(h)).forEach((column) => issues.push({ code: 'unknown_column', column }));
+  headers.filter((h, i) => h && headers.indexOf(h) !== i).forEach((column) => issues.push({ code: 'duplicate_column', column }));
+  if (issues.length) return { rows, issues };
+  if (!rows.length) return { rows, issues: [{ code: 'empty' }] };
+  if (rows.length > SETTLEMENT_MAX_ROWS) return { rows, issues: [{ code: 'too_many_rows', value: rows.length }] };
+
+  rows.forEach((row, i) => {
+    const rowNo = i + 1;
+    const add = (code, column) => issues.push({ code, rowNo, column, value: column ? row[column] : undefined });
+    if (widths[i] !== headers.length) {
+      add('cell_count');
+      return;
+    }
+    const required = ['national_id', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+    required.filter((c) => !row[c]).forEach((c) => add('required', c));
+    if (row.national_id && !/^\d{14}$/.test(row.national_id)) add('nid_format', 'national_id');
+    if (row.driver_name && row.driver_name.length > 100) add('name_length', 'driver_name');
+    if (row.amount_egp) {
+      if (!/^\d+(\.\d{1,2})?$/.test(row.amount_egp)) add('amount_format', 'amount_egp');
+      else if (Number(row.amount_egp) <= 0) add('amount_zero', 'amount_egp');
+    }
+    if (row.payment_date && !isIsoDay(row.payment_date)) add('date_format', 'payment_date');
+    if (row.payment_channel && !SETTLEMENT_CHANNELS.includes(row.payment_channel)) add('channel_value', 'payment_channel');
+    if (row.payment_reference && !/^[A-Za-z0-9-]{1,60}$/.test(row.payment_reference)) add('ref_format', 'payment_reference');
+  });
+  return { rows, issues };
+}
 
 const FAILURE_REASONS = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
 
@@ -2560,9 +2610,13 @@ export const mockApi = {
   /**
    * Demo helper: Finance's sheet lists only payments that already went
    * through. One paid in full, one paid part, one paid more, one paid while
-   * owing nothing — and one of each row that can't be applied.
+   * owing nothing. `kind`:
+   *   'clean'    — just those four rows: passes both checks and can be sent;
+   *   'format'   — the same rows with one of each format mistake (fails step 2);
+   *   'business' — well formed, plus an unknown national ID, a reference
+   *                already imported and a future date (fails step 3).
    */
-  buildSampleSettlementSheet() {
+  buildSampleSettlementSheet(kind = 'business') {
     const today = localDay();
     const ref = () => `FT${String(100000000 + Math.floor(Math.random() * 899999999))}`;
     const owing = DRIVERS.filter((d) => d.balance < 0).slice(0, 3);
@@ -2580,28 +2634,49 @@ export const mockApi = {
     if (owing[1]) rows.push(row(owing[1], Math.floor(-owing[1].balance / 2), 'Fawry'));
     if (owing[2]) rows.push(row(owing[2], -owing[2].balance + 50, 'Mobile wallet'));
     if (clear) rows.push(row(clear, 75, 'Field agent'));
-    rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: ref() });
-    const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
-    if (used && owing[0]) {
-      rows.push({ ...row(owing[0], 60, 'Bank transfer'), payment_reference: used.paymentRef });
+    if (kind === 'format' && rows.length >= 4) {
+      rows[0].amount_egp = `${rows[0].amount_egp} EGP`;
+      rows[1].payment_date = today.split('-').reverse().join('/');
+      rows[2].national_id = rows[2].national_id.slice(0, 12);
+      rows[3].payment_channel = 'Cash';
+    } else if (kind === 'business') {
+      rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: ref() });
+      const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
+      if (used && owing[0]) {
+        rows.push({ ...row(owing[0], 60, 'Bank transfer'), payment_reference: used.paymentRef });
+      }
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      if (owing[1]) rows.push({ ...row(owing[1], 20, 'Fawry'), payment_date: localDay(tomorrow) });
     }
     return respond({ csv: toCsv(SETTLEMENT_HEADERS, rows), fileName: `finance-settlements-${today}.csv` });
   },
 
   /**
-   * §4 — every row is a payment that already went through, so any amount is
-   * applied: less than she owes settles part of it, more than she owes leaves
-   * the extra on her balance. A row can't be applied only when its national ID
-   * matches no driver, or its payment reference was already imported (so the
-   * same payment never posts twice). Nothing is stored here.
+   * #5620 step 2 — is the file the template, and is every cell written as the
+   * template says? Rejects (422) with every problem in `details`; otherwise
+   * returns the row count. Reads nothing about drivers; nothing is stored.
+   */
+  validateSettlementSheet(csvText) {
+    const { rows, issues } = settlementFormatIssues(csvText);
+    if (issues.length) return validationError('The sheet does not match the template.', issues);
+    return respond({ total: rows.length });
+  },
+
+  /**
+   * #5620 step 3 — the business check, run on a sheet that passed step 2
+   * (re-checked here so a bad file never gets this far). Every row is a
+   * payment that already went through, so any amount is applied: less than
+   * she owes settles part of it, more than she owes leaves the extra on her
+   * balance. A row fails when its national ID matches no driver, its payment
+   * reference was already imported or repeats in this file, or its payment
+   * date is in the future. **One failed row rejects the whole file**
+   * (`accepted: false`): nothing from it can be sent, and Finance uploads the
+   * corrected file again. Nothing is stored here.
    */
   checkSettlementSheet(csvText) {
-    const { headers, rows } = parseCsv(csvText);
-    const missingCols = SETTLEMENT_HEADERS.filter((h) => !headers.includes(h));
-    if (missingCols.length) {
-      return validationError('The sheet is missing required columns.', missingCols.map((c) => ({ code: 'missing_column', column: c })));
-    }
-    if (!rows.length) return validationError('The sheet has no rows.', [{ code: 'empty' }]);
+    const { rows, issues } = settlementFormatIssues(csvText);
+    if (issues.length) return validationError('The sheet does not match the template.', issues);
 
     const usedRefs = new Set(LEDGER_ENTRIES.filter((e) => e.paymentRef).map((e) => e.paymentRef));
     SETTLEMENT_IMPORTS.filter((i) => i.status === 'pending').forEach((i) => i.rows.forEach((r) => usedRefs.add(r.paymentRef)));
@@ -2627,13 +2702,12 @@ export const mockApi = {
         paymentRef: row.payment_reference,
         status: 'ready',
       };
-      // #5620 Field Validation: payment_date not in the future; payment_channel one of the four.
-      const future = /^\d{4}-\d{2}-\d{2}$/.test(row.payment_date ?? '') && row.payment_date > localDay();
+      // #5620 business rules, first failure wins.
       if (!driver) out.status = 'unknown_driver';
-      else if (!row.payment_reference || usedRefs.has(row.payment_reference) || fileRefs.has(row.payment_reference)) out.status = 'duplicate';
-      else if (future) out.status = 'future_date';
-      else if (!SETTLEMENT_CHANNELS.includes(row.payment_channel)) out.status = 'bad_channel';
-      if (row.payment_reference) fileRefs.add(row.payment_reference);
+      else if (usedRefs.has(row.payment_reference)) out.status = 'duplicate';
+      else if (fileRefs.has(row.payment_reference)) out.status = 'repeated_in_file';
+      else if (row.payment_date > localDay()) out.status = 'future_date';
+      fileRefs.add(row.payment_reference);
       if (driver) {
         const before = running.has(driver.id) ? running.get(driver.id) : driver.balance;
         out.balanceBefore = before;
@@ -2652,16 +2726,23 @@ export const mockApi = {
       rows: checked,
       total: checked.length,
       readyCount: ready.length,
-      readyAmount: round2(ready.reduce((t, r) => t + r.amount, 0)),
+      failedCount: checked.length - ready.length,
+      accepted: ready.length === checked.length,
+      // What the file would apply once approved; meaningful only when accepted.
+      amount: round2(checked.reduce((t, r) => t + (r.amount ?? 0), 0)),
     });
   },
 
-  /** Submit the ready rows as one `settlement_import` request. */
+  /** Submit a whole accepted file as one `settlement_import` request. */
   submitSettlementImport({ fileName = 'settlements.csv', rows = [] } = {}) {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
-    const ready = rows.filter((r) => r.status === 'ready');
-    if (!ready.length) return Promise.reject(new MockApiError('There are no ready rows to import.', 422));
+    if (!rows.length) return Promise.reject(new MockApiError('The file has no rows to import.', 422));
+    // All or nothing (#5620): a file with any failed row is never sent.
+    if (rows.some((r) => r.status !== 'ready')) {
+      return Promise.reject(new MockApiError('The file was rejected by the business check. Fix it and upload the whole file again.', 422));
+    }
+    const ready = rows;
     const imp = {
       id: nextImportId(),
       fileName,

@@ -449,7 +449,7 @@ export const SCREENS = [
     icon: 'upload-file.svg',
     status: 'built',
     track: t('screens.statusBuilt'),
-    stories: [[0, '[Admin] Settlement sheet import (2026-10-14 — ADO id pending)']],
+    stories: [[5620, "[Admin] Admin imports Finance's settlement sheet"]],
     states: LIST_STATES,
     notes: t('screens.notesSettlementImports'),
   },

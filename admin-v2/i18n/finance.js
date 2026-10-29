@@ -31,7 +31,7 @@ export const en = {
     titleRiderLedger: 'Rider fee ledger',
     notesRiderLedger: "One rider's fees, opened from Rider balances: outstanding and credit, and Waive fee on each cancellation fee (sent for approval).",
     notesSettlementImports:
-      'Upload the settlement sheet from Finance. Each row is matched by national ID and checked before it is sent for approval.',
+      'Import history, then a three-step wizard: template, upload (template and format check — ?step=2&sample=format), review (business check; one failed row rejects the whole file — ?step=3&sample=business, ?step=3&sample=clean).',
   },
 };
 
@@ -61,6 +61,6 @@ export const ar = {
     titleRiderLedger: 'دفتر رسوم الراكبة',
     notesRiderLedger: 'رسوم راكبة واحدة، تُفتح من أرصدة الراكبات: المستحق والرصيد الدائن، والإعفاء من كل رسوم إلغاء (يُرسل للموافقة).',
     notesSettlementImports:
-      'ارفع ملف التسويات من فريق المالية. تتم مطابقة كل صف بالرقم القومي والتحقق منه قبل إرساله للموافقة.',
+      'سجل الاستيراد ثم معالج من ثلاث خطوات: النموذج، الرفع (فحص النموذج والصيغ — ?step=2&sample=format)، المراجعة (فحص قواعد العمل؛ صف فاشل واحد يرفض الملف كله — ?step=3&sample=business، ?step=3&sample=clean).',
   },
 };

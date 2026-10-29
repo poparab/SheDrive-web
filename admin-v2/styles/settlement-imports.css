@@ -1,12 +1,13 @@
 /*
- * settlement-imports.css — settlement sheet import (spec §4)
+ * settlement-imports.css — settlement sheet import (spec §4, #5620)
  * Screen owner: admin-v2/settlement-imports.html
  *
- * Kit parts carry the look: alerts, standard-card-theme2 step cards, the
- * upload box + attachment row, neutral-widjet KPI tiles, custom-grid-list
- * grids, a light-medium-bg table card and a default-modal. What is local:
- * spacing between those parts, the template column list, the demo tag and
- * the who/when cell.
+ * Kit parts carry the look: the info alert, the stepper (kit v29-10), the
+ * standard-card-theme2 step cards with a list-multi-column template guide,
+ * the upload box + attachment row, neutral-widjet KPI tiles, custom-grid-list
+ * grids, a light-medium-bg history card and a default-modal. What is local:
+ * spacing between those parts, which stepper steps are clickable, the demo
+ * tag and the who/when cell.
  * Every value comes from a token. Logical properties only (RTL-safe).
  */
 
@@ -18,36 +19,71 @@
   color: var(--color-text-muted);
 }
 
-.si-card {
-  block-size: 100%;
-}
-
-.si-card p {
-  margin: 0;
-}
-
-/* ── Step 1 — template ────────────────────────────────── */
-
-.si-columns td,
-.si-columns th {
-  vertical-align: top;
-  white-space: normal;
-}
-
-.si-columns td:first-child {
-  white-space: nowrap;
-}
-
 .si-mono {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.si-template-btn {
+/* Kit utilities (.d-flex) are !important, so a hidden part must be too. */
+.si-wizard[hidden],
+.si-step[hidden],
+.si-history[hidden],
+ad-data-table[hidden],
+.si-step-nav .btn[hidden],
+.alert[hidden],
+#sheet-attachment[hidden],
+#upload-error-list[hidden] {
+  display: none !important;
+}
+
+/* ── Stepper ─────────────────────────────────────────── */
+
+.si-stepper {
+  margin-block-end: var(--space-4);
+}
+
+/* The kit always draws a scrollbar; only scroll when the steps don't fit. */
+.si-stepper .stepper.horizontal {
+  overflow-x: auto;
+}
+
+/* The kit draws every step as clickable; only a step you can go to is. */
+.si-stepper .stepper.horizontal li {
+  cursor: default;
+}
+
+.si-stepper .stepper.horizontal li.si-step-open {
+  cursor: pointer;
+}
+
+.si-stepper .stepper.horizontal li:focus-visible {
+  outline: calc(var(--space-1) / 2) solid var(--color-primary-600);
+  outline-offset: var(--space-1);
+}
+
+/* ── Step cards ──────────────────────────────────────── */
+
+.si-step .standard-card-theme2 {
+  margin-block-end: var(--space-4);
+}
+
+.si-step .card-title h5 small {
+  font-size: inherit;
+}
+
+/* Template guide: the rule text may wrap; the column name stays on one line. */
+.si-step .list-row .list-item:last-child {
+  white-space: normal;
+  text-align: end;
+  max-inline-size: 70%;
+}
+
+.si-step .card-body > .alert,
+.si-step .card-body > ad-data-table {
   margin-block-start: var(--space-3);
 }
 
-/* ── Step 2 — upload ──────────────────────────────────── */
+/* ── Step 2 — upload ─────────────────────────────────── */
 
 .si-upload {
   position: relative;
@@ -65,24 +101,16 @@
   font-weight: var(--fw-medium);
 }
 
-#sheet-attachment[hidden] {
-  display: none;
-}
-
 .si-hint {
-  margin-block-start: var(--space-2);
+  margin-block: var(--space-2) 0;
 }
 
 .si-demo {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
-  margin-block-start: var(--space-3);
-}
-
-.si-demo p {
-  flex: 1 1 calc(var(--space-16) * 3.5);
+  gap: var(--space-2);
+  margin-block: var(--space-3);
 }
 
 .si-demo-tag {
@@ -96,37 +124,28 @@
 
 .alert.si-sheet-error {
   align-items: flex-start;
-  margin-block-start: var(--space-3);
 }
 
 .alert.si-sheet-error > i {
   margin-block-start: var(--space-1);
 }
 
+.si-sheet-error p,
 .si-sheet-error ul {
   margin: 0;
+}
+
+.si-sheet-error ul {
   padding-inline-start: var(--space-5);
 }
 
-.alert[hidden] {
-  display: none;
+/* ── Step 3 — business check ─────────────────────────── */
+
+#step-3 .card-body > * + * {
+  margin-block-start: var(--space-3);
 }
 
-/* ── Step 3 — check result ────────────────────────────── */
-
-.si-result {
-  margin-block-start: var(--space-5);
-}
-
-.si-result .card-body > * + * {
-  margin-block-start: var(--space-4);
-}
-
-.si-result .si-stats {
-  margin-block-end: 0;
-}
-
-.alert.si-note {
+#step-3 .si-stats {
   margin-block-end: 0;
 }
 
@@ -138,11 +157,11 @@
   flex: none;
 }
 
-/* ── History ──────────────────────────────────────────── */
-
-.si-history {
-  margin-block-start: var(--space-5);
+.alert.si-note {
+  margin-block-end: 0;
 }
+
+/* ── History ─────────────────────────────────────────── */
 
 .si-history .card-header {
   display: flex;
@@ -163,7 +182,7 @@
   color: var(--color-text-muted);
 }
 
-/* ── Import detail (kit default-modal modal-xl) ───────── */
+/* ── Import detail (kit default-modal modal-xl) ──────── */
 
 .si-modal .modal-content .modal-header {
   align-items: center;
@@ -200,7 +219,7 @@
   display: none;
 }
 
-/* The kit's grid cells never wrap; names, file names and the outcome text may. */
+/* The kit's grid cells never wrap; names, values and the result text may. */
 .custom-grid-list td.si-wrap,
 .custom-grid-list th.si-wrap,
 .custom-grid-list td.si-wrap-wide {
@@ -213,6 +232,11 @@
   min-inline-size: calc(var(--space-16) * 2.5);
 }
 
+.custom-grid-list th.si-wrap {
+  min-inline-size: 0;
+  overflow-wrap: normal;
+}
+
 .si-stack {
   display: flex;
   flex-direction: column;
@@ -220,11 +244,7 @@
   line-height: var(--leading-snug);
 }
 
+.si-stack .info-color,
 .si-stack .si-muted {
   font-size: var(--fs-xs);
-}
-
-.custom-grid-list th.si-wrap {
-  min-inline-size: 0;
-  overflow-wrap: normal;
 }
