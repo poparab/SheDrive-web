@@ -314,12 +314,10 @@ function renderPreview(body, preview, openBatch) {
     empty.append(iconWrap, el('h3', '', t('payouts.previewEmpty')));
     body.appendChild(empty);
     if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
-    if (preview.belowMinimum?.count) body.appendChild(belowMinimumNote(preview));
     return;
   }
 
   body.append(alertBox('info', settingsNote(preview)));
-  if (preview.belowMinimum?.count) body.appendChild(belowMinimumNote(preview));
   if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
 
   // Only the drivers this batch pays — nobody left out is listed (2026-10-14).
@@ -376,14 +374,6 @@ function settingsNote(preview) {
     min: formatEgp(s.minimumAmount),
     fee: t('payouts.feeRule', { pct: formatPercent(s.feePercent), min: formatEgp(s.feeMin), max: formatEgp(s.feeMax) }),
   }) + ' ' + t('payouts.previewFiles', { files: files.join(t('payouts.listSeparator')) });
-}
-
-function belowMinimumNote(preview) {
-  return alertBox('warning', t('payouts.previewBelowMinimum', {
-    n: formatCount(preview.belowMinimum.count),
-    total: formatEgp(preview.belowMinimum.total),
-    min: formatEgp(preview.settings.minimumAmount),
-  }));
 }
 
 async function openPreview() {

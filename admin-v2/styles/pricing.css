@@ -138,3 +138,47 @@ table.custom-grid-list tbody tr.pricing-zones__row--pending > td {
 .pricing-dialog__link {
   margin-block-start: var(--space-2);
 }
+
+/* ── Tabs by owner (2026-10-29) ──────────────────────── */
+/* Bootstrap nav-tabs (vendored); the kit has no tab component. The kit's
+   button and section rules are reset so the open tab reads as an underline. */
+
+.policies-tabs {
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.policies-tabs .nav-link {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  box-shadow: inset 0 -3px 0 transparent;
+}
+
+.policies-tabs .nav-link:hover {
+  color: var(--color-primary-600);
+}
+
+.policies-tabs .nav-link.active {
+  color: var(--color-primary-600);
+  background: transparent;
+  box-shadow: inset 0 -3px 0 var(--color-primary-600);
+}
+
+.policies-pane {
+  padding: 0;
+}
+
+.policies-pane[hidden] {
+  display: none;
+}
+
+.policies-pane__note {
+  margin-block-end: var(--space-3);
+  line-height: var(--leading-normal);
+}

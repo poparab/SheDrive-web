@@ -6,9 +6,15 @@
  * tables. Operating hours (2026-10-27): the daily booking window, saved
  * immediately like the cancellation and balance settings.
  *
- * Kit v22-09 port (2026-10-14): three `standard-card-theme2` cards with the
- * kit's `list-multi-column` field rows, ONE global Save / Revert, and a
- * toast that says what applied now and what went for approval.
+ * Kit v22-09 port (2026-10-14): `standard-card-theme2` cards with the kit's
+ * `list-multi-column` field rows and a toast that says what applied now and
+ * what went for approval.
+ *
+ * Tabs by owner (2026-10-29): Pricing (cancellation policy, commission),
+ * Finance (balance limit, payout settings), Operations (operating hours).
+ * Save and Revert act on the open tab only, so one click never mixes a change
+ * that applies now with one that waits for approval. ?tab= opens a tab; without
+ * it the first tab this role can change opens.
  *
  * Roles (2026-10-29, #6210 / #6212 / #6268): commission, the cancellation
  * policy, the balance limit and the payout settings (minimum payout, transfer
@@ -37,7 +43,45 @@ const shell = qs('ad-shell');
 // is read-only, and with nothing to change there is no Save at all.
 const CAN_PRICING = can('pricing.request');
 const CAN_HOURS = can('hours.edit');
-qs('#policies-actions').hidden = !CAN_PRICING && !CAN_HOURS;
+
+// ── Tabs (2026-10-29) ─────────────────────────────────
+const TABS = ['pricing', 'finance', 'operations'];
+const CAN_EDIT_TAB = { pricing: CAN_PRICING, finance: CAN_PRICING, operations: CAN_HOURS };
+const requestedTab = new URLSearchParams(window.location.search).get('tab');
+let activeTab = TABS.includes(requestedTab) ? requestedTab : TABS.find((tab) => CAN_EDIT_TAB[tab]) ?? 'pricing';
+
+function showTab(tab, { focus = false } = {}) {
+  activeTab = tab;
+  TABS.forEach((name) => {
+    const button = qs(`#tab-${name}`);
+    const on = name === tab;
+    button.classList.toggle('active', on);
+    button.setAttribute('aria-selected', String(on));
+    button.tabIndex = on ? 0 : -1;
+    qs(`#pane-${name}`).hidden = !on;
+  });
+  if (focus) qs(`#tab-${tab}`).focus();
+  // A tab this role can't change is read-only, with no Save at all.
+  qs('#policies-actions').hidden = !CAN_EDIT_TAB[tab];
+  errorBox.textContent = '';
+  errorBox.classList.remove('is-visible');
+  const params = new URLSearchParams(window.location.search);
+  params.set('tab', tab);
+  history.replaceState(null, '', `${window.location.pathname}?${params}`);
+}
+
+TABS.forEach((name, index) => {
+  const button = qs(`#tab-${name}`);
+  button.addEventListener('click', () => showTab(name));
+  // Arrow keys move between tabs (WAI-ARIA tabs pattern); RTL flips them.
+  button.addEventListener('keydown', (event) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const dir = document.documentElement.dir === 'rtl' ? -step : step;
+    showTab(TABS[(index + dir + TABS.length) % TABS.length], { focus: true });
+  });
+});
 
 /** Field spec straight from the #1759 Field Validation tables. */
 const CANCELLATION_FIELDS = [
@@ -397,7 +441,6 @@ function applyRoleLocks() {
   lock(balanceControls, CAN_PRICING);
   lock(payoutControls, CAN_PRICING);
   lock(hoursControls, CAN_HOURS);
-  qs('#commission-approval-hint').hidden = !CAN_PRICING;
 }
 
 /** #6212 — a cancellation-policy or balance-limit change waiting for another Financial lead locks its card. */
@@ -552,11 +595,13 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   errorBox.textContent = '';
   errorBox.classList.remove('is-visible');
 
-  const commissionLocked = Boolean(policies.pendingCommission) || !CAN_PRICING;
-  const cancelLocked = Boolean(policies.pendingCancellation) || !CAN_PRICING;
-  const balanceLocked = Boolean(policies.pendingBalanceLimit) || !CAN_PRICING;
-  const payoutLocked = Boolean(policies.pendingPayoutSettings) || !CAN_PRICING;
-  const hoursEditable = CAN_HOURS;
+  // Only the open tab is saved (2026-10-29).
+  const off = (tab) => activeTab !== tab;
+  const commissionLocked = Boolean(policies.pendingCommission) || !CAN_PRICING || off('pricing');
+  const cancelLocked = Boolean(policies.pendingCancellation) || !CAN_PRICING || off('pricing');
+  const balanceLocked = Boolean(policies.pendingBalanceLimit) || !CAN_PRICING || off('finance');
+  const payoutLocked = Boolean(policies.pendingPayoutSettings) || !CAN_PRICING || off('finance');
+  const hoursEditable = CAN_HOURS && !off('operations');
   const controls = [
     ...(cancelLocked ? [] : cancellationControls),
     ...(commissionLocked ? [] : [commissionControl]),
@@ -619,7 +664,17 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   try {
     const result = await mockApi.savePolicies(payload);
     policies = await mockApi.getPolicies();
+    // The re-render redraws every tab; keep what she typed on the tabs she didn't save.
+    const kept = [...document.querySelectorAll('.policies-pane[hidden] input, .policies-pane[hidden] select')]
+      .map((input) => [input.id, input.value]);
     render();
+    kept.forEach(([inputId, value]) => {
+      const input = document.getElementById(inputId);
+      if (input && !input.disabled) input.value = value;
+    });
+    updateBalanceExample();
+    updatePayoutExample();
+    updateCommissionExample();
     openSaved({
       applied,
       sent: result.pending ? sent.join(t('kitPricing.listSeparator')) : '',
@@ -657,10 +712,25 @@ function openSaved({ applied, sent, requestId }) {
 
 qs('#policies-revert').addEventListener('click', () => {
   errorBox.classList.remove('is-visible');
+  // Reverts the open tab only; another tab's unsaved edits stay.
+  if (activeTab === 'pricing') revertPricing();
+  if (activeTab === 'finance') revertFinance();
+  if (activeTab === 'operations') revertOperations();
+});
+
+function revertPricing() {
   cancellationControls.forEach((c) => {
     c.input.value = policies.cancellation[c.spec.key];
     clearError(c);
   });
+  if (!policies.pendingCommission) {
+    commissionControl.input.value = policies.commission.percentage;
+    clearError(commissionControl);
+  }
+  updateCommissionExample();
+}
+
+function revertFinance() {
   balanceControls.forEach((c) => {
     c.input.value = policies.driverBalance[c.spec.key] ?? '';
     clearError(c);
@@ -669,18 +739,16 @@ qs('#policies-revert').addEventListener('click', () => {
     c.input.value = policies.payout[c.spec.key] ?? '';
     clearError(c);
   });
+  updateBalanceExample();
+  updatePayoutExample();
+}
+
+function revertOperations() {
   hoursControls.forEach((c) => {
     c.input.value = policies.operatingHours[c.spec.key];
     clearError(c);
   });
-  if (!policies.pendingCommission) {
-    commissionControl.input.value = policies.commission.percentage;
-    clearError(commissionControl);
-  }
-  updateCommissionExample();
-  updateBalanceExample();
-  updatePayoutExample();
-});
+}
 
 // ?state=error (or a real outage): the kit's error result instead of an uncaught throw.
 function renderLoadError(error) {
@@ -714,6 +782,8 @@ wireInPlaceApprovals({
     render();
   },
 });
+
+showTab(activeTab);
 
 try {
   policies = await mockApi.getPolicies();

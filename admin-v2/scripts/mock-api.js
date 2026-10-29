@@ -2343,14 +2343,14 @@ export const mockApi = {
 
   /**
    * Who a batch generated now would pay. Drivers who owe SheDrive are left out —
-   * they settle instead — and so is a line below the minimum payout, whose
-   * earnings stay Due for a later batch (2026-10-29).
+   * they settle instead — and so is a driver due less than the minimum payout:
+   * she isn't in the batch or its preview at all, and her earnings stay Due
+   * for a later batch (2026-10-29).
    */
   previewPayoutBatch() {
     const now = Date.now();
     const settings = payoutSettings();
     const lines = [];
-    const below = [];
     DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status)).forEach((driver) => {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
@@ -2358,10 +2358,7 @@ export const mockApi = {
       if (driver.balance <= 0 || !driver.payoutMethod) return;
       // Her whole due net up to the cut-off — not capped by her balance (2026-10-29).
       const amount = dueNet;
-      if (amount < settings.minimumAmount) {
-        below.push(amount);
-        return;
-      }
+      if (amount < settings.minimumAmount) return;
       const fee = transferFeeFor(amount, settings);
       lines.push({
         driverId: String(driver.id),
@@ -2389,12 +2386,11 @@ export const mockApi = {
       feeTotal: sum(lines, 'fee'),
       transferTotal: sum(lines, 'transferAmount'),
       byType: PAYOUT_TYPES.map((type) => ({ type, count: lines.filter((l) => l.payoutType === type).length })).filter((g) => g.count),
-      belowMinimum: { count: below.length, total: round2(below.reduce((t, a) => t + a, 0)) },
       settings,
       cutoffDay: payoutCutoffDay(now),
     };
     return respond(payload, {
-      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], belowMinimum: { count: 0, total: 0 }, settings, cutoffDay: payoutCutoffDay(now) },
+      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], settings, cutoffDay: payoutCutoffDay(now) },
     });
   },
 

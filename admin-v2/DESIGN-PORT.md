@@ -492,3 +492,10 @@ Product decision, ADO #5617 / #5618 / #5619 / #6486 (new), #6212, #6483, #6484.
 line is the driver's whole due net up to it, no longer capped by her balance. The transfer fee
 is a percentage of each line held between a minimum and a maximum (`transferFeeFor`;
 `feePercent` 1.5, `feeMin` 3, `feeMax` 20). Every batch stores its `cutoffDay` and `settings`.
+
+**Global policies in tabs (2026-10-29, #6486 / #6268).** `pricing-policies.html` is split by
+owner into Pricing (cancellation, commission), Finance (balance limit, payouts) and Operations
+(operating hours) tabs, each saved on its own; `?tab=` deep-links, and a role lands on the first
+tab it can change. **Deviation:** the kit has no tab component, so this is Bootstrap's vendored
+`nav-tabs`, restyled in `pricing.css` as an underline. A driver due less than the minimum payout
+is left out of a batch and its preview without any note.

@@ -199,7 +199,14 @@ export const en = {
     payoutExampleDriver: 'A driver due {amount} is sent {sent}; {fee} goes on the transfer fee.',
     payoutExampleShedrive: 'A driver due {amount} is sent {amount}; SheDrive pays the {fee} fee.',
     payoutNote: 'Applies to the next batch generated. A batch already generated keeps the settings it was made with.',
-    title: 'Global pricing policies',
+    title: 'Global policies',
+    tabPricing: 'Pricing',
+    tabFinance: 'Finance',
+    tabOperations: 'Operations',
+    notePricing:
+      "Applies across all zones. A change waits for another Financial lead's approval; a trip already in progress keeps the values it started with. Per-zone amounts live on each zone's rate card.",
+    noteFinance: "A change waits for another Financial lead's approval. A payout batch keeps the settings it was generated with.",
+    noteOperations: 'A change applies as soon as you save it.',
     notice1: 'These policies apply across',
     notice2: 'all zones',
     notice3:
@@ -693,7 +700,14 @@ export const ar = {
     payoutExampleDriver: 'السائقة المستحق لها {amount} يُرسل إليها {sent}، و{fee} رسوم تحويل.',
     payoutExampleShedrive: 'السائقة المستحق لها {amount} يُرسل إليها {amount}، وتدفع شي درايف رسوم {fee}.',
     payoutNote: 'تُطبَّق على الدفعة التالية. الدفعة التي أُنشئت بالفعل تحتفظ بإعداداتها.',
-    title: 'السياسات العالمية للأسعار',
+    title: 'السياسات العالمية',
+    tabPricing: 'التسعير',
+    tabFinance: 'المالية',
+    tabOperations: 'العمليات',
+    notePricing:
+      'تنطبق على جميع المناطق. ينتظر أي تغيير موافقة رئيس فريق مالي آخر، وتحتفظ الرحلة الجارية بالقيم التي بدأت بها. تُحدد مبالغ كل منطقة في بطاقة أسعارها.',
+    noteFinance: 'ينتظر أي تغيير موافقة رئيس فريق مالي آخر. تحتفظ دفعة المدفوعات بالإعدادات التي أُنشئت بها.',
+    noteOperations: 'يُطبَّق التغيير فور حفظه.',
     notice1: 'تنطبق هذه السياسات على',
     notice2: 'جميع المناطق',
     notice3:
