@@ -508,7 +508,9 @@ const FILE_HEADERS = {
 };
 const RESULT_COLUMNS = ['status', 'bank_reference', 'failure_reason'];
 const FILE_SLUG = { MOBILE_WALLET: 'mobile-wallet', BANK_ACCOUNT: 'bank-account', PREPAID_CARD: 'prepaid-card' };
-const SETTLEMENT_HEADERS = ['national_id', 'driver_name', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+const SETTLEMENT_HEADERS = ['national_id', 'driver_name', 'phone_number', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+/** The column an errors file adds (#5620 step 2); a re-uploaded errors file may keep it — it is ignored. */
+const SETTLEMENT_ERRORS_COLUMN = 'errors';
 const SETTLEMENT_MAX_ROWS = 1000;
 
 /** A real calendar day written YYYY-MM-DD. */
@@ -524,17 +526,19 @@ function isIsoDay(value) {
  * read here: only whether the file is the template and every cell is written
  * the way the template says. Returns the problems found, each
  * `{ code, rowNo?, column?, value? }`; none means the sheet goes to step 3.
- * A header problem stops the check before any row is read.
+ * A header problem stops the check before any row is read. `headers` and
+ * `rows` are the sheet as read, so the screen can hand the file back with an
+ * errors column.
  */
 function settlementFormatIssues(csvText) {
   const { headers, rows, widths } = parseCsv(csvText);
   const issues = [];
   SETTLEMENT_HEADERS.filter((h) => !headers.includes(h)).forEach((column) => issues.push({ code: 'missing_column', column }));
-  headers.filter((h) => h && !SETTLEMENT_HEADERS.includes(h)).forEach((column) => issues.push({ code: 'unknown_column', column }));
+  headers.filter((h) => h && h !== SETTLEMENT_ERRORS_COLUMN && !SETTLEMENT_HEADERS.includes(h)).forEach((column) => issues.push({ code: 'unknown_column', column }));
   headers.filter((h, i) => h && headers.indexOf(h) !== i).forEach((column) => issues.push({ code: 'duplicate_column', column }));
-  if (issues.length) return { rows, issues };
-  if (!rows.length) return { rows, issues: [{ code: 'empty' }] };
-  if (rows.length > SETTLEMENT_MAX_ROWS) return { rows, issues: [{ code: 'too_many_rows', value: rows.length }] };
+  if (issues.length) return { headers, rows, issues };
+  if (!rows.length) return { headers, rows, issues: [{ code: 'empty' }] };
+  if (rows.length > SETTLEMENT_MAX_ROWS) return { headers, rows, issues: [{ code: 'too_many_rows', value: rows.length }] };
 
   rows.forEach((row, i) => {
     const rowNo = i + 1;
@@ -543,10 +547,12 @@ function settlementFormatIssues(csvText) {
       add('cell_count');
       return;
     }
-    const required = ['national_id', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
+    const required = ['national_id', 'phone_number', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
     required.filter((c) => !row[c]).forEach((c) => add('required', c));
     if (row.national_id && !/^\d{14}$/.test(row.national_id)) add('nid_format', 'national_id');
     if (row.driver_name && row.driver_name.length > 100) add('name_length', 'driver_name');
+    // Egyptian mobile: 01 + 0/1/2/5 + 8 digits (#5624).
+    if (row.phone_number && !/^01[0125]\d{8}$/.test(row.phone_number)) add('phone_format', 'phone_number');
     if (row.amount_egp) {
       if (!/^\d+(\.\d{1,2})?$/.test(row.amount_egp)) add('amount_format', 'amount_egp');
       else if (Number(row.amount_egp) <= 0) add('amount_zero', 'amount_egp');
@@ -555,7 +561,7 @@ function settlementFormatIssues(csvText) {
     if (row.payment_channel && !SETTLEMENT_CHANNELS.includes(row.payment_channel)) add('channel_value', 'payment_channel');
     if (row.payment_reference && !/^[A-Za-z0-9-]{1,60}$/.test(row.payment_reference)) add('ref_format', 'payment_reference');
   });
-  return { rows, issues };
+  return { headers, rows, issues };
 }
 
 const FAILURE_REASONS = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
@@ -2599,6 +2605,7 @@ export const mockApi = {
     const example = {
       national_id: '29801011234567',
       driver_name: 'Mona Adel',
+      phone_number: '01012345678',
       amount_egp: '245.50',
       payment_date: localDay(),
       payment_channel: 'Bank transfer',
@@ -2624,6 +2631,7 @@ export const mockApi = {
     const row = (d, amount, channel) => ({
       national_id: d.nid,
       driver_name: d.name,
+      phone_number: `0${d.phone}`,
       amount_egp: amount.toFixed(2),
       payment_date: today,
       payment_channel: channel,
@@ -2636,11 +2644,12 @@ export const mockApi = {
     if (clear) rows.push(row(clear, 75, 'Field agent'));
     if (kind === 'format' && rows.length >= 4) {
       rows[0].amount_egp = `${rows[0].amount_egp} EGP`;
+      rows[0].phone_number = rows[0].phone_number.slice(1);
       rows[1].payment_date = today.split('-').reverse().join('/');
       rows[2].national_id = rows[2].national_id.slice(0, 12);
       rows[3].payment_channel = 'Cash';
     } else if (kind === 'business') {
-      rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: ref() });
+      rows.push({ national_id: '29912319999999', driver_name: 'Unknown driver', phone_number: '01098765432', amount_egp: '120.00', payment_date: today, payment_channel: 'Bank transfer', payment_reference: ref() });
       const used = LEDGER_ENTRIES.find((e) => e.type === 'settlement' && e.paymentRef);
       if (used && owing[0]) {
         rows.push({ ...row(owing[0], 60, 'Bank transfer'), payment_reference: used.paymentRef });
@@ -2658,8 +2667,13 @@ export const mockApi = {
    * returns the row count. Reads nothing about drivers; nothing is stored.
    */
   validateSettlementSheet(csvText) {
-    const { rows, issues } = settlementFormatIssues(csvText);
-    if (issues.length) return validationError('The sheet does not match the template.', issues);
+    const { headers, rows, issues } = settlementFormatIssues(csvText);
+    if (issues.length) {
+      return validationError('The sheet does not match the template.', issues).catch((err) => {
+        err.sheet = { headers: headers.filter((h) => h !== SETTLEMENT_ERRORS_COLUMN), rows };
+        throw err;
+      });
+    }
     return respond({ total: rows.length });
   },
 
@@ -2691,6 +2705,7 @@ export const mockApi = {
         rowNo: i + 1,
         nationalId: row.national_id,
         driverName: row.driver_name,
+        phone: row.phone_number,
         driverId: driver ? String(driver.id) : null,
         systemName: driver ? driver.name : null,
         amount: Number.isFinite(amount) ? amount : null,

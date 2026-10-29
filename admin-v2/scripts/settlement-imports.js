@@ -6,12 +6,14 @@
  * The screen opens on the import history (kit settlements.html). "Import
  * settlement" opens the kit's three-step wizard (settlement-import-step1..3):
  *
- *   1  Download template — the six columns and how each is written.
+ *   1  Download template — the seven columns and how each is written.
  *   2  Upload sheet      — the template and format check: the columns are the
  *                          template's, and every cell is written as it says
  *                          (14-digit ID, plain number, YYYY-MM-DD, one of the
- *                          four channels …). Any problem stops the file here,
- *                          every problem listed; nothing is read about drivers.
+ *                          four channels, 01 mobile …). Any problem stops the
+ *                          file here; cell problems come back as the sheet with
+ *                          an errors column to download. Nothing is read about
+ *                          drivers.
  *   3  Review result     — the business check, row by row: a registered
  *                          driver, a reference not imported before or repeated
  *                          in the file, a date not in the future. **One failed
@@ -36,7 +38,7 @@ import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatDateTime, formatEgp, formatCount } from './format.js';
+import { formatDateTime, formatEgp, formatCount, toCsv } from './format.js';
 import { can } from './roles.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -57,7 +59,7 @@ const fileInput = qs('#sheet-file');
 const busy = qs('#upload-busy');
 const sheetError = qs('#upload-error');
 const formatOk = qs('#format-ok');
-const formatTable = qs('#format-table');
+const errorsFileButton = qs('#btn-errors-file');
 const checkTable = qs('#check-table');
 const backButton = qs('#btn-back');
 const nextButton = qs('#btn-next');
@@ -173,6 +175,7 @@ const CELL_ISSUE_KEYS = {
   required: 'settlementImports.fmtRequired',
   nid_format: 'settlementImports.fmtNid',
   name_length: 'settlementImports.fmtName',
+  phone_format: 'settlementImports.fmtPhone',
   amount_format: 'settlementImports.fmtAmount',
   amount_zero: 'settlementImports.fmtAmountZero',
   date_format: 'settlementImports.fmtDate',
@@ -398,8 +401,8 @@ function clearUpload() {
   attachment.set(null);
   sheetError.hidden = true;
   formatOk.hidden = true;
-  formatTable.hidden = true;
   submitted.hidden = true;
+  errorsFile = null;
 }
 
 qs('#sheet-attachment-remove').addEventListener('click', () => {
@@ -446,7 +449,6 @@ async function checkFormat(fileName, csv) {
   wizard.result = null;
   sheetError.hidden = true;
   formatOk.hidden = true;
-  formatTable.hidden = true;
   busy.hidden = false;
   attachment.set(fileName, 'checking');
   renderNav();
@@ -459,7 +461,7 @@ async function checkFormat(fileName, csv) {
     return true;
   } catch (error) {
     const details = Array.isArray(error.details) && error.details.length ? error.details : null;
-    if (details) formatFailed(fileName, details);
+    if (details) formatFailed(fileName, details, error.sheet);
     else {
       formatFailed(fileName, []);
       qs('#upload-error-summary').textContent = error.message || t('settlementImports.checkFailed');
@@ -472,8 +474,31 @@ async function checkFormat(fileName, csv) {
   }
 }
 
-/** Show every step 2 problem: file-level ones as a list, cell ones in a grid. */
-function formatFailed(fileName, issues) {
+/** The errors file on offer after a failed step 2: { fileName, csv } or null. */
+let errorsFile = null;
+
+/**
+ * The sheet handed back with an `errors` column (#5620 step 2): every row as
+ * Finance sent it, and on each row with a problem, what to fix in each cell.
+ * Re-uploading it is fine — the check ignores the errors column.
+ */
+function buildErrorsFile(fileName, sheet, cellIssues) {
+  const byRow = new Map();
+  cellIssues.forEach((i) => {
+    const text = i.column ? `${i.column}: ${t(CELL_ISSUE_KEYS[i.code])}` : t(CELL_ISSUE_KEYS[i.code]);
+    byRow.set(i.rowNo, [...(byRow.get(i.rowNo) ?? []), text]);
+  });
+  const headers = [...sheet.headers, 'errors'];
+  const rows = sheet.rows.map((row, i) => [...sheet.headers.map((h) => row[h] ?? ''), (byRow.get(i + 1) ?? []).join(' | ')]);
+  return { fileName: fileName.replace(/(-errors)?.csv$/i, '') + '-errors.csv', csv: toCsv(headers, rows) };
+}
+
+/**
+ * A failed step 2. Problems with the file itself (type, size, columns, row
+ * count) can't sit on a row, so the alert names them. Problems in cells are
+ * not listed on screen: the file comes back with an errors column to fix.
+ */
+function formatFailed(fileName, issues, sheet = null) {
   wizard.file = wizard.file?.fileName === fileName ? wizard.file : { fileName, csv: null };
   wizard.format = 'failed';
   wizard.result = null;
@@ -487,13 +512,13 @@ function formatFailed(fileName, issues) {
   fileIssues.forEach((i) => list.appendChild(el('li', '', t(FILE_ISSUE_KEYS[i.code], { column: i.column ?? '', n: formatCount(i.value ?? 0) }))));
   list.hidden = !fileIssues.length;
 
+  errorsFile = cellIssues.length && sheet ? buildErrorsFile(fileName, sheet, cellIssues) : null;
   const rowCount = new Set(cellIssues.map((i) => i.rowNo)).size;
-  qs('#upload-error-summary').textContent = cellIssues.length
-    ? t('settlementImports.formatSummary', { n: formatCount(cellIssues.length), rows: formatCount(rowCount) })
-    : '';
-
-  formatTable.hidden = !cellIssues.length;
-  if (cellIssues.length) formatTable.setData(onePage(cellIssues));
+  qs('#upload-error-title').textContent = errorsFile
+    ? t(rowCount === 1 ? 'settlementImports.cellErrorsTitleOne' : 'settlementImports.cellErrorsTitle', { rows: formatCount(rowCount) })
+    : t('settlementImports.formatRejected');
+  qs('#upload-error-summary').textContent = errorsFile ? t('settlementImports.cellErrorsHint') : '';
+  errorsFileButton.hidden = !errorsFile;
 
   formatOk.hidden = true;
   sheetError.hidden = false;
@@ -501,12 +526,9 @@ function formatFailed(fileName, issues) {
   renderNav();
 }
 
-formatTable.columns = [
-  { key: 'rowNo', label: t('settlementImports.colRow'), numeric: true, render: (r) => String(r.rowNo) },
-  { key: 'column', label: t('settlementImports.colColumn'), ltr: true, render: (r) => ltr(r.column ?? '—', 'si-mono') },
-  { key: 'value', label: t('settlementImports.colValue'), ltr: true, className: 'si-wrap', render: (r) => ltr(r.value, 'si-mono') ?? el('span', 'si-muted', t('settlementImports.valueEmpty')) },
-  { key: 'code', label: t('settlementImports.colProblem'), className: 'si-wrap-wide', render: (r) => lamp('status-danger-lamp', t(CELL_ISSUE_KEYS[r.code])) },
-];
+errorsFileButton.addEventListener('click', () => {
+  if (errorsFile) downloadText(errorsFile.fileName, errorsFile.csv);
+});
 
 // ── Step 3 — business check ──────────────────────────
 checkTable.columns = [
@@ -522,6 +544,7 @@ checkTable.columns = [
       const stack = el('div', 'si-stack');
       stack.appendChild(r.systemName ? el('p', 'text-bold', r.systemName) : el('p', 'text-bold danger-color', t('settlementImports.noMatch')));
       if (r.driverName) stack.appendChild(el('span', 'info-color', t('kitFinance.siNameInSheet', { name: r.driverName })));
+      if (r.phone) stack.appendChild(ltr(r.phone, 'info-color'));
       return stack;
     },
   },

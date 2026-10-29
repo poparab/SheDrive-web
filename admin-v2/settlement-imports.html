@@ -78,6 +78,10 @@
                       <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colDriverName">Optional, up to 100 characters. Reference only — never used to match.</div>
                     </div>
                     <div class="row gx-0 list-row">
+                      <div class="list-item col text-bold ad-ltr">phone_number</div>
+                      <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colPhone">Required. Her Egyptian mobile number, 11 digits starting 01 (01012345678). Reference only — never used to match.</div>
+                    </div>
+                    <div class="row gx-0 list-row">
                       <div class="list-item col text-bold ad-ltr">amount_egp</div>
                       <div class="list-item col-auto justify-content-md-end" data-i18n="settlementImports.colAmount">Required. A number above 0 with up to 2 decimals, no currency or commas (245.50). Less than she owes settles part of it; more adds to her balance.</div>
                     </div>
@@ -174,10 +178,12 @@
                   <p id="upload-error-summary"></p>
                   <ul id="upload-error-list"></ul>
                   <p data-i18n="settlementImports.formatRejectedHint">Nothing was checked against drivers. Fix the file and upload it again.</p>
+                  <button type="button" class="btn btn-danger d-flex si-errors-btn" id="btn-errors-file" hidden>
+                    <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+                    <span data-i18n="settlementImports.downloadErrors">Download the file with errors</span>
+                  </button>
                 </div>
               </div>
-
-              <ad-data-table id="format-table" hidden></ad-data-table>
 
               <div class="si-demo">
                 <span class="si-demo-tag" data-i18n="settlementImports.demoBadge">Demo</span>

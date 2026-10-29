@@ -32,7 +32,8 @@ ad-data-table[hidden],
 .si-step-nav .btn[hidden],
 .alert[hidden],
 #sheet-attachment[hidden],
-#upload-error-list[hidden] {
+#upload-error-list[hidden],
+#btn-errors-file[hidden] {
   display: none !important;
 }
 
@@ -137,6 +138,10 @@ ad-data-table[hidden],
 
 .si-sheet-error ul {
   padding-inline-start: var(--space-5);
+}
+
+.si-sheet-error .si-errors-btn {
+  margin-block-start: var(--space-2);
 }
 
 /* ── Step 3 — business check ─────────────────────────── */
