@@ -14,7 +14,7 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { createRequestGuard } from './request-guard.js';
-import { formatDate, formatEgp, formatCount, downloadCsv, toDateInputValue } from './format.js';
+import { formatDate, formatEgp, formatCount, formatPercent, downloadCsv, toDateInputValue } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -374,7 +374,7 @@ function settingsNote(preview) {
   const files = preview.byType.map((g) => t('payouts.previewFileCount', { type: typeLabel(g.type), n: formatCount(g.count) }));
   return cutoff + ' ' + t(s.feePaidBy === 'driver' ? 'payouts.previewSettingsDriver' : 'payouts.previewSettingsShedrive', {
     min: formatEgp(s.minimumAmount),
-    fee: formatEgp(s.transferFee),
+    fee: t('payouts.feeRule', { pct: formatPercent(s.feePercent), min: formatEgp(s.feeMin), max: formatEgp(s.feeMax) }),
   }) + ' ' + t('payouts.previewFiles', { files: files.join(t('payouts.listSeparator')) });
 }
 

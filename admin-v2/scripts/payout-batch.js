@@ -23,7 +23,7 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
-import { formatDate, formatDateTime, formatEgp, formatCount } from './format.js';
+import { formatDate, formatDateTime, formatEgp, formatCount, formatPercent } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -435,7 +435,7 @@ function whenWho(at, name) {
 function renderSummary() {
   qs('#batch-ref').textContent = batch.ref;
   const notYet = t('payoutBatch.notYet');
-  const fee = batch.lines[0];
+  const s = batch.settings;
   const pairs = [
     [t('payoutBatch.reference'), ltr(batch.ref)],
     [t('payoutBatch.status'), chip(batch.status)],
@@ -450,11 +450,12 @@ function renderSummary() {
     [t('payoutBatch.total'), el('p', 'text-bold ad-ltr', formatEgp(batch.total))],
   ];
   // The transfer fee it was generated with (2026-10-29).
-  if (fee?.fee !== undefined) {
-    pairs.push([
-      t('payoutBatch.transferFee'),
-      t(fee.feePaidBy === 'driver' ? 'payoutBatch.feeByDriver' : 'payoutBatch.feeByShedrive', { fee: formatEgp(fee.fee ?? 0) }),
-    ]);
+  if (s?.feePercent !== undefined) {
+    const fee = t('payouts.feeRule', { pct: formatPercent(s.feePercent), min: formatEgp(s.feeMin), max: formatEgp(s.feeMax) });
+    pairs.push(
+      [t('payoutBatch.transferFee'), t(s.feePaidBy === 'driver' ? 'payoutBatch.feeByDriver' : 'payoutBatch.feeByShedrive', { fee })],
+      [t('payoutBatch.feeTotal'), el('p', 'text-bold ad-ltr', formatEgp(batch.lines.reduce((sum, l) => sum + (l.fee ?? 0), 0)))],
+    );
   }
   pairs.push(
     [t('payoutBatch.paidTotal'), el('p', 'text-bold success-color ad-ltr', formatEgp(batch.paidTotal))],

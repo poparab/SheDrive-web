@@ -84,11 +84,14 @@ export const payoutCutoffDay = (now) => dayStartPlus(now, -PAYOUT_HOLD_DAYS);
 
 // 2026-10-29 — payout settings, a Financial lead's request like the balance
 // limit: a line below the minimum waits for a later batch, and every line
-// carries a transfer fee that the driver or SheDrive pays.
+// carries a transfer fee that the driver or SheDrive pays. The fee is a
+// percentage of the line, held between a minimum and a maximum amount.
 export const FEE_PAYERS = ['driver', 'shedrive'];
 GLOBAL_POLICIES.payout ??= {
   minimumAmount: 100,
-  transferFee: 5,
+  feePercent: 1.5,
+  feeMin: 3,
+  feeMax: 20,
   feePaidBy: 'driver',
   updatedAt: NOW - 2 * DAY,
   updatedBy: NOUR.email,
@@ -144,6 +147,11 @@ export function makeBatchRef(at) {
   return `PB-${ymd}-${String(seq).padStart(2, '0')}`;
 }
 
+/** The transfer fee on one line: its percentage, never below the minimum or above the maximum. */
+export function transferFeeFor(amount, { feePercent, feeMin, feeMax }) {
+  return round2(Math.min(feeMax, Math.max(feeMin, (amount * feePercent) / 100)));
+}
+
 /** One payee line, with the transfer fee in force when the batch was generated. */
 export function makeLine(driver, ref, n, amount, entryIds, settings = GLOBAL_POLICIES.payout) {
   const m = driver.payoutMethod;
@@ -159,7 +167,7 @@ export function makeLine(driver, ref, n, amount, entryIds, settings = GLOBAL_POL
     number: m.number,
     holderName: m.holderName,
     amount: round2(amount),
-    fee: settings.transferFee,
+    fee: transferFeeFor(amount, settings),
     feePaidBy: settings.feePaidBy,
     entryIds,
     status: 'pending',
@@ -416,7 +424,12 @@ const REVIEW_BATCHES = {
 };
 PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
 // Every seeded batch shows the cut-off line it was generated with.
-PAYOUT_BATCHES.forEach((b) => { b.cutoffDay ??= payoutCutoffDay(b.createdAt); });
+PAYOUT_BATCHES.forEach((b) => {
+  b.cutoffDay ??= payoutCutoffDay(b.createdAt);
+  // …and the payout settings it was generated with.
+  const { updatedAt, updatedBy, ...settings } = GLOBAL_POLICIES.payout;
+  b.settings ??= settings;
+});
 
 // A pending settlement sheet with every driver who owes, except the one whose
 // manual settlement is already waiting (one pending request per subject).

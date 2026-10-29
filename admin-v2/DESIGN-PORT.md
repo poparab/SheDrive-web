@@ -486,3 +486,9 @@ Product decision, ADO #5617 / #5618 / #5619 / #6486 (new), #6212, #6483, #6484.
   commission, 0022 cancellation policy, 0023 balance limit, 0024 payout settings. The 12- and
   100-line batches are now *Ready to export*. The paragraphs above that cite older ids are
   historical.
+
+**Follow-up the same day.** A batch draws a cut-off line — earnings up to the end of the day
+7 days before it is generated (`payoutCutoffDay`, in format.js's Cairo UTC+2 frame) — and a
+line is the driver's whole due net up to it, no longer capped by her balance. The transfer fee
+is a percentage of each line held between a minimum and a maximum (`transferFeeFor`;
+`feePercent` 1.5, `feeMin` 3, `feeMax` 20). Every batch stores its `cutoffDay` and `settings`.

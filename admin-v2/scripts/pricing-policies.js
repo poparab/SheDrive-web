@@ -131,14 +131,38 @@ const PAYOUT_FIELDS = [
     rangeError: t('policies.minimumRange'),
   },
   {
-    key: 'transferFee',
-    label: t('policies.feeLabel'),
+    key: 'feePercent',
+    label: t('policies.feePercentLabel'),
+    unit: '%',
+    hint: t('policies.feePercentHint'),
+    integer: false,
+    min: 0,
+    max: 100,
+    emptyError: t('policies.feePercentEmpty'),
+    invalidError: t('zones.amountInvalid'),
+    rangeError: t('policies.feePercentRange'),
+  },
+  {
+    key: 'feeMin',
+    label: t('policies.feeMinLabel'),
     unit: t('policies.unitEgp'),
-    hint: t('policies.feeHint'),
+    hint: t('policies.feeMinHint'),
     integer: false,
     min: 0,
     max: 1000,
-    emptyError: t('policies.feeEmpty'),
+    emptyError: t('policies.feeMinEmpty'),
+    invalidError: t('zones.amountInvalid'),
+    rangeError: t('policies.feeRange'),
+  },
+  {
+    key: 'feeMax',
+    label: t('policies.feeMaxLabel'),
+    unit: t('policies.unitEgp'),
+    hint: t('policies.feeMaxHint'),
+    integer: false,
+    min: 0,
+    max: 1000,
+    emptyError: t('policies.feeMaxEmpty'),
     invalidError: t('zones.amountInvalid'),
     rangeError: t('policies.feeRange'),
   },
@@ -467,11 +491,17 @@ function updateBalanceExample() {
       : t('policies.balanceExampleOff');
 }
 
+/** The fee on one payout: its percentage, held between the minimum and the maximum. */
+function feeOn(amount, pct, min, max) {
+  return Math.round(Math.min(max, Math.max(min, (amount * pct) / 100)) * 100) / 100;
+}
+
 function updatePayoutExample() {
   const value = (key) => payoutControls.find((c) => c.spec.key === key).input.value;
-  const fee = Number(value('transferFee'));
+  const [pct, min, max] = ['feePercent', 'feeMin', 'feeMax'].map((k) => Number(value(k)));
   const amount = 500;
-  qs('#payout-example').textContent = Number.isNaN(fee)
+  const fee = feeOn(amount, pct, min, max);
+  qs('#payout-example').textContent = [pct, min, max].some(Number.isNaN)
     ? ''
     : t(value('feePaidBy') === 'driver' ? 'policies.payoutExampleDriver' : 'policies.payoutExampleShedrive', {
       amount: formatEgp(amount),
@@ -480,10 +510,19 @@ function updatePayoutExample() {
     });
 }
 
-/** When the driver pays the fee, a payout at the minimum must still be more than the fee. */
+/**
+ * The fee's maximum is not below its minimum; when the driver pays the fee, a
+ * payout at the minimum must still be more than the fee on it.
+ */
 function validatePayoutOrder() {
-  const [minimum, fee, payer] = payoutControls;
-  if (payer.input.value === 'driver' && Number(minimum.input.value) <= Number(fee.input.value)) {
+  const [minimum, pct, feeMin, feeMax, payer] = payoutControls;
+  if (Number(feeMax.input.value) < Number(feeMin.input.value)) {
+    showError(feeMax, t('policies.feeMaxBelowMin'));
+    return false;
+  }
+  const amount = Number(minimum.input.value);
+  const fee = feeOn(amount, Number(pct.input.value), Number(feeMin.input.value), Number(feeMax.input.value));
+  if (payer.input.value === 'driver' && amount <= fee) {
     showError(minimum, t('policies.minimumAboveFee'));
     return false;
   }

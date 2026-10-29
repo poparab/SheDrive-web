@@ -376,7 +376,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     return wrap;
   }
 
-  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total', 'driverCancellationFee', 'outstandingLimit', 'minimumAmount', 'transferFee']);
+  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total', 'driverCancellationFee', 'outstandingLimit', 'minimumAmount', 'feeMin', 'feeMax']);
   const COUNT_KEYS = new Set(['lines', 'rows', 'success', 'failed']);
 
   function fieldLabel(key) {
@@ -390,7 +390,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     if (key === 'removed') return value ? t('approvals.removedValue') : t('common.notAvailable');
     if (MONEY_KEYS.has(key)) return `${money(value)} ${t('common.egp')}`;
     if (COUNT_KEYS.has(key)) return Number(value).toLocaleString('en-US');
-    if (key === 'percentage') return formatPercent(value);
+    if (key === 'percentage' || key === 'feePercent') return formatPercent(value);
     if (key === 'type') return payoutTypeLabel(value);
     if (key === 'feePaidBy') return t(`approvals.feePaidBy.${value}`);
     return String(value);

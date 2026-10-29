@@ -70,6 +70,7 @@ import {
   WALLET_PROVIDERS,
   dueAtOf,
   payoutCutoffDay,
+  transferFeeFor,
   makeApproval,
   makeBatchRef,
   makeLine,
@@ -567,10 +568,10 @@ function settlementFormatIssues(csvText) {
 
 const FAILURE_REASONS = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
 
-/** The payout settings in force now (2026-10-29): minimum payout, transfer fee, who pays it. */
+/** The payout settings in force now (2026-10-29): minimum payout, the fee (%, min, max) and who pays it. */
 function payoutSettings() {
-  const { minimumAmount, transferFee, feePaidBy } = GLOBAL_POLICIES.payout;
-  return { minimumAmount, transferFee, feePaidBy };
+  const { minimumAmount, feePercent, feeMin, feeMax, feePaidBy } = GLOBAL_POLICIES.payout;
+  return { minimumAmount, feePercent, feeMin, feeMax, feePaidBy };
 }
 
 /** What the channel sends: her line, less the transfer fee when she pays it. */
@@ -1890,14 +1891,18 @@ export const mockApi = {
       const before = strip(GLOBAL_POLICIES.payout);
       const after = {
         minimumAmount: Number(next.payout.minimumAmount),
-        transferFee: Number(next.payout.transferFee),
+        feePercent: Number(next.payout.feePercent),
+        feeMin: Number(next.payout.feeMin),
+        feeMax: Number(next.payout.feeMax),
         feePaidBy: next.payout.feePaidBy,
       };
-      if (!(after.minimumAmount >= 0) || !(after.transferFee >= 0) || !['driver', 'shedrive'].includes(after.feePaidBy)) {
+      const { minimumAmount, feePercent, feeMin, feeMax, feePaidBy } = after;
+      if (!(minimumAmount >= 0) || !(feePercent >= 0 && feePercent <= 100) || !(feeMin >= 0) || !(feeMax >= feeMin)
+        || !['driver', 'shedrive'].includes(feePaidBy)) {
         return Promise.reject(new MockApiError('Check the payout settings.', 422));
       }
-      if (after.feePaidBy === 'driver' && after.minimumAmount <= after.transferFee) {
-        return Promise.reject(new MockApiError('When the driver pays the fee, the minimum payout must be more than the fee.', 422));
+      if (feePaidBy === 'driver' && minimumAmount <= transferFeeFor(minimumAmount, after)) {
+        return Promise.reject(new MockApiError('When the driver pays the fee, the minimum payout must be more than the fee on it.', 422));
       }
       if (Object.keys(after).some((k) => String(after[k]) !== String(before[k]))) {
         changes.push(['payout_settings', 'payout-settings', 'Payout settings', before, after, { payout: after }]);
@@ -2357,7 +2362,7 @@ export const mockApi = {
         below.push(amount);
         return;
       }
-      const fee = settings.transferFee;
+      const fee = transferFeeFor(amount, settings);
       lines.push({
         driverId: String(driver.id),
         driverName: driver.name,
