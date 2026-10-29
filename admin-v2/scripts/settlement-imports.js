@@ -15,7 +15,7 @@
  *                          an errors column to download. Nothing is read about
  *                          drivers.
  *   3  Review result     — the business check, row by row: a registered
- *                          driver, a reference not imported before or repeated
+ *                          driver whose phone matches, a reference not imported before or repeated
  *                          in the file, a date not in the future. **One failed
  *                          row rejects the whole file**: nothing is sent, and
  *                          Finance uploads the corrected file again.
@@ -186,6 +186,7 @@ const CELL_ISSUE_KEYS = {
 /** Step 3 business failures. */
 const FAIL_KEYS = {
   unknown_driver: 'settlementImports.resultUnknownDriver',
+  phone_mismatch: 'settlementImports.resultPhoneMismatch',
   duplicate: 'settlementImports.resultDuplicate',
   repeated_in_file: 'settlementImports.resultRepeated',
   future_date: 'settlementImports.resultFutureDate',

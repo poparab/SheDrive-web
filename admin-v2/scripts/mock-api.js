@@ -2625,7 +2625,8 @@ export const mockApi = {
    *   'clean'    — just those four rows: passes both checks and can be sent;
    *   'format'   — the same rows with one of each format mistake (fails step 2);
    *   'business' — well formed, plus an unknown national ID, a reference
-   *                already imported and a future date (fails step 3).
+   *                already imported, a future date and a phone that is not
+   *                the driver's (fails step 3).
    */
   buildSampleSettlementSheet(kind = 'business') {
     const today = localDay();
@@ -2661,6 +2662,7 @@ export const mockApi = {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       if (owing[1]) rows.push({ ...row(owing[1], 20, 'Fawry'), payment_date: localDay(tomorrow) });
+      if (owing[2]) rows.push({ ...row(owing[2], 30, 'Mobile wallet'), phone_number: '01000000000' });
     }
     return respond({ csv: toCsv(SETTLEMENT_HEADERS, rows), fileName: `finance-settlements-${today}.csv` });
   },
@@ -2687,8 +2689,9 @@ export const mockApi = {
    * payment that already went through, so any amount is applied: less than
    * she owes settles part of it, more than she owes leaves the extra on her
    * balance. A row fails when its national ID matches no driver, its payment
-   * reference was already imported or repeats in this file, or its payment
-   * date is in the future. **One failed row rejects the whole file**
+   * phone number is not the driver's registered phone, its payment reference
+   * was already imported or repeats in this file, or its payment date is in
+   * the future. **One failed row rejects the whole file**
    * (`accepted: false`): nothing from it can be sent, and Finance uploads the
    * corrected file again. Nothing is stored here.
    */
@@ -2723,6 +2726,8 @@ export const mockApi = {
       };
       // #5620 business rules, first failure wins.
       if (!driver) out.status = 'unknown_driver';
+      // Driver phones are stored without the leading 0 (seed), written 01… in files.
+      else if (row.phone_number !== `0${driver.phone}`) out.status = 'phone_mismatch';
       else if (usedRefs.has(row.payment_reference)) out.status = 'duplicate';
       else if (fileRefs.has(row.payment_reference)) out.status = 'repeated_in_file';
       else if (row.payment_date > localDay()) out.status = 'future_date';
