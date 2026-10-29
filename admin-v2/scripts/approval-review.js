@@ -376,7 +376,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     return wrap;
   }
 
-  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total', 'driverCancellationFee', 'outstandingLimit']);
+  const MONEY_KEYS = new Set(['baseFare', 'perKm', 'perMin', 'minFare', 'cancellationFee', 'balance', 'fee', 'total', 'driverCancellationFee', 'outstandingLimit', 'minimumAmount', 'transferFee']);
   const COUNT_KEYS = new Set(['lines', 'rows', 'success', 'failed']);
 
   function fieldLabel(key) {
@@ -392,6 +392,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
     if (COUNT_KEYS.has(key)) return Number(value).toLocaleString('en-US');
     if (key === 'percentage') return formatPercent(value);
     if (key === 'type') return payoutTypeLabel(value);
+    if (key === 'feePaidBy') return t(`approvals.feePaidBy.${value}`);
     return String(value);
   }
 
@@ -443,7 +444,6 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
   function detailPairs(request) {
     const p = request.payload ?? {};
     switch (request.type) {
-      case 'payout_batch':
       case 'payout_result': {
         const batch = request.batch;
         if (!batch) return [];
@@ -451,6 +451,8 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
         link.href = `payout-batch.html?id=${encodeURIComponent(batch.id)}`;
         return [
           [t('approvals.kvBatch'), link],
+          // 2026-10-29 — one result file per payout method.
+          ...(p.payoutType ? [[t('approvals.kvFileMethod'), payoutTypeLabel(p.payoutType)]] : []),
           // Batch status copy is owned by the Payouts screen's locale; fall back to the raw value.
           [t('approvals.kvBatchStatus'), hasKey(`payouts.status_${batch.status}`) ? t(`payouts.status_${batch.status}`) : batch.status],
         ];
@@ -516,10 +518,14 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
    * types without lines.
    */
   function lineSpec(request) {
-    if ((request.type === 'payout_batch' || request.type === 'payout_result') && request.batch) {
-      const withResult = request.type === 'payout_result';
+    if (request.type === 'payout_result' && request.batch) {
+      const withResult = true;
       const results = new Map((request.batch.result ?? []).map((r) => [r.lineRef, r]));
-      const rows = request.batch.lines.map((line) => ({ ...line, res: withResult ? results.get(line.lineRef) ?? null : null }));
+      // Only the lines of the method's file this result is for.
+      const type = request.payload?.payoutType ?? null;
+      const rows = request.batch.lines
+        .filter((line) => !type || line.payoutType === type)
+        .map((line) => ({ ...line, res: results.get(line.lineRef) ?? null }));
       // A checker clears failures first, so a result lists them at the top.
       if (withResult) rows.sort((a, b) => (a.res?.status === 'FAILED' ? 0 : 1) - (b.res?.status === 'FAILED' ? 0 : 1));
       const columns = [

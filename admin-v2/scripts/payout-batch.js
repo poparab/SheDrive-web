@@ -1,22 +1,23 @@
 /**
  * payout-batch.js — SheDrive admin payout batch detail (2026-10-14 spec §3)
  *
- * One batch through its whole life: Pending approval → Ready to export →
- * Sent to bank → Result pending approval → Completed (or Rejected).
+ * One batch through its whole life: Ready to export → Sent to bank → Result
+ * pending approval → Completed. A generated batch needs no approval
+ * (2026-10-29); each method's bank file is exported and its result imported
+ * on its own, and the batch completes when every file's result is approved.
  *
  * Laid out as the kit's v22-10 payout-batch page: a summary card (with the
  * "download bank file again" footer) beside the State timeline card, then the
  * batch contents table, then the next step full width.
  *
  * What an admin can do depends only on the status:
- *   pending_approval / result_pending — a Financial lead decides it, in the review
- *     dialog that the link here opens in place (or on the Approvals screen, §1).
- *   ready — export the bank file (kit popup-warning confirm), which moves the
- *     batch to Sent to bank.
- *   sent_to_bank and later — download the file again (a copy, changes nothing).
- *   sent_to_bank — import Finance's result file through the kit upload box. A
- *     valid file becomes a `payout_result` request; nothing posts to a ledger
- *     until it is approved.
+ *   ready — export the bank files, one per payout method (kit popup-warning
+ *     confirm), which moves the batch to Sent to bank.
+ *   sent_to_bank and later — download any file again (a copy, changes nothing).
+ *   while a file waits for its result — import that file's result through the
+ *     kit upload box. A valid file becomes a `payout_result` request for that
+ *     method; nothing posts to a ledger until a Financial lead approves it, in
+ *     the review the link here opens in place (or on the Approvals screen, §1).
  */
 
 import { adminAuth } from './admin-auth.js';
@@ -44,12 +45,18 @@ const id = params.get('id');
 
 /** Batch status → the kit's chip. */
 const CHIP = {
-  pending_approval: { className: 'status-pending', icon: 'fa-hourglass-half' },
   ready: { className: 'status-created', icon: 'fa-file-export' },
   sent_to_bank: { className: 'status-created', icon: 'fa-building-columns' },
   result_pending: { className: 'status-pending', icon: 'fa-hourglass-half' },
   completed: { className: 'status-approved', icon: 'fa-check' },
-  rejected: { className: 'status-rejected', icon: 'fa-xmark' },
+};
+
+/** One method's file → lamp class + label key (2026-10-29). */
+const FILE = {
+  ready: { lamp: 'status-blue-lamp', key: 'payoutBatch.fileReady' },
+  sent: { lamp: 'status-primary-lamp', key: 'payoutBatch.fileSent' },
+  result_pending: { lamp: 'status-warning-lamp', key: 'payoutBatch.fileResultPending' },
+  done: { lamp: 'status-active-lamp', key: 'payoutBatch.fileDone' },
 };
 
 /** Line status → lamp class + label key. */
@@ -233,18 +240,23 @@ function downloadText(fileName, text) {
   URL.revokeObjectURL(url);
 }
 
-async function exportFile(firstExport) {
+/** Downloads every method's file, or just `type`'s — one CSV per payout method (2026-10-29). */
+async function exportFile(firstExport, type = null) {
   if (busy) return;
   busy = true;
   try {
-    const result = await mockApi.exportPayoutBatch(batch.id);
-    downloadText(result.fileName, result.csv);
-    if (firstExport) shell.showToast(t('payoutBatch.exportedToast'), 'success');
+    const result = await mockApi.exportPayoutBatch(batch.id, type);
+    for (const file of result.files) {
+      downloadText(file.fileName, file.csv);
+      // Browsers drop rapid back-to-back downloads; space them out.
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    if (firstExport) shell.showToast(t('payoutBatch.exportedToast', { n: formatCount(result.files.length) }), 'success');
     await load();
   } catch (error) {
     shell.showToast(error.message, 'danger', {
       title: t('toast.failedTitle'),
-      action: { label: t('toast.retry'), onClick: () => exportFile(firstExport) },
+      action: { label: t('toast.retry'), onClick: () => exportFile(firstExport, type) },
     });
   } finally {
     busy = false;
@@ -259,6 +271,7 @@ function errorText(d) {
     case 'duplicate_line': return t('payoutBatch.errDuplicateLine', { rowNo: d.rowNo, lineRef: d.lineRef });
     case 'bad_status': return t('payoutBatch.errBadStatus', { rowNo: d.rowNo, lineRef: d.lineRef, value: d.value ?? '' });
     case 'missing_line': return t('payoutBatch.errMissingLine', { lineRef: d.lineRef });
+    case 'other_file': return t('payoutBatch.errOtherFile', { rowNo: d.rowNo, lineRef: d.lineRef });
     default: return d.code;
   }
 }
@@ -334,7 +347,11 @@ async function importText(fileName, csvText, ui) {
   ui.attachment.set(fileName, 'checking');
   try {
     const result = await mockApi.importPayoutResult(batch.id, csvText);
-    shell.showToast(t('payoutBatch.importDone', { success: formatCount(result.success), failed: formatCount(result.failed) }), 'success');
+    shell.showToast(t('payoutBatch.importDone', {
+      type: typeLabel(result.payoutType),
+      success: formatCount(result.success),
+      failed: formatCount(result.failed),
+    }), 'success');
     busy = false;
     await load();
   } catch (error) {
@@ -417,29 +434,27 @@ function whenWho(at, name) {
 
 function renderSummary() {
   qs('#batch-ref').textContent = batch.ref;
-  const approve = requestOf('payout_batch');
   const notYet = t('payoutBatch.notYet');
+  const fee = batch.lines[0];
   const pairs = [
     [t('payoutBatch.reference'), ltr(batch.ref)],
     [t('payoutBatch.status'), chip(batch.status)],
     [t('payoutBatch.created'), whenWho(batch.createdAt, batch.createdBy)],
+    [t('payoutBatch.exported'), whenWho(batch.exportedAt, batch.exportedBy) ?? notYet, !batch.exportedAt],
+    [t('payoutBatch.resultImported'), whenWho(batch.resultImportedAt, batch.resultImportedBy) ?? notYet, !batch.resultImportedAt],
+    [t('payoutBatch.completed'), batch.completedAt ? formatDateTime(batch.completedAt) : notYet, !batch.completedAt],
+    [t('payoutBatch.lines'), formatCount(batch.lines.length)],
+    [t('payoutBatch.files'), formatCount(batch.files.length)],
+    [t('payoutBatch.total'), el('p', 'text-bold ad-ltr', formatEgp(batch.total))],
   ];
-  if (batch.status === 'rejected') {
-    pairs.push(
-      [t('payoutBatch.rejected'), whenWho(approve?.decidedAt ?? batch.completedAt, approve?.checker)],
-      [t('payoutBatch.rejectReason'), approve?.rejectReason ?? null],
-    );
-  } else {
-    pairs.push(
-      [t('payoutBatch.approved'), whenWho(batch.approvedAt, batch.approvedBy) ?? notYet, !batch.approvedAt],
-      [t('payoutBatch.exported'), whenWho(batch.exportedAt, batch.exportedBy) ?? notYet, !batch.exportedAt],
-      [t('payoutBatch.resultImported'), whenWho(batch.resultImportedAt, batch.resultImportedBy) ?? notYet, !batch.resultImportedAt],
-      [t('payoutBatch.completed'), batch.completedAt ? formatDateTime(batch.completedAt) : notYet, !batch.completedAt],
-    );
+  // The transfer fee it was generated with (2026-10-29).
+  if (fee?.fee !== undefined) {
+    pairs.push([
+      t('payoutBatch.transferFee'),
+      t(fee.feePaidBy === 'driver' ? 'payoutBatch.feeByDriver' : 'payoutBatch.feeByShedrive', { fee: formatEgp(fee.fee ?? 0) }),
+    ]);
   }
   pairs.push(
-    [t('payoutBatch.lines'), formatCount(batch.lines.length)],
-    [t('payoutBatch.total'), el('p', 'text-bold ad-ltr', formatEgp(batch.total))],
     [t('payoutBatch.paidTotal'), el('p', 'text-bold success-color ad-ltr', formatEgp(batch.paidTotal))],
   );
   qs('#batch-summary-body').replaceChildren(kvList(pairs));
@@ -451,29 +466,19 @@ function renderTimeline() {
   const waiting = t('payoutBatch.stepWaiting');
   const resultReq = requestOf('payout_result', 'approved');
 
-  // Generated → Approved → Sent to bank → Result imported → Completed / Rejected
+  // Generated → Sent to bank → Result imported → Completed (no batch approval, 2026-10-29)
   const step = (label, at, by, done, current) => ({
     label,
     meta: done ? (atBy(at, by) ?? '') : waiting,
     tone: done ? 'success' : current ? 'warning' : 'todo',
   });
-  const items = [step(t('payoutBatch.stepGenerated'), batch.createdAt, batch.createdBy, true, false)];
-  if (s === 'rejected') {
-    const req = requestOf('payout_batch');
-    items.push({
-      label: t('payoutBatch.stepRejected'),
-      meta: atBy(req?.decidedAt ?? batch.completedAt, req?.checker) ?? '',
-      note: req?.rejectReason ?? null,
-      tone: 'danger',
-    });
-  } else {
-    items.push(
-      step(t('payoutBatch.stepApproved'), batch.approvedAt, batch.approvedBy, Boolean(batch.approvedAt), s === 'pending_approval'),
-      step(t('payouts.status_sent_to_bank'), batch.exportedAt, batch.exportedBy, Boolean(batch.exportedAt), s === 'ready'),
-      step(t('payoutBatch.stepResultImported'), batch.resultImportedAt, batch.resultImportedBy, Boolean(batch.resultImportedAt), s === 'sent_to_bank'),
-      step(t('payoutBatch.stepCompleted'), resultReq?.decidedAt ?? batch.completedAt, resultReq?.checker, s === 'completed', s === 'result_pending'),
-    );
-  }
+  const allImported = batch.files.every((f) => ['result_pending', 'done'].includes(f.status));
+  const items = [
+    step(t('payoutBatch.stepGenerated'), batch.createdAt, batch.createdBy, true, false),
+    step(t('payouts.status_sent_to_bank'), batch.exportedAt, batch.exportedBy, Boolean(batch.exportedAt), s === 'ready'),
+    step(t('payoutBatch.stepResultImported'), batch.resultImportedAt, batch.resultImportedBy, allImported && Boolean(batch.resultImportedAt), s === 'sent_to_bank'),
+    step(t('payoutBatch.stepCompleted'), resultReq?.decidedAt ?? batch.completedAt, resultReq?.checker, s === 'completed', s === 'result_pending'),
+  ];
 
   const list = el('ol', 'timeline-vertical batch-timeline');
   items.forEach((item) => {
@@ -494,24 +499,19 @@ function renderActions() {
   const nodes = [];
   const s = batch.status;
 
-  if (s === 'pending_approval') {
-    nodes.push(alertBox('warning', t('payoutBatch.waitingApproval'), 'fa-hourglass-half'));
-    const req = requestOf('payout_batch', 'pending');
-    if (req) nodes.push(approvalLink(req));
-  }
-
   if (s === 'ready') {
-    nodes.push(alertBox('info', t('payoutBatch.readyNote')));
+    nodes.push(alertBox('info', t('payoutBatch.readyNote', { n: formatCount(batch.files.length) })));
     const b = button(t('payoutBatch.exportFile'), 'btn-primary w-100', 'fa-file-export');
     b.id = 'btn-export';
     b.addEventListener('click', confirmExport);
     nodes.push(b);
   }
 
+  // One row per method's file: its own download, its own result (2026-10-29).
+  nodes.push(filesList());
+
   if (s === 'result_pending') {
     nodes.push(alertBox('warning', t('payoutBatch.waitingResultApproval'), 'fa-hourglass-half'));
-    const req = requestOf('payout_result', 'pending');
-    if (req) nodes.push(approvalLink(req));
   }
 
   if (s === 'completed') {
@@ -527,16 +527,15 @@ function renderActions() {
     );
   }
 
-  if (s === 'rejected') {
-    nodes.push(alertBox('danger', t('payoutBatch.rejectedNote')));
-  }
-
-  if (s === 'sent_to_bank') {
-    // A rejected result sends the batch back here; say why, so the next file is right.
-    const rejected = requestOf('payout_result', 'rejected');
-    if (rejected) {
-      nodes.push(alertBox('danger', t('payoutBatch.resultRejected', { name: rejected.checker, reason: rejected.rejectReason ?? '' })));
-    }
+  if (batch.files.some((f) => f.status === 'sent')) {
+    // A rejected result sends that file back here; say why, so the next file is right.
+    batch.files.filter((f) => f.status === 'sent' && f.request?.status === 'rejected').forEach((f) => {
+      nodes.push(alertBox('danger', t('payoutBatch.resultRejected', {
+        type: typeLabel(f.type),
+        name: f.request.checker,
+        reason: f.request.rejectReason ?? '',
+      })));
+    });
     nodes.push(importBlock());
   }
 
@@ -556,6 +555,41 @@ function renderActions() {
   host.replaceChildren(...nodes);
 }
 
+/** The batch's bank files, one per payout method, each with where its result is. */
+function filesList() {
+  const wrap = el('div', 'batch-files');
+  wrap.appendChild(el('h6', 'batch-import__title', t('payoutBatch.filesHeading')));
+  batch.files.forEach((file) => {
+    const row = el('div', 'batch-file');
+    const info = el('div', 'batch-file__info');
+    info.appendChild(el('p', 'text-bold', typeLabel(file.type)));
+    info.appendChild(el('span', 'batch-muted ad-ltr', file.fileName));
+    info.appendChild(el('span', 'batch-muted', t('payoutBatch.fileMeta', {
+      lines: formatCount(file.lineCount),
+      amount: formatEgp(file.transferTotal),
+    })));
+    const spec = FILE[file.status] ?? FILE.sent;
+    const lamp = el('div', spec.lamp);
+    lamp.append(el('div', 'lamp'), document.createTextNode(file.status === 'done'
+      ? t('payoutBatch.fileDoneCounts', { paid: formatCount(file.paidCount), failed: formatCount(file.failedCount) })
+      : t(spec.key)));
+    info.appendChild(lamp);
+    row.appendChild(info);
+
+    const actions = el('div', 'batch-file__actions');
+    if (file.status === 'result_pending' && file.request?.status === 'pending') actions.appendChild(approvalLink(file.request));
+    if (file.status !== 'ready') {
+      const b = button(t('payoutBatch.downloadFile'), 'btn-primary-outline btn-sm d-flex', 'fa-download');
+      b.dataset.fileType = file.type;
+      b.addEventListener('click', () => exportFile(false, file.type));
+      actions.appendChild(b);
+    }
+    row.appendChild(actions);
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
 // ── Lines grid ───────────────────────────────────────
 const LINE_PAGE = 20;
 let linePage = 1;
@@ -567,9 +601,15 @@ linesTable.columns = [
     key: 'driverName',
     label: t('payoutBatch.colDriver'),
     // Generated review-case payees (finance-seed.js) have no driver record to open.
-    render: (row) => (row.driverId
-      ? link(`driver-balance-details.html?id=${encodeURIComponent(row.driverId)}`, row.driverName)
-      : el('span', null, row.driverName)),
+    render: (row) => {
+      const stack = el('div', 'batch-method');
+      stack.appendChild(row.driverId
+        ? link(`driver-balance-details.html?id=${encodeURIComponent(row.driverId)}`, row.driverName)
+        : el('span', null, row.driverName));
+      // Every bank file carries her phone number (2026-10-29).
+      if (row.phone) stack.appendChild(el('span', 'batch-muted ad-ltr', row.phone));
+      return stack;
+    },
   },
   // Product rule: national IDs are shown in full.
   { key: 'nationalId', label: t('payoutBatch.colNid'), ltr: true, render: (row) => ltr(row.nationalId) },
@@ -586,6 +626,13 @@ linesTable.columns = [
   // Payout numbers are shown in full (2026-10-18).
   { key: 'number', label: t('payoutBatch.colNumber'), ltr: true, render: (row) => ltr(row.number) },
   { key: 'amount', label: t('payoutBatch.colAmount'), numeric: true, render: (row) => el('p', 'text-bold ad-ltr', formatEgp(row.amount)) },
+  {
+    key: 'fee',
+    label: t('payoutBatch.colFee'),
+    numeric: true,
+    render: (row) => ltr(row.feePaidBy === 'driver' ? `−${formatEgp(row.fee ?? 0)}` : formatEgp(row.fee ?? 0)),
+  },
+  { key: 'transferAmount', label: t('payoutBatch.colSent'), numeric: true, render: (row) => el('p', 'text-bold ad-ltr', formatEgp(row.transferAmount)) },
   {
     key: 'status',
     label: t('payoutBatch.colStatus'),
@@ -662,7 +709,7 @@ await load();
 
 // Arriving from "Generate payout batch" on payouts.html.
 if (params.get('created') && batch) {
-  shell.showToast(t('payouts.sentForApproval', { ref: batch.ref }), 'success');
+  shell.showToast(t('payouts.generated', { ref: batch.ref }), 'success');
   params.delete('created');
   const qsStr = params.toString();
   history.replaceState(null, '', `${window.location.pathname}${qsStr ? `?${qsStr}` : ''}`);

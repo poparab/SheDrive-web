@@ -74,7 +74,7 @@
                 <div id="commission-fields"></div>
                 <p class="small mb-1" id="commission-example"></p>
                 <p class="small pricing__meta mb-0" id="commission-approval-hint" data-i18n="pricingApproval.commissionHint">
-                  Commission, cancellation policy and balance limit changes need another Financial lead's approval. Operating hours save immediately.
+                  Commission, cancellation policy, balance limit and payout settings changes need another Financial lead's approval. Operating hours save immediately.
                 </p>
               </div>
             </section>
@@ -102,6 +102,35 @@
                 </div>
                 <div id="balance-fields"></div>
                 <p class="small mb-0" id="balance-example"></p>
+              </div>
+            </section>
+          </div>
+
+          <!-- 2026-10-29 — payout settings: minimum payout, transfer fee and who pays it -->
+          <div class="col-lg-12 col-xl-6">
+            <section class="standard-card-theme2 white-bg h-100" id="payout-card" aria-labelledby="payout-heading">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="payout-heading" data-i18n="policies.payoutHeading">Payouts</h5>
+                  <span id="payout-meta"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
+              </div>
+              <div class="card-body">
+                <!-- A payout settings change waits for another Financial lead -->
+                <div class="alert warning" id="payout-pending" role="status" hidden>
+                  <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                  <div class="details flex-column gap-1">
+                    <h6 id="payout-pending-title"></h6>
+                    <p id="payout-pending-meta"></p>
+                    <a id="payout-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+                  </div>
+                </div>
+                <div id="payout-fields"></div>
+                <p class="small mb-1" id="payout-example"></p>
+                <p class="small pricing__meta mb-0" data-i18n="policies.payoutNote">
+                  Applies to the next batch generated. A batch already generated keeps the settings it was made with.
+                </p>
               </div>
             </section>
           </div>

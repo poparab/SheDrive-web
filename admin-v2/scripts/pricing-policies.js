@@ -11,7 +11,8 @@
  * toast that says what applied now and what went for approval.
  *
  * Roles (2026-10-29, #6210 / #6212 / #6268): commission, the cancellation
- * policy and the balance limit are requests a Financial lead makes and another
+ * policy, the balance limit and the payout settings (minimum payout, transfer
+ * fee and who pays it, 2026-10-29) are requests a Financial lead makes and another
  * approves; operating hours are the Operations lead's and apply on save. Every
  * other role sees the screen read-only, with no Save.
  */
@@ -115,6 +116,45 @@ const BALANCE_FIELDS = [
   },
 ];
 
+/** 2026-10-29 — payout settings: the minimum payout and the transfer fee, and who pays it. */
+const PAYOUT_FIELDS = [
+  {
+    key: 'minimumAmount',
+    label: t('policies.minimumLabel'),
+    unit: t('policies.unitEgp'),
+    hint: t('policies.minimumHint'),
+    integer: false,
+    min: 0,
+    max: 100000,
+    emptyError: t('policies.minimumEmpty'),
+    invalidError: t('zones.amountInvalid'),
+    rangeError: t('policies.minimumRange'),
+  },
+  {
+    key: 'transferFee',
+    label: t('policies.feeLabel'),
+    unit: t('policies.unitEgp'),
+    hint: t('policies.feeHint'),
+    integer: false,
+    min: 0,
+    max: 1000,
+    emptyError: t('policies.feeEmpty'),
+    invalidError: t('zones.amountInvalid'),
+    rangeError: t('policies.feeRange'),
+  },
+  {
+    key: 'feePaidBy',
+    type: 'select',
+    label: t('policies.feePayerLabel'),
+    unit: '',
+    hint: t('policies.feePayerHint'),
+    options: [
+      { value: 'driver', label: t('policies.feePayerDriver') },
+      { value: 'shedrive', label: t('policies.feePayerShedrive') },
+    ],
+  },
+];
+
 /** Operating hours (#1785 / #1791): one same-day window, Cairo time. */
 const HOURS_FIELDS = [
   {
@@ -151,26 +191,34 @@ function renderField(host, spec, value) {
   row.className = 'row gy-2 list-row';
 
   const labels = document.createElement('div');
-  labels.className = 'list-item-grid col-sm-9';
+  // A select needs room for its option labels.
+  labels.className = `list-item-grid ${spec.type === 'select' ? 'col-sm-7' : 'col-sm-9'}`;
   // The kit's p.text-bold, holding the real <label> so the input keeps its name.
   const title = document.createElement('p');
   title.className = 'text-bold';
   const label = document.createElement('label');
   label.className = 'pricing__label';
   label.htmlFor = `policy-${spec.key}`;
-  label.textContent = t('policies.fieldLabel', { label: spec.label, unit: spec.unit });
+  label.textContent = spec.unit ? t('policies.fieldLabel', { label: spec.label, unit: spec.unit }) : spec.label;
   title.appendChild(label);
   const hint = document.createElement('span');
   hint.textContent = spec.hint;
   labels.append(title, hint);
 
   const field = document.createElement('div');
-  field.className = 'list-item col-sm-3 pricing__input';
-  const input = document.createElement('input');
-  input.className = 'form-control ad-ltr';
+  field.className = `list-item ${spec.type === 'select' ? 'col-sm-5' : 'col-sm-3'} pricing__input`;
+  const input = document.createElement(spec.type === 'select' ? 'select' : 'input');
+  input.className = spec.type === 'select' ? 'form-select' : 'form-control ad-ltr';
   input.id = `policy-${spec.key}`;
   input.name = spec.key;
-  if (spec.type === 'time') {
+  if (spec.type === 'select') {
+    spec.options.forEach((o) => {
+      const option = document.createElement('option');
+      option.value = o.value;
+      option.textContent = o.label;
+      input.appendChild(option);
+    });
+  } else if (spec.type === 'time') {
     input.type = 'time';
     input.step = '60';
   } else {
@@ -192,7 +240,7 @@ function renderField(host, spec, value) {
   host.appendChild(wrap);
 
   const control = { spec, input, error };
-  input.addEventListener('input', () => clearError(control));
+  input.addEventListener(spec.type === 'select' ? 'change' : 'input', () => clearError(control));
   return control;
 }
 
@@ -220,6 +268,7 @@ function validate(control) {
   clearError(control);
   const raw = control.input.value.trim();
   const spec = control.spec;
+  if (spec.type === 'select') return true;
 
   if (!raw) {
     if (isBlankAndOptional(control)) return true;
@@ -258,6 +307,7 @@ function validate(control) {
 let cancellationControls = [];
 let commissionControl = null;
 let balanceControls = [];
+let payoutControls = [];
 let hoursControls = [];
 
 function lastChanged(section) {
@@ -283,6 +333,12 @@ function render() {
   );
   balanceControls.forEach((c) => c.input.addEventListener('input', updateBalanceExample));
 
+  const payoutHost = qs('#payout-fields');
+  payoutHost.textContent = '';
+  payoutControls = PAYOUT_FIELDS.map((spec) => renderField(payoutHost, spec, policies.payout[spec.key] ?? ''));
+  payoutControls.forEach((c) => c.input.addEventListener(c.spec.type === 'select' ? 'change' : 'input', updatePayoutExample));
+  qs('#payout-meta').textContent = lastChanged(policies.payout);
+
   const hoursHost = qs('#hours-fields');
   hoursHost.textContent = '';
   hoursControls = HOURS_FIELDS.map((spec) => renderField(hoursHost, spec, policies.operatingHours[spec.key]));
@@ -295,22 +351,27 @@ function render() {
 
   updateCommissionExample();
   updateBalanceExample();
+  updatePayoutExample();
   renderCommissionPending();
   renderSettingPending('cancel', policies.pendingCancellation, cancellationControls, t('pricingApproval.cancellationPending'));
   renderSettingPending('balance', policies.pendingBalanceLimit, balanceControls,
     t('pricingApproval.balancePending', { limit: formatEgp(policies.pendingBalanceLimit?.after?.outstandingLimit ?? 0) }));
+  renderSettingPending('payout', policies.pendingPayoutSettings, payoutControls, t('pricingApproval.payoutPending'));
   applyRoleLocks();
 }
 
 /** A section this role cannot change is read-only (inputs read-only, never a button). */
 function applyRoleLocks() {
   const lock = (controls, editable) => controls.forEach((c) => {
-    c.input.readOnly = !editable;
+    // A select has no read-only state; it is disabled instead.
+    if (c.spec.type === 'select') c.input.disabled ||= !editable;
+    else c.input.readOnly = !editable;
     if (!editable) c.input.setAttribute('aria-readonly', 'true');
   });
   lock(cancellationControls, CAN_PRICING);
   lock([commissionControl], CAN_PRICING);
   lock(balanceControls, CAN_PRICING);
+  lock(payoutControls, CAN_PRICING);
   lock(hoursControls, CAN_HOURS);
   qs('#commission-approval-hint').hidden = !CAN_PRICING;
 }
@@ -406,16 +467,41 @@ function updateBalanceExample() {
       : t('policies.balanceExampleOff');
 }
 
+function updatePayoutExample() {
+  const value = (key) => payoutControls.find((c) => c.spec.key === key).input.value;
+  const fee = Number(value('transferFee'));
+  const amount = 500;
+  qs('#payout-example').textContent = Number.isNaN(fee)
+    ? ''
+    : t(value('feePaidBy') === 'driver' ? 'policies.payoutExampleDriver' : 'policies.payoutExampleShedrive', {
+      amount: formatEgp(amount),
+      sent: formatEgp(amount - fee),
+      fee: formatEgp(fee),
+    });
+}
+
+/** When the driver pays the fee, a payout at the minimum must still be more than the fee. */
+function validatePayoutOrder() {
+  const [minimum, fee, payer] = payoutControls;
+  if (payer.input.value === 'driver' && Number(minimum.input.value) <= Number(fee.input.value)) {
+    showError(minimum, t('policies.minimumAboveFee'));
+    return false;
+  }
+  return true;
+}
+
 // ── One global Save ───────────────────────────────────
 
+const valueOf = (c) => (c.spec.type === 'select' ? c.input.value : Number(c.input.value));
+
 function changed(controls, current) {
-  return controls.some((c) => Number(c.input.value) !== Number(current[c.spec.key]));
+  return controls.some((c) => String(valueOf(c)) !== String(current[c.spec.key]));
 }
 
 function readValues(controls) {
   const out = {};
   controls.forEach((c) => {
-    out[c.spec.key] = Number(c.input.value);
+    out[c.spec.key] = valueOf(c);
   });
   return out;
 }
@@ -430,14 +516,20 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   const commissionLocked = Boolean(policies.pendingCommission) || !CAN_PRICING;
   const cancelLocked = Boolean(policies.pendingCancellation) || !CAN_PRICING;
   const balanceLocked = Boolean(policies.pendingBalanceLimit) || !CAN_PRICING;
+  const payoutLocked = Boolean(policies.pendingPayoutSettings) || !CAN_PRICING;
   const hoursEditable = CAN_HOURS;
   const controls = [
     ...(cancelLocked ? [] : cancellationControls),
     ...(commissionLocked ? [] : [commissionControl]),
     ...(balanceLocked ? [] : balanceControls),
+    ...(payoutLocked ? [] : payoutControls),
     ...(hoursEditable ? hoursControls : []),
   ];
   const results = controls.map(validate);
+  if (!payoutLocked) {
+    const at = controls.indexOf(payoutControls[0]);
+    if (!results.slice(at, at + payoutControls.length).includes(false) && !validatePayoutOrder()) results[at] = false;
+  }
   if (hoursEditable && !results.slice(-hoursControls.length).includes(false) && !validateHoursOrder()) {
     results[results.length - 1] = false;
   }
@@ -461,6 +553,10 @@ qs('#policies-form').addEventListener('submit', async (event) => {
       from: formatEgp(policies.driverBalance.outstandingLimit),
       to: formatEgp(payload.driverBalance.outstandingLimit),
     }));
+  }
+  if (!payoutLocked && changed(payoutControls, policies.payout)) {
+    payload.payout = readValues(payoutControls);
+    sent.push(t('kitPricing.payoutSettingsChange'));
   }
   if (hoursEditable && hoursControls.some((c) => c.input.value !== policies.operatingHours[c.spec.key])) {
     payload.operatingHours = Object.fromEntries(hoursControls.map((c) => [c.spec.key, c.input.value]));
@@ -530,6 +626,10 @@ qs('#policies-revert').addEventListener('click', () => {
     c.input.value = policies.driverBalance[c.spec.key] ?? '';
     clearError(c);
   });
+  payoutControls.forEach((c) => {
+    c.input.value = policies.payout[c.spec.key] ?? '';
+    clearError(c);
+  });
   hoursControls.forEach((c) => {
     c.input.value = policies.operatingHours[c.spec.key];
     clearError(c);
@@ -540,6 +640,7 @@ qs('#policies-revert').addEventListener('click', () => {
   }
   updateCommissionExample();
   updateBalanceExample();
+  updatePayoutExample();
 });
 
 // ?state=error (or a real outage): the kit's error result instead of an uncaught throw.

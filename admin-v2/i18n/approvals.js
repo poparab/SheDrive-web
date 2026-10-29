@@ -55,7 +55,6 @@ export const en = {
 
     // Request types
     type: {
-      payout_batch: 'Payout batch',
       payout_result: 'Payout result',
       payout: 'Manual payout',
       settlement: 'Manual settlement',
@@ -66,10 +65,10 @@ export const en = {
       commission: 'Commission change',
       cancellation_policy: 'Cancellation policy change',
       balance_limit: 'Balance limit change',
+      payout_settings: 'Payout settings change',
     },
     typeEffect: {
-      payout_batch: 'On approval the batch becomes Ready to export.',
-      payout_result: 'On approval SUCCESS lines post a payout to the driver ledger; FAILED lines go back to Due.',
+      payout_result: "On approval this file's SUCCESS lines post a payout to the driver ledger; FAILED lines go back to Due.",
       payout: 'On approval a payout is posted to the driver ledger.',
       settlement: 'On approval a settlement is posted to the driver ledger.',
       settlement_import: 'On approval one settlement is posted per ready row.',
@@ -79,6 +78,7 @@ export const en = {
       commission: 'On approval the platform commission is saved.',
       cancellation_policy: 'On approval the cancellation policy is saved and applies to new trips.',
       balance_limit: 'On approval the driver balance limit is saved.',
+      payout_settings: 'On approval the payout settings apply to the next batch generated.',
     },
 
     // Before → after field labels
@@ -106,7 +106,11 @@ export const en = {
       driverCancellationGracePeriodMin: 'Driver grace period (min)',
       riderNoShowWaitMin: 'Rider no-show wait (min)',
       outstandingLimit: 'Balance limit',
+      minimumAmount: 'Minimum payout',
+      transferFee: 'Transfer fee per payout',
+      feePaidBy: 'Transfer fee paid by',
     },
+    feePaidBy: { driver: 'The driver', shedrive: 'SheDrive' },
     removedValue: 'Removed',
     payoutType: {
       MOBILE_WALLET: 'Mobile wallet',
@@ -140,6 +144,7 @@ export const en = {
     kvNote: 'Note',
     kvPaymentDate: 'Payment date',
     kvBatch: 'Batch',
+    kvFileMethod: 'File',
     kvBatchStatus: 'Batch status',
     kvFile: 'File',
     colField: 'Field',
@@ -250,7 +255,6 @@ export const ar = {
 
 
     type: {
-      payout_batch: 'دفعة مدفوعات',
       payout_result: 'نتيجة دفعة مدفوعات',
       payout: 'دفع يدوي',
       settlement: 'تسوية يدوية',
@@ -261,10 +265,10 @@ export const ar = {
       commission: 'تغيير العمولة',
       cancellation_policy: 'تغيير سياسة الإلغاء',
       balance_limit: 'تغيير حد الرصيد',
+      payout_settings: 'تغيير إعدادات المدفوعات',
     },
     typeEffect: {
-      payout_batch: 'عند الموافقة تصبح الدفعة جاهزة للتصدير.',
-      payout_result: 'عند الموافقة تُسجَّل البنود الناجحة كدفعة في دفتر السائقة، وتعود البنود الفاشلة إلى مستحقة.',
+      payout_result: 'عند الموافقة تُسجَّل البنود الناجحة في هذا الملف كدفعة في دفتر السائقة، وتعود البنود الفاشلة إلى مستحقة.',
       payout: 'عند الموافقة تُسجَّل دفعة في دفتر السائقة.',
       settlement: 'عند الموافقة تُسجَّل تسوية في دفتر السائقة.',
       settlement_import: 'عند الموافقة تُسجَّل تسوية لكل صف جاهز.',
@@ -274,6 +278,7 @@ export const ar = {
       commission: 'عند الموافقة تُحفظ عمولة المنصة.',
       cancellation_policy: 'عند الموافقة تُحفظ سياسة الإلغاء وتسري على الرحلات الجديدة.',
       balance_limit: 'عند الموافقة يُحفظ حد رصيد السائقة.',
+      payout_settings: 'عند الموافقة تُطبَّق إعدادات المدفوعات على الدفعة التالية.',
     },
 
     field: {
@@ -300,7 +305,11 @@ export const ar = {
       driverCancellationGracePeriodMin: 'مهلة السائقة (دقيقة)',
       riderNoShowWaitMin: 'انتظار عدم حضور الراكبة (دقيقة)',
       outstandingLimit: 'حد الرصيد',
+      minimumAmount: 'الحد الأدنى للصرف',
+      transferFee: 'رسوم التحويل لكل صرف',
+      feePaidBy: 'من يدفع رسوم التحويل',
     },
+    feePaidBy: { driver: 'السائقة', shedrive: 'شي درايف' },
     removedValue: 'محذوفة',
     payoutType: {
       MOBILE_WALLET: 'محفظة إلكترونية',
@@ -333,6 +342,7 @@ export const ar = {
     kvNote: 'ملاحظة',
     kvPaymentDate: 'تاريخ الدفع',
     kvBatch: 'الدفعة',
+    kvFileMethod: 'الملف',
     kvBatchStatus: 'حالة الدفعة',
     kvFile: 'الملف',
     colField: 'الحقل',

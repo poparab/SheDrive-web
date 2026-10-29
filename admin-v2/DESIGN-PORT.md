@@ -460,3 +460,29 @@ row actions Change role, Reset password, Reset two-factor, Suspend / Unsuspend,
 Delete — Admin (users & IT) only and never on her own row. The two Financial-lead
 warnings show in the change-role, suspend and delete confirmations. The legacy
 `?role=admin` Super admin / Admin model is gone.
+
+## Payout cycle changes (2026-10-29)
+
+Product decision, ADO #5617 / #5618 / #5619 / #6486 (new), #6212, #6483, #6484.
+
+- **No batch approval.** `payout_batch` is gone as a request type. A generated batch is
+  *Ready to export* at once; statuses are Ready to export → Sent to bank → Result pending
+  approval → Completed. *Pending approval* and *Rejected* no longer exist for a batch.
+- **One bank file per payout method.** Exporting downloads `<ref>-mobile-wallet.csv`,
+  `<ref>-bank-account.csv`, `<ref>-prepaid-card.csv`, each with its own template (`FILE_HEADERS`
+  in `mock-api.js`) and the driver's `phone`. Each file's result is imported on its own and is
+  its own `payout_result` request (`payload.payoutType`); `batch.parts[type]` tracks
+  ready → sent → result_pending → done, and `settleBatchStatus()` derives the batch status.
+  The batch page shows a Bank files list with a download and an approval link per file.
+- **Payout settings** (`GLOBAL_POLICIES.payout`, set in `finance-seed.js`): minimum payout,
+  transfer fee per payout, who pays it (`driver` / `shedrive`). A Payouts card on
+  `pricing-policies.html`; a change is a `payout_settings` request (Payouts area). Lines below
+  the minimum are left out of a batch; every line carries `fee` / `feePaidBy`, and the bank
+  file's `amount_egp` is what is sent. A batch keeps the settings it was generated with.
+- **Review cases moved** (no batch requests any more): APR-0009 rate card, 0010 fee waiver,
+  0011 settlement (Yasmin Bakr), 0012–0014 the three result files of the 1,000-line batch
+  (wallet 338 lines / 6 failed, bank 333, prepaid 329), 0015–0017 the three result files of a
+  100-line batch, 0018 settlement import, 0019 manual payout, 0020 payout method, 0021
+  commission, 0022 cancellation policy, 0023 balance limit, 0024 payout settings. The 12- and
+  100-line batches are now *Ready to export*. The paragraphs above that cite older ids are
+  historical.

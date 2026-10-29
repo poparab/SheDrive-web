@@ -2,9 +2,10 @@
  * finance-seed.js — payouts, settlement imports and maker-checker seed data
  *
  * docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md
- * Every finance action is a request one admin makes and another approves (§1);
- * earnings wait 7 calendar days, then are paid out in batches Finance runs
- * through the bank portal (§3); settlements come back as an imported sheet (§4).
+ * Every finance action is a request one admin makes and another approves (§1),
+ * except generating a payout batch (2026-10-29); earnings wait 7 calendar days,
+ * then are paid out in batches — one bank file per payout method — Finance runs
+ * through each channel's portal (§3); settlements come back as an imported sheet (§4).
  *
  * Kept apart from seed.js so the base seed stays as it was. It reads the base
  * collections and decorates them (a payout method per driver, paid markers on
@@ -65,6 +66,19 @@ export const SETTLEMENT_CHANNELS = ['Bank transfer', 'Fawry', 'Mobile wallet', '
 
 export const dueAtOf = (entry) => entry.at + PAYOUT_HOLD_DAYS * DAY;
 
+// 2026-10-29 — payout settings, a Financial lead's request like the balance
+// limit: a line below the minimum waits for a later batch, and every line
+// carries a transfer fee that the driver or SheDrive pays.
+export const FEE_PAYERS = ['driver', 'shedrive'];
+GLOBAL_POLICIES.payout ??= {
+  minimumAmount: 100,
+  transferFee: 5,
+  feePaidBy: 'driver',
+  updatedAt: NOW - 2 * DAY,
+  updatedBy: NOUR.email,
+};
+const FAILURES = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
+
 function seedPayoutMethod(driver, index) {
   const at = driver.submittedAt + HOUR;
   const kind = index % 5;
@@ -114,18 +128,23 @@ export function makeBatchRef(at) {
   return `PB-${ymd}-${String(seq).padStart(2, '0')}`;
 }
 
-export function makeLine(driver, ref, n, amount, entryIds) {
+/** One payee line, with the transfer fee in force when the batch was generated. */
+export function makeLine(driver, ref, n, amount, entryIds, settings = GLOBAL_POLICIES.payout) {
   const m = driver.payoutMethod;
   return {
     lineRef: `${ref}-${String(n).padStart(4, '0')}`,
     driverId: String(driver.id),
     driverName: driver.name,
     nationalId: driver.nid,
+    // Every bank file carries her phone number (2026-10-29).
+    phone: driver.phone ? `0${driver.phone}` : null,
     payoutType: m.type,
     provider: m.provider,
     number: m.number,
     holderName: m.holderName,
     amount: round2(amount),
+    fee: settings.transferFee,
+    feePaidBy: settings.feePaidBy,
     entryIds,
     status: 'pending',
     bankReference: null,
@@ -141,9 +160,9 @@ export const PAYOUT_BATCHES = [];
 // Two completed batches, built from payouts already on the ledger so a paid
 // line and its `payout` entry agree.
 [
-  { from: 16, to: 9, maker: MONA, checker: NOUR },
-  { from: 9, to: 2, maker: FIN_OFFICER, checker: HALA },
-].forEach(({ from, to, maker, checker }) => {
+  { from: 16, to: 9, maker: MONA },
+  { from: 9, to: 2, maker: FIN_OFFICER },
+].forEach(({ from, to, maker }) => {
   const payouts = LEDGER_ENTRIES.filter(
     (e) => e.type === 'payout' && e.at <= NOW - to * DAY && e.at > NOW - from * DAY && findDriver(e.driverId)?.payoutMethod,
   );
@@ -165,7 +184,7 @@ export const PAYOUT_BATCHES = [];
   );
   if (unlucky) {
     // The failure reason matches the method it was sent to.
-    const failed = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' }[unlucky.payoutMethod.type];
+    const failed = FAILURES[unlucky.payoutMethod.type];
     const line = makeLine(unlucky, ref, lines.length + 1, intBetween(80, 260), []);
     line.status = 'failed';
     line.failureReason = failed;
@@ -178,13 +197,14 @@ export const PAYOUT_BATCHES = [];
     status: 'completed',
     createdAt,
     createdBy: maker.email,
-    approvedBy: checker.email,
-    approvedAt: createdAt + 2 * HOUR,
     exportedAt: createdAt + 3 * HOUR,
     exportedBy: maker.email,
     resultImportedAt: createdAt + 2 * DAY,
     resultImportedBy: maker.email,
     completedAt: createdAt + 2 * DAY + HOUR,
+    parts: Object.fromEntries(PAYOUT_TYPES.filter((t) => lines.some((l) => l.payoutType === t)).map((t) => [t, {
+      status: 'done', importedAt: createdAt + 2 * DAY, importedBy: maker.email, decidedAt: createdAt + 2 * DAY + HOUR,
+    }])),
     lines,
   });
 });
@@ -213,13 +233,12 @@ export const PAYOUT_BATCHES = [];
       status: 'sent_to_bank',
       createdAt,
       createdBy: MONA.email,
-      approvedBy: NOUR.email,
-      approvedAt: createdAt + HOUR,
       exportedAt: createdAt + 90 * MINUTE,
       exportedBy: MONA.email,
       resultImportedAt: null,
       resultImportedBy: null,
       completedAt: null,
+      parts: Object.fromEntries(PAYOUT_TYPES.filter((t) => lines.some((l) => l.payoutType === t)).map((t) => [t, { status: 'sent' }])),
       lines,
     });
   }
@@ -294,10 +313,10 @@ export const SETTLEMENT_IMPORTS = [];
   }
 }
 
-// ── Review cases (2026-10-22) ─────────────────────────
+// ── Review cases (2026-10-22, 2026-10-29) ─────────────
 // One pending request of every type, so each version of the review can be
-// checked, plus batches at real scale (12, 100 and 1,000 lines) and a result
-// file with failures. Batch lines are generated payees, not seeded drivers —
+// checked, plus batches at real scale: two Ready to export (12 and 100 lines)
+// and two whose result files are awaiting approval (1,000 and 100 lines). Batch lines are generated payees, not seeded drivers —
 // the base seed has 34 drivers. They use their own random stream, so every
 // value above stays exactly as it was.
 
@@ -326,10 +345,10 @@ function payee(n) {
     : type === 'BANK_ACCOUNT'
       ? { type, provider: pick2(BANKS), number: rand2() < 0.5 ? `EG${digits2(27)}` : digits2(12) }
       : { type, provider: null, number: `5078${digits2(12)}` };
-  return { id: null, name, nid: `2${born}${digits2(7)}`, payoutMethod: { ...method, holderName: name } };
+  // Derived from n, not drawn, so the random stream stays as it was.
+  const phone = `1${'0125'[n % 4]}${String(10000000 + ((n * 7919) % 90000000))}`;
+  return { id: null, name, phone, nid: `2${born}${digits2(7)}`, payoutMethod: { ...method, holderName: name } };
 }
-
-const FAILURES = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
 
 /** A generated batch of `count` lines; `failEvery` > 0 adds a result file with that share failed. */
 function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 }) {
@@ -346,19 +365,19 @@ function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 })
     status,
     createdAt,
     createdBy: maker.email,
-    approvedBy: null,
-    approvedAt: null,
     exportedAt: null,
     exportedBy: null,
     resultImportedAt: null,
     resultImportedBy: null,
     completedAt: null,
+    parts: Object.fromEntries(PAYOUT_TYPES.filter((t) => lines.some((l) => l.payoutType === t)).map((t) => [t, {
+      status: status === 'result_pending' ? 'result_pending' : 'ready',
+      ...(status === 'result_pending' ? { importedAt: createdAt + DAY, importedBy: maker.email } : {}),
+    }])),
     lines,
   };
   if (status === 'result_pending') {
     Object.assign(batch, {
-      approvedBy: NOUR.email,
-      approvedAt: createdAt + HOUR,
       exportedAt: createdAt + 2 * HOUR,
       exportedBy: maker.email,
       resultImportedAt: createdAt + DAY,
@@ -373,9 +392,9 @@ function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 })
 }
 
 const REVIEW_BATCHES = {
-  small: reviewBatch({ count: 12, createdAt: NOW - 3 * HOUR, maker: MONA, status: 'pending_approval', offset: 0 }),
-  hundred: reviewBatch({ count: 100, createdAt: NOW - 2 * HOUR, maker: NOUR, status: 'pending_approval', offset: 100 }),
-  thousand: reviewBatch({ count: 1000, createdAt: NOW - 90 * MINUTE, maker: MONA, status: 'pending_approval', offset: 1000 }),
+  small: reviewBatch({ count: 12, createdAt: NOW - 3 * HOUR, maker: MONA, status: 'ready', offset: 0 }),
+  hundred: reviewBatch({ count: 100, createdAt: NOW - 2 * HOUR, maker: NOUR, status: 'ready', offset: 100 }),
+  thousand: reviewBatch({ count: 1000, createdAt: NOW - DAY - 90 * MINUTE, maker: MONA, status: 'result_pending', offset: 1000, failEvery: 40 }),
   result: reviewBatch({ count: 100, createdAt: NOW - 2 * DAY, maker: NOUR, status: 'result_pending', offset: 3000, failEvery: 16 }),
 };
 PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
@@ -418,7 +437,6 @@ function nextImportIdFrom(list) {
 
 // ── Approval requests (maker-checker, §1) ─────────────
 export const APPROVAL_TYPES = [
-  'payout_batch',
   'payout_result',
   'payout',
   'settlement',
@@ -429,6 +447,7 @@ export const APPROVAL_TYPES = [
   'commission',
   'cancellation_policy',
   'balance_limit',
+  'payout_settings',
 ];
 
 /**
@@ -436,7 +455,7 @@ export const APPROVAL_TYPES = [
  * by it today; once Finance and Pricing approvers are split, a role presets it.
  */
 export const APPROVAL_AREAS = {
-  payouts: ['payout_batch', 'payout_result', 'payout', 'settlement', 'settlement_import'],
+  payouts: ['payout_result', 'payout', 'settlement', 'settlement_import', 'payout_settings'],
   fees: ['fee_waiver'],
   pricing: ['rate_card', 'commission', 'cancellation_policy', 'balance_limit'],
   drivers: ['payout_method'],
@@ -471,19 +490,19 @@ export function makeApproval(type, subject, { before = null, after = null, amoun
 
 export const APPROVALS = [];
 {
+  // A generated batch needs no approval (2026-10-29); each method's result file does.
   PAYOUT_BATCHES.filter((b) => b.status === 'completed').forEach((b) => {
-    const total = round2(b.lines.reduce((t, l) => t + l.amount, 0));
-    APPROVALS.push(makeApproval('payout_batch', { kind: 'batch', id: b.id, label: b.ref }, {
-      after: { lines: b.lines.length, total }, amount: total, payload: { batchId: b.id },
-      maker: b.createdBy, madeAt: b.createdAt, status: 'approved', checker: b.approvedBy, decidedAt: b.approvedAt,
-    }));
-    const paid = b.lines.filter((l) => l.status === 'paid');
-    APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
-      after: { success: paid.length, failed: b.lines.length - paid.length },
-      amount: round2(paid.reduce((t, l) => t + l.amount, 0)),
-      payload: { batchId: b.id }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
-      status: 'approved', checker: HALA.email, decidedAt: b.completedAt,
-    }));
+    PAYOUT_TYPES.forEach((type) => {
+      const lines = b.lines.filter((l) => l.payoutType === type);
+      if (!lines.length) return;
+      const paid = lines.filter((l) => l.status === 'paid');
+      APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
+        after: { success: paid.length, failed: lines.length - paid.length },
+        amount: round2(paid.reduce((t, l) => t + l.amount, 0)),
+        payload: { batchId: b.id, payoutType: type }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
+        status: 'approved', checker: HALA.email, decidedAt: b.completedAt,
+      }));
+    });
   });
 
   SETTLEMENT_IMPORTS.filter((imp) => imp.status !== 'pending').forEach((imp) => {
@@ -499,15 +518,6 @@ export const APPROVALS = [];
     maker: NOUR.email, madeAt: NOW - 6 * DAY, status: 'rejected', checker: HALA.email,
     decidedAt: NOW - 6 * DAY + 4 * HOUR, rejectReason: 'Commission stays at 18% until the quarterly review.',
   }));
-
-  const open = PAYOUT_BATCHES.find((b) => b.status === 'sent_to_bank');
-  if (open) {
-    const total = round2(open.lines.reduce((t, l) => t + l.amount, 0));
-    APPROVALS.push(makeApproval('payout_batch', { kind: 'batch', id: open.id, label: open.ref }, {
-      after: { lines: open.lines.length, total }, amount: total, payload: { batchId: open.id },
-      maker: open.createdBy, madeAt: open.createdAt, status: 'approved', checker: open.approvedBy, decidedAt: open.approvedAt,
-    }));
-  }
 
   // Pending — made by other admins, so the signed-in admin can check them.
   const zone = ZONES.find((z) => z.rateCard);
@@ -541,24 +551,21 @@ export const APPROVALS = [];
   }
 
   // Review cases — added after the requests above so their ids stay as they were.
-  [REVIEW_BATCHES.small, REVIEW_BATCHES.hundred, REVIEW_BATCHES.thousand].forEach((b) => {
-    const total = round2(b.lines.reduce((t, l) => t + l.amount, 0));
-    APPROVALS.push(makeApproval('payout_batch', { kind: 'batch', id: b.id, label: b.ref }, {
-      after: { lines: b.lines.length, total }, amount: total, payload: { batchId: b.id },
-      maker: b.createdBy, madeAt: b.createdAt,
-    }));
+  // One request per method's result file: the 1,000-line batch first, then the 100-line one.
+  [REVIEW_BATCHES.thousand, REVIEW_BATCHES.result].forEach((b) => {
+    PAYOUT_TYPES.forEach((type) => {
+      const lines = b.lines.filter((l) => l.payoutType === type);
+      if (!lines.length) return;
+      const ok = new Set(b.result.filter((r) => r.status === 'SUCCESS').map((r) => r.lineRef));
+      const paid = lines.filter((l) => ok.has(l.lineRef));
+      APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
+        before: { success: 0, failed: 0 },
+        after: { success: paid.length, failed: lines.length - paid.length },
+        amount: round2(paid.reduce((t, l) => t + l.amount, 0)),
+        payload: { batchId: b.id, payoutType: type }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
+      }));
+    });
   });
-
-  {
-    const b = REVIEW_BATCHES.result;
-    const ok = b.result.filter((r) => r.status === 'SUCCESS').map((r) => r.lineRef);
-    APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
-      before: { success: 0, failed: 0 },
-      after: { success: ok.length, failed: b.lines.length - ok.length },
-      amount: round2(b.lines.filter((l) => ok.includes(l.lineRef)).reduce((t, l) => t + l.amount, 0)),
-      payload: { batchId: b.id }, maker: b.resultImportedBy, madeAt: b.resultImportedAt,
-    }));
-  }
 
   const pendingImport = SETTLEMENT_IMPORTS.find((i) => i.status === 'pending');
   if (pendingImport) {
@@ -598,7 +605,6 @@ export const APPROVALS = [];
   }));
 
   // #6212 — the cancellation policy and the balance limit wait for approval too.
-  // Added last so every earlier request keeps its id (APR-0019, APR-0020).
   {
     const { updatedAt, updatedBy, ...current } = GLOBAL_POLICIES.cancellation;
     const next = { ...current, driverCancellationFee: current.driverCancellationFee + 5 };
@@ -615,6 +621,15 @@ export const APPROVALS = [];
       maker: NOUR.email, madeAt: NOW - 35 * MINUTE,
     }));
   }
+  // 2026-10-29 — a payout settings change: SheDrive takes over the transfer fee.
+  {
+    const { updatedAt, updatedBy, ...current } = GLOBAL_POLICIES.payout;
+    const next = { ...current, minimumAmount: 150, feePaidBy: 'shedrive' };
+    APPROVALS.push(makeApproval('payout_settings', { kind: 'policy', id: 'payout-settings', label: 'Payout settings' }, {
+      before: current, after: next, payload: { payout: next },
+      maker: HALA.email, madeAt: NOW - 20 * MINUTE,
+    }));
+  }
 
   APPROVALS.sort((a, b) => b.madeAt - a.madeAt);
 }
@@ -628,8 +643,10 @@ AUDIT_ACTION_TYPES.push(
   'approval requested',
   'approval approved',
   'approval rejected',
+  'payout batch generated',
   'payout batch exported',
   'payout result imported',
+  'payout settings changed',
   'fee waived',
   'payout method changed',
 );

@@ -17,7 +17,7 @@ export const en = {
 
     // Global policies
     policiesIntro:
-      "These policies apply across all zones. Commission, the cancellation policy and the balance limit change only once another Financial lead approves; operating hours apply at once. A trip already in progress keeps the values active when the driver accepted it. Per-zone amounts live on each zone's rate card.",
+      "These policies apply across all zones. Commission, the cancellation policy, the balance limit and the payout settings change only once another Financial lead approves; operating hours apply at once. A trip already in progress keeps the values active when the driver accepted it. Per-zone amounts live on each zone's rate card.",
     saveChanges: 'Save changes',
     policiesLoadError: 'Could not load the policies',
     nothingChanged: 'Nothing has changed — there is nothing to save.',
@@ -28,6 +28,7 @@ export const en = {
     commissionChange: 'platform commission {from} → {to}',
     cancellationChange: 'cancellation policy',
     balanceLimitChange: 'driver balance limit {from} → {to}',
+    payoutSettingsChange: 'payout settings',
     readOnlyNote: 'Read-only for your role.',
     listSeparator: ', ',
 
@@ -72,7 +73,7 @@ export const ar = {
     confirmDelete: 'تأكيد وحذف',
 
     policiesIntro:
-      'تنطبق هذه السياسات على جميع المناطق. لا تتغير العمولة وسياسة الإلغاء وحد الرصيد إلا بعد موافقة رئيس فريق مالي آخر، أما ساعات العمل فتُطبَّق فورًا. تحتفظ الرحلات الجارية بالقيم المعتمدة عند قبولها. وتُحدد مبالغ كل منطقة في بطاقة أسعارها.',
+      'تنطبق هذه السياسات على جميع المناطق. لا تتغير العمولة وسياسة الإلغاء وحد الرصيد وإعدادات المدفوعات إلا بعد موافقة رئيس فريق مالي آخر، أما ساعات العمل فتُطبَّق فورًا. تحتفظ الرحلات الجارية بالقيم المعتمدة عند قبولها. وتُحدد مبالغ كل منطقة في بطاقة أسعارها.',
     saveChanges: 'حفظ التغييرات',
     policiesLoadError: 'تعذّر تحميل السياسات',
     nothingChanged: 'لم يتغير شيء — لا يوجد ما يُحفظ.',
@@ -83,6 +84,7 @@ export const ar = {
     commissionChange: 'عمولة المنصة {from} ← {to}',
     cancellationChange: 'سياسة الإلغاء',
     balanceLimitChange: 'حد رصيد السائقة {from} ← {to}',
+    payoutSettingsChange: 'إعدادات المدفوعات',
     readOnlyNote: 'للعرض فقط بصلاحيتك.',
     listSeparator: '، ',
 

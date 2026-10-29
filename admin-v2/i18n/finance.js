@@ -21,10 +21,10 @@ export const en = {
       'Maker-checker queue. Every finance request waits here until a Financial lead approves or rejects it; an officer sees only her own requests. Try ?as=fin_officer and ?as=fin_lead.',
     titlePayouts: 'Payouts',
     notesPayouts:
-      'Payout batches. Generate a batch from earnings past their 7-day hold, then approve, export the bank file and import the result.',
+      'Payout batches. Generate a batch from earnings past their 7-day hold — ready to export at once, one bank file per payout method — then import each file’s result.',
     titlePayoutBatch: 'Payout batch',
     notesPayoutBatch:
-      'One batch: its lines, the bank file and the result file Finance sends back. Open it from Payouts.',
+      'One batch: its lines, one bank file per payout method, and each file’s result. Open it from Payouts.',
     titleSettlementImports: 'Settlement imports',
     titleDriverLedger: 'Driver ledger',
     notesDriverLedger: "One driver's ledger, opened from Driver balances: balance and payout position, record payout or settlement (sent for approval), and every entry with its payout status.",
@@ -51,10 +51,10 @@ export const ar = {
       'قائمة الموافقات (منشئ ومراجع). ينتظر كل طلب مالي هنا حتى يعتمده رئيس فريق مالي أو يرفضه؛ ويرى الموظف المالي طلباته فقط. جرّب ?as=fin_officer و?as=fin_lead.',
     titlePayouts: 'المدفوعات',
     notesPayouts:
-      'دفعات المدفوعات. أنشئ دفعة من الأرباح التي تجاوزت فترة الانتظار ٧ أيام، ثم وافق عليها وصدّر ملف البنك واستورد النتيجة.',
+      'دفعات المدفوعات. أنشئ دفعة من الأرباح التي تجاوزت فترة الانتظار ٧ أيام — جاهزة للتصدير فورًا، ملف بنكي لكل طريقة دفع — ثم استورد نتيجة كل ملف.',
     titlePayoutBatch: 'دفعة مدفوعات',
     notesPayoutBatch:
-      'دفعة واحدة: بنودها وملف البنك وملف النتيجة الذي يعيده فريق المالية. تُفتح من صفحة المدفوعات.',
+      'دفعة واحدة: بنودها وملف بنكي لكل طريقة دفع ونتيجة كل ملف. تُفتح من صفحة المدفوعات.',
     titleSettlementImports: 'استيراد التسويات',
     titleDriverLedger: 'دفتر حساب السائقة',
     notesDriverLedger: 'دفتر حساب سائقة واحدة، يُفتح من أرصدة السائقات: الرصيد ووضع المدفوعات، وتسجيل دفعة أو تسوية (تُرسل للموافقة)، وكل قيد مع حالة صرفه.',

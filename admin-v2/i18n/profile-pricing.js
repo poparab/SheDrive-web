@@ -86,9 +86,10 @@ export const en = {
     rateCardTitle: 'Rate card — {zone}',
     zonesPendingNotice: '{n} zone(s) have a rate card change awaiting approval. The status shown is the current card until it is approved.',
 
-    commissionHint: "Commission, cancellation policy and balance limit changes need another Financial lead's approval. Operating hours save immediately.",
+    commissionHint: "Commission, cancellation policy, balance limit and payout settings changes need another Financial lead's approval. Operating hours save immediately.",
     cancellationPending: 'Cancellation policy change awaiting approval',
     balancePending: 'Balance limit change to {limit} awaiting approval',
+    payoutPending: 'Payout settings change awaiting approval',
     settingPendingMeta: 'Requested by {who} on {when}. The current values stay in force until another Financial lead decides.',
     commissionSent: 'Commission change sent for approval — another Financial lead must approve it.',
     commissionPending: 'Commission change to {pct} awaiting approval',
@@ -229,9 +230,10 @@ export const ar = {
     rateCardTitle: 'جدول الأسعار — {zone}',
     zonesPendingNotice: 'يوجد تغيير في جدول الأسعار بانتظار الموافقة في {n} منطقة. الحالة المعروضة هي حالة الجدول الحالي حتى تتم الموافقة.',
 
-    commissionHint: 'تغييرات العمولة وسياسة الإلغاء وحد الرصيد تحتاج إلى موافقة رئيس فريق مالي آخر. أما ساعات العمل فتُحفظ فورًا.',
+    commissionHint: 'تغييرات العمولة وسياسة الإلغاء وحد الرصيد وإعدادات المدفوعات تحتاج إلى موافقة رئيس فريق مالي آخر. أما ساعات العمل فتُحفظ فورًا.',
     cancellationPending: 'تغيير سياسة الإلغاء بانتظار الموافقة',
     balancePending: 'تغيير حد الرصيد إلى {limit} بانتظار الموافقة',
+    payoutPending: 'تغيير إعدادات المدفوعات بانتظار الموافقة',
     settingPendingMeta: 'طلبه {who} في {when}. تبقى القيم الحالية سارية حتى يقرر رئيس فريق مالي آخر.',
     commissionSent: 'أُرسل تغيير العمولة للموافقة — يجب أن يوافق عليه رئيس فريق مالي آخر.',
     commissionPending: 'تغيير العمولة إلى {pct} بانتظار الموافقة',

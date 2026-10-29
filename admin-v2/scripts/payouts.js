@@ -3,8 +3,9 @@
  *
  * Lists payout batches and generates a new one. Generating is a two-step act:
  * the preview lists only the drivers a batch made now would pay, then
- * confirming creates the batch as a `payout_batch` request that a different
- * admin must approve (§1). Nothing is paid from this screen.
+ * confirming creates the batch, Ready to export at once — no approval
+ * (2026-10-29). The minimum payout and the transfer fee (and who pays it) come
+ * from the payout settings on Pricing policies. Nothing is paid from this screen.
  *
  * The preview needs a table of lines, which the field-driven
  * ad-form-modal cannot render, so it is a kit `default-modal` built here.
@@ -30,17 +31,15 @@ const table = qs('#batches-table');
 
 const query = { status: 'all', page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' } };
 
-const STATUSES = ['pending_approval', 'ready', 'sent_to_bank', 'result_pending', 'completed', 'rejected'];
-const OPEN_STATUSES = ['pending_approval', 'ready', 'sent_to_bank', 'result_pending'];
+const STATUSES = ['ready', 'sent_to_bank', 'result_pending', 'completed'];
+const OPEN_STATUSES = ['ready', 'sent_to_bank', 'result_pending'];
 
 /** Batch status → the kit's lamp class. */
 const LAMP = {
-  pending_approval: 'status-warning-lamp',
   ready: 'status-blue-lamp',
   sent_to_bank: 'status-primary-lamp',
   result_pending: 'status-warning-lamp',
   completed: 'status-active-lamp',
-  rejected: 'status-danger-lamp',
 };
 
 function el(tag, className, text) {
@@ -315,10 +314,12 @@ function renderPreview(body, preview, openBatch) {
     empty.append(iconWrap, el('h3', '', t('payouts.previewEmpty')));
     body.appendChild(empty);
     if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
+    if (preview.belowMinimum?.count) body.appendChild(belowMinimumNote(preview));
     return;
   }
 
-  body.append(alertBox('info', t('payouts.previewApprovalNote')));
+  body.append(alertBox('info', settingsNote(preview)));
+  if (preview.belowMinimum?.count) body.appendChild(belowMinimumNote(preview));
   if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
 
   // Only the drivers this batch pays — nobody left out is listed (2026-10-14).
@@ -333,6 +334,8 @@ function renderPreview(body, preview, openBatch) {
       [t('payouts.previewColDue'), true],
       [t('payouts.previewColBalance'), true],
       [t('payouts.previewColAmount'), true],
+      [t('payouts.previewColFee'), true],
+      [t('payouts.previewColSent'), true],
     ]),
   );
   const tbody = el('tbody');
@@ -345,7 +348,9 @@ function renderPreview(body, preview, openBatch) {
       cell('', ltr(line.number)),
       cell('text-end', ltr(formatEgp(line.dueNet))),
       cell('text-end', ltr(formatEgp(line.balance))),
-      cell('text-end', el('p', 'text-bold success-color ad-ltr', formatEgp(line.amount))),
+      cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(line.amount))),
+      cell('text-end', ltr(line.feePaidBy === 'driver' ? `−${formatEgp(line.fee)}` : formatEgp(line.fee))),
+      cell('text-end', el('p', 'text-bold success-color ad-ltr', formatEgp(line.transferAmount))),
     );
     tbody.appendChild(tr);
   });
@@ -354,11 +359,34 @@ function renderPreview(body, preview, openBatch) {
   const totalRow = el('tr', 'payouts-preview__total');
   const totalLabel = el('td', '', t('payouts.previewTotal'));
   totalLabel.colSpan = 6;
-  totalRow.append(totalLabel, cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.total))));
+  totalRow.append(
+    totalLabel,
+    cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.total))),
+    cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.feeTotal))),
+    cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.transferTotal))),
+  );
   tfoot.appendChild(totalRow);
   grid.appendChild(tfoot);
   wrap.appendChild(grid);
   body.append(wrap, el('p', 'small lh-sm payouts-preview__hint', t('payouts.previewAmountHint')));
+}
+
+/** The payout settings this batch is generated under, and its one-file-per-method split (2026-10-29). */
+function settingsNote(preview) {
+  const s = preview.settings;
+  const files = preview.byType.map((g) => t('payouts.previewFileCount', { type: typeLabel(g.type), n: formatCount(g.count) }));
+  return t(s.feePaidBy === 'driver' ? 'payouts.previewSettingsDriver' : 'payouts.previewSettingsShedrive', {
+    min: formatEgp(s.minimumAmount),
+    fee: formatEgp(s.transferFee),
+  }) + ' ' + t('payouts.previewFiles', { files: files.join(t('payouts.listSeparator')) });
+}
+
+function belowMinimumNote(preview) {
+  return alertBox('warning', t('payouts.previewBelowMinimum', {
+    n: formatCount(preview.belowMinimum.count),
+    total: formatEgp(preview.belowMinimum.total),
+    min: formatEgp(preview.settings.minimumAmount),
+  }));
 }
 
 async function openPreview() {
@@ -414,7 +442,7 @@ async function confirmBatch() {
     const result = await mockApi.createPayoutBatch();
     const ref = result?.batch?.ref;
     if (!ref) throw new Error(t('common.notAvailable'));
-    shell.showToast(t('payouts.sentForApproval', { ref }), 'success');
+    shell.showToast(t('payouts.generated', { ref }), 'success');
     hideModal();
     // The detail page repeats the toast, since this one is lost on navigation.
     window.location.href = `payout-batch.html?id=${encodeURIComponent(result.batch.id)}&created=1`;

@@ -252,6 +252,9 @@ export function applyMutations({
     if (state.policies.operatingHours) {
       Object.assign(GLOBAL_POLICIES.operatingHours, state.policies.operatingHours);
     }
+    if (state.policies.payout && GLOBAL_POLICIES.payout) {
+      Object.assign(GLOBAL_POLICIES.payout, state.policies.payout);
+    }
   }
 
   // Ledger entries replay before balances are recomputed, so a settlement made

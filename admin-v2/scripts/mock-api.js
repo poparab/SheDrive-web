@@ -306,7 +306,7 @@ function refusedFor(capability) {
   return Promise.reject(new MockApiError("Your role can't do this. Nothing was changed.", 403));
 }
 
-const isOpenBatch = (b) => ['pending_approval', 'ready', 'sent_to_bank', 'result_pending'].includes(b.status);
+const isOpenBatch = (b) => ['ready', 'sent_to_bank', 'result_pending'].includes(b.status);
 
 /** The open-batch line an entry is in, if any. */
 function openLineFor(entryId) {
@@ -403,14 +403,16 @@ function postSettlement(driver, { amount, at, method, note, proof = null, paymen
   return entry;
 }
 
-function postPayout(driver, { amount, at, ref, note, proof = null, lineRef = null, batchId = null }) {
+function postPayout(driver, { amount, at, ref, note, proof = null, lineRef = null, batchId = null, fee = 0 }) {
   const before = driver.balance;
   const entry = postLedgerEntry(driver, 'payout', -amount, at, {
     ref,
-    note: note || 'Payout sent by Finance',
+    // 2026-10-29 — when she pays the transfer fee, it is part of this payout.
+    note: note || (fee ? `Payout sent by Finance — includes the ${fee.toFixed(2)} EGP transfer fee` : 'Payout sent by Finance'),
     proof,
     lineRef,
     batchId,
+    transferFee: fee || null,
     actor: actingAdmin().email,
   });
   makeAuditEntry('payout', 'driver', driver.id, { balance: before }, { balance: driver.balance });
@@ -490,21 +492,66 @@ function parseCsv(text) {
   return { headers, rows };
 }
 
-const EXPORT_HEADERS = ['batch_ref', 'line_ref', 'national_id', 'driver_name', 'payout_type', 'provider_or_bank', 'account_number', 'account_holder', 'amount_egp'];
-const RESULT_HEADERS = [...EXPORT_HEADERS, 'status', 'bank_reference', 'failure_reason'];
+/**
+ * 2026-10-29 — one bank file per payout method, each with its own template.
+ * Every file carries the driver's phone number and the transfer fee: `amount_egp`
+ * is what the channel sends; `earnings_egp` is what leaves her balance.
+ */
+const FILE_HEAD = ['batch_ref', 'line_ref', 'national_id', 'driver_name', 'phone'];
+const FILE_AMOUNTS = ['earnings_egp', 'transfer_fee_egp', 'fee_paid_by', 'amount_egp'];
+const FILE_HEADERS = {
+  MOBILE_WALLET: [...FILE_HEAD, 'wallet_provider', 'wallet_number', 'account_holder', ...FILE_AMOUNTS],
+  BANK_ACCOUNT: [...FILE_HEAD, 'bank_name', 'account_number', 'account_holder', ...FILE_AMOUNTS],
+  PREPAID_CARD: [...FILE_HEAD, 'card_number', 'card_holder', ...FILE_AMOUNTS],
+};
+const RESULT_COLUMNS = ['status', 'bank_reference', 'failure_reason'];
+const FILE_SLUG = { MOBILE_WALLET: 'mobile-wallet', BANK_ACCOUNT: 'bank-account', PREPAID_CARD: 'prepaid-card' };
 const SETTLEMENT_HEADERS = ['national_id', 'driver_name', 'amount_egp', 'payment_date', 'payment_channel', 'payment_reference'];
 
-const exportRow = (batch, l) => ({
-  batch_ref: batch.ref,
-  line_ref: l.lineRef,
-  national_id: l.nationalId,
-  driver_name: l.driverName,
-  payout_type: l.payoutType,
-  provider_or_bank: l.provider ?? '',
-  account_number: l.number,
-  account_holder: l.holderName,
-  amount_egp: l.amount.toFixed(2),
-});
+const FAILURE_REASONS = { MOBILE_WALLET: 'Wallet number not registered', BANK_ACCOUNT: 'Account closed', PREPAID_CARD: 'Card blocked by issuer' };
+
+/** The payout settings in force now (2026-10-29): minimum payout, transfer fee, who pays it. */
+function payoutSettings() {
+  const { minimumAmount, transferFee, feePaidBy } = GLOBAL_POLICIES.payout;
+  return { minimumAmount, transferFee, feePaidBy };
+}
+
+/** What the channel sends: her line, less the transfer fee when she pays it. */
+const transferAmountOf = (l) => round2(l.feePaidBy === 'driver' ? l.amount - (l.fee ?? 0) : l.amount);
+
+function exportRow(batch, l) {
+  const row = { batch_ref: batch.ref, line_ref: l.lineRef, national_id: l.nationalId, driver_name: l.driverName, phone: l.phone ?? '' };
+  if (l.payoutType === 'MOBILE_WALLET') Object.assign(row, { wallet_provider: l.provider ?? '', wallet_number: l.number, account_holder: l.holderName });
+  else if (l.payoutType === 'BANK_ACCOUNT') Object.assign(row, { bank_name: l.provider ?? '', account_number: l.number, account_holder: l.holderName });
+  else Object.assign(row, { card_number: l.number, card_holder: l.holderName });
+  return Object.assign(row, {
+    earnings_egp: l.amount.toFixed(2),
+    transfer_fee_egp: (l.fee ?? 0).toFixed(2),
+    fee_paid_by: l.feePaidBy === 'driver' ? 'DRIVER' : 'SHEDRIVE',
+    amount_egp: transferAmountOf(l).toFixed(2),
+  });
+}
+
+/** The payout methods a batch has lines for, in the fixed order. */
+const batchTypes = (batch) => PAYOUT_TYPES.filter((type) => batch.lines.some((l) => l.payoutType === type));
+
+/** Where one method's file is: ready, sent, result_pending or done. */
+function partStatus(batch, type) {
+  const part = batch.parts?.[type];
+  if (part) return part.status;
+  return { ready: 'ready', completed: 'done', result_pending: 'result_pending' }[batch.status] ?? 'sent';
+}
+
+/**
+ * Each method's result comes back on its own file. The batch is Completed once
+ * every file's result is approved, Result pending approval once none is still
+ * awaited, and Sent to bank while any file's result is still to come.
+ */
+function settleBatchStatus(batch, now) {
+  const states = batchTypes(batch).map((type) => partStatus(batch, type));
+  const status = states.every((s) => s === 'done') ? 'completed' : states.every((s) => s !== 'sent') ? 'result_pending' : 'sent_to_bank';
+  patchBatch(batch, { status, parts: batch.parts, result: batch.result ?? null, completedAt: status === 'completed' ? now : null });
+}
 
 function validationError(message, details) {
   const err = new MockApiError(message, 422);
@@ -514,15 +561,14 @@ function validationError(message, details) {
 
 /** What approving each request type does (§1). */
 const EXECUTE = {
-  payout_batch(request) {
-    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
-    if (batch) patchBatch(batch, { status: 'ready', approvedBy: actingAdmin().email, approvedAt: Date.now() });
-  },
   payout_result(request) {
     const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
     if (!batch || !batch.result) return;
     const now = Date.now();
+    // One method's file (2026-10-29); a request without one covers the whole batch.
+    const type = request.payload.payoutType ?? null;
     batch.lines.forEach((line, i) => {
+      if (type && line.payoutType !== type) return;
       const res = batch.result.find((r) => r.lineRef === line.lineRef);
       const driver = DRIVERS_BY_ID.get(line.driverId);
       if (!res) return;
@@ -536,7 +582,14 @@ const EXECUTE = {
       if (res.status === 'SUCCESS') {
         // Keyed on the line: importing the same result twice posts nothing new.
         if (!LEDGER_ENTRIES.some((e) => e.lineRef === line.lineRef)) {
-          postPayout(driver, { amount: line.amount, at: now + i, ref: res.bankReference || line.lineRef, lineRef: line.lineRef, batchId: batch.id });
+          postPayout(driver, {
+            amount: line.amount,
+            at: now + i,
+            ref: res.bankReference || line.lineRef,
+            lineRef: line.lineRef,
+            batchId: batch.id,
+            fee: line.feePaidBy === 'driver' ? line.fee ?? 0 : 0,
+          });
         }
         line.entryIds.forEach((id) => {
           const entry = LEDGER_ENTRIES.find((e) => e.id === id);
@@ -554,7 +607,11 @@ const EXECUTE = {
         patch('drivers', driver.id, { lastPayoutFailure: driver.lastPayoutFailure });
       }
     });
-    patchBatch(batch, { status: 'completed', completedAt: now });
+    batch.parts ??= {};
+    (type ? [type] : batchTypes(batch)).forEach((t) => {
+      batch.parts[t] = { ...(batch.parts[t] ?? {}), status: 'done', decidedAt: now };
+    });
+    settleBatchStatus(batch, now);
   },
   payout(request) {
     const { driverId, amount, at, reference, proof } = request.payload;
@@ -669,6 +726,15 @@ const EXECUTE = {
     recordPolicies(structuredClone(GLOBAL_POLICIES));
     pricingAudit(request);
   },
+  // 2026-10-29 — applies to the next batch generated; batches already made keep theirs.
+  payout_settings(request) {
+    Object.assign(GLOBAL_POLICIES.payout, request.payload.payout, {
+      updatedAt: Date.now(),
+      updatedBy: request.maker,
+    });
+    recordPolicies(structuredClone(GLOBAL_POLICIES));
+    makeAuditEntry('payout settings changed', 'policy', 'payout-settings', request.before, { ...request.after, request: request.id, requestedBy: request.maker });
+  },
 };
 
 /** #5623 / #1760 — an approved pricing change is written to the pricing audit log, before → after. */
@@ -680,14 +746,16 @@ function pricingAudit(request) {
 
 /** What rejecting a request undoes (§1). */
 const ON_REJECT = {
-  payout_batch(request) {
-    const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
-    // Her entries are released back to Due.
-    if (batch) patchBatch(batch, { status: 'rejected', completedAt: Date.now() });
-  },
   payout_result(request) {
     const batch = PAYOUT_BATCHES_BY_ID.get(request.payload.batchId);
-    if (batch) patchBatch(batch, { status: 'sent_to_bank', result: null, resultImportedAt: null, resultImportedBy: null });
+    if (!batch) return;
+    // Only that method's file goes back to Sent to bank; a corrected file can be imported.
+    const types = request.payload.payoutType ? [request.payload.payoutType] : batchTypes(batch);
+    const refs = new Set(batch.lines.filter((l) => types.includes(l.payoutType)).map((l) => l.lineRef));
+    batch.result = (batch.result ?? []).filter((r) => !refs.has(r.lineRef));
+    batch.parts ??= {};
+    types.forEach((t) => { batch.parts[t] = { status: 'sent' }; });
+    settleBatchStatus(batch, Date.now());
   },
   settlement_import(request) {
     const imp = SETTLEMENT_IMPORTS.find((i) => i.id === request.payload.importId);
@@ -1722,6 +1790,7 @@ export const mockApi = {
       pendingCommission: pendingSummary(pendingFor('policy', 'commission', 'commission')),
       pendingCancellation: pendingSummary(pendingFor('policy', 'cancellation', 'cancellation_policy')),
       pendingBalanceLimit: pendingSummary(pendingFor('policy', 'balance-limit', 'balance_limit')),
+      pendingPayoutSettings: pendingSummary(pendingFor('policy', 'payout-settings', 'payout_settings')),
     };
     return respond(payload, { emptyValue: payload });
   },
@@ -1735,7 +1804,7 @@ export const mockApi = {
    */
   savePolicies(next) {
     const role = actingAdmin().role;
-    const wantsPricing = Boolean(next.commission || next.cancellation || next.driverBalance);
+    const wantsPricing = Boolean(next.commission || next.cancellation || next.driverBalance || next.payout);
     if ((wantsPricing && !can('pricing.request', role)) || (next.operatingHours && !can('hours.edit', role))) {
       return Promise.reject(new MockApiError("Your role can't do this. Nothing was changed.", 403));
     }
@@ -1758,6 +1827,24 @@ export const mockApi = {
       const before = { outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit };
       const after = { outstandingLimit: Number(next.driverBalance.outstandingLimit) };
       changes.push(['balance_limit', 'balance-limit', 'Driver balance limit', before, after, { driverBalance: after }]);
+    }
+    if (next.payout) {
+      // 2026-10-29 — minimum payout, transfer fee and who pays it, one request.
+      const before = strip(GLOBAL_POLICIES.payout);
+      const after = {
+        minimumAmount: Number(next.payout.minimumAmount),
+        transferFee: Number(next.payout.transferFee),
+        feePaidBy: next.payout.feePaidBy,
+      };
+      if (!(after.minimumAmount >= 0) || !(after.transferFee >= 0) || !['driver', 'shedrive'].includes(after.feePaidBy)) {
+        return Promise.reject(new MockApiError('Check the payout settings.', 422));
+      }
+      if (after.feePaidBy === 'driver' && after.minimumAmount <= after.transferFee) {
+        return Promise.reject(new MockApiError('When the driver pays the fee, the minimum payout must be more than the fee.', 422));
+      }
+      if (Object.keys(after).some((k) => String(after[k]) !== String(before[k]))) {
+        changes.push(['payout_settings', 'payout-settings', 'Payout settings', before, after, { payout: after }]);
+      }
     }
     const busy = changes.find(([type, id]) => pendingFor('policy', id, type));
     if (busy) {
@@ -2192,35 +2279,68 @@ export const mockApi = {
 
   // ── Payout batches (§3) ─────────────────────────────
 
-  /** Who a batch generated now would pay. Drivers who owe SheDrive are left out — they settle instead. */
+  /**
+   * Who a batch generated now would pay. Drivers who owe SheDrive are left out —
+   * they settle instead — and so is a line below the minimum payout, whose
+   * earnings stay Due for a later batch (2026-10-29).
+   */
   previewPayoutBatch() {
     const now = Date.now();
+    const settings = payoutSettings();
     const lines = [];
+    const below = [];
     DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status)).forEach((driver) => {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0) return;
       if (driver.balance <= 0 || !driver.payoutMethod) return;
-      const base = { driverId: String(driver.id), driverName: driver.name, nationalId: driver.nid, dueNet, balance: driver.balance };
+      // §3 — the smaller of her due net and her whole balance.
+      const amount = round2(Math.min(dueNet, driver.balance));
+      if (amount < settings.minimumAmount) {
+        below.push(amount);
+        return;
+      }
+      const fee = settings.transferFee;
       lines.push({
-        ...base,
+        driverId: String(driver.id),
+        driverName: driver.name,
+        nationalId: driver.nid,
+        phone: `0${driver.phone}`,
+        dueNet,
+        balance: driver.balance,
         payoutType: driver.payoutMethod.type,
         provider: driver.payoutMethod.provider,
         number: driver.payoutMethod.number,
-        // §3 — the smaller of her due net and her whole balance.
-        amount: round2(Math.min(dueNet, driver.balance)),
+        amount,
+        fee,
+        feePaidBy: settings.feePaidBy,
+        transferAmount: round2(settings.feePaidBy === 'driver' ? amount - fee : amount),
         entryIds: due.map((e) => e.id),
       });
     });
     lines.sort((a, b) => b.amount - a.amount);
-    const payload = { lines, count: lines.length, total: round2(lines.reduce((t, l) => t + l.amount, 0)) };
-    return respond(payload, { emptyValue: { lines: [], count: 0, total: 0 } });
+    const sum = (list, key) => round2(list.reduce((t, l) => t + l[key], 0));
+    const payload = {
+      lines,
+      count: lines.length,
+      total: sum(lines, 'amount'),
+      feeTotal: sum(lines, 'fee'),
+      transferTotal: sum(lines, 'transferAmount'),
+      byType: PAYOUT_TYPES.map((type) => ({ type, count: lines.filter((l) => l.payoutType === type).length })).filter((g) => g.count),
+      belowMinimum: { count: below.length, total: round2(below.reduce((t, a) => t + a, 0)) },
+      settings,
+    };
+    return respond(payload, {
+      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], belowMinimum: { count: 0, total: 0 }, settings },
+    });
   },
 
+  /** 2026-10-29 — no approval: the batch is Ready to export as soon as it is generated. */
   createPayoutBatch() {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
     const now = Date.now();
+    const settings = payoutSettings();
     const drivers = DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status));
     const ref = makeBatchRef(now);
     const lines = [];
@@ -2228,7 +2348,9 @@ export const mockApi = {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0 || driver.balance <= 0 || !driver.payoutMethod) return;
-      lines.push(makeLine(driver, ref, lines.length + 1, Math.min(dueNet, driver.balance), due.map((e) => e.id)));
+      const amount = Math.min(dueNet, driver.balance);
+      if (amount < settings.minimumAmount) return;
+      lines.push(makeLine(driver, ref, lines.length + 1, amount, due.map((e) => e.id), settings));
     });
     if (!lines.length) {
       return Promise.reject(new MockApiError('No driver is due a payout right now.', 409));
@@ -2237,27 +2359,24 @@ export const mockApi = {
     const batch = {
       id: ref,
       ref,
-      status: 'pending_approval',
+      status: 'ready',
       createdAt: now,
       createdBy: actingAdmin().email,
-      approvedBy: null,
-      approvedAt: null,
       exportedAt: null,
       exportedBy: null,
       resultImportedAt: null,
       resultImportedBy: null,
       completedAt: null,
+      // The settings it was generated under; a later change doesn't touch it.
+      settings,
+      parts: Object.fromEntries(PAYOUT_TYPES.filter((type) => lines.some((l) => l.payoutType === type)).map((type) => [type, { status: 'ready' }])),
       lines,
     };
     PAYOUT_BATCHES.unshift(batch);
     PAYOUT_BATCHES_BY_ID.set(batch.id, batch);
     recordAdded('batchesAdded', batch);
-    const request = createRequest('payout_batch', { kind: 'batch', id: batch.id, label: batch.ref }, {
-      after: { lines: lines.length, total },
-      amount: total,
-      payload: { batchId: batch.id },
-    });
-    return respond({ ok: true, batch: { id: batch.id, ref: batch.ref }, request: decorateRequest(request) });
+    addAuditEntry('payout batch generated', 'batch', batch.id, null, { status: 'ready', lines: lines.length, total }, now);
+    return respond({ ok: true, batch: { id: batch.id, ref: batch.ref } });
   },
 
   /** status: 'all' | a batch status. */
@@ -2283,65 +2402,108 @@ export const mockApi = {
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return respond(null, { emptyValue: null });
     const requests = APPROVALS.filter((a) => a.subject.kind === 'batch' && a.subject.id === batch.id).map(decorateRequest);
+    const sum = (list, fn) => round2(list.reduce((t, l) => t + fn(l), 0));
+    // One file per payout method, each with its own result (2026-10-29).
+    const files = batchTypes(batch).map((type) => {
+      const lines = batch.lines.filter((l) => l.payoutType === type);
+      const part = batch.parts?.[type] ?? {};
+      const forType = requests.filter((r) => r.type === 'payout_result' && (r.payload?.payoutType ?? type) === type)
+        .sort((a, b) => (b.madeAt ?? 0) - (a.madeAt ?? 0));
+      return {
+        type,
+        fileName: `${batch.ref}-${FILE_SLUG[type]}.csv`,
+        status: partStatus(batch, type),
+        lineCount: lines.length,
+        total: sum(lines, (l) => l.amount),
+        feeTotal: sum(lines, (l) => l.fee ?? 0),
+        transferTotal: sum(lines, transferAmountOf),
+        paidCount: lines.filter((l) => l.status === 'paid').length,
+        failedCount: lines.filter((l) => l.status === 'failed').length,
+        importedAt: part.importedAt ?? null,
+        importedBy: part.importedBy ?? null,
+        request: forType[0] ?? null,
+      };
+    });
     return respond({
       ...structuredClone(batch),
-      lines: batch.lines.map((l) => ({ ...l })),
+      lines: batch.lines.map((l) => ({ ...l, transferAmount: transferAmountOf(l) })),
       total: round2(batch.lines.reduce((t, l) => t + l.amount, 0)),
       paidTotal: round2(batch.lines.filter((l) => l.status === 'paid').reduce((t, l) => t + l.amount, 0)),
+      files,
       requests,
     }, { emptyValue: null });
   },
 
-  /** The bank file (§3). Exporting an approved batch moves it to Sent to bank; later downloads are copies. */
-  exportPayoutBatch(id) {
+  /**
+   * The bank files (§3, 2026-10-29): one per payout method. The first export of
+   * a Ready to export batch moves it to Sent to bank; later downloads are copies.
+   * `type` downloads one method's file only.
+   */
+  exportPayoutBatch(id, type = null) {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
-    if (['pending_approval', 'rejected'].includes(batch.status)) {
-      return Promise.reject(new MockApiError('The batch must be approved before it can be exported.', 409));
-    }
     if (batch.status === 'ready') {
+      const now = Date.now();
       batch.lines.forEach((l) => { l.status = 'sent'; });
-      patchBatch(batch, { status: 'sent_to_bank', exportedAt: Date.now(), exportedBy: actingAdmin().email });
-      addAuditEntry('payout batch exported', 'batch', batch.id, { status: 'ready' }, { status: 'sent_to_bank', lines: batch.lines.length }, Date.now());
+      batch.parts = Object.fromEntries(batchTypes(batch).map((t) => [t, { status: 'sent' }]));
+      patchBatch(batch, { status: 'sent_to_bank', parts: batch.parts, exportedAt: now, exportedBy: actingAdmin().email });
+      addAuditEntry('payout batch exported', 'batch', batch.id, { status: 'ready' }, { status: 'sent_to_bank', lines: batch.lines.length, files: batchTypes(batch).length }, now);
     }
-    const csv = toCsv(EXPORT_HEADERS, batch.lines.map((l) => exportRow(batch, l)));
-    return respond({ ok: true, csv, fileName: `${batch.ref}-payouts.csv`, status: batch.status });
+    const files = batchTypes(batch).filter((t) => !type || t === type).map((t) => ({
+      payoutType: t,
+      fileName: `${batch.ref}-${FILE_SLUG[t]}.csv`,
+      csv: toCsv(FILE_HEADERS[t], batch.lines.filter((l) => l.payoutType === t).map((l) => exportRow(batch, l))),
+    }));
+    return respond({ ok: true, files, status: batch.status });
   },
 
-  /** Demo helper: a result file as Finance would return it — every line SUCCESS but the last. */
-  buildSampleResult(id) {
+  /**
+   * Demo helper: one method's result file as its channel would return it —
+   * every line SUCCESS but the last. Without `type`, the first file still awaited.
+   */
+  buildSampleResult(id, type = null) {
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
-    const rows = batch.lines.map((l, i) => {
-      const failed = batch.lines.length > 1 && i === batch.lines.length - 1;
+    const forType = type ?? batchTypes(batch).find((t) => partStatus(batch, t) === 'sent');
+    if (!forType) return Promise.reject(new MockApiError('Every file of this batch already has a result.', 409));
+    const lines = batch.lines.filter((l) => l.payoutType === forType);
+    const rows = lines.map((l, i) => {
+      const failed = lines.length > 1 && i === lines.length - 1;
       return {
         ...exportRow(batch, l),
         status: failed ? 'FAILED' : 'SUCCESS',
         bank_reference: failed ? '' : `BNK${String(10000000 + Math.floor(Math.random() * 89999999))}`,
-        failure_reason: failed ? 'Wallet number not registered' : '',
+        failure_reason: failed ? FAILURE_REASONS[forType] : '',
       };
     });
-    return respond({ csv: toCsv(RESULT_HEADERS, rows), fileName: `${batch.ref}-result.csv` });
+    return respond({ csv: toCsv([...FILE_HEADERS[forType], ...RESULT_COLUMNS], rows), fileName: `${batch.ref}-${FILE_SLUG[forType]}-result.csv`, payoutType: forType });
   },
 
   /**
-   * Finance's result file (§3). Every line must appear exactly once with
-   * SUCCESS or FAILED. A valid file becomes a `payout_result` request.
+   * A result file returned for one method's bank file (§3, 2026-10-29). Its
+   * lines must all belong to that one file, and every line of that file must
+   * appear exactly once with SUCCESS or FAILED. A valid file becomes a
+   * `payout_result` request for that method.
    */
   importPayoutResult(id, csvText) {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
     const batch = PAYOUT_BATCHES_BY_ID.get(String(id));
     if (!batch) return Promise.reject(new MockApiError('Batch not found.', 404));
-    if (batch.status !== 'sent_to_bank') {
+    if (!['sent_to_bank', 'result_pending'].includes(batch.status)) {
       return Promise.reject(new MockApiError('A result can only be imported for a batch that was sent to the bank.', 409));
     }
     const { headers, rows } = parseCsv(csvText);
     const missingCols = ['line_ref', 'status'].filter((h) => !headers.includes(h));
     if (missingCols.length) {
       return validationError('The file is missing required columns.', missingCols.map((c) => ({ code: 'missing_column', column: c })));
+    }
+    // The file's method is the method of its first known line.
+    const type = rows.map((r) => batch.lines.find((l) => l.lineRef === r.line_ref)).find(Boolean)?.payoutType ?? null;
+    if (type && partStatus(batch, type) !== 'sent') {
+      return Promise.reject(new MockApiError('This file already has a result. Import the result of a file still waiting for one.', 409));
     }
     const errors = [];
     const seen = new Set();
@@ -2351,6 +2513,7 @@ export const mockApi = {
       const line = batch.lines.find((l) => l.lineRef === row.line_ref);
       const status = String(row.status).toUpperCase();
       if (!line) errors.push({ code: 'unknown_line', rowNo, lineRef: row.line_ref });
+      else if (line.payoutType !== type) errors.push({ code: 'other_file', rowNo, lineRef: row.line_ref });
       else if (seen.has(row.line_ref)) errors.push({ code: 'duplicate_line', rowNo, lineRef: row.line_ref });
       else if (!['SUCCESS', 'FAILED'].includes(status)) errors.push({ code: 'bad_status', rowNo, lineRef: row.line_ref, value: row.status });
       else {
@@ -2358,21 +2521,26 @@ export const mockApi = {
         result.push({ lineRef: row.line_ref, status, bankReference: row.bank_reference || null, failureReason: row.failure_reason || null });
       }
     });
-    batch.lines.filter((l) => !seen.has(l.lineRef) && !errors.some((e) => e.lineRef === l.lineRef)).forEach((l) => {
+    batch.lines.filter((l) => l.payoutType === type && !seen.has(l.lineRef) && !errors.some((e) => e.lineRef === l.lineRef)).forEach((l) => {
       errors.push({ code: 'missing_line', lineRef: l.lineRef });
     });
+    if (!type && !errors.length) errors.push({ code: 'unknown_line', rowNo: 2, lineRef: '' });
     if (errors.length) return validationError('The result file does not match this batch.', errors);
 
+    const now = Date.now();
     const success = result.filter((r) => r.status === 'SUCCESS');
     const amount = round2(success.reduce((t, r) => t + batch.lines.find((l) => l.lineRef === r.lineRef).amount, 0));
-    patchBatch(batch, { status: 'result_pending', result, resultImportedAt: Date.now(), resultImportedBy: actingAdmin().email });
-    addAuditEntry('payout result imported', 'batch', batch.id, { status: 'sent_to_bank' }, { status: 'result_pending', success: success.length, failed: result.length - success.length }, Date.now());
+    batch.result = [...(batch.result ?? []), ...result];
+    batch.parts = { ...(batch.parts ?? {}), [type]: { status: 'result_pending', importedAt: now, importedBy: actingAdmin().email } };
+    patchBatch(batch, { resultImportedAt: now, resultImportedBy: actingAdmin().email });
+    settleBatchStatus(batch, now);
+    addAuditEntry('payout result imported', 'batch', batch.id, { file: type, status: 'sent' }, { file: type, status: 'result_pending', success: success.length, failed: result.length - success.length }, now);
     const request = createRequest('payout_result', { kind: 'batch', id: batch.id, label: batch.ref }, {
       after: { success: success.length, failed: result.length - success.length },
       amount,
-      payload: { batchId: batch.id },
+      payload: { batchId: batch.id, payoutType: type },
     });
-    return respond({ ok: true, request: decorateRequest(request), success: success.length, failed: result.length - success.length });
+    return respond({ ok: true, request: decorateRequest(request), payoutType: type, success: success.length, failed: result.length - success.length });
   },
 
   // ── Settlement import (§4) ──────────────────────────
