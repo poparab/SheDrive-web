@@ -69,6 +69,7 @@ import {
   SETTLEMENT_IMPORTS,
   WALLET_PROVIDERS,
   dueAtOf,
+  payoutCutoffDay,
   makeApproval,
   makeBatchRef,
   makeLine,
@@ -2350,8 +2351,8 @@ export const mockApi = {
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0) return;
       if (driver.balance <= 0 || !driver.payoutMethod) return;
-      // §3 — the smaller of her due net and her whole balance.
-      const amount = round2(Math.min(dueNet, driver.balance));
+      // Her whole due net up to the cut-off — not capped by her balance (2026-10-29).
+      const amount = dueNet;
       if (amount < settings.minimumAmount) {
         below.push(amount);
         return;
@@ -2385,9 +2386,10 @@ export const mockApi = {
       byType: PAYOUT_TYPES.map((type) => ({ type, count: lines.filter((l) => l.payoutType === type).length })).filter((g) => g.count),
       belowMinimum: { count: below.length, total: round2(below.reduce((t, a) => t + a, 0)) },
       settings,
+      cutoffDay: payoutCutoffDay(now),
     };
     return respond(payload, {
-      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], belowMinimum: { count: 0, total: 0 }, settings },
+      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], belowMinimum: { count: 0, total: 0 }, settings, cutoffDay: payoutCutoffDay(now) },
     });
   },
 
@@ -2404,7 +2406,7 @@ export const mockApi = {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0 || driver.balance <= 0 || !driver.payoutMethod) return;
-      const amount = Math.min(dueNet, driver.balance);
+      const amount = dueNet;
       if (amount < settings.minimumAmount) return;
       lines.push(makeLine(driver, ref, lines.length + 1, amount, due.map((e) => e.id), settings));
     });
@@ -2425,6 +2427,8 @@ export const mockApi = {
       completedAt: null,
       // The settings it was generated under; a later change doesn't touch it.
       settings,
+      // Its cut-off line: earnings up to the end of this day (7 days before it was generated).
+      cutoffDay: payoutCutoffDay(now),
       parts: Object.fromEntries(PAYOUT_TYPES.filter((type) => lines.some((l) => l.payoutType === type)).map((type) => [type, { status: 'ready' }])),
       lines,
     };

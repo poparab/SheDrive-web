@@ -23,7 +23,7 @@
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
-import { formatDateTime, formatEgp, formatCount } from './format.js';
+import { formatDate, formatDateTime, formatEgp, formatCount } from './format.js';
 import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
@@ -440,6 +440,8 @@ function renderSummary() {
     [t('payoutBatch.reference'), ltr(batch.ref)],
     [t('payoutBatch.status'), chip(batch.status)],
     [t('payoutBatch.created'), whenWho(batch.createdAt, batch.createdBy)],
+    // Its 7-day cut-off line (2026-10-29); older seeded batches have none.
+    ...(batch.cutoffDay ? [[t('payoutBatch.cutoff'), t('payoutBatch.cutoffValue', { day: formatDate(batch.cutoffDay) })]] : []),
     [t('payoutBatch.exported'), whenWho(batch.exportedAt, batch.exportedBy) ?? notYet, !batch.exportedAt],
     [t('payoutBatch.resultImported'), whenWho(batch.resultImportedAt, batch.resultImportedBy) ?? notYet, !batch.resultImportedAt],
     [t('payoutBatch.completed'), batch.completedAt ? formatDateTime(batch.completedAt) : notYet, !batch.completedAt],

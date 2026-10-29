@@ -331,8 +331,6 @@ function renderPreview(body, preview, openBatch) {
       [t('payouts.previewColType')],
       [t('payouts.previewColProvider')],
       [t('payouts.previewColNumber')],
-      [t('payouts.previewColDue'), true],
-      [t('payouts.previewColBalance'), true],
       [t('payouts.previewColAmount'), true],
       [t('payouts.previewColFee'), true],
       [t('payouts.previewColSent'), true],
@@ -346,8 +344,6 @@ function renderPreview(body, preview, openBatch) {
       el('td', '', typeLabel(line.payoutType)),
       el('td', '', line.provider || '—'),
       cell('', ltr(line.number)),
-      cell('text-end', ltr(formatEgp(line.dueNet))),
-      cell('text-end', ltr(formatEgp(line.balance))),
       cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(line.amount))),
       cell('text-end', ltr(line.feePaidBy === 'driver' ? `−${formatEgp(line.fee)}` : formatEgp(line.fee))),
       cell('text-end', el('p', 'text-bold success-color ad-ltr', formatEgp(line.transferAmount))),
@@ -358,7 +354,7 @@ function renderPreview(body, preview, openBatch) {
   const tfoot = el('tfoot');
   const totalRow = el('tr', 'payouts-preview__total');
   const totalLabel = el('td', '', t('payouts.previewTotal'));
-  totalLabel.colSpan = 6;
+  totalLabel.colSpan = 4;
   totalRow.append(
     totalLabel,
     cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.total))),
@@ -374,8 +370,9 @@ function renderPreview(body, preview, openBatch) {
 /** The payout settings this batch is generated under, and its one-file-per-method split (2026-10-29). */
 function settingsNote(preview) {
   const s = preview.settings;
+  const cutoff = t('payouts.previewCutoff', { day: formatDate(preview.cutoffDay) });
   const files = preview.byType.map((g) => t('payouts.previewFileCount', { type: typeLabel(g.type), n: formatCount(g.count) }));
-  return t(s.feePaidBy === 'driver' ? 'payouts.previewSettingsDriver' : 'payouts.previewSettingsShedrive', {
+  return cutoff + ' ' + t(s.feePaidBy === 'driver' ? 'payouts.previewSettingsDriver' : 'payouts.previewSettingsShedrive', {
     min: formatEgp(s.minimumAmount),
     fee: formatEgp(s.transferFee),
   }) + ' ' + t('payouts.previewFiles', { files: files.join(t('payouts.listSeparator')) });

@@ -64,7 +64,23 @@ export const BANKS = [
 ];
 export const SETTLEMENT_CHANNELS = ['Bank transfer', 'Fawry', 'Mobile wallet', 'Field agent'];
 
-export const dueAtOf = (entry) => entry.at + PAYOUT_HOLD_DAYS * DAY;
+// Cairo as format.js shows every date (fixed UTC+2), so the day a cut-off is
+// drawn on is the day the screens print.
+const CAIRO_OFFSET = 2 * HOUR;
+
+/** 00:00 Cairo on the calendar day of `at`, `days` days later. */
+const dayStartPlus = (at, days = 0) => Math.floor((at + CAIRO_OFFSET) / DAY) * DAY - CAIRO_OFFSET + days * DAY;
+
+// 2026-10-29 — the 7 days are calendar days, so a batch draws one clear line:
+// an earning is due from 00:00 on the 7th day after the day it happened.
+export const dueAtOf = (entry) => dayStartPlus(entry.at, PAYOUT_HOLD_DAYS);
+
+/**
+ * The cut-off line of a batch generated at `now`: the last calendar day whose
+ * earnings it takes (7 days ago). Everything that happened on or before that day
+ * is due; anything later is still on hold.
+ */
+export const payoutCutoffDay = (now) => dayStartPlus(now, -PAYOUT_HOLD_DAYS);
 
 // 2026-10-29 — payout settings, a Financial lead's request like the balance
 // limit: a line below the minimum waits for a later batch, and every line
@@ -220,7 +236,8 @@ export const PAYOUT_BATCHES = [];
       (e) => PAYABLE_TYPES.includes(e.type) && !e.paidRef && dueAtOf(e) <= createdAt,
     );
     const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
-    const amount = Math.min(dueNet, driver.balance);
+    // Her whole due net — not capped by her balance (2026-10-29).
+    const amount = dueNet;
     if (amount <= 0) return;
     const line = makeLine(driver, ref, lines.length + 1, amount, due.map((e) => e.id));
     line.status = 'sent';
@@ -398,6 +415,8 @@ const REVIEW_BATCHES = {
   result: reviewBatch({ count: 100, createdAt: NOW - 2 * DAY, maker: NOUR, status: 'result_pending', offset: 3000, failEvery: 16 }),
 };
 PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
+// Every seeded batch shows the cut-off line it was generated with.
+PAYOUT_BATCHES.forEach((b) => { b.cutoffDay ??= payoutCutoffDay(b.createdAt); });
 
 // A pending settlement sheet with every driver who owes, except the one whose
 // manual settlement is already waiting (one pending request per subject).
