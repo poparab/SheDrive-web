@@ -2816,7 +2816,16 @@ export const mockApi = {
 
   getSettlementImport(id) {
     const imp = SETTLEMENT_IMPORTS.find((i) => i.id === String(id));
-    return respond(imp ? structuredClone(imp) : null, { emptyValue: null });
+    if (!imp) return respond(null, { emptyValue: null });
+    // The request that carries it: the view page links a pending one and quotes a rejection.
+    const request = APPROVALS.filter((a) => a.type === 'settlement_import' && a.payload.importId === imp.id)
+      .sort((a, b) => (b.madeAt ?? 0) - (a.madeAt ?? 0))[0];
+    return respond({
+      ...structuredClone(imp),
+      request: request
+        ? { id: request.id, status: request.status, checker: request.checker, decidedAt: request.decidedAt, rejectReason: request.rejectReason }
+        : null,
+    }, { emptyValue: null });
   },
 
   // ── Fee waiver (§5) ─────────────────────────────────

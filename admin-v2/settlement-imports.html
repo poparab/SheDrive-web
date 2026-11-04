@@ -279,39 +279,6 @@
         </div>
       </section>
 
-      <!-- ── Import detail modal (kit default-modal) ─────── -->
-      <div class="modal fade default-modal si-modal" id="import-modal" tabindex="-1" aria-labelledby="import-modal-title" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <img class="icon" src="vendor/icons/file-checked.svg" alt="" />
-              <h3 id="import-modal-title">—</h3>
-              <span class="tertiary-color text-bold ad-ltr" id="import-modal-file"></span>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="common.close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="standard-card-theme2 white-bg si-detail-card" id="import-detail-card">
-                <div class="card-body" id="import-detail"></div>
-              </div>
-              <div class="alert info si-note" id="import-receipts-note" hidden>
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                <p data-i18n="settlementImports.detailReceiptsPending">Receipt numbers are issued when the import is approved.</p>
-              </div>
-              <ad-data-table id="import-rows"></ad-data-table>
-            </div>
-            <div class="modal-footer">
-              <a class="btn btn-primary-outline" id="import-approvals-link" href="approvals.html">
-                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-                <span data-i18n="settlementImports.openApprovals">Open in Approvals</span>
-              </a>
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                <span data-i18n="common.close">Close</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </ad-shell>
     <script type="module" src="scripts/settlement-imports.js"></script>
   </body>

@@ -301,6 +301,24 @@ PAYOUT_BATCHES.sort((a, b) => b.createdAt - a.createdAt);
 
 // ── Settlement imports (§4) ───────────────────────────
 export const SETTLEMENT_IMPORTS = [];
+
+/** What a row did to her balance, as the step 3 check words it. */
+const outcomeOf = (after) => (Math.abs(after) < 0.005 ? 'full' : after < 0 ? 'partial' : 'credit');
+
+/**
+ * The step 3 facts a sent row keeps (#5636 view page): her name and phone in
+ * the system, her balance before and after, and what the row does to it.
+ */
+function checkedRow(driver, amount, balanceBefore) {
+  const balanceAfter = round2(balanceBefore + amount);
+  return {
+    systemName: driver.name,
+    phone: `0${driver.phone}`,
+    balanceBefore,
+    balanceAfter,
+    outcome: outcomeOf(balanceAfter),
+  };
+}
 {
   const settled = LEDGER_ENTRIES.filter((e) => e.type === 'settlement' && e.at > NOW - 40 * DAY).slice(0, 3);
   if (settled.length) {
@@ -309,11 +327,16 @@ export const SETTLEMENT_IMPORTS = [];
       const driver = findDriver(e.driverId);
       e.paymentRef = `FT${digits(9)}`;
       e.importId = 'IMP-0001';
+      // Her balance just before this settlement posted.
+      const before = round2((LEDGER_BY_DRIVER.get(String(driver.id)) ?? [])
+        .filter((x) => x.at < e.at)
+        .reduce((total, x) => total + x.amount, 0));
       return {
         rowNo: i + 1,
         nationalId: driver.nid,
         driverName: driver.name,
         driverId: String(driver.id),
+        ...checkedRow(driver, e.amount, before),
         amount: e.amount,
         paymentDate: new Date(e.at).toISOString().slice(0, 10),
         channel: e.method,
@@ -431,6 +454,49 @@ PAYOUT_BATCHES.forEach((b) => {
   b.settings ??= settings;
 });
 
+// A rejected sheet (#5636 view page): it passed step 3, a Financial lead turned
+// it down, so nothing was applied. One row of each outcome. Values are derived,
+// not drawn, so the random streams stay as they were.
+{
+  const owing = DRIVERS.filter((d) => d.balance < 0).sort((a, b) => a.balance - b.balance);
+  const inCredit = DRIVERS.find((d) => d.status === 'approved' && d.balance >= 0);
+  const picks = [
+    owing[1] && [owing[1], round2(-owing[1].balance / 2)],
+    owing[2] && [owing[2], round2(-owing[2].balance + 50)],
+    owing[3] && [owing[3], -owing[3].balance],
+    inCredit && [inCredit, 100],
+  ].filter(Boolean);
+  if (picks.length) {
+    const at = NOW - 3 * DAY;
+    const rows = picks.map(([driver, amount], i) => ({
+      rowNo: i + 1,
+      nationalId: driver.nid,
+      driverName: driver.name,
+      driverId: String(driver.id),
+      ...checkedRow(driver, amount, driver.balance),
+      amount,
+      paymentDate: new Date(at - DAY).toISOString().slice(0, 10),
+      channel: SETTLEMENT_CHANNELS[i % SETTLEMENT_CHANNELS.length],
+      paymentRef: `FT7${String(10000000 + (i + 1) * 104729).padStart(8, '0')}`,
+      status: 'ready',
+      receipt: null,
+    }));
+    SETTLEMENT_IMPORTS.push({
+      id: nextImportIdFrom(SETTLEMENT_IMPORTS),
+      fileName: 'finance-settlements-week-42.csv',
+      status: 'rejected',
+      createdAt: at,
+      createdBy: MONA.email,
+      decidedAt: at + 2 * HOUR,
+      decidedBy: HALA.email,
+      totalRows: rows.length,
+      readyRows: rows.length,
+      rows,
+      amount: round2(rows.reduce((t, r) => t + r.amount, 0)),
+    });
+  }
+}
+
 // A pending settlement sheet with every driver who owes, except the one whose
 // manual settlement is already waiting (one pending request per subject).
 const owingForImport = DRIVERS.filter((d) => d.balance < 0).sort((a, b) => a.balance - b.balance).slice(1);
@@ -441,6 +507,7 @@ if (owingForImport.length) {
     nationalId: driver.nid,
     driverName: driver.name,
     driverId: String(driver.id),
+    ...checkedRow(driver, -driver.balance, driver.balance),
     amount: -driver.balance,
     paymentDate: new Date(at - DAY).toISOString().slice(0, 10),
     channel: pick2(SETTLEMENT_CHANNELS),
@@ -537,7 +604,7 @@ export const APPROVALS = [];
     });
   });
 
-  SETTLEMENT_IMPORTS.filter((imp) => imp.status !== 'pending').forEach((imp) => {
+  SETTLEMENT_IMPORTS.filter((imp) => imp.status === 'approved').forEach((imp) => {
     APPROVALS.push(makeApproval('settlement_import', { kind: 'import', id: imp.id, label: imp.fileName }, {
       after: { rows: imp.readyRows }, amount: imp.amount, payload: { importId: imp.id },
       maker: imp.createdBy, madeAt: imp.createdAt, status: 'approved', checker: imp.decidedBy, decidedAt: imp.decidedAt,
@@ -660,6 +727,17 @@ export const APPROVALS = [];
     APPROVALS.push(makeApproval('payout_settings', { kind: 'policy', id: 'payout-settings', label: 'Payout settings' }, {
       before: current, after: next, payload: { payout: next },
       maker: HALA.email, madeAt: NOW - 20 * MINUTE,
+    }));
+  }
+
+  // The rejected settlement sheet's request — added last so every id above stays as it was.
+  const rejectedImport = SETTLEMENT_IMPORTS.find((i) => i.status === 'rejected');
+  if (rejectedImport) {
+    APPROVALS.push(makeApproval('settlement_import', { kind: 'import', id: rejectedImport.id, label: rejectedImport.fileName }, {
+      after: { rows: rejectedImport.readyRows }, amount: rejectedImport.amount, payload: { importId: rejectedImport.id },
+      maker: rejectedImport.createdBy, madeAt: rejectedImport.createdAt,
+      status: 'rejected', checker: rejectedImport.decidedBy, decidedAt: rejectedImport.decidedAt,
+      rejectReason: 'The Fawry references do not match the Fawry statement for that day. Check them with Fawry and send the file again.',
     }));
   }
 

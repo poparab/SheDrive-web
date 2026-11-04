@@ -28,8 +28,9 @@
  * `?step=1|2|3` opens the wizard on that step (a step that needs a file it
  * doesn't have falls back to step 2). Demo deep links:
  * `?step=2&sample=format` (fails step 2), `?step=3&sample=business` (rejected
- * at step 3), `?step=3&sample=clean` (ready to send). `?id=IMP-0001` opens an
- * import's detail. `?state=empty|loading|error|long` applies to the history
+ * at step 3), `?step=3&sample=clean` (ready to send). An import's detail is its
+ * own page, settlement-import.html?id=… (2026-11-04); an old `?id=` link here
+ * is sent there. `?state=empty|loading|error|long` applies to the history
  * grid only: the wizard is a tool, not a list, so its calls run with the
  * override lifted (see `live()`).
  */
@@ -42,12 +43,18 @@ import { formatDateTime, formatEgp, formatCount, toCsv } from './format.js';
 import { can } from './roles.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
-import { loadBootstrap } from './design-init.js';
 import '../components/ad-data-table.js';
 import '../components/ad-stat-card.js';
 
 if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
+}
+
+// The detail used to be a modal here; it is its own page now.
+const legacyId = new URLSearchParams(window.location.search).get('id');
+if (legacyId) {
+  window.location.replace(`settlement-import.html?id=${encodeURIComponent(legacyId)}`);
+  throw new Error('Redirecting to the import page');
 }
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -68,11 +75,6 @@ const submitLabel = qs('#btn-submit-label');
 const againButton = qs('#btn-again');
 const submitted = qs('#submitted');
 const historyTable = qs('#imports-table');
-const modalEl = qs('#import-modal');
-const rowsTable = qs('#import-rows');
-
-// The kit's Bootstrap modal must sit on <body> so no positioned ancestor traps it.
-document.body.appendChild(modalEl);
 
 /**
  * The wizard's state.
@@ -669,23 +671,16 @@ historyTable.columns = [
     key: 'actions',
     label: t('common.actions'),
     render: (r) => {
-      // Opens the detail in place (so a sheet being checked above is not lost)
-      // and puts `?id=` in the address, the shareable deep link.
-      const btn = el('button', 'btn grid-options-btn view-icon');
-      btn.type = 'button';
-      btn.setAttribute('aria-label', `${t('common.view')} ${r.id}`);
+      // The import's own page (2026-11-04).
+      const link = el('a', 'btn grid-options-btn view-icon');
+      link.href = `settlement-import.html?id=${encodeURIComponent(r.id)}`;
+      link.setAttribute('aria-label', `${t('common.view')} ${r.id}`);
       const i = el('i', 'fa-regular fa-eye');
       i.setAttribute('aria-hidden', 'true');
       // Icon-only, as the kit's admin-accounts row actions are; the label is the title + aria-label.
-      btn.title = t('common.view');
-      btn.appendChild(i);
-      btn.addEventListener('click', () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('id', r.id);
-        window.history.replaceState(window.history.state, '', url);
-        openImport(r.id);
-      });
-      return btn;
+      link.title = t('common.view');
+      link.appendChild(i);
+      return link;
     },
   },
 ];
@@ -705,13 +700,6 @@ historyTable.addEventListener('sortchange', (event) => {
   historyQuery.page = 1;
   loadHistory();
 });
-modalEl.addEventListener('hidden.bs.modal', () => {
-  const url = new URL(window.location.href);
-  if (!url.searchParams.has('id')) return;
-  url.searchParams.delete('id');
-  window.history.replaceState(window.history.state, '', url);
-});
-
 const historyGuard = createRequestGuard();
 
 async function loadHistory() {
@@ -727,123 +715,12 @@ async function loadHistory() {
   }
 }
 
-// ── Import detail modal ──────────────────────────────
-rowsTable.columns = [
-  { key: 'rowNo', label: t('settlementImports.colRow'), numeric: true, render: (r) => String(r.rowNo) },
-  { key: 'nationalId', label: t('settlementImports.colNid'), ltr: true, render: (r) => ltr(r.nationalId, 'si-mono') },
-  { key: 'driverName', label: t('settlementImports.colNameSheet'), render: (r) => r.driverName || null },
-  { key: 'amount', label: t('settlementImports.colAmountEgp'), numeric: true, ltr: true, render: (r) => el('p', 'text-bold ad-ltr', formatEgp(r.amount)) },
-  { key: 'paymentDate', label: t('common.date'), ltr: true, render: (r) => ltr(r.paymentDate) },
-  { key: 'channel', label: t('settlementImports.colChannel'), render: (r) => channelLabel(r.channel) },
-  { key: 'paymentRef', label: t('settlementImports.colPaymentRef'), ltr: true, render: (r) => ltr(r.paymentRef, 'si-mono') },
-  { key: 'receipt', label: t('settlementImports.colReceipt'), ltr: true, render: (r) => ltr(r.receipt, 'si-mono text-bold') },
-];
-
-let modal = null;
-async function showModal() {
-  await loadBootstrap().catch(() => {});
-  if (window.bootstrap?.Modal) {
-    modal ??= window.bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
-  } else {
-    modalEl.classList.add('show');
-    modalEl.style.display = 'block';
-  }
-}
-
-/** Kit key/value list in two columns: [[label, value], …]. */
-function kvColumns(pairs) {
-  const list = el('div', 'list-multi-column no-border p-0');
-  const row = el('div', 'row gx-4');
-  const half = Math.ceil(pairs.length / 2);
-  [pairs.slice(0, half), pairs.slice(half)].forEach((group) => {
-    const col = el('div', 'col-md-6');
-    group.forEach(([label, value]) => {
-      const line = el('div', 'row gx-0 list-row');
-      const val = el('div', 'list-item col-auto justify-content-md-end');
-      if (value instanceof Node) val.appendChild(value);
-      else val.textContent = value ?? t('common.notAvailable');
-      line.append(el('div', 'list-item col text-bold', label), val);
-      col.appendChild(line);
-    });
-    row.appendChild(col);
-  });
-  list.appendChild(row);
-  return list;
-}
-
-/** The approval request that carries this import, if any. */
-async function findRequest(importId) {
-  const [pending, decided] = await Promise.all([
-    mockApi.listApprovals({ status: 'pending', type: 'settlement_import', pageSize: 1000 }),
-    mockApi.listApprovals({ status: 'decided', type: 'settlement_import', pageSize: 1000 }),
-  ]);
-  return [...(pending?.rows ?? []), ...(decided?.rows ?? [])].find((r) => r.subject?.id === importId) ?? null;
-}
-
-async function openImport(id) {
-  const detail = qs('#import-detail');
-  const detailCard = qs('#import-detail-card');
-  const link = qs('#import-approvals-link');
-  const note = qs('#import-receipts-note');
-  qs('#import-modal-title').textContent = t('settlementImports.detailTitle', { id });
-  qs('#import-modal-file').textContent = '';
-  modalEl.querySelectorAll('.si-modal-missing').forEach((n) => n.remove());
-  detail.textContent = '';
-  detailCard.hidden = false;
-  note.hidden = true;
-  link.hidden = true;
-  rowsTable.hidden = false;
-  rowsTable.setLoading();
-  showModal();
-
-  try {
-    const imp = await mockApi.getSettlementImport(id);
-    if (!imp) {
-      rowsTable.hidden = true;
-      detailCard.hidden = true;
-      const empty = el('div', 'result-message warning');
-      const iconWrap = el('span', 'icon');
-      const img = el('img');
-      img.src = 'vendor/icons/not-found.svg';
-      img.alt = '';
-      iconWrap.appendChild(img);
-      empty.append(iconWrap, el('h3', '', t('settlementImports.detailNotFound')), el('p', '', t('settlementImports.detailNotFoundHint', { id })));
-      detailCard.after(empty);
-      empty.classList.add('si-modal-missing');
-      return;
-    }
-    qs('#import-modal-file').textContent = imp.fileName;
-    const decidedWho = imp.decidedBy ? whoWhen(imp.decidedBy, imp.decidedAt) : t('common.notAvailable');
-    detail.appendChild(kvColumns([
-      [t('settlementImports.detailStatus'), importLamp(imp.status)],
-      [t('settlementImports.detailRows'), formatCount(imp.totalRows)],
-      [t('settlementImports.detailAmount'), el('p', 'text-bold ad-ltr', formatEgp(imp.amount))],
-      [t('settlementImports.detailUploaded'), whoWhen(imp.createdBy, imp.createdAt)],
-      [t('settlementImports.detailDecided'), decidedWho],
-      [t('settlementImports.detailFile'), ltr(imp.fileName)],
-    ]));
-    note.hidden = imp.status !== 'pending';
-    rowsTable.setData(onePage(imp.rows ?? []));
-
-    // Only a pending import has a decision left to make; a decided one has nothing to open.
-    const request = imp.status === 'pending' ? await findRequest(imp.id).catch(() => null) : null;
-    if (request) {
-      link.href = approvalHref(request.id);
-      link.hidden = false;
-    }
-  } catch (error) {
-    rowsTable.setError(error.message, () => openImport(id));
-  }
-}
-
 // A request's link opens the review here; a decision reloads this screen.
 wireInPlaceApprovals({ onDecided: loadHistory });
 
 // ── Boot ─────────────────────────────────────────────
 loadHistory();
 const params = new URLSearchParams(window.location.search);
-const deepLink = params.get('id');
 const startStep = Number(params.get('step'));
 if ([1, 2, 3].includes(startStep) && canImport) {
   openWizard(startStep);
@@ -859,4 +736,3 @@ if ([1, 2, 3].includes(startStep) && canImport) {
 } else {
   closeWizard();
 }
-if (deepLink) openImport(deepLink);

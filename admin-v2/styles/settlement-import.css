@@ -1,0 +1,125 @@
+/*
+ * settlement-import.css — one sent settlement sheet (spec §4, #5636)
+ * Screen owner: admin-v2/settlement-import.html
+ *
+ * Laid out as payout-batch.html: the standing alert, summary + state timeline
+ * cards side by side, neutral-widjet KPI tiles, then the rows grid in a
+ * light-medium-bg card with the review's search + filter toolbar
+ * (approval-review.css). What is local: spacing between those parts, the
+ * who/when and two-line cells, and the rejection note on the timeline.
+ * Every value comes from a token. Logical properties only (RTL-safe).
+ */
+
+.sv-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-10) 0;
+}
+
+.sv-loading[hidden] {
+  display: none;
+}
+
+.sv-muted {
+  color: var(--color-text-muted);
+}
+
+/* ── Standing alert ───────────────────────────────────── */
+
+#import-standing .alert {
+  margin-block-end: var(--space-4);
+}
+
+.sv-standing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.sv-standing p,
+.sv-standing h6 {
+  margin: 0;
+}
+
+.sv-reason {
+  overflow-wrap: anywhere;
+}
+
+/* ── Summary + timeline cards ─────────────────────────── */
+
+.sv-card {
+  block-size: 100%;
+}
+
+.sv-card p {
+  margin: 0;
+}
+
+.sv-card .card-title > span {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.sv-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: end;
+  line-height: var(--leading-snug);
+}
+
+.sv-when .sv-muted {
+  font-size: var(--fs-xs);
+}
+
+.sv-download {
+  gap: var(--space-1);
+}
+
+.sv-timeline li.todo lable,
+.sv-timeline li.todo span {
+  color: var(--color-text-muted);
+}
+
+.sv-timeline .sv-timeline__note {
+  color: var(--color-danger);
+  overflow-wrap: anywhere;
+}
+
+/* ── Tiles and rows ───────────────────────────────────── */
+
+.sv-stats {
+  margin-block: var(--space-5) 0;
+}
+
+.sv-rows {
+  margin-block-start: var(--space-5);
+}
+
+.sv-toolbar {
+  margin-block-end: var(--space-3);
+}
+
+.sv-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  line-height: var(--leading-snug);
+}
+
+.sv-stack .sv-muted {
+  font-size: var(--fs-xs);
+}
+
+/* The kit's grid cells never wrap; names and the result text may, so the
+   grid fits a 1280 px screen without scrolling. */
+.custom-grid-list td.sv-wrap,
+.custom-grid-list td.sv-wrap-wide {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.custom-grid-list td.sv-wrap-wide {
+  min-inline-size: calc(var(--space-16) * 3);
+}

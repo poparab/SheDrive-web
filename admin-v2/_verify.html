@@ -49,6 +49,8 @@
         ['payouts.html?state=empty', { state: '.result-message' }],
         ['settlement-imports.html', { rows: '#imports-table tbody tr' }],
         ['settlement-imports.html?state=empty', { state: '.result-message' }],
+        ['settlement-import.html?id=IMP-0001', { rows: '#rows-table tbody tr', kpi: '#stat-amount' }],
+        ['settlement-import.html?id=nope', { state: '#import-missing .result-message' }],
         ['audit-log.html', { rows: 'tbody tr', filters: '.filter-container' }],
         ['admin-users.html', { rows: 'tbody tr' }],
         ['screens.html', { links: 'a[href$=".html"]' }],

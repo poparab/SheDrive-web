@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Settlement import</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <ad-shell
+      active="settlement-imports"
+      page-title-key="settlementImport.title"
+      breadcrumb-keys="nav.money > nav.settlementImports|settlement-imports.html > settlementImport.crumb"
+      back="settlement-imports.html"
+      screen-styles="styles/list.css, styles/approval-review.css, styles/settlement-import.css"
+    >
+      <div id="import-missing" hidden>
+        <ad-empty-state
+          icon="not-found.svg"
+          heading="Settlement import not found"
+          data-i18n-heading="settlementImport.notFoundHeading"
+          message="No settlement import has this file ID."
+          data-i18n-message="settlementImport.notFoundMessage"
+        >
+          <a class="btn btn-primary-rounded-outline" href="settlement-imports.html" data-i18n="settlementImport.backToHistory">Back to settlements history</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="import-error" hidden>
+        <ad-empty-state
+          icon="cloud-connection-off.svg"
+          tone="danger"
+          heading="Could not load the import"
+          data-i18n-heading="settlementImport.errorHeading"
+          message=""
+          id="import-error-state"
+        >
+          <button type="button" class="btn btn-primary-rounded-outline" id="import-retry" data-i18n="settlementImport.retry">Try again</button>
+        </ad-empty-state>
+      </div>
+
+      <div id="import-loading" class="sv-loading">
+        <span class="spinner"></span>
+      </div>
+
+      <div id="import-body" hidden>
+        <!-- Where the import stands: pending, approved or rejected. -->
+        <div id="import-standing"></div>
+
+        <!-- Laid out as payout-batch.html: summary beside the state timeline. -->
+        <div class="row row-cols-1 row-cols-lg-2 g-3">
+          <div class="col">
+            <div class="standard-card-theme2 white-bg sv-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 data-i18n="settlementImport.summaryTitle">Import summary</h5>
+                  <span class="ad-ltr" id="import-file"></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/file-checked.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0" id="import-summary"></div>
+              <div class="card-footer d-flex flex-column align-items-end sv-download">
+                <button type="button" class="btn btn-primary-outline d-flex" id="btn-download">
+                  <i class="fa-solid fa-download" aria-hidden="true"></i>
+                  <span data-i18n="settlementImport.downloadFile">Download the file</span>
+                </button>
+                <p class="small lh-sm sv-muted" data-i18n="settlementImport.downloadHint">The rows as they were sent for approval.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="standard-card-theme2 white-bg sv-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 data-i18n="settlementImport.timelineTitle">State timeline</h5>
+                  <span></span>
+                </div>
+                <div class="icon"><img src="vendor/icons/timeline.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0" id="import-timeline"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The step 3 tiles, kept with the file. -->
+        <div class="ad-stats sv-stats">
+          <ad-stat-card id="stat-amount" label="Amount" data-i18n-label="settlementImport.statAmount" value="—" tone="blue" icon="money.svg"></ad-stat-card>
+          <ad-stat-card id="stat-full" label="Settled in full" data-i18n-label="settlementImport.statFull" value="—" tone="success" icon="checked-2.svg"></ad-stat-card>
+          <ad-stat-card id="stat-partial" label="Part paid" data-i18n-label="settlementImport.statPartial" value="—" tone="warning" icon="money.svg"></ad-stat-card>
+          <ad-stat-card id="stat-credit" label="Paid more" data-i18n-label="settlementImport.statCredit" value="—" tone="primary" icon="money.svg"></ad-stat-card>
+        </div>
+
+        <!-- Every row: search, a result filter and the kit's Rows count. -->
+        <section class="standard-card light-medium-bg sv-rows" aria-labelledby="rows-heading">
+          <div class="card-header mb-3">
+            <div class="card-title">
+              <img class="icon" src="vendor/icons/csv-file.svg" alt="" />
+              <h4 id="rows-heading" data-i18n="settlementImport.rowsHeading">Rows</h4>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="apr-lines-toolbar sv-toolbar">
+              <label class="visually-hidden" for="rows-search" data-i18n="settlementImport.searchLabel">Search the rows</label>
+              <div class="apr-lines-search">
+                <i class="fa-solid fa-magnifying-glass apr-lines-search__icon" aria-hidden="true"></i>
+                <input
+                  class="form-control"
+                  type="search"
+                  id="rows-search"
+                  autocomplete="off"
+                  placeholder="Search driver, national ID, phone or reference"
+                  data-i18n-placeholder="settlementImport.searchPlaceholder"
+                />
+              </div>
+              <label class="visually-hidden" for="rows-result" data-i18n="settlementImport.resultLabel">Result</label>
+              <select class="form-select apr-lines-filter" id="rows-result">
+                <option value="all" data-i18n="settlementImport.allResults">All results</option>
+                <option value="full" data-i18n="settlementImport.statFull">Settled in full</option>
+                <option value="partial" data-i18n="settlementImport.statPartial">Part paid</option>
+                <option value="credit" data-i18n="settlementImport.statCredit">Paid more</option>
+              </select>
+            </div>
+            <ad-data-table id="rows-table"></ad-data-table>
+          </div>
+        </section>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/settlement-import.js"></script>
+  </body>
+</html>

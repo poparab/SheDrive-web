@@ -90,7 +90,7 @@ function subjectHref(subject, type = null) {
       return type === 'fee_waiver' ? `rider-balance-details.html?id=${id}` : `rider-profile.html?id=${id}`;
     case 'zone': return 'pricing-zones.html';
     case 'batch': return `payout-batch.html?id=${id}`;
-    case 'import': return `settlement-imports.html?id=${id}`;
+    case 'import': return `settlement-import.html?id=${id}`;
     // The Global policies tab the setting lives on (2026-10-29).
     case 'policy': return `pricing-policies.html?tab=${['balance-limit', 'payout-settings'].includes(subject.id) ? 'finance' : 'pricing'}`;
     default: return null;

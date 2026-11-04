@@ -26,6 +26,9 @@ export const en = {
     notesPayoutBatch:
       'One batch: its lines, one bank file per payout method, and each file’s result. Open it from Payouts.',
     titleSettlementImports: 'Settlement imports',
+    titleSettlementImport: 'Settlement import',
+    notesSettlementImport:
+      'One sent sheet, opened from the settlements history: summary, state timeline, outcome tiles and every row. Pending (?id=IMP-0003), approved with receipts (?id=IMP-0001), rejected with the reason (?id=IMP-0002).',
     titleDriverLedger: 'Driver ledger',
     notesDriverLedger: "One driver's ledger, opened from Driver balances: balance and payout position, record payout or settlement (sent for approval), and every entry with its payout status.",
     titleRiderLedger: 'Rider fee ledger',
@@ -56,6 +59,9 @@ export const ar = {
     notesPayoutBatch:
       'دفعة واحدة: بنودها وملف بنكي لكل طريقة دفع ونتيجة كل ملف. تُفتح من صفحة المدفوعات.',
     titleSettlementImports: 'استيراد التسويات',
+    titleSettlementImport: 'استيراد تسويات',
+    notesSettlementImport:
+      'ملف مُرسل واحد، يُفتح من سجل التسويات: الملخص والمسار الزمني وبطاقات النتائج وكل الصفوف. قيد الموافقة (?id=IMP-0003)، مقبول مع الإيصالات (?id=IMP-0001)، مرفوض مع السبب (?id=IMP-0002).',
     titleDriverLedger: 'دفتر حساب السائقة',
     notesDriverLedger: 'دفتر حساب سائقة واحدة، يُفتح من أرصدة السائقات: الرصيد ووضع المدفوعات، وتسجيل دفعة أو تسوية (تُرسل للموافقة)، وكل قيد مع حالة صرفه.',
     titleRiderLedger: 'دفتر رسوم الراكبة',
