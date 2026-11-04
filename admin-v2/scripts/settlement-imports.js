@@ -671,7 +671,9 @@ historyTable.columns = [
     key: 'actions',
     label: t('common.actions'),
     render: (r) => {
-      // The import's own page (2026-11-04).
+      // The import's own page (2026-11-04) — approved files only: a pending
+      // file is read in its approval request, a rejected one has nothing to show.
+      if (r.status !== 'approved') return document.createTextNode('');
       const link = el('a', 'btn grid-options-btn view-icon');
       link.href = `settlement-import.html?id=${encodeURIComponent(r.id)}`;
       link.setAttribute('aria-label', `${t('common.view')} ${r.id}`);

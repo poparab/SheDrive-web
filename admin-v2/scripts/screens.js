@@ -456,7 +456,7 @@ export const SCREENS = [
   {
     group: t('nav.finance'),
     title: t('screens.titleSettlementImport'),
-    file: 'settlement-import.html?id=IMP-0003',
+    file: 'settlement-import.html?id=IMP-0001',
     icon: 'file-checked.svg',
     status: 'built',
     track: t('screens.statusBuilt'),

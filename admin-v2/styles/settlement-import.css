@@ -30,22 +30,6 @@
   margin-block-end: var(--space-4);
 }
 
-.sv-standing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
-
-.sv-standing p,
-.sv-standing h6 {
-  margin: 0;
-}
-
-.sv-reason {
-  overflow-wrap: anywhere;
-}
-
 /* ── Summary + timeline cards ─────────────────────────── */
 
 .sv-card {
@@ -75,16 +59,6 @@
 
 .sv-download {
   gap: var(--space-1);
-}
-
-.sv-timeline li.todo lable,
-.sv-timeline li.todo span {
-  color: var(--color-text-muted);
-}
-
-.sv-timeline .sv-timeline__note {
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
 }
 
 /* ── Tiles and rows ───────────────────────────────────── */

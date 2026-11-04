@@ -166,11 +166,8 @@ export const en = {
 
     timelineTitle: 'State timeline',
     stepSent: 'Checked and sent for approval',
-    stepWaiting: 'Waiting for a Financial lead',
     stepApproved: 'Approved',
-    stepRejected: 'Rejected',
     stepApplied: 'Applied to driver balances',
-    stepNotApplied: 'Nothing applied',
     atBy: '{at} by {name}',
 
     statAmount: 'Amount',
@@ -178,13 +175,7 @@ export const en = {
     statPartial: 'Part paid',
     statCredit: 'Paid more',
 
-    pendingNote: 'Waiting for a Financial lead to approve it. Nothing is applied to any driver until then, and receipt numbers are issued on approval.',
-    openRequest: 'Open the request',
     approvedNote: "Approved by {name} on {at}. Each row posted a settlement to the driver's balance; its receipt is in the Receipt column.",
-    rejectedTitle: 'Rejected by {name} on {at}',
-    rejectedReason: 'Reason: {reason}',
-    rejectedNote: 'Nothing from this file was applied. Fix it and import the whole file again.',
-    importAgain: 'Import a corrected file',
 
     rowsHeading: 'Rows',
     searchLabel: 'Search the rows',
@@ -365,11 +356,8 @@ export const ar = {
 
     timelineTitle: 'المسار الزمني للحالة',
     stepSent: 'تم الفحص والإرسال للموافقة',
-    stepWaiting: 'بانتظار قائد مالي',
     stepApproved: 'تمت الموافقة',
-    stepRejected: 'مرفوض',
     stepApplied: 'طُبّق على أرصدة السائقات',
-    stepNotApplied: 'لم يُطبّق شيء',
     atBy: '{at} بواسطة {name}',
 
     statAmount: 'المبلغ',
@@ -377,13 +365,7 @@ export const ar = {
     statPartial: 'سداد جزئي',
     statCredit: 'دفعت أكثر',
 
-    pendingNote: 'بانتظار موافقة قائد مالي. لا يُطبّق شيء على أي سائقة قبل ذلك، وتصدر أرقام الإيصالات عند الموافقة.',
-    openRequest: 'فتح الطلب',
     approvedNote: 'وافق عليه {name} في {at}. سجّل كل صف تسوية في رصيد السائقة؛ إيصالها في عمود الإيصال.',
-    rejectedTitle: 'رفضه {name} في {at}',
-    rejectedReason: 'السبب: {reason}',
-    rejectedNote: 'لم يُطبّق شيء من هذا الملف. صحّحه واستورد الملف كاملًا مرة أخرى.',
-    importAgain: 'استيراد ملف مصحّح',
 
     rowsHeading: 'الصفوف',
     searchLabel: 'البحث في الصفوف',

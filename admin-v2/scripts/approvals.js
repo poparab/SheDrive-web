@@ -188,7 +188,7 @@ function configureColumns() {
       render: (row) => ltr(row.id),
     },
     { key: 'type', label: t('approvals.colType'), sortable: false, render: (row) => typeLabel(row.type) },
-    { key: 'subject', label: t('approvals.colSubject'), render: (row) => subjectLink(row.subject, row.type) },
+    { key: 'subject', label: t('approvals.colSubject'), render: (row) => subjectLink(row.subject, row.type, row.status) },
     {
       key: 'amount',
       label: t('approvals.colAmount'),

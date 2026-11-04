@@ -4,27 +4,23 @@
  * Story: #5620 / #6492 · design #5636
  *
  * One sent settlement sheet, opened from the history on settlement-imports.html
- * (`?id=IMP-0003`). It replaces the history's detail modal now that the import
+ * (`?id=IMP-0001`). It replaces the history's detail modal now that the import
  * itself is a page-by-page wizard (2026-11-04).
  *
  * Laid out as payout-batch.html: the summary card (with "Download the file")
  * beside the state timeline, the step 3 tiles, then every row with a search,
- * a result filter and the kit's Rows count. Where the import stands:
+ * a result filter and the kit's Rows count.
  *
- *   pending  — waiting for a Financial lead; the request opens in place.
- *              Nothing is applied and there are no receipts yet.
- *   approved — each row posted a settlement; the Receipt column is filled.
- *   rejected — the lead's reason, and nothing applied; Finance imports a
- *              corrected file through the wizard again.
- *
- * Nothing is decided on this page: the decision is the Approvals review.
+ * Only an approved import has this page (2026-11-04): each row posted a
+ * settlement and the Receipt column is filled. A pending file is read in its
+ * approval request and a rejected one has nothing to show, so the history
+ * offers no View for them and their `?id=` shows the not-found state.
  */
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
 import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
 import { downloadCsv, formatCount, formatDateTime, formatEgp, toDateInputValue } from './format.js';
-import { can } from './roles.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 import '../components/ad-data-table.js';
@@ -135,18 +131,16 @@ function statusLamp(status) {
 }
 
 /**
- * What a row does to her balance, as step 3 worded it. A rejected file applied
- * nothing, so its rows are greyed: they say what would have happened.
+ * What a row did to her balance, as step 3 worded it.
  */
 function outcomeLamp(row) {
-  const muted = imp.status === 'rejected';
   switch (row.outcome) {
     case 'full':
-      return lamp(muted ? 'status-disabled-lamp' : 'status-active-lamp', t('settlementImports.outcomeFull'));
+      return lamp('status-active-lamp', t('settlementImports.outcomeFull'));
     case 'partial':
-      return lamp(muted ? 'status-disabled-lamp' : 'status-warning-lamp', t('settlementImports.outcomePartial', { owed: formatEgp(-row.balanceAfter) }));
+      return lamp('status-warning-lamp', t('settlementImports.outcomePartial', { owed: formatEgp(-row.balanceAfter) }));
     case 'credit':
-      return lamp(muted ? 'status-disabled-lamp' : 'status-blue-lamp', t('settlementImports.outcomeCredit', { extra: formatEgp(Math.min(row.amount, row.balanceAfter)) }));
+      return lamp('status-blue-lamp', t('settlementImports.outcomeCredit', { extra: formatEgp(Math.min(row.amount, row.balanceAfter)) }));
     default:
       return lamp('status-disabled-lamp', t('settlementImports.resultPassed'));
   }
@@ -154,45 +148,10 @@ function outcomeLamp(row) {
 
 // ── Render: standing ─────────────────────────────────
 function renderStanding() {
-  const host = qs('#import-standing');
-  const request = imp.request;
-
-  if (imp.status === 'pending') {
-    const details = el('div', 'details sv-standing');
-    details.appendChild(el('p', '', t('settlementImport.pendingNote')));
-    if (request?.status === 'pending') {
-      const a = el('a', 'btn btn-warning-outline d-flex');
-      a.href = approvalHref(request.id);
-      a.append(glyph('fa-solid fa-arrow-up-right-from-square'), document.createTextNode(t('settlementImport.openRequest')));
-      details.appendChild(a);
-    }
-    host.replaceChildren(alertBox('warning', details));
-    return;
-  }
-
-  if (imp.status === 'approved') {
-    host.replaceChildren(alertBox('success', t('settlementImport.approvedNote', {
-      name: imp.decidedBy ?? '—',
-      at: imp.decidedAt ? formatDateTime(imp.decidedAt) : '—',
-    })));
-    return;
-  }
-
-  // Rejected: the lead's reason, and the way back into the wizard.
-  const details = el('div', 'details sv-standing');
-  details.appendChild(el('h6', '', t('settlementImport.rejectedTitle', {
+  qs('#import-standing').replaceChildren(alertBox('success', t('settlementImport.approvedNote', {
     name: imp.decidedBy ?? '—',
     at: imp.decidedAt ? formatDateTime(imp.decidedAt) : '—',
   })));
-  if (request?.rejectReason) details.appendChild(el('p', 'sv-reason', t('settlementImport.rejectedReason', { reason: request.rejectReason })));
-  details.appendChild(el('p', '', t('settlementImport.rejectedNote')));
-  if (can('finance.request')) {
-    const a = el('a', 'btn btn-danger d-flex');
-    a.href = 'settlement-imports.html?step=1';
-    a.append(glyph('fa-solid fa-arrow-up-from-bracket'), document.createTextNode(t('settlementImport.importAgain')));
-    details.appendChild(a);
-  }
-  host.replaceChildren(alertBox('danger', details));
 }
 
 // ── Render: summary card ─────────────────────────────
@@ -223,18 +182,11 @@ function renderSummary() {
 
 // ── Render: state timeline ───────────────────────────
 function renderTimeline() {
-  const s = imp.status;
   const atBy = (at, name) => (at ? (name ? t('settlementImport.atBy', { at: formatDateTime(at), name }) : formatDateTime(at)) : '');
   const items = [
     { label: t('settlementImport.stepSent'), meta: atBy(imp.createdAt, imp.createdBy), tone: 'success' },
-    s === 'pending'
-      ? { label: t('settlementImport.stepWaiting'), meta: '', tone: 'warning current-state' }
-      : s === 'approved'
-        ? { label: t('settlementImport.stepApproved'), meta: atBy(imp.decidedAt, imp.decidedBy), tone: 'success' }
-        : { label: t('settlementImport.stepRejected'), meta: atBy(imp.decidedAt, imp.decidedBy), tone: 'danger', note: imp.request?.rejectReason },
-    s === 'rejected'
-      ? { label: t('settlementImport.stepNotApplied'), meta: '', tone: 'todo' }
-      : { label: t('settlementImport.stepApplied'), meta: s === 'approved' ? atBy(imp.decidedAt) : '', tone: s === 'approved' ? 'success' : 'todo' },
+    { label: t('settlementImport.stepApproved'), meta: atBy(imp.decidedAt, imp.decidedBy), tone: 'success' },
+    { label: t('settlementImport.stepApplied'), meta: atBy(imp.decidedAt), tone: 'success' },
   ];
   const list = el('ol', 'timeline-vertical sv-timeline');
   items.forEach((item) => {
@@ -242,7 +194,6 @@ function renderTimeline() {
     // The kit's own tag name for a timeline label.
     li.appendChild(el('lable', '', item.label));
     li.appendChild(el('span', '', item.meta));
-    if (item.note) li.appendChild(el('span', 'sv-timeline__note', item.note));
     list.appendChild(li);
   });
   qs('#import-timeline').replaceChildren(list);
@@ -303,10 +254,7 @@ function columns() {
     },
     { key: 'outcome', label: t('settlementImports.colResult'), className: 'sv-wrap-wide', render: outcomeLamp },
   ];
-  // Receipts exist only once a Financial lead approved the file.
-  if (imp.status === 'approved') {
-    cols.push({ key: 'receipt', label: t('settlementImports.colReceipt'), ltr: true, render: (r) => ltr(r.receipt, 'text-bold') });
-  }
+  cols.push({ key: 'receipt', label: t('settlementImports.colReceipt'), ltr: true, render: (r) => ltr(r.receipt, 'text-bold') });
   return cols;
 }
 
@@ -380,7 +328,8 @@ async function load() {
   if (!imp) show('loading');
   try {
     const result = id ? await mockApi.getSettlementImport(id) : null;
-    if (!result) {
+    // Only an approved import can be viewed.
+    if (!result || result.status !== 'approved') {
       show('missing');
       return;
     }

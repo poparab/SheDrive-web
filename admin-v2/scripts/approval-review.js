@@ -81,7 +81,7 @@ export function lamp(status, label = t(`status.${status}`)) {
 }
 
 /** Where the subject of a request lives. Money requests open the person's ledger. */
-function subjectHref(subject, type = null) {
+function subjectHref(subject, type = null, status = null) {
   const id = encodeURIComponent(subject.id);
   switch (subject.kind) {
     case 'driver':
@@ -90,15 +90,16 @@ function subjectHref(subject, type = null) {
       return type === 'fee_waiver' ? `rider-balance-details.html?id=${id}` : `rider-profile.html?id=${id}`;
     case 'zone': return 'pricing-zones.html';
     case 'batch': return `payout-batch.html?id=${id}`;
-    case 'import': return `settlement-import.html?id=${id}`;
+    // Only an approved import has a page to open (2026-11-04).
+    case 'import': return status === 'approved' ? `settlement-import.html?id=${id}` : null;
     // The Global policies tab the setting lives on (2026-10-29).
     case 'policy': return `pricing-policies.html?tab=${['balance-limit', 'payout-settings'].includes(subject.id) ? 'finance' : 'pricing'}`;
     default: return null;
   }
 }
 
-export function subjectLink(subject, type = null) {
-  const href = subjectHref(subject, type);
+export function subjectLink(subject, type = null, status = null) {
+  const href = subjectHref(subject, type, status);
   const node = href ? el('a', 'apr-subject', subject.label) : el('span', 'apr-subject', subject.label);
   if (href) node.href = href;
   return node;
@@ -725,7 +726,7 @@ export function createApprovalReview({ urlParam = null, returnTo = null, onDecid
       t('approvals.sectionRequest'),
       'review-list.svg',
       kvList([
-        [t('approvals.kvSubject'), subjectLink(request.subject, request.type)],
+        [t('approvals.kvSubject'), subjectLink(request.subject, request.type, request.status)],
         [t('approvals.kvAmount'), request.amount === null || request.amount === undefined ? undefined : ltr(`${money(Math.abs(request.amount))} ${t('common.egp')}`)],
         [t('approvals.kvMadeBy'), who(request.maker, request.madeAt, request.madeByYou)],
         [t('approvals.kvStatus'), lamp(request.status)],

@@ -28,7 +28,7 @@ export const en = {
     titleSettlementImports: 'Settlement imports',
     titleSettlementImport: 'Settlement import',
     notesSettlementImport:
-      'One sent sheet, opened from the settlements history: summary, state timeline, outcome tiles and every row. Pending (?id=IMP-0003), approved with receipts (?id=IMP-0001), rejected with the reason (?id=IMP-0002).',
+      'An approved sheet, opened from the settlements history: summary, state timeline, outcome tiles and every row with its receipt (?id=IMP-0001). Pending and rejected files have no View.',
     titleDriverLedger: 'Driver ledger',
     notesDriverLedger: "One driver's ledger, opened from Driver balances: balance and payout position, record payout or settlement (sent for approval), and every entry with its payout status.",
     titleRiderLedger: 'Rider fee ledger',
@@ -61,7 +61,7 @@ export const ar = {
     titleSettlementImports: 'استيراد التسويات',
     titleSettlementImport: 'استيراد تسويات',
     notesSettlementImport:
-      'ملف مُرسل واحد، يُفتح من سجل التسويات: الملخص والمسار الزمني وبطاقات النتائج وكل الصفوف. قيد الموافقة (?id=IMP-0003)، مقبول مع الإيصالات (?id=IMP-0001)، مرفوض مع السبب (?id=IMP-0002).',
+      'ملف مقبول، يُفتح من سجل التسويات: الملخص والمسار الزمني وبطاقات النتائج وكل الصفوف مع إيصالاتها (?id=IMP-0001). الملفات قيد الموافقة والمرفوضة بلا عرض.',
     titleDriverLedger: 'دفتر حساب السائقة',
     notesDriverLedger: 'دفتر حساب سائقة واحدة، يُفتح من أرصدة السائقات: الرصيد ووضع المدفوعات، وتسجيل دفعة أو تسوية (تُرسل للموافقة)، وكل قيد مع حالة صرفه.',
     titleRiderLedger: 'دفتر رسوم الراكبة',
