@@ -123,6 +123,10 @@ export const en = {
     statusRejected: 'Rejected',
     emptyHeading: 'No settlement imports yet',
     emptyMessage: 'Files you send for approval appear here.',
+    filterAllStatuses: 'All',
+    filterUploadedDate: 'Uploaded',
+    filterNoMatchHeading: 'No files match',
+    filterNoMatchMessage: 'Try another status or date.',
 
     detailTitle: 'Import {id}',
     detailUploaded: 'Uploaded by',
@@ -313,6 +317,10 @@ export const ar = {
     statusRejected: 'مرفوض',
     emptyHeading: 'لا توجد عمليات استيراد بعد',
     emptyMessage: 'تظهر هنا الملفات التي ترسلها للموافقة.',
+    filterAllStatuses: 'الكل',
+    filterUploadedDate: 'تاريخ الرفع',
+    filterNoMatchHeading: 'لا توجد ملفات مطابقة',
+    filterNoMatchMessage: 'جرّب حالة أو تاريخًا آخر.',
 
     detailTitle: 'الاستيراد {id}',
     detailUploaded: 'رفعه',

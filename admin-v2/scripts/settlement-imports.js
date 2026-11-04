@@ -44,6 +44,7 @@ import { can } from './roles.js';
 import { qs, qsa } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 import '../components/ad-data-table.js';
+import '../components/ad-filter-bar.js';
 import '../components/ad-stat-card.js';
 
 if (!adminAuth.requireAdmin()) {
@@ -75,6 +76,7 @@ const submitLabel = qs('#btn-submit-label');
 const againButton = qs('#btn-again');
 const submitted = qs('#submitted');
 const historyTable = qs('#imports-table');
+const historyFilters = qs('#imports-filters');
 
 /**
  * The wizard's state.
@@ -648,8 +650,30 @@ submitButton.addEventListener('click', async () => {
 });
 
 // ── History ──────────────────────────────────────────
-// #5620 grid spec: Uploaded (default, newest first), Amount and Decided sort.
-const historyQuery = { page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' } };
+// #6492 grid spec: Uploaded (default, newest first), Amount and Decided sort;
+// filtered by status and by the date the file was uploaded.
+const historyQuery = { page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' }, status: 'all', from: '', to: '' };
+
+historyFilters.fields = [
+  {
+    type: 'select',
+    key: 'status',
+    label: t('settlementImports.colStatus'),
+    value: 'all',
+    options: [
+      { value: 'all', label: t('settlementImports.filterAllStatuses') },
+      { value: 'pending', label: t('settlementImports.statusPending') },
+      { value: 'approved', label: t('settlementImports.statusApproved') },
+      { value: 'rejected', label: t('settlementImports.statusRejected') },
+    ],
+  },
+  { type: 'daterange', key: 'date', label: t('settlementImports.filterUploadedDate'), fromKey: 'from', toKey: 'to' },
+];
+historyFilters.addEventListener('change', (event) => {
+  const { status, from, to } = event.detail;
+  Object.assign(historyQuery, { status, from, to, page: 1 });
+  loadHistory();
+});
 
 historyTable.pageSize = historyQuery.pageSize;
 historyTable.sort = historyQuery.sort;
@@ -686,11 +710,17 @@ historyTable.columns = [
     },
   },
 ];
-historyTable.emptyState = {
+const EMPTY_HISTORY = {
   icon: 'upload-file.svg',
   heading: t('settlementImports.emptyHeading'),
   message: t('settlementImports.emptyMessage'),
 };
+const NO_MATCHING_FILES = {
+  icon: 'not-found.svg',
+  heading: t('settlementImports.filterNoMatchHeading'),
+  message: t('settlementImports.filterNoMatchMessage'),
+};
+historyTable.emptyState = EMPTY_HISTORY;
 
 historyTable.addEventListener('pagechange', (event) => {
   historyQuery.page = event.detail.page;
@@ -710,6 +740,9 @@ async function loadHistory() {
   try {
     const page = await mockApi.listSettlementImports(historyQuery);
     if (!isCurrent()) return;
+    // A filter that hides every file reads differently from a history with none.
+    const filtered = historyQuery.status !== 'all' || historyQuery.from || historyQuery.to;
+    historyTable.emptyState = filtered ? NO_MATCHING_FILES : EMPTY_HISTORY;
     historyTable.setData(page);
   } catch (error) {
     if (!isCurrent()) return;

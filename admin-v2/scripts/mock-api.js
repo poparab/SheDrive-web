@@ -2791,8 +2791,10 @@ export const mockApi = {
     return respond({ ok: true, import: { id: imp.id }, request: decorateRequest(request) });
   },
 
-  listSettlementImports({ page = 1, pageSize = 20, sort = null } = {}) {
-    const rows = SETTLEMENT_IMPORTS.map((i) => ({
+  listSettlementImports({ page = 1, pageSize = 20, sort = null, status = 'all', from = '', to = '' } = {}) {
+    const rows = SETTLEMENT_IMPORTS
+      .filter((i) => (status === 'all' || i.status === status) && inDateRange(i.createdAt, from, to))
+      .map((i) => ({
       id: i.id,
       fileName: i.fileName,
       status: i.status,
