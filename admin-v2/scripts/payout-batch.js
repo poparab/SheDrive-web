@@ -439,6 +439,8 @@ function renderSummary() {
   const pairs = [
     [t('payoutBatch.reference'), ltr(batch.ref)],
     [t('payoutBatch.status'), chip(batch.status)],
+    // 2026-11-04 — a batch pays one payout method.
+    ...(batch.payoutType ? [[t('payouts.colMethod'), el('p', 'text-bold', typeLabel(batch.payoutType))]] : []),
     [t('payoutBatch.created'), whenWho(batch.createdAt, batch.createdBy)],
     // Its 7-day cut-off line (2026-10-29); older seeded batches have none.
     ...(batch.cutoffDay ? [[t('payoutBatch.cutoff'), t('payoutBatch.cutoffValue', { day: formatDate(batch.cutoffDay) })]] : []),
@@ -446,7 +448,7 @@ function renderSummary() {
     [t('payoutBatch.resultImported'), whenWho(batch.resultImportedAt, batch.resultImportedBy) ?? notYet, !batch.resultImportedAt],
     [t('payoutBatch.completed'), batch.completedAt ? formatDateTime(batch.completedAt) : notYet, !batch.completedAt],
     [t('payoutBatch.lines'), formatCount(batch.lines.length)],
-    [t('payoutBatch.files'), formatCount(batch.files.length)],
+    ...(batch.files.length > 1 ? [[t('payoutBatch.files'), formatCount(batch.files.length)]] : []),
     [t('payoutBatch.total'), el('p', 'text-bold ad-ltr', formatEgp(batch.total))],
   ];
   // The transfer fee it was generated with (2026-10-29).

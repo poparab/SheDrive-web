@@ -499,3 +499,46 @@ owner into Pricing (cancellation, commission), Finance (balance limit, payouts) 
 tab it can change. **Deviation:** the kit has no tab component, so this is Bootstrap's vendored
 `nav-tabs`, restyled in `pricing.css` as an underline. A driver due less than the minimum payout
 is left out of a batch and its preview without any note.
+
+## Kit v3-11: approval request page, one payout method per batch (2026-11-04)
+
+The designer's `SheDrive.AdminPanel_v3-11-2026` adds `approvals.html` (the queue, unchanged
+in substance) and `approval-reqeust.html` — **the review dialog becomes a page**. Kit CSS
+(`styles.css`, `styles-ar.css`) and four icons (`files`, `file-approved`, `file-rejected`,
+`user-gear`) were copied into `vendor/` verbatim.
+
+**Request page — `approval-request.html?id=APR-nnnn[&return=<screen>]`** (`scripts/approval-request.js`,
+`styles/approval-request.css`). The kit frame, for every type:
+
+| Block | Content |
+|---|---|
+| Title | "<type> —" + the request id (small, tertiary), round back button → `return=` or Approvals |
+| Standing | Decided banner (approved / rejected + reason), or the officer / own-request / waiting-for-lead note |
+| Top row | **Request details** (subject, amount, created by, the type's own facts, status, checked by, decided on) beside **Before → After** |
+| Type sections | The `STRUCTURE` table in the script — each type gets its own sections (below) |
+| Action bar | **Approve Request** (popup-warning confirm) · **Reject Request** (default-modal, reason 10–500). Financial lead only; disabled on her own request. Result = toast + the page redraws decided (no popup-success, as everywhere). |
+
+| Type | Its sections |
+|---|---|
+| Payout result | Result file: tiles (file total, successful, failed — amount + lines), search + result filter + Reset, lines failed first (line, driver, national ID, wallet provider / bank, number, amount, result, bank reference / reason); What approving does |
+| Settlement import | File rows: tiles (amount, in full, part paid, paid more), search + result filter, rows (row, driver, national ID, phone, amount, balance now → after, payment, result); What approving does |
+| Manual settlement | Settlement details (driver, balance now, channel, payment date, reference, note, proof); What approving does |
+| Manual payout | Payout details (driver, paid to, number, holder, reference, date, proof); Where her earnings stand (due, on hold, in a batch); What approving does |
+| Fee waiver | Fee details (rider, trip, date, route, driver, fee, owed now, reason); What approving does |
+| Payout method change | Driver (current method last updated, due, in a batch); What approving does |
+| Rate card | Where it applies (zone, zone status, applies) |
+| Commission, cancellation policy, balance limit, payout settings | Where it applies (setting, Global policies tab, applies) |
+
+The in-place dialog is gone: `approvalHref(id)` now builds `approval-request.html?id=…&return=<this screen>`,
+the queue's View links there, and an old `approvals.html?id=…` link forwards to the page
+(`wireInPlaceApprovals()` keeps that working on the business screens). `approval-review.js` keeps only the
+shared kit blocks (kvList, diffList, card, alertBox, lamp, who, subjectLink).
+
+**One payout method per batch** (user decision, 2026-11-04). Generate payout batch opens on three
+method cards (Mobile wallet / Bank account / Prepaid card, each with drivers due, amount and any open
+batch); picking one shows that method's preview, with columns from its bank file. `previewPayoutBatch(type)`,
+`createPayoutBatch(type)` (required), `listPayoutBatches({ payoutType })`; every batch carries `payoutType`,
+has one bank file and one `payout_result` request. The Payouts list gained a Payout method column and
+filter. The seed builds its batches as before and splits each into one batch per method
+(`pushByMethod` in `finance-seed.js`), so every APR id keeps its type: APR-0012/13/14 are now the wallet,
+bank and prepaid batches of the 1,000 lines, APR-0015/16/17 those of the 100-line one.

@@ -33,10 +33,10 @@
   white-space: nowrap;
 }
 
+/* Kit v3-11: the "You" chip is the kit's status-blue-solid; it only needs to hug its text. */
 .apr-who__you {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary-600);
+  align-self: flex-start;
+  margin-block-end: var(--space-1);
 }
 
 .apr-who__when {

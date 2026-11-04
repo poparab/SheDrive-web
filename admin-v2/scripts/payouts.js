@@ -29,7 +29,9 @@ const shell = qs('ad-shell');
 const filters = qs('#batch-filters');
 const table = qs('#batches-table');
 
-const query = { status: 'all', page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' } };
+const query = { status: 'all', payoutType: 'all', page: 1, pageSize: 20, sort: { key: 'createdAt', dir: 'desc' } };
+
+const PAYOUT_TYPES = ['MOBILE_WALLET', 'BANK_ACCOUNT', 'PREPAID_CARD'];
 
 const STATUSES = ['ready', 'sent_to_bank', 'result_pending', 'completed'];
 const OPEN_STATUSES = ['ready', 'sent_to_bank', 'result_pending'];
@@ -63,6 +65,17 @@ const typeLabel = (type) => t(`payouts.type_${type}`);
 
 // ── Filters ──────────────────────────────────────────
 filters.fields = [
+  // 2026-11-04 — a batch pays one payout method.
+  {
+    type: 'select',
+    key: 'payoutType',
+    label: t('payouts.filterMethod'),
+    value: 'all',
+    options: [
+      { value: 'all', label: t('payouts.allMethods') },
+      ...PAYOUT_TYPES.map((type) => ({ value: type, label: typeLabel(type) })),
+    ],
+  },
   {
     type: 'select',
     key: 'status',
@@ -85,6 +98,7 @@ async function exportCsv() {
     `shedrive-payout-batches-${toDateInputValue(Date.now())}.csv`,
     [
       t('payouts.colRef'),
+      t('payouts.colMethod'),
       t('payouts.colCreated'),
       t('payouts.csvCreatedBy'),
       t('payouts.colLines'),
@@ -95,6 +109,7 @@ async function exportCsv() {
     ],
     rows.map((b) => [
       b.ref,
+      b.payoutType ? typeLabel(b.payoutType) : '',
       formatDate(b.createdAt),
       b.createdBy,
       b.lineCount,
@@ -126,6 +141,7 @@ table.columns = [
       return a;
     },
   },
+  { key: 'payoutType', label: t('payouts.colMethod'), render: (row) => (row.payoutType ? typeLabel(row.payoutType) : '') },
   {
     key: 'createdAt',
     label: t('payouts.colCreated'),
@@ -236,8 +252,17 @@ async function load() {
   }
 }
 
-// ── Generate: preview modal (kit default-modal) ──────
+// ── Generate: method choice, then the preview (kit default-modal) ──
+//
+// 2026-11-04 — a batch pays one payout method. Step 1 shows the three
+// methods as cards with who is due on each; picking one opens step 2, the
+// preview of that method only. A batch has one bank file and one result.
+
+const METHOD_ICON = { MOBILE_WALLET: 'cellphone.svg', BANK_ACCOUNT: 'bank.svg', PREPAID_CARD: 'commercial-card.svg' };
+
 let modal = null;
+let chosenType = null;
+let openBatches = [];
 
 function buildModal() {
   const root = el('div', 'modal modal-xl fade default-modal payouts-preview');
@@ -259,7 +284,8 @@ function buildModal() {
         </div>
         <div class="modal-body payouts-preview__body" id="preview-body"></div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-success" id="preview-confirm"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span></span></button>
+          <button type="button" class="btn btn-success" id="preview-confirm"><i class="fa-solid fa-plus" aria-hidden="true"></i><span></span></button>
+          <button type="button" class="btn btn-primary-outline" id="preview-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span></span></button>
           <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal" id="preview-cancel"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span></span></button>
         </div>
       </div>
@@ -268,8 +294,10 @@ function buildModal() {
   qs('#preview-title', root).textContent = t('payouts.previewTitle');
   qs('.btn-close', root).setAttribute('aria-label', t('aria.closeDialog'));
   qs('#preview-confirm span', root).textContent = t('payouts.confirm');
+  qs('#preview-back span', root).textContent = t('payouts.changeMethod');
   qs('#preview-cancel span', root).textContent = t('common.cancel');
   qs('#preview-confirm', root).addEventListener('click', confirmBatch);
+  qs('#preview-back', root).addEventListener('click', showMethods);
   document.body.appendChild(root);
   return root;
 }
@@ -296,39 +324,87 @@ function cell(className, node) {
   return td;
 }
 
-function renderPreview(body, preview, openBatch) {
-  body.textContent = '';
-  // Kit v22-10: the summary is the header's subtitle line.
-  const subtitle = qs('#preview-subtitle', modal);
-  subtitle.textContent = preview.lines.length
-    ? t('payouts.previewSummary', { n: formatCount(preview.count), total: formatEgp(preview.total) })
-    : '';
+function loadingLine() {
+  const loading = el('p', 'payouts-preview__loading');
+  loading.append(el('span', 'spinner'), document.createTextNode(` ${t('payouts.previewLoading')}`));
+  return loading;
+}
 
+/** The open batch of a method, if any — its earnings are not picked up again. */
+const openFor = (type) => openBatches.find((b) => b.payoutType === type) ?? null;
+
+/** Step 1 — one card per payout method, with who is due on it. */
+function renderMethods(body, all) {
+  body.textContent = '';
+  qs('#preview-subtitle', modal).textContent = t('payouts.methodSubtitle');
+  body.appendChild(alertBox('info', t('payouts.methodNote')));
+  const grid = el('div', 'payouts-methods');
+  all.byType.forEach((g) => {
+    const card = el('button', 'payouts-method');
+    card.type = 'button';
+    card.dataset.type = g.type;
+    card.disabled = g.count === 0;
+    const iconWrap = el('span', 'payouts-method__icon');
+    const img = el('img');
+    img.src = iconUrl(METHOD_ICON[g.type]);
+    img.alt = '';
+    iconWrap.appendChild(img);
+    const text = el('span', 'payouts-method__text');
+    text.append(
+      el('span', 'payouts-method__name', typeLabel(g.type)),
+      el('span', 'payouts-method__meta', g.count
+        ? t('payouts.methodDue', { n: formatCount(g.count) })
+        : t('payouts.methodNoneDue')),
+    );
+    const amount = el('span', 'payouts-method__amount ad-ltr', formatEgp(g.total));
+    card.append(iconWrap, text, amount);
+    const open = openFor(g.type);
+    if (open) card.appendChild(el('span', 'payouts-method__open', t('payouts.methodOpen', { ref: open.ref })));
+    card.addEventListener('click', () => showPreview(g.type));
+    grid.appendChild(card);
+  });
+  body.appendChild(grid);
+  if (all.byType.every((g) => g.count === 0)) body.appendChild(alertBox('info', t('payouts.previewEmpty')));
+}
+
+/** Step 2 — the preview of one method's batch. */
+function renderPreview(body, preview) {
+  body.textContent = '';
+  const type = preview.payoutType;
+  qs('#preview-subtitle', modal).textContent = t('payouts.previewMethodSummary', {
+    type: typeLabel(type),
+    n: formatCount(preview.count),
+    total: formatEgp(preview.total),
+  });
+
+  const open = openFor(type);
   if (!preview.lines.length) {
     const empty = el('div', 'result-message info payouts-preview__empty');
     const iconWrap = el('span', 'icon');
     const img = el('img');
-    img.src = iconUrl('wallet.svg');
+    img.src = iconUrl(METHOD_ICON[type] ?? 'wallet.svg');
     img.alt = '';
     iconWrap.appendChild(img);
-    empty.append(iconWrap, el('h3', '', t('payouts.previewEmpty')));
+    empty.append(iconWrap, el('h3', '', t('payouts.previewEmptyMethod', { type: typeLabel(type) })));
     body.appendChild(empty);
-    if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
+    if (open) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: open.ref })));
     return;
   }
 
   body.append(alertBox('info', settingsNote(preview)));
-  if (openBatch) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: openBatch.ref })));
+  if (open) body.appendChild(alertBox('warning', t('payouts.previewOpenNote', { ref: open.ref })));
 
   // Only the drivers this batch pays — nobody left out is listed (2026-10-14).
+  // One method, so it is in the subtitle, not a column; the columns follow
+  // that method's bank file (2026-11-04).
   const wrap = el('div', 'table-responsive');
   const grid = el('table', 'table custom-grid-list payouts-preview__table');
+  const withProvider = type !== 'PREPAID_CARD';
   grid.appendChild(
     headerRow([
       [t('payouts.previewColDriver')],
-      [t('payouts.previewColType')],
-      [t('payouts.previewColProvider')],
-      [t('payouts.previewColNumber')],
+      ...(withProvider ? [[t(type === 'BANK_ACCOUNT' ? 'payouts.previewColBank' : 'payouts.previewColWallet')]] : []),
+      [t(`payouts.previewColNumber_${type}`)],
       [t('payouts.previewColAmount'), true],
       [t('payouts.previewColFee'), true],
       [t('payouts.previewColSent'), true],
@@ -339,8 +415,7 @@ function renderPreview(body, preview, openBatch) {
     const tr = el('tr');
     tr.append(
       el('td', '', line.driverName),
-      el('td', '', typeLabel(line.payoutType)),
-      el('td', '', line.provider || '—'),
+      ...(withProvider ? [el('td', '', line.provider || '—')] : []),
       cell('', ltr(line.number)),
       cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(line.amount))),
       cell('text-end', ltr(line.feePaidBy === 'driver' ? `−${formatEgp(line.fee)}` : formatEgp(line.fee))),
@@ -352,7 +427,7 @@ function renderPreview(body, preview, openBatch) {
   const tfoot = el('tfoot');
   const totalRow = el('tr', 'payouts-preview__total');
   const totalLabel = el('td', '', t('payouts.previewTotal'));
-  totalLabel.colSpan = 4;
+  totalLabel.colSpan = withProvider ? 3 : 2;
   totalRow.append(
     totalLabel,
     cell('text-end', el('p', 'text-bold ad-ltr', formatEgp(preview.total))),
@@ -365,28 +440,59 @@ function renderPreview(body, preview, openBatch) {
   body.append(wrap, el('p', 'small lh-sm payouts-preview__hint', t('payouts.previewAmountHint')));
 }
 
-/** The payout settings this batch is generated under, and its one-file-per-method split (2026-10-29). */
+/** The payout settings this batch is generated under, and its one bank file. */
 function settingsNote(preview) {
   const s = preview.settings;
   const cutoff = t('payouts.previewCutoff', { day: formatDate(preview.cutoffDay) });
-  const files = preview.byType.map((g) => t('payouts.previewFileCount', { type: typeLabel(g.type), n: formatCount(g.count) }));
   return cutoff + ' ' + t(s.feePaidBy === 'driver' ? 'payouts.previewSettingsDriver' : 'payouts.previewSettingsShedrive', {
     min: formatEgp(s.minimumAmount),
     fee: t('payouts.feeRule', { pct: formatPercent(s.feePercent), min: formatEgp(s.feeMin), max: formatEgp(s.feeMax) }),
-  }) + ' ' + t('payouts.previewFiles', { files: files.join(t('payouts.listSeparator')) });
+  }) + ' ' + t('payouts.previewOneFile', { type: typeLabel(preview.payoutType) });
+}
+
+function setStep(step) {
+  qs('#preview-confirm', modal).hidden = step !== 'preview';
+  qs('#preview-back', modal).hidden = step !== 'preview';
+  modal.dataset.step = step;
+}
+
+async function showMethods() {
+  chosenType = null;
+  setStep('methods');
+  const body = qs('#preview-body', modal);
+  body.replaceChildren(loadingLine());
+  qs('#preview-subtitle', modal).textContent = '';
+  try {
+    const [all, list] = await Promise.all([
+      mockApi.previewPayoutBatch(),
+      mockApi.listPayoutBatches({ status: 'all', page: 1, pageSize: 1000 }),
+    ]);
+    openBatches = (list.rows ?? []).filter((b) => OPEN_STATUSES.includes(b.status));
+    renderMethods(body, all);
+  } catch (error) {
+    body.replaceChildren(alertBox('danger', error.message));
+  }
+}
+
+async function showPreview(type) {
+  chosenType = type;
+  setStep('preview');
+  const body = qs('#preview-body', modal);
+  const confirm = qs('#preview-confirm', modal);
+  confirm.disabled = true;
+  body.replaceChildren(loadingLine());
+  try {
+    const preview = await mockApi.previewPayoutBatch(type);
+    if (chosenType !== type) return;
+    renderPreview(body, preview);
+    confirm.disabled = preview.lines.length === 0;
+  } catch (error) {
+    body.replaceChildren(alertBox('danger', error.message));
+  }
 }
 
 async function openPreview() {
   if (!modal) modal = buildModal();
-  const body = qs('#preview-body', modal);
-  const confirm = qs('#preview-confirm', modal);
-  confirm.disabled = true;
-  body.textContent = '';
-  qs('#preview-subtitle', modal).textContent = '';
-  const loading = el('p', 'payouts-preview__loading');
-  loading.append(el('span', 'spinner'), document.createTextNode(` ${t('payouts.previewLoading')}`));
-  body.appendChild(loading);
-
   try {
     await loadBootstrap();
   } catch {
@@ -398,19 +504,7 @@ async function openPreview() {
     modal.classList.add('show');
     modal.style.display = 'block';
   }
-
-  try {
-    const [preview, all] = await Promise.all([
-      mockApi.previewPayoutBatch(),
-      mockApi.listPayoutBatches({ status: 'all', page: 1, pageSize: 1000 }),
-    ]);
-    const openBatch = (all.rows ?? []).find((b) => OPEN_STATUSES.includes(b.status)) ?? null;
-    renderPreview(body, preview, openBatch);
-    confirm.disabled = preview.lines.length === 0;
-  } catch (error) {
-    body.textContent = '';
-    body.appendChild(alertBox('danger', error.message));
-  }
+  await showMethods();
 }
 
 function hideModal() {
@@ -426,7 +520,7 @@ async function confirmBatch() {
   const confirm = qs('#preview-confirm', modal);
   confirm.disabled = true;
   try {
-    const result = await mockApi.createPayoutBatch();
+    const result = await mockApi.createPayoutBatch(chosenType);
     const ref = result?.batch?.ref;
     if (!ref) throw new Error(t('common.notAvailable'));
     shell.showToast(t('payouts.generated', { ref }), 'success');

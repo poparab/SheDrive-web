@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SheDrive Admin — Approval request</title>
+    <meta name="robots" content="noindex" />
+    <script type="module" src="components/ad-shell.js"></script>
+  </head>
+
+  <body>
+    <!-- Kit v3-11 approval-reqeust.html: one request on its own page (2026-11-04). -->
+    <ad-shell
+      active="approvals"
+      page-title-key="approvalPage.title"
+      breadcrumb-keys="nav.money > nav.approvals|approvals.html > approvalPage.crumb"
+      back="approvals.html"
+      screen-styles="styles/list.css, styles/approval-review.css, styles/approval-request.css"
+    >
+      <div id="req-missing" hidden>
+        <ad-empty-state
+          icon="not-found.svg"
+          heading="Request not found"
+          data-i18n-heading="approvalPage.notFoundHeading"
+          message="No approval request has this ID."
+          data-i18n-message="approvalPage.notFoundMessage"
+        >
+          <a class="btn btn-primary-rounded-outline" href="approvals.html" data-i18n="approvalPage.backToApprovals">Back to approvals</a>
+        </ad-empty-state>
+      </div>
+
+      <div id="req-error" hidden>
+        <ad-empty-state
+          icon="cloud-connection-off.svg"
+          tone="danger"
+          heading="Could not load the request"
+          data-i18n-heading="approvalPage.errorHeading"
+          message=""
+          id="req-error-state"
+        >
+          <button type="button" class="btn btn-primary-rounded-outline" id="req-retry" data-i18n="approvalPage.retry">Try again</button>
+        </ad-empty-state>
+      </div>
+
+      <div id="req-loading" class="req-loading">
+        <span class="spinner"></span>
+      </div>
+
+      <div id="req-body" hidden>
+        <!-- Where the request stands: decided, read-only, or another lead must decide. -->
+        <div id="req-standing" class="req-standing"></div>
+        <p class="small lh-sm req-effect" id="req-effect"></p>
+
+        <!-- Kit: Request details beside Before → After. -->
+        <div class="row row-cols-1 row-cols-lg-2 g-3" id="req-top"></div>
+
+        <!-- The type's own sections (STRUCTURE in scripts/approval-request.js). -->
+        <div id="req-sections" class="req-sections"></div>
+
+        <!-- Kit: Approve Request / Reject Request under the content. Financial lead only. -->
+        <div class="d-flex gap-3 req-actions" id="req-actions" hidden></div>
+      </div>
+    </ad-shell>
+
+    <script type="module" src="scripts/approval-request.js"></script>
+  </body>
+</html>

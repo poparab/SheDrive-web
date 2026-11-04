@@ -3,16 +3,16 @@
  *
  * Every finance action is a request. One admin makes it, a different admin
  * approves or rejects it, and only an approval changes data. This screen lists
- * requests (Pending / Decided, picked in the filter row — the kit has no tabs),
- * opens one in the shared review dialog (scripts/approval-review.js — the same
- * one a business screen opens in place) and records the decision.
+ * requests (Pending / Decided, picked in the filter row — the kit has no tabs).
+ * View opens the request's own page, approval-request.html (kit v3-11,
+ * 2026-11-04), where a Financial lead decides it.
  *
  * Filters: status, who made the request (me → waiting for others; other
  * admins → mine to decide), area (the hook for scoping the queue by role once
  * Finance and Pricing approvers are split) and type.
  *
- * Deep link: approvals.html?id=APR-0004 opens that request on load; with
- * `&return=<screen>` the admin goes back to that screen after deciding.
+ * Old deep link: approvals.html?id=APR-0004 now forwards to
+ * approval-request.html?id=APR-0004 (keeping `return=`).
  * Roles (#6212): only a Financial lead decides; a Financial officer sees her own
  * requests read-only. Demo: the role switch in the top bar (`?as=<role>`).
  */
@@ -26,11 +26,8 @@ import { t } from './admin-i18n.js';
 import { can } from './roles.js';
 import { mountStatRow } from './list-metrics.js';
 import {
-  createApprovalReview,
-  returnTarget,
+  approvalHref,
   el,
-  icon,
-  kitButton,
   ltr,
   money,
   typeLabel,
@@ -43,7 +40,15 @@ if (!adminAuth.requireAdmin()) {
   throw new Error('Redirecting to sign-in');
 }
 
-const shell = qs('ad-shell');
+// An old `approvals.html?id=…` link opens the request page (2026-11-04).
+{
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('id')) {
+    window.location.replace(`approval-request.html?${params}`);
+    throw new Error('Opening the request page');
+  }
+}
+
 const filters = qs('#approvals-filters');
 const table = qs('#approvals-table');
 
@@ -69,7 +74,7 @@ if (isOfficer) qs('#approvals-officer-note').hidden = false;
 
 const stats = mountStatRow(qs('#approvals-stats'), [
   { key: 'pending', label: t('approvals.statPending'), tone: 'warning', icon: 'prossesing.svg' },
-  { key: 'oldest', label: t('approvals.statOldest'), tone: 'primary', icon: 'stopwatch.svg' },
+  { key: 'oldest', label: t('approvals.statOldest'), tone: 'blue', icon: 'stopwatch.svg' },
   { key: 'today', label: t('approvals.statDecidedToday'), tone: 'success', icon: 'checked-2.svg' },
 ]);
 
@@ -219,10 +224,14 @@ function configureColumns() {
     headerClass: 'apr-actions',
     className: 'apr-actions',
     render: (row) => {
-      const btn = kitButton(` ${t('approvals.review')}`, 'grid-options-btn view-icon', 'fa-regular fa-eye');
-      btn.setAttribute('aria-label', t('approvals.reviewAria', { id: row.id }));
-      btn.addEventListener('click', () => review.open(row.id));
-      return btn;
+      // Kit v3-11: View opens the request page.
+      const a = el('a', 'btn view-icon d-flex align-items-baseline gap-1 p-0');
+      a.href = approvalHref(row.id);
+      a.setAttribute('aria-label', t('approvals.reviewAria', { id: row.id }));
+      const glyph = el('i', 'fa-regular fa-eye');
+      glyph.setAttribute('aria-hidden', 'true');
+      a.append(glyph, document.createTextNode(t('common.view')));
+      return a;
     },
   });
   table.columns = columns;
@@ -261,21 +270,8 @@ async function load() {
   }
 }
 
-function refreshAll() {
-  load();
-  loadStats();
-  shell.refreshNavCounts?.();
-}
-
-// ── Review dialog (shared with the business screens) ──
-
-// Opened from a business screen's link (`&return=`), a decision goes back there.
-const review = createApprovalReview({ urlParam: 'id', returnTo: returnTarget(), onDecided: refreshAll });
-
 // ── Boot ──────────────────────────────────────────────
 
 load();
 loadStats();
 
-const deepLink = new URLSearchParams(window.location.search).get('id');
-if (deepLink) review.open(deepLink);

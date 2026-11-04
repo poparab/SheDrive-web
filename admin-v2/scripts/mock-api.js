@@ -2346,8 +2346,12 @@ export const mockApi = {
    * they settle instead — and so is a driver due less than the minimum payout:
    * she isn't in the batch or its preview at all, and her earnings stay Due
    * for a later batch (2026-10-29).
+   *
+   * 2026-11-04 — a batch pays one payout method. `type` limits the preview to
+   * that method; without it every due driver is listed and `byType` carries the
+   * count and amount per method for the method cards.
    */
-  previewPayoutBatch() {
+  previewPayoutBatch(type = null) {
     const now = Date.now();
     const settings = payoutSettings();
     const lines = [];
@@ -2379,25 +2383,37 @@ export const mockApi = {
     });
     lines.sort((a, b) => b.amount - a.amount);
     const sum = (list, key) => round2(list.reduce((t, l) => t + l[key], 0));
+    const byType = PAYOUT_TYPES.map((t) => {
+      const of = lines.filter((l) => l.payoutType === t);
+      return { type: t, count: of.length, total: sum(of, 'amount') };
+    });
+    if (type) lines.splice(0, lines.length, ...lines.filter((l) => l.payoutType === type));
     const payload = {
+      payoutType: type,
       lines,
       count: lines.length,
       total: sum(lines, 'amount'),
       feeTotal: sum(lines, 'fee'),
       transferTotal: sum(lines, 'transferAmount'),
-      byType: PAYOUT_TYPES.map((type) => ({ type, count: lines.filter((l) => l.payoutType === type).length })).filter((g) => g.count),
+      byType,
       settings,
       cutoffDay: payoutCutoffDay(now),
     };
     return respond(payload, {
-      emptyValue: { lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: [], settings, cutoffDay: payoutCutoffDay(now) },
+      emptyValue: { payoutType: type, lines: [], count: 0, total: 0, feeTotal: 0, transferTotal: 0, byType: PAYOUT_TYPES.map((t) => ({ type: t, count: 0, total: 0 })), settings, cutoffDay: payoutCutoffDay(now) },
     });
   },
 
-  /** 2026-10-29 — no approval: the batch is Ready to export as soon as it is generated. */
-  createPayoutBatch() {
+  /**
+   * 2026-10-29 — no approval: the batch is Ready to export as soon as it is generated.
+   * 2026-11-04 — for one payout method only: `type` is required.
+   */
+  createPayoutBatch(type) {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
+    if (!PAYOUT_TYPES.includes(type)) {
+      return Promise.reject(new MockApiError('Choose the payout method first.', 422));
+    }
     const now = Date.now();
     const settings = payoutSettings();
     const drivers = DRIVERS.filter((d) => ['approved', 'suspended', 'pending_suspension'].includes(d.status));
@@ -2407,12 +2423,13 @@ export const mockApi = {
       const due = ledgerFor(driver.id).filter((e) => entryPayoutStatus(e, now) === 'due');
       const dueNet = round2(due.reduce((t, e) => t + e.amount, 0));
       if (dueNet <= 0 || driver.balance <= 0 || !driver.payoutMethod) return;
+      if (driver.payoutMethod.type !== type) return;
       const amount = dueNet;
       if (amount < settings.minimumAmount) return;
       lines.push(makeLine(driver, ref, lines.length + 1, amount, due.map((e) => e.id), settings));
     });
     if (!lines.length) {
-      return Promise.reject(new MockApiError('No driver is due a payout right now.', 409));
+      return Promise.reject(new MockApiError('No driver with this payout method is due a payout right now.', 409));
     }
     const total = round2(lines.reduce((t, l) => t + l.amount, 0));
     const batch = {
@@ -2430,21 +2447,24 @@ export const mockApi = {
       settings,
       // Its cut-off line: earnings up to the end of this day (7 days before it was generated).
       cutoffDay: payoutCutoffDay(now),
-      parts: Object.fromEntries(PAYOUT_TYPES.filter((type) => lines.some((l) => l.payoutType === type)).map((type) => [type, { status: 'ready' }])),
+      payoutType: type,
+      parts: { [type]: { status: 'ready' } },
       lines,
     };
     PAYOUT_BATCHES.unshift(batch);
     PAYOUT_BATCHES_BY_ID.set(batch.id, batch);
     recordAdded('batchesAdded', batch);
-    addAuditEntry('payout batch generated', 'batch', batch.id, null, { status: 'ready', lines: lines.length, total }, now);
+    addAuditEntry('payout batch generated', 'batch', batch.id, null, { status: 'ready', method: type, lines: lines.length, total }, now);
     return respond({ ok: true, batch: { id: batch.id, ref: batch.ref } });
   },
 
-  /** status: 'all' | a batch status. */
-  listPayoutBatches({ status = 'all', page = 1, pageSize = 20, sort = null } = {}) {
-    const rows = PAYOUT_BATCHES.filter((b) => status === 'all' || b.status === status).map((b) => ({
+  /** status: 'all' | a batch status. payoutType: 'all' | a payout method (2026-11-04). */
+  listPayoutBatches({ status = 'all', payoutType = 'all', page = 1, pageSize = 20, sort = null } = {}) {
+    const rows = PAYOUT_BATCHES.filter((b) => status === 'all' || b.status === status)
+      .filter((b) => payoutType === 'all' || batchTypes(b).includes(payoutType)).map((b) => ({
       id: b.id,
       ref: b.ref,
+      payoutType: b.payoutType ?? batchTypes(b)[0] ?? null,
       status: b.status,
       createdAt: b.createdAt,
       createdBy: b.createdBy,

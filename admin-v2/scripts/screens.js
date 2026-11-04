@@ -422,6 +422,20 @@ export const SCREENS = [
   },
   {
     group: t('nav.finance'),
+    title: t('approvalPage.title'),
+    file: 'approval-request.html?id=APR-0012',
+    icon: 'checked-2.svg',
+    status: 'built',
+    track: t('screens.statusBuilt'),
+    stories: [
+      [5617, 'Financial lead approves or rejects finance requests (maker-checker)'],
+      [6559, 'Approval cycle — Payout result'],
+    ],
+    states: [],
+    notes: t('approvalPage.screensNote'),
+  },
+  {
+    group: t('nav.finance'),
     title: t('screens.titlePayouts'),
     file: 'payouts.html',
     icon: 'wallet.svg',
@@ -522,6 +536,7 @@ const ROLE_SCREEN_BY_FILE = {
   'safety-report.html': 'safety',
   'sos-request.html': 'sos',
   'payout-batch.html': 'payouts',
+  'approval-request.html': 'approvals',
   'settlement-import.html': 'settlement-imports',
   'driver-balance-details.html': 'balances',
   'rider-balance-details.html': 'rider-balances',
@@ -656,7 +671,7 @@ function renderCard(screen) {
   }
 
   // #6210 — open the screen as each role that can (the demo role switch).
-  const roleScreen = ROLE_SCREEN_BY_FILE[screen.file];
+  const roleScreen = ROLE_SCREEN_BY_FILE[screen.file.split('?')[0]];
   if (roleScreen && screen.status === 'built') {
     const roles = ROLES.filter((role) => canOpen(roleScreen, role));
     body.appendChild(

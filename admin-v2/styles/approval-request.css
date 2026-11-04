@@ -1,0 +1,87 @@
+/*
+ * approval-request.css — one finance request on its own page (kit v3-11, 2026-11-04)
+ * Screen owner: admin-v2/approval-request.html
+ *
+ * Cards, tiles, the filter row, the grid and the status lamps are kit markup.
+ * What is local: the gaps between the blocks, the title's request id, the
+ * effect bullets and the action bar. Every value is a token; logical
+ * properties only (RTL-safe).
+ */
+
+.req-loading {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--space-10);
+}
+
+/* The kit's title: "<type> —" then the id in small bold tertiary. */
+.section-title .title .req-title-id {
+  margin-inline-start: var(--space-2);
+}
+
+.req-standing:empty,
+.req-effect:empty {
+  display: none;
+}
+
+.req-standing .alert {
+  margin-block-end: var(--space-3);
+}
+
+.req-effect {
+  margin-block: 0 var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.req-card {
+  block-size: 100%;
+}
+
+.req-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+
+.req-sections:empty {
+  display: none;
+}
+
+.req-section .card-body > * + * {
+  margin-block-start: var(--space-3);
+}
+
+.req-tiles {
+  margin: 0;
+}
+
+.req-filter {
+  margin-block-end: var(--space-2);
+}
+
+.req-filter .form-control {
+  min-inline-size: calc(var(--space-10) * 8);
+}
+
+.req-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* What deciding does — short bullets, not a paragraph. */
+.req-effects {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.req-effects li {
+  list-style: disc;
+}
+
+.req-actions {
+  margin-block-start: var(--space-4);
+}

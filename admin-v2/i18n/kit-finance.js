@@ -17,8 +17,8 @@ export const en = {
     pbSummaryTitle: 'Batch summary',
     pbTimelineTitle: 'State timeline',
     pbColMethod: 'Method',
-    pbExportConfirmTitle: 'Export the bank files?',
-    pbExportConfirmBody: 'One file downloads per payout method, and the batch moves to Sent to bank. You can download the same files again later.',
+    pbExportConfirmTitle: 'Export the bank file?',
+    pbExportConfirmBody: 'The batch file downloads and the batch moves to Sent to bank. You can download the same file again later.',
     pbUploadPrompt: 'Press to upload a result file, or drop it here',
     pbUploadLimits: 'CSV • one method’s file • every line once, with SUCCESS or FAILED',
 
@@ -44,8 +44,8 @@ export const ar = {
     pbSummaryTitle: 'ملخص الدفعة',
     pbTimelineTitle: 'التسلسل الزمني للحالات',
     pbColMethod: 'وسيلة الصرف',
-    pbExportConfirmTitle: 'هل تريد تصدير ملفات البنك؟',
-    pbExportConfirmBody: 'يُنزَّل ملف لكل طريقة دفع، وتنتقل الدفعة إلى حالة «أُرسلت إلى البنك». يمكنك تنزيل الملفات نفسها مرة أخرى لاحقًا.',
+    pbExportConfirmTitle: 'هل تريد تصدير ملف البنك؟',
+    pbExportConfirmBody: 'يُنزَّل ملف الدفعة وتنتقل الدفعة إلى حالة «أُرسلت إلى البنك». يمكنك تنزيل الملف نفسه مرة أخرى لاحقًا.',
     pbUploadPrompt: 'إضغط لرفع ملف نتيجة، أو اسحبه هنا',
     pbUploadLimits: 'CSV • ملف طريقة دفع واحدة • كل سطر مرة واحدة، بحالة SUCCESS أو FAILED',
 

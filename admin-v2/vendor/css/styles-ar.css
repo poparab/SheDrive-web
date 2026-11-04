@@ -2734,6 +2734,10 @@ hr {
   color: #999999 !important;
 }
 
+.light-color {
+  color: #c5a3f0 !important;
+}
+
 .white-color {
   color: #ffffff !important;
 }
@@ -3032,7 +3036,7 @@ a img, button img {
 }
 
 .btn:disabled, a:disabled, a.disabled, button:disabled, button.disabled {
-  opacity: .5 !important;
+  opacity: .4 !important;
   pointer-events: none;
   cursor: not-allowed;
   -moz-user-select: none !important;
@@ -3104,6 +3108,12 @@ a img, button img {
   border-radius: 2rem;
 }
 
+.btn-primary-outline:hover i, .btn-primary-outline:focus i, .btn-primary-outline:active i, .btn-secondary-outline:hover i, .btn-secondary-outline:focus i, .btn-secondary-outline:active i, .btn-tertiary-outline:hover i, .btn-tertiary-outline:focus i, .btn-tertiary-outline:active i, .btn-light-outline:hover i, .btn-light-outline:focus i, .btn-light-outline:active i, .btn-info-outline:hover i, .btn-info-outline:focus i, .btn-info-outline:active i, .btn-success-outline:hover i, .btn-success-outline:focus i, .btn-success-outline:active i, .btn-warning-outline:hover i, .btn-warning-outline:focus i, .btn-warning-outline:active i, .btn-danger-outline:hover i, .btn-danger-outline:focus i, .btn-danger-outline:active i,
+.btn-primary-rounded-outline:hover i,
+.btn-primary-rounded-outline:focus i,
+.btn-primary-rounded-outline:active i, .btn-secondary-rounded-outline:hover i, .btn-secondary-rounded-outline:focus i, .btn-secondary-rounded-outline:active i, .btn-tertiary-rounded-outline:hover i, .btn-tertiary-rounded-outline:focus i, .btn-tertiary-rounded-outline:active i, .btn-info-rounded-outline:hover i, .btn-info-rounded-outline:focus i, .btn-info-rounded-outline:active i, .btn-success-rounded-outline:hover i, .btn-success-rounded-outline:focus i, .btn-success-rounded-outline:active i, .btn-warning-rounded-outline:hover i, .btn-warning-rounded-outline:focus i, .btn-warning-rounded-outline:active i, .btn-danger-rounded-outline:hover i, .btn-danger-rounded-outline:focus i, .btn-danger-rounded-outline:active i {
+  color: #ffffff;
+}
 .btn-primary-outline:hover img, .btn-primary-outline:focus img, .btn-primary-outline:active img, .btn-secondary-outline:hover img, .btn-secondary-outline:focus img, .btn-secondary-outline:active img, .btn-tertiary-outline:hover img, .btn-tertiary-outline:focus img, .btn-tertiary-outline:active img, .btn-light-outline:hover img, .btn-light-outline:focus img, .btn-light-outline:active img, .btn-info-outline:hover img, .btn-info-outline:focus img, .btn-info-outline:active img, .btn-success-outline:hover img, .btn-success-outline:focus img, .btn-success-outline:active img, .btn-warning-outline:hover img, .btn-warning-outline:focus img, .btn-warning-outline:active img, .btn-danger-outline:hover img, .btn-danger-outline:focus img, .btn-danger-outline:active img,
 .btn-primary-rounded-outline:hover img,
 .btn-primary-rounded-outline:focus img,
@@ -4776,18 +4786,22 @@ header {
 }
 
 .standard-card-theme2.info {
+  background: #fbf9fe;
   border-color: #e1cff7;
 }
 
 .standard-card-theme2.success {
+  background: #f4fff0;
   border-color: #8aff5f;
 }
 
 .standard-card-theme2.warning {
+  background: #fffbf6;
   border-color: #ffd599;
 }
 
 .standard-card-theme2.danger {
+  background: #fffbfb;
   border-color: #ff7f7f;
 }
 
@@ -5279,4 +5293,35 @@ header {
   -webkit-box-shadow: 0 0.125rem 0.313rem rgba(92, 28, 171, 0.08);
           box-shadow: 0 0.125rem 0.313rem rgba(92, 28, 171, 0.08);
   padding: 0.313rem;
+}
+
+.custom-tabs {
+  margin-bottom: 1.5rem;
+  border-bottom: 0.125rem solid #7323D7;
+  padding-bottom: 0.0625rem;
+  gap: 0.313rem;
+}
+.custom-tabs .nav-link {
+  background-color: #ffffff;
+  border-radius: 0.5rem 0.5rem 0 0;
+  font-family: Tajawal-Bold;
+  font-size: calc(.875rem + .02vw);
+  color: #c5a3f0;
+  border: none;
+}
+.custom-tabs .nav-link:hover {
+  background-color: #e9dcf9;
+}
+.custom-tabs .nav-link.active {
+  background-color: #7323D7;
+  color: #ffffff;
+}
+@media (max-width: 360px) {
+  .custom-tabs {
+    padding-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
+  .custom-tabs .nav-link {
+    border-radius: 0.5rem;
+  }
 }

@@ -181,6 +181,52 @@ const adminByEmail = (email) => ADMINS.find((a) => a.email === email);
 
 export const PAYOUT_BATCHES = [];
 
+/**
+ * 2026-11-04 — a batch pays one payout method: Finance picks the method before
+ * generating, so a batch has one bank file and one result. A seeded batch is
+ * built from mixed lines, then split here into one batch per method, in the
+ * fixed method order; the first keeps the reference. Returns the batches made
+ * and the old → new line-ref map, so ledger entries can follow their line.
+ */
+function pushByMethod(batch) {
+  const remap = new Map();
+  const made = [];
+  PAYOUT_TYPES.filter((type) => batch.lines.some((l) => l.payoutType === type)).forEach((type, i) => {
+    const ref = i === 0 ? batch.ref : makeBatchRef(batch.createdAt);
+    const lines = batch.lines.filter((l) => l.payoutType === type).map((l, n) => {
+      const lineRef = `${ref}-${String(n + 1).padStart(4, '0')}`;
+      remap.set(l.lineRef, { ref, lineRef });
+      return { ...l, lineRef };
+    });
+    const part = batch.parts?.[type];
+    const split = { ...batch, id: ref, ref, payoutType: type, lines, parts: part ? { [type]: part } : {} };
+    if (batch.result) {
+      split.result = batch.result
+        .filter((r) => remap.get(r.lineRef)?.ref === ref)
+        .map((r) => ({ ...r, lineRef: remap.get(r.lineRef).lineRef }));
+    }
+    PAYOUT_BATCHES.push(split);
+    made.push(split);
+  });
+  return { made, remap };
+}
+
+/** Ledger entries and failure flags follow a line that moved to a split batch. */
+function followSplit(oldRef, remap) {
+  LEDGER_ENTRIES.forEach((e) => {
+    if (e.batchId !== oldRef || !remap.has(e.lineRef)) return;
+    const to = remap.get(e.lineRef);
+    e.batchId = to.ref;
+    e.lineRef = to.lineRef;
+  });
+  DRIVERS.forEach((d) => {
+    const f = d.lastPayoutFailure;
+    if (!f || f.batchId !== oldRef || !remap.has(f.lineRef)) return;
+    const to = remap.get(f.lineRef);
+    d.lastPayoutFailure = { ...f, batchId: to.ref, lineRef: to.lineRef };
+  });
+}
+
 // Two completed batches, built from payouts already on the ledger so a paid
 // line and its `payout` entry agree.
 [
@@ -215,7 +261,7 @@ export const PAYOUT_BATCHES = [];
     lines.push(line);
     unlucky.lastPayoutFailure = { at: createdAt + 2 * DAY, reason: failed, batchId: ref, lineRef: line.lineRef };
   }
-  PAYOUT_BATCHES.push({
+  const { remap } = pushByMethod({
     id: ref,
     ref,
     status: 'completed',
@@ -231,6 +277,7 @@ export const PAYOUT_BATCHES = [];
     }])),
     lines,
   });
+  followSplit(ref, remap);
 });
 
 // One open batch, exported yesterday, waiting for Finance's result file.
@@ -252,7 +299,7 @@ export const PAYOUT_BATCHES = [];
     lines.push(line);
   });
   if (lines.length) {
-    PAYOUT_BATCHES.push({
+    pushByMethod({
       id: ref,
       ref,
       status: 'sent_to_bank',
@@ -398,7 +445,7 @@ function payee(n) {
   return { id: null, name, phone, nid: `2${born}${digits2(7)}`, payoutMethod: { ...method, holderName: name } };
 }
 
-/** A generated batch of `count` lines; `failEvery` > 0 adds a result file with that share failed. */
+/** `count` generated lines, split into one batch per payout method; `failEvery` > 0 adds a result with that share failed. */
 function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 }) {
   const ref = makeBatchRef(createdAt);
   const lines = Array.from({ length: count }, (_, i) => {
@@ -435,8 +482,8 @@ function reviewBatch({ count, createdAt, maker, status, offset, failEvery = 0 })
       ? { lineRef: l.lineRef, status: 'FAILED', bankReference: null, failureReason: FAILURES[l.payoutType] }
       : { lineRef: l.lineRef, status: 'SUCCESS', bankReference: `BNK${digits2(8)}`, failureReason: null }));
   }
-  PAYOUT_BATCHES.push(batch);
-  return batch;
+  // One batch per payout method (2026-11-04).
+  return pushByMethod(batch).made;
 }
 
 const REVIEW_BATCHES = {
@@ -651,10 +698,9 @@ export const APPROVALS = [];
 
   // Review cases — added after the requests above so their ids stay as they were.
   // One request per method's result file: the 1,000-line batch first, then the 100-line one.
-  [REVIEW_BATCHES.thousand, REVIEW_BATCHES.result].forEach((b) => {
-    PAYOUT_TYPES.forEach((type) => {
-      const lines = b.lines.filter((l) => l.payoutType === type);
-      if (!lines.length) return;
+  [...REVIEW_BATCHES.thousand, ...REVIEW_BATCHES.result].forEach((b) => {
+    [b.payoutType].forEach((type) => {
+      const lines = b.lines;
       const ok = new Set(b.result.filter((r) => r.status === 'SUCCESS').map((r) => r.lineRef));
       const paid = lines.filter((l) => ok.has(l.lineRef));
       APPROVALS.push(makeApproval('payout_result', { kind: 'batch', id: b.id, label: b.ref }, {
