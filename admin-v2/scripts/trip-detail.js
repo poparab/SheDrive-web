@@ -427,6 +427,30 @@ function render(trip) {
     }
   }
 
+  // ── Driver's rating of the rider (#2977/#2978) — completed only, stars only ──
+  qs('#driver-rating-section').hidden = !isCompleted;
+  if (isCompleted) {
+    const host = qs('#driver-rating-body');
+    host.textContent = '';
+    if (!trip.driverRating) {
+      const none = document.createElement('p');
+      none.className = 'ad-muted td-no-rating';
+      none.textContent = t('tripDetail.noRating');
+      host.appendChild(none);
+    } else {
+      const { stars } = trip.driverRating;
+      const container = document.createElement('div');
+      container.className = 'rating-container';
+      const el = document.createElement('div');
+      el.className = 'stars detail__stars';
+      el.setAttribute('role', 'img');
+      el.setAttribute('aria-label', t('tripDetail.starsAria', { stars }));
+      el.textContent = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+      container.appendChild(el);
+      host.appendChild(container);
+    }
+  }
+
   // ── Intervention actions (#1671 S5) — in-progress only ──
   // #6210 — trip detail is View for every role, so the actions are not rendered.
   const canIntervene = isInProgress && can('trips.intervene');

@@ -131,6 +131,9 @@ export const en = {
     estimate: 'Original fare estimate',
     fareHeading: 'Fare breakdown',
     ratingHeading: 'Rider rating',
+    ratingHint: 'How the rider rated the driver.',
+    driverRatingHeading: 'Driver rating',
+    driverRatingHint: 'How the driver rated the rider.',
     actionsHeading: 'Admin intervention',
     cancellation: 'Cancellation',
 
@@ -600,6 +603,9 @@ export const ar = {
     estimate: 'التقدير الأولي للأجرة',
     fareHeading: 'تفاصيل الأجرة',
     ratingHeading: 'تقييم الراكبة',
+    ratingHint: 'تقييم الراكبة للسائقة.',
+    driverRatingHeading: 'تقييم السائقة',
+    driverRatingHint: 'تقييم السائقة للراكبة.',
     actionsHeading: 'تدخل الإدارة',
     cancellation: 'الإلغاء',
 

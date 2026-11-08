@@ -598,6 +598,7 @@ function buildTrip(index) {
     updatedAt: stateHistory[stateHistory.length - 1].at,
     fare: null,
     rating: null,
+    driverRating: null,
     route: null,
     paymentMethod: null,
     // Financial core spec §1: custody decides the ledger entry, and the payment
@@ -644,6 +645,11 @@ function buildTrip(index) {
         comment: null,
       };
     }
+
+    // The driver's rating of the rider (#2977/#2978) — stars only, no tags. Derived from
+    // the index, not rand(), so adding it leaves every other seeded value unchanged.
+    // One in six completed trips is left unrated by the driver.
+    trip.driverRating = index % 6 === 4 ? null : { stars: 3 + (index % 3) };
 
     // A coarse recorded GPS path — enough to draw the actual route travelled.
     const steps = 7;

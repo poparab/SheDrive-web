@@ -75,12 +75,28 @@
               <div class="card-header">
                 <div class="card-title">
                   <h5 id="rating-heading" data-i18n="tripDetail.ratingHeading">Rider rating</h5>
-                  <spam></spam>
+                  <span data-i18n="tripDetail.ratingHint">How the rider rated the driver.</span>
                 </div>
                 <div class="icon"><img src="vendor/icons/rating-user.svg" alt="" /></div>
               </div>
               <div class="card-body pb-0">
                 <div id="rating-body"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- #6699/#6700 — the driver's rating of the rider (#2977/#2978), completed trips only -->
+          <div class="col-lg-6 col-xl-4" id="driver-rating-section" hidden>
+            <div class="standard-card-theme2 white-bg">
+              <div class="card-header">
+                <div class="card-title">
+                  <h5 id="driver-rating-heading" data-i18n="tripDetail.driverRatingHeading">Driver rating</h5>
+                  <span data-i18n="tripDetail.driverRatingHint">How the driver rated the rider.</span>
+                </div>
+                <div class="icon"><img src="vendor/icons/rating-user.svg" alt="" /></div>
+              </div>
+              <div class="card-body pb-0">
+                <div id="driver-rating-body"></div>
               </div>
             </div>
           </div>
