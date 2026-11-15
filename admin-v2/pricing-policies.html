@@ -24,7 +24,16 @@
 
       <form id="policies-form" novalidate>
         <section class="policies-pane" id="pane-pricing" role="tabpanel" aria-labelledby="tab-pricing" data-pane="pricing">
-          <p class="small pricing__meta policies-pane__note" data-i18n="policies.notePricing">Applies across all zones. A change waits for another Financial lead's approval; a trip already in progress keeps the values it started with. Per-zone amounts live on each zone's rate card.</p>
+          <p class="small pricing__meta policies-pane__note" data-i18n="policies.notePricing">Applies across all zones. Saving sends the whole tab as one request for another Financial lead's approval; a trip already in progress keeps the values it started with. Per-zone amounts live on each zone's rate card.</p>
+          <!-- 2026-11-15 — one request covers the whole tab; while it waits, the tab is locked -->
+          <div class="alert warning policies-pending mb-3" id="pricing-pending" role="status" hidden>
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+            <div class="details flex-column gap-1">
+              <h6 id="pricing-pending-title"></h6>
+              <p id="pricing-pending-meta"></p>
+              <a id="pricing-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+            </div>
+          </div>
           <div class="row g-3 pricing__policies">
             <!-- #1759 — cancellation policy -->
             <div class="col-lg-12 col-xl-6">
@@ -37,15 +46,6 @@
                   <div class="icon"><img src="vendor/icons/policies.svg" alt="" /></div>
                 </div>
                 <div class="card-body">
-                  <!-- #6212 — a cancellation policy change waits for another Financial lead -->
-                  <div class="alert warning" id="cancel-pending" role="status" hidden>
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-                    <div class="details flex-column gap-1">
-                      <h6 id="cancel-pending-title"></h6>
-                      <p id="cancel-pending-meta"></p>
-                      <a id="cancel-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
-                    </div>
-                  </div>
                   <div id="cancel-fields"></div>
                 </div>
               </section>
@@ -62,15 +62,6 @@
                   <div class="icon"><img src="vendor/icons/discount.svg" alt="" /></div>
                 </div>
                 <div class="card-body">
-                  <!-- A commission change waits for a second admin; the field is locked meanwhile -->
-                  <div class="alert warning" id="commission-pending" role="status" hidden>
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-                    <div class="details flex-column gap-1">
-                      <h6 id="commission-pending-title"></h6>
-                      <p id="commission-pending-meta"></p>
-                      <a id="commission-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
-                    </div>
-                  </div>
                   <div id="commission-fields"></div>
                   <p class="small mb-0" id="commission-example"></p>
                 </div>
@@ -80,7 +71,16 @@
         </section>
 
         <section class="policies-pane" id="pane-finance" role="tabpanel" aria-labelledby="tab-finance" data-pane="finance" hidden>
-          <p class="small pricing__meta policies-pane__note" data-i18n="policies.noteFinance">A change waits for another Financial lead's approval. A payout batch keeps the settings it was generated with.</p>
+          <p class="small pricing__meta policies-pane__note" data-i18n="policies.noteFinance">Saving sends the whole tab as one request for another Financial lead's approval. A payout batch keeps the settings it was generated with.</p>
+          <!-- 2026-11-15 — one request covers the whole tab; while it waits, the tab is locked -->
+          <div class="alert warning policies-pending mb-3" id="finance-pending" role="status" hidden>
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+            <div class="details flex-column gap-1">
+              <h6 id="finance-pending-title"></h6>
+              <p id="finance-pending-meta"></p>
+              <a id="finance-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+            </div>
+          </div>
           <div class="row g-3 pricing__policies">
             <!-- Driver balance policy (#TBD-B) -->
             <div class="col-lg-12 col-xl-6">
@@ -93,15 +93,6 @@
                   <div class="icon"><img src="vendor/icons/balance.svg" alt="" /></div>
                 </div>
                 <div class="card-body">
-                  <!-- #6212 — a balance limit change waits for another Financial lead -->
-                  <div class="alert warning" id="balance-pending" role="status" hidden>
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-                    <div class="details flex-column gap-1">
-                      <h6 id="balance-pending-title"></h6>
-                      <p id="balance-pending-meta"></p>
-                      <a id="balance-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
-                    </div>
-                  </div>
                   <div id="balance-fields"></div>
                   <p class="small mb-0" id="balance-example"></p>
                 </div>
@@ -119,15 +110,6 @@
                   <div class="icon"><img src="vendor/icons/wallet.svg" alt="" /></div>
                 </div>
                 <div class="card-body">
-                  <!-- A payout settings change waits for another Financial lead -->
-                  <div class="alert warning" id="payout-pending" role="status" hidden>
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-                    <div class="details flex-column gap-1">
-                      <h6 id="payout-pending-title"></h6>
-                      <p id="payout-pending-meta"></p>
-                      <a id="payout-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
-                    </div>
-                  </div>
                   <div id="payout-fields"></div>
                   <p class="small mb-1" id="payout-example"></p>
                   <p class="small pricing__meta mb-0" data-i18n="policies.payoutNote">
@@ -140,9 +122,18 @@
         </section>
 
         <section class="policies-pane" id="pane-operations" role="tabpanel" aria-labelledby="tab-operations" data-pane="operations" hidden>
-          <p class="small pricing__meta policies-pane__note" data-i18n="policies.noteOperations">A change applies as soon as you save it.</p>
+          <p class="small pricing__meta policies-pane__note" data-i18n="policies.noteOperations">Saving sends the tab as one request for another Operations lead's approval.</p>
+          <!-- 2026-11-15 — one request covers the whole tab; while it waits, the tab is locked -->
+          <div class="alert warning policies-pending mb-3" id="operations-pending" role="status" hidden>
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+            <div class="details flex-column gap-1">
+              <h6 id="operations-pending-title"></h6>
+              <p id="operations-pending-meta"></p>
+              <a id="operations-pending-link" href="approvals.html" data-i18n="pricingApproval.viewRequest">View the request</a>
+            </div>
+          </div>
           <div class="row g-3 pricing__policies">
-            <!-- #6268 — operating hours: one daily booking window, saves immediately -->
+            <!-- #6268 — operating hours: one daily booking window; the tab is one request (2026-11-15) -->
             <div class="col-lg-12 col-xl-6">
               <section class="standard-card-theme2 white-bg h-100" id="hours-card" aria-labelledby="hours-heading">
                 <div class="card-header">
@@ -167,11 +158,11 @@
 
         <div class="ad-form-error mt-3" id="policies-error" role="alert"></div>
 
-        <!-- Save / Revert act on the open tab only (2026-10-29) -->
+        <!-- Save sends the open tab as one request; Revert resets the open tab (2026-11-15) -->
         <div class="flex-row" id="policies-actions">
           <div class="col d-flex flex-wrap gap-3 mt-4 mb-3">
             <button class="btn btn-success d-flex" type="submit" id="policies-save">
-              <i class="fa-solid fa-check" aria-hidden="true"></i><span id="policies-save-label" data-i18n="kitPricing.saveChanges">Save changes</span>
+              <i class="fa-solid fa-check" aria-hidden="true"></i><span id="policies-save-label" data-i18n="pricingApproval.sendTabForApproval">Send for approval</span>
             </button>
             <button class="btn btn-primary-outline d-flex" type="button" id="policies-revert">
               <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="policies.revert">Revert changes</span>

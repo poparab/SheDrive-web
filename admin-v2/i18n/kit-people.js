@@ -30,7 +30,7 @@ export const en = {
     reinstatedText: 'The driver can now receive ride requests again.',
     payoutEditTitle: 'Edit payout method —',
     currentMethod: 'Current method: {method}',
-    payoutSentTitle: 'Sent for approval',
+    payoutSavedTitle: 'Payout method saved',
     openLedger: 'Open her ledger',
 
     // rider-profile.html
@@ -69,7 +69,7 @@ export const ar = {
     reinstatedText: 'يمكن للسائقة الآن استقبال طلبات الرحلات مرة أخرى.',
     payoutEditTitle: 'تعديل وسيلة الصرف —',
     currentMethod: 'الوسيلة الحالية: {method}',
-    payoutSentTitle: 'أُرسل للموافقة',
+    payoutSavedTitle: 'حُفظت وسيلة الصرف',
     openLedger: 'فتح كشف حسابها',
 
     riderSuspendedTitle: 'تم إيقاف الراكبة بنجاح',

@@ -1355,4 +1355,14 @@ ADMINS.push(
     lastLoginAt: NOW - 35 * MINUTE,
     twoFactorEnrolled: true,
   },
+  // 2026-11-15 — a second Operations lead, so an operations-tab request has someone to decide it.
+  {
+    id: 9905,
+    email: 'dina.samir@shedrive.app',
+    role: 'ops_lead',
+    status: 'active',
+    createdAt: NOW - 90 * DAY,
+    lastLoginAt: NOW - 3 * HOUR,
+    twoFactorEnrolled: true,
+  },
 );

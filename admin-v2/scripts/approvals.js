@@ -23,7 +23,7 @@ import { createRequestGuard } from './request-guard.js';
 import { toDateInputValue } from './format.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
-import { can } from './roles.js';
+import { can, isApprover } from './roles.js';
 import { mountStatRow } from './list-metrics.js';
 import {
   approvalHref,
@@ -67,8 +67,12 @@ const query = {
 // ── Role (#6212) ──────────────────────────────────────
 // A Financial officer sees only her own requests, read-only, with no Made-by
 // filter. Only a Financial lead decides. The demo role switch is in the top bar.
-const isOfficer = !can('finance.approve');
+const isOfficer = !isApprover();
 if (isOfficer) qs('#approvals-officer-note').hidden = false;
+// 2026-11-15 — an Operations lead's queue holds only operations-tab requests.
+if (can('operations.approve')) {
+  qs('#approvals-hint').textContent = t('approvalRoles.hintOps');
+}
 
 // ── KPI row ───────────────────────────────────────────
 
@@ -136,7 +140,7 @@ filters.fields = [
           value: 'all',
           options: [
             { value: 'all', label: t('approvals.madeByAll') },
-            { value: 'others', label: t('approvals.madeByOthers') },
+            { value: 'others', label: t(can('operations.approve') ? 'approvals.madeByOthersOps' : 'approvals.madeByOthers') },
             { value: 'mine', label: t('approvals.madeByMine') },
           ],
         },
@@ -207,7 +211,9 @@ function configureColumns() {
       key: 'status',
       label: t('approvals.colStatus'),
       // #6212 — a lead's own request with no other lead to decide it.
-      render: (row) => (row.waitingForLead ? lamp('pending', t('approvalRoles.waitingForLead')) : lamp(row.status)),
+      render: (row) => (row.waitingForLead
+        ? lamp('pending', t(row.type === 'operations_policies' ? 'approvalRoles.waitingForLeadOps' : 'approvalRoles.waitingForLead'))
+        : lamp(row.status)),
     },
   ];
   if (query.status === 'decided') {

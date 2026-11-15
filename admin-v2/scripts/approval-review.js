@@ -77,7 +77,7 @@ function subjectHref(subject, type = null, status = null) {
     // Only an approved import has a page to open (2026-11-04).
     case 'import': return status === 'approved' ? `settlement-import.html?id=${id}` : null;
     // The Global policies tab the setting lives on (2026-10-29).
-    case 'policy': return `pricing-policies.html?tab=${['balance-limit', 'payout-settings'].includes(subject.id) ? 'finance' : 'pricing'}`;
+    case 'policy': return `pricing-policies.html?tab=${['pricing', 'finance', 'operations'].includes(subject.id) ? subject.id : 'pricing'}`;
     default: return null;
   }
 }

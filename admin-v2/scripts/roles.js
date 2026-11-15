@@ -44,7 +44,8 @@ export const SCREEN_ROLES = {
   'driver-applications': OPS,
   drivers: [...OPS, ...FIN],
   riders: [...OPS, ...FIN],
-  approvals: FIN,
+  // 2026-11-15 — the Operations lead decides another Operations lead's operations-tab request.
+  approvals: [...FIN, 'ops_lead'],
   balances: ['ops_lead', ...FIN],
   payouts: FIN,
   'settlement-imports': FIN,
@@ -74,8 +75,11 @@ export const CAPABILITIES = {
   // Pricing & settings
   'zones.edit': ['ops_lead'],
   'dispatch.edit': ['ops_lead'],
+  // Operations tab of Global policies (operating hours): one request for the whole
+  // tab, decided by another Operations lead (2026-11-15).
   'hours.edit': ['ops_lead'],
-  // Rate card, commission, cancellation policy, balance limit — a lead requests them (#6212).
+  'operations.approve': ['ops_lead'],
+  // Rate card and the Pricing and Finance tabs of Global policies — a lead requests them (#6212).
   'pricing.request': ['fin_lead'],
   // Finance
   'finance.request': FIN,
@@ -84,6 +88,17 @@ export const CAPABILITIES = {
   'driver.nationalId': OPS,
   'driver.payoutMethod': FIN,
 };
+
+/** Request types an Operations lead decides; every other type is a Financial lead's (2026-11-15). */
+export const OPERATIONS_APPROVAL_TYPES = ['operations_policies'];
+
+/** The capability that decides a request of this type. */
+export function approveCapability(type) {
+  return OPERATIONS_APPROVAL_TYPES.includes(type) ? 'operations.approve' : 'finance.approve';
+}
+
+/** Whether this role decides any request at all. */
+export const isApprover = (role = currentRole()) => can('finance.approve', role) || can('operations.approve', role);
 
 /** Audit log scope (#6210): which entries each role may read. */
 export const AUDIT_SCOPE = {

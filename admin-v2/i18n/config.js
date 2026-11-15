@@ -204,9 +204,9 @@ export const en = {
     tabFinance: 'Finance',
     tabOperations: 'Operations',
     notePricing:
-      "Applies across all zones. A change waits for another Financial lead's approval; a trip already in progress keeps the values it started with. Per-zone amounts live on each zone's rate card.",
-    noteFinance: "A change waits for another Financial lead's approval. A payout batch keeps the settings it was generated with.",
-    noteOperations: 'A change applies as soon as you save it.',
+      "Applies across all zones. Saving sends the whole tab as one request for another Financial lead's approval; a trip already in progress keeps the values it started with. Per-zone amounts live on each zone's rate card.",
+    noteFinance: "Saving sends the whole tab as one request for another Financial lead's approval. A payout batch keeps the settings it was generated with.",
+    noteOperations: "Saving sends the tab as one request for another Operations lead's approval.",
     notice1: 'These policies apply across',
     notice2: 'all zones',
     notice3:
@@ -705,9 +705,9 @@ export const ar = {
     tabFinance: 'المالية',
     tabOperations: 'العمليات',
     notePricing:
-      'تنطبق على جميع المناطق. ينتظر أي تغيير موافقة رئيس فريق مالي آخر، وتحتفظ الرحلة الجارية بالقيم التي بدأت بها. تُحدد مبالغ كل منطقة في بطاقة أسعارها.',
-    noteFinance: 'ينتظر أي تغيير موافقة رئيس فريق مالي آخر. تحتفظ دفعة المدفوعات بالإعدادات التي أُنشئت بها.',
-    noteOperations: 'يُطبَّق التغيير فور حفظه.',
+      'تنطبق على جميع المناطق. يُرسَل التبويب كله عند الحفظ كطلب واحد لموافقة رئيس فريق مالي آخر، وتحتفظ الرحلة الجارية بالقيم التي بدأت بها. تُحدد مبالغ كل منطقة في بطاقة أسعارها.',
+    noteFinance: 'يُرسَل التبويب كله عند الحفظ كطلب واحد لموافقة رئيس فريق مالي آخر. تحتفظ دفعة المدفوعات بالإعدادات التي أُنشئت بها.',
+    noteOperations: 'يُرسَل التبويب عند الحفظ كطلب واحد لموافقة رئيس فريق عمليات آخر.',
     notice1: 'تنطبق هذه السياسات على',
     notice2: 'جميع المناطق',
     notice3:

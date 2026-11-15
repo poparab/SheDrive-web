@@ -448,12 +448,21 @@ APR-0019 cancellation policy change and APR-0020 balance limit change (both by N
 **Maker-checker by role (#6212).** Only a Financial lead decides, never her own request.
 A Financial officer's Approvals lists only her own requests, read-only, with no Made-by
 filter; her sidebar count is her own pending. With no other active Financial lead, a
-lead's own request shows "Waiting for another Financial lead". Commission, the
-cancellation policy and the balance limit are requests (`savePolicies` → `commission`,
-`cancellation_policy`, `balance_limit`), approved changes are audited as
-`pricing change` (before → after, #1760); operating hours save at once, Ops lead only,
-audited with old and new times (#6268). The Type filter lists all eleven types; Request
-ID and Type do not sort (#5617).
+lead's own request shows "Waiting for another Financial lead".
+
+**Global policies: one request per tab (2026-11-15, #6565 / #6567 / #6944).**
+`savePolicies({ tab, values })` sends the open tab as ONE request holding every field on
+it (`pricing_policies`, `finance_policies`, `operations_policies`; subject id
+`pricing|finance|operations`), never one per card or field. While it waits, one banner at the
+top of the tab locks the whole tab and the button ("Send for approval") is hidden.
+Pricing and Finance are a Financial lead's, decided by another Financial lead; Operations is
+the Operations lead's, decided by another Operations lead (`operations.approve`,
+`approveCapability(type)` in `roles.js`). The Operations lead opens Approvals and sees only
+operations requests (Operations area); Financial roles never see them. A second Operations
+lead, `dina.samir@shedrive.app`, is seeded so APR-0023 has someone to decide it. Seed:
+APR-0021 Pricing (Hala), 0022 Finance (Nour), 0023 Operations (Dina), 0024 approved
+Operations, 0008 rejected Pricing. Approved Pricing changes are audited as
+`pricing change` (#1760). Request ID and Type do not sort (#5617).
 
 **Admin users (#6211).** Required Role on Add; sortable Role column and role filter;
 row actions Change role, Reset password, Reset two-factor, Suspend / Unsuspend,
@@ -476,7 +485,7 @@ Product decision, ADO #5617 / #5618 / #5619 / #6486 (new), #6212, #6483, #6484.
   The batch page shows a Bank files list with a download and an approval link per file.
 - **Payout settings** (`GLOBAL_POLICIES.payout`, set in `finance-seed.js`): minimum payout,
   transfer fee per payout, who pays it (`driver` / `shedrive`). A Payouts card on
-  `pricing-policies.html`; a change is a `payout_settings` request (Payouts area). Lines below
+  `pricing-policies.html`; a change is part of the Finance tab's `finance_policies` request (Payouts area). Lines below
   the minimum are left out of a batch; every line carries `fee` / `feePaidBy`, and the bank
   file's `amount_egp` is what is sent. A batch keeps the settings it was generated with.
 - **Review cases moved** (no batch requests any more): APR-0009 rate card, 0010 fee waiver,
@@ -520,12 +529,12 @@ in substance) and `approval-reqeust.html` — **the review dialog becomes a page
 
 | Type | Its sections |
 |---|---|
-| Payout result | Result file: tiles (file total, successful, failed — amount + lines), search + result filter + Reset, lines failed first (line, driver, national ID, wallet provider / bank, number, amount, result, bank reference / reason); What approving does |
-| Settlement import | File rows: tiles (amount, in full, part paid, paid more), search + result filter, rows (row, driver, national ID, phone, amount, balance now → after, payment, result); What approving does |
-| Manual settlement | Settlement details (driver, balance now, channel, payment date, reference, note, proof); What approving does |
-| Manual payout | Payout details (driver, paid to, number, holder, reference, date, proof); Where her earnings stand (due, on hold, in a batch); What approving does |
-| Fee waiver | Fee details (rider, trip, date, route, driver, fee, owed now, reason); What approving does |
-| Payout method change | Driver (current method last updated, due, in a batch); What approving does |
+| Payout result | Result file: tiles (file total, successful, failed — amount + lines), search + result filter + Reset, lines failed first (line, driver, national ID, wallet provider / bank, number, amount, result, bank reference / reason) |
+| Settlement import | File rows: tiles (amount, in full, part paid, paid more), search + result filter, rows (row, driver, national ID, phone, amount, balance now → after, payment, result) |
+| Manual settlement | Settlement details (driver, balance now, channel, payment date, reference, note, proof) |
+| Manual payout | Payout details (driver, paid to, number, holder, reference, date, proof); Where her earnings stand (due, on hold, in a batch) |
+| Fee waiver | Fee details (rider, trip, date, route, driver, fee, owed now, reason) |
+| Payout method change | Driver (current method last updated, due, in a batch) |
 | Rate card | Where it applies (zone, zone status, applies) |
 | Commission, cancellation policy, balance limit, payout settings | Where it applies (setting, Global policies tab, applies) |
 

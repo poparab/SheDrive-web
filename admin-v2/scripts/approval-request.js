@@ -29,7 +29,7 @@ import { loadBootstrap } from './design-init.js';
 import { qs } from '../../shared/scripts/utils.js';
 import { t } from './admin-i18n.js';
 import { iconUrl } from '../components/ad-styles.js';
-import { can } from './roles.js';
+import { approveCapability, can } from './roles.js';
 import '../components/ad-data-table.js';
 import '../components/ad-stat-card.js';
 import {
@@ -134,13 +134,6 @@ function tiles(list) {
   return row;
 }
 
-/** A bulleted note — what deciding this request does. */
-function effectList(items) {
-  const ul = el('ul', 'req-effects');
-  items.forEach((text) => ul.appendChild(el('li', null, text)));
-  return ul;
-}
-
 function proofValue(proof) {
   if (!proof) return t('approvalPage.noProof');
   const name = typeof proof === 'string' ? proof : proof.name ?? t('approvalPage.proofFile');
@@ -232,7 +225,8 @@ function pagedList(spec) {
 // sections(r, ctx) the type's own section cards (and a start() for paged lists)
 // load(r)          extra context the page fetches for the type
 
-const POLICY_TAB = { commission: 'pricing', cancellation_policy: 'pricing', balance_limit: 'finance', payout_settings: 'finance' };
+// 2026-11-15 — one request per Global policies tab.
+const POLICY_TAB = { pricing_policies: 'pricing', finance_policies: 'finance', operations_policies: 'operations' };
 
 function policySections(r) {
   const tab = POLICY_TAB[r.type];
@@ -308,11 +302,7 @@ const STRUCTURE = {
           { tone: 'danger', icon: 'rejected.svg', value: formatEgp(sum(ko)), label: t('approvalPage.tileFailed'), meta: t('approvalPage.tileLines', { n: formatCount(ko.length) }) },
         ]),
         list.node);
-      return { nodes: [node, effectCard([
-        t('approvalPage.effect.payout_result_1'),
-        t('approvalPage.effect.payout_result_2'),
-        t('approvalPage.effect.payout_result_3'),
-      ])], start: list.start };
+      return { nodes: [node], start: list.start };
     },
   },
 
@@ -369,7 +359,7 @@ const STRUCTURE = {
           { tone: 'primary', icon: 'money.svg', value: n('credit'), label: t('settlementImport.statCredit') },
         ]),
         list.node);
-      return { nodes: [node, effectCard([t('approvalPage.effect.settlement_import_1'), t('approvalPage.effect.settlement_import_2')])], start: list.start };
+      return { nodes: [node], start: list.start };
     },
   },
 
@@ -388,7 +378,6 @@ const STRUCTURE = {
           [t('approvals.kvNote'), p.note || '', 'apr-long'],
           [t('approvalPage.kvProof'), proofValue(p.proof)],
         ])),
-        effectCard([t('approvalPage.effect.settlement_1'), t('approvalPage.effect.settlement_2')]),
       ];
     },
   },
@@ -399,7 +388,6 @@ const STRUCTURE = {
     sections: (r, payout) => {
       const p = r.payload ?? {};
       const m = payout?.method;
-      const pos = payout?.position;
       return [
         sectionCard(t('approvalPage.payoutTitle'), 'withdrawal-wallet.svg', kvList([
           [t('approvals.colDriver'), link(`driver-balance-details.html?id=${encodeURIComponent(r.subject.id)}`, r.subject.label)],
@@ -410,13 +398,7 @@ const STRUCTURE = {
           [t('approvals.kvPaymentDate'), p.at ? formatDateTime(p.at) : ''],
           [t('approvalPage.kvProof'), proofValue(p.proof)],
         ])),
-        pos ? sectionCard(t('approvalPage.positionTitle'), 'money.svg', tiles([
-          { tone: 'primary', icon: 'wallet-plus.svg', value: formatEgp(pos.due), label: t('approvalPage.posDue') },
-          { tone: 'warning', icon: 'stopwatch.svg', value: formatEgp(pos.onHold), label: t('approvalPage.posOnHold') },
-          { tone: 'blue', icon: 'layers.svg', value: formatEgp(pos.inBatch + pos.sent), label: t('approvalPage.posInBatch') },
-        ])) : null,
-        effectCard([t('approvalPage.effect.payout_1'), t('approvalPage.effect.payout_2')]),
-      ].filter(Boolean);
+      ];
     },
   },
 
@@ -442,24 +424,6 @@ const STRUCTURE = {
           [t('approvalPage.kvOwedNow'), rider ? egp(rider.outstanding ?? 0) : undefined],
           [t('approvals.kvReason'), p.reason ?? '', 'apr-long'],
         ])),
-        effectCard([t('approvalPage.effect.fee_waiver_1'), t('approvalPage.effect.fee_waiver_2'), t('approvalPage.effect.fee_waiver_3')]),
-      ];
-    },
-  },
-
-  payout_method: {
-    load: (r) => mockApi.getDriverPayout(r.subject.id).catch(() => null),
-    sections: (r, payout) => {
-      const pos = payout?.position;
-      const m = payout?.method;
-      return [
-        sectionCard(t('approvalPage.driverTitle'), 'profile-info.svg', kvList([
-          [t('approvals.colDriver'), link(`driver-profile.html?id=${encodeURIComponent(r.subject.id)}`, r.subject.label)],
-          [t('approvalPage.kvMethodUpdated'), m?.updatedAt ? `${formatDateTime(m.updatedAt)}${m.updatedBy ? ` · ${m.updatedBy}` : ''}` : undefined],
-          [t('approvalPage.posDue'), pos ? egp(pos.due) : undefined],
-          [t('approvalPage.posInBatch'), pos ? egp(pos.inBatch + pos.sent) : undefined],
-        ])),
-        effectCard([t('approvalPage.effect.payout_method_1'), t('approvalPage.effect.payout_method_2'), t('approvalPage.effect.payout_method_3')]),
       ];
     },
   },
@@ -475,19 +439,14 @@ const STRUCTURE = {
     ],
   },
 
-  commission: { sections: policySections },
-  cancellation_policy: { sections: policySections },
-  balance_limit: { sections: policySections },
-  payout_settings: { sections: policySections },
+  pricing_policies: { sections: policySections },
+  finance_policies: { sections: policySections },
+  operations_policies: { sections: policySections },
 };
 
 function egpSigned(value) {
   const n = Number(value) || 0;
   return ltr(`${n < 0 ? '−' : ''}${money(Math.abs(n))} ${t('common.egp')}`);
-}
-
-function effectCard(items) {
-  return sectionCard(t('approvalPage.effectTitle'), 'review-list.svg', effectList(items));
 }
 
 /** The lines of the one file a payout result answers, failed first. */
@@ -514,6 +473,11 @@ function setHeading(r) {
   document.title = `${t('shell.brand')} — ${r.id}`;
 }
 
+/** The role note for this request: an operations request names the Operations lead (2026-11-15). */
+function roleText(key, type) {
+  return t(`approvalRoles.${approveCapability(type) === 'operations.approve' ? `${key}Ops` : key}`);
+}
+
 function standing(r) {
   const nodes = [];
   if (r.status === 'approved') {
@@ -522,12 +486,12 @@ function standing(r) {
     const text = el('p');
     text.append(document.createTextNode(t('approvalPage.rejectedBanner', { name: r.checker ?? '', at: formatDateTime(r.decidedAt) })), el('br'), el('strong', null, r.rejectReason ?? ''));
     nodes.push(alertBox('danger', text));
-  } else if (!can('finance.approve')) {
-    nodes.push(alertBox('info', r.waitingForLead ? t('approvalRoles.waitingForLead') : t('approvalRoles.officerReadOnly')));
+  } else if (!can(approveCapability(r.type))) {
+    nodes.push(alertBox('info', r.waitingForLead ? roleText('waitingForLead', r.type) : roleText('officerReadOnly', r.type)));
   } else if (r.waitingForLead) {
-    nodes.push(alertBox('warning', `${t('approvalRoles.waitingForLead')}. ${t('approvalRoles.waitingForLeadMeta')}`));
+    nodes.push(alertBox('warning', `${roleText('waitingForLead', r.type)}. ${roleText('waitingForLeadMeta', r.type)}`));
   } else if (r.madeByYou || !r.canDecide) {
-    nodes.push(alertBox('info', t('approvalRoles.madeByYouLead')));
+    nodes.push(alertBox('info', roleText('madeByYouLead', r.type)));
   }
   return nodes;
 }
@@ -539,7 +503,7 @@ function requestCard(r, ctx) {
     [t('approvals.kvAmount'), r.amount === null || r.amount === undefined ? undefined : egp(r.amount)],
     [t('approvalPage.kvCreatedBy'), who(r.maker, r.madeAt, r.madeByYou)],
     ...(spec.details?.(r, ctx) ?? []),
-    [t('approvals.kvStatus'), r.waitingForLead ? lamp('pending', t('approvalRoles.waitingForLead')) : lamp(r.status)],
+    [t('approvals.kvStatus'), r.waitingForLead ? lamp('pending', roleText('waitingForLead', r.type)) : lamp(r.status)],
     [t('approvals.kvCheckedBy'), r.status !== 'pending' ? (r.checker ? ltr(r.checker) : '') : undefined],
     [t('approvals.kvDecidedAt'), r.status !== 'pending' ? formatDateTime(r.decidedAt) : undefined],
   ];
@@ -556,7 +520,7 @@ function actionBar(r) {
   const bar = qs('#req-actions');
   bar.replaceChildren();
   bar.hidden = true;
-  if (r.status !== 'pending' || !can('finance.approve')) return;
+  if (r.status !== 'pending' || !can(approveCapability(r.type))) return;
   const approve = kitButton(t('approvalPage.approve'), 'btn-success d-flex', 'fa-solid fa-check');
   const reject = kitButton(t('approvalPage.reject'), 'btn-danger d-flex', 'fa-solid fa-xmark');
   approve.id = 'req-approve';

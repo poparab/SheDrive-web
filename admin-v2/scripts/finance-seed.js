@@ -36,6 +36,8 @@ const NOUR = byEmail('nour.hassan@shedrive.app');
 const HALA = byEmail('hala.mahmoud@shedrive.app');
 const MONA = byEmail('mona.adel@shedrive.app');
 const FIN_OFFICER = byEmail('finance@shedrive.app');
+const OPS_LEAD = byEmail('ops.lead@shedrive.app');
+const OPS_LEAD_2 = byEmail('dina.samir@shedrive.app');
 
 // Own deterministic stream, so the base seed's sequence is untouched.
 let s = 20261014;
@@ -588,12 +590,11 @@ export const APPROVAL_TYPES = [
   'settlement',
   'settlement_import',
   'fee_waiver',
-  'payout_method',
   'rate_card',
-  'commission',
-  'cancellation_policy',
-  'balance_limit',
-  'payout_settings',
+  // 2026-11-15 — one request per Global policies tab, never per card or field.
+  'pricing_policies',
+  'finance_policies',
+  'operations_policies',
 ];
 
 /**
@@ -601,10 +602,10 @@ export const APPROVAL_TYPES = [
  * by it today; once Finance and Pricing approvers are split, a role presets it.
  */
 export const APPROVAL_AREAS = {
-  payouts: ['payout_result', 'payout', 'settlement', 'settlement_import', 'payout_settings'],
+  payouts: ['payout_result', 'payout', 'settlement', 'settlement_import', 'finance_policies'],
   fees: ['fee_waiver'],
-  pricing: ['rate_card', 'commission', 'cancellation_policy', 'balance_limit'],
-  drivers: ['payout_method'],
+  pricing: ['rate_card', 'pricing_policies'],
+  operations: ['operations_policies'],
 };
 
 export const nextApprovalId = () =>
@@ -634,6 +635,25 @@ export function makeApproval(type, subject, { before = null, after = null, amoun
   };
 }
 
+// ── Global policies tabs (2026-11-15) ─────────────────
+// A request covers one whole tab: before/after hold every field on it, so the
+// request page diffs the tab and marks the fields that changed.
+const strip = ({ updatedAt, updatedBy, ...rest }) => rest;
+export const POLICY_SUBJECT = {
+  pricing: { kind: 'policy', id: 'pricing', label: 'Global policies — Pricing' },
+  finance: { kind: 'policy', id: 'finance', label: 'Global policies — Finance' },
+  operations: { kind: 'policy', id: 'operations', label: 'Global policies — Operations' },
+};
+export const pricingTab = () => ({ ...strip(GLOBAL_POLICIES.cancellation), percentage: GLOBAL_POLICIES.commission.percentage });
+export const financeTab = () => ({ outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit, ...strip(GLOBAL_POLICIES.payout) });
+export const operationsTab = () => ({ opensAt: GLOBAL_POLICIES.operatingHours.opensAt, closesAt: GLOBAL_POLICIES.operatingHours.closesAt });
+export function splitPricing({ percentage, ...cancellation }) {
+  return { commission: { percentage }, cancellation };
+}
+export function splitFinance({ outstandingLimit, ...payout }) {
+  return { driverBalance: { outstandingLimit }, payout };
+}
+
 export const APPROVALS = [];
 {
   // A generated batch needs no approval (2026-10-29); each method's result file does.
@@ -658,12 +678,15 @@ export const APPROVALS = [];
     }));
   });
 
-  APPROVALS.push(makeApproval('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
-    before: { percentage: GLOBAL_POLICIES.commission.percentage }, after: { percentage: 20 },
-    payload: { percentage: 20 },
-    maker: NOUR.email, madeAt: NOW - 6 * DAY, status: 'rejected', checker: HALA.email,
-    decidedAt: NOW - 6 * DAY + 4 * HOUR, rejectReason: 'Commission stays at 18% until the quarterly review.',
-  }));
+  {
+    const before = pricingTab();
+    const after = { ...before, percentage: 20 };
+    APPROVALS.push(makeApproval('pricing_policies', POLICY_SUBJECT.pricing, {
+      before, after, payload: splitPricing(after),
+      maker: NOUR.email, madeAt: NOW - 6 * DAY, status: 'rejected', checker: HALA.email,
+      decidedAt: NOW - 6 * DAY + 4 * HOUR, rejectReason: 'Commission stays at 18% until the quarterly review.',
+    }));
+  }
 
   // Pending — made by other admins, so the signed-in admin can check them.
   const zone = ZONES.find((z) => z.rateCard);
@@ -730,49 +753,44 @@ export const APPROVALS = [];
     }));
   }
 
-  const switching = DRIVERS.find((d) => d.status === 'approved' && d.payoutMethod?.type === 'MOBILE_WALLET' && d.id !== payoutDriver?.id);
-  if (switching) {
-    const m = switching.payoutMethod;
-    const method = { type: 'BANK_ACCOUNT', provider: 'CIB', holderName: switching.name, number: `EG${digits2(27)}` };
-    APPROVALS.push(makeApproval('payout_method', { kind: 'driver', id: String(switching.id), label: switching.name }, {
-      before: { type: m.type, provider: m.provider ?? '—', number: m.number, holderName: m.holderName },
-      after: { type: method.type, provider: method.provider, number: method.number, holderName: method.holderName },
-      payload: { driverId: String(switching.id), method },
-      maker: MONA.email, madeAt: NOW - 55 * MINUTE,
-    }));
-  }
+  // 2026-11-15 (#5624) — a payout method edit applies at once, so there is no
+  // payout method request. Its slot is kept so the ids after it don't shift.
+  APPROVALS.push({ id: nextApprovalId(), reserved: true });
 
-  APPROVALS.push(makeApproval('commission', { kind: 'policy', id: 'commission', label: 'Platform commission' }, {
-    before: { percentage: GLOBAL_POLICIES.commission.percentage },
-    after: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
-    payload: { percentage: GLOBAL_POLICIES.commission.percentage + 1 },
-    maker: HALA.email, madeAt: NOW - 4 * HOUR,
-  }));
-
-  // #6212 — the cancellation policy and the balance limit wait for approval too.
+  // 2026-11-15 — one request per Global policies tab. Four slots keep every id
+  // after them as it was: Pricing, Finance and Operations pending, then an
+  // approved Operations change from last week.
   {
-    const { updatedAt, updatedBy, ...current } = GLOBAL_POLICIES.cancellation;
-    const next = { ...current, driverCancellationFee: current.driverCancellationFee + 5 };
-    APPROVALS.push(makeApproval('cancellation_policy', { kind: 'policy', id: 'cancellation', label: 'Cancellation policy' }, {
-      before: current, after: next, payload: { cancellation: next },
-      maker: NOUR.email, madeAt: NOW - 70 * MINUTE,
+    const before = pricingTab();
+    const after = { ...before, percentage: before.percentage + 1, driverCancellationFee: before.driverCancellationFee + 5 };
+    APPROVALS.push(makeApproval('pricing_policies', POLICY_SUBJECT.pricing, {
+      before, after, payload: splitPricing(after),
+      maker: HALA.email, madeAt: NOW - 4 * HOUR,
     }));
   }
   {
-    const current = { outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit };
-    const next = { outstandingLimit: current.outstandingLimit + 100 };
-    APPROVALS.push(makeApproval('balance_limit', { kind: 'policy', id: 'balance-limit', label: 'Driver balance limit' }, {
-      before: current, after: next, payload: { driverBalance: next },
+    const before = financeTab();
+    const after = { ...before, outstandingLimit: before.outstandingLimit + 100, minimumAmount: 150, feePaidBy: 'shedrive' };
+    APPROVALS.push(makeApproval('finance_policies', POLICY_SUBJECT.finance, {
+      before, after, payload: splitFinance(after),
       maker: NOUR.email, madeAt: NOW - 35 * MINUTE,
     }));
   }
-  // 2026-10-29 — a payout settings change: SheDrive takes over the transfer fee.
   {
-    const { updatedAt, updatedBy, ...current } = GLOBAL_POLICIES.payout;
-    const next = { ...current, minimumAmount: 150, feePaidBy: 'shedrive' };
-    APPROVALS.push(makeApproval('payout_settings', { kind: 'policy', id: 'payout-settings', label: 'Payout settings' }, {
-      before: current, after: next, payload: { payout: next },
-      maker: HALA.email, madeAt: NOW - 20 * MINUTE,
+    const before = operationsTab();
+    const after = { ...before, closesAt: '22:00' };
+    APPROVALS.push(makeApproval('operations_policies', POLICY_SUBJECT.operations, {
+      before, after, payload: { operatingHours: after },
+      maker: OPS_LEAD_2.email, madeAt: NOW - 20 * MINUTE,
+    }));
+  }
+  {
+    const after = operationsTab();
+    const before = { ...after, opensAt: '08:00' };
+    APPROVALS.push(makeApproval('operations_policies', POLICY_SUBJECT.operations, {
+      before, after, payload: { operatingHours: after },
+      maker: OPS_LEAD.email, madeAt: NOW - 8 * DAY, status: 'approved', checker: OPS_LEAD_2.email,
+      decidedAt: NOW - 8 * DAY + 2 * HOUR,
     }));
   }
 
@@ -787,6 +805,7 @@ export const APPROVALS = [];
     }));
   }
 
+  APPROVALS.splice(0, APPROVALS.length, ...APPROVALS.filter((a) => !a.reserved));
   APPROVALS.sort((a, b) => b.madeAt - a.madeAt);
 }
 

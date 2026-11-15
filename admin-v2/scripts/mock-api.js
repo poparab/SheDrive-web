@@ -75,8 +75,14 @@ import {
   makeBatchRef,
   makeLine,
   nextImportId,
+  POLICY_SUBJECT,
+  pricingTab,
+  financeTab,
+  operationsTab,
+  splitPricing,
+  splitFinance,
 } from './finance-seed.js';
-import { can, AUDIT_SCOPE } from './roles.js';
+import { can, approveCapability, AUDIT_SCOPE, OPERATIONS_APPROVAL_TYPES } from './roles.js';
 import { adminAuth } from './admin-auth.js';
 
 // Replay this session's recorded actions onto the seed before any screen reads
@@ -742,15 +748,6 @@ const EXECUTE = {
     }
     makeAuditEntry('fee waived', 'rider', rider.id, { fee: -fee.amount }, { fee: 0, entry: fee.id });
   },
-  payout_method(request) {
-    const driver = DRIVERS_BY_ID.get(request.payload.driverId);
-    if (!driver) return;
-    driver.payoutMethod = { ...request.payload.method, updatedAt: Date.now(), updatedBy: request.maker };
-    // A new method answers the failed-payout warning (§3).
-    driver.lastPayoutFailure = null;
-    patch('drivers', driver.id, { payoutMethod: driver.payoutMethod, lastPayoutFailure: null });
-    makeAuditEntry('payout method changed', 'driver', driver.id, { type: request.before.type ?? '—' }, { type: driver.payoutMethod.type });
-  },
   rate_card(request) {
     const zone = ZONES_BY_ID.get(request.payload.zoneId);
     if (!zone) return;
@@ -759,39 +756,32 @@ const EXECUTE = {
     patch('zones', zone.id, { rateCard: zone.rateCard });
     pricingAudit(request);
   },
-  commission(request) {
-    Object.assign(GLOBAL_POLICIES.commission, {
-      percentage: request.payload.percentage,
-      updatedAt: Date.now(),
-      updatedBy: request.maker,
-    });
+  // 2026-11-15 — one request per Global policies tab; approving it saves the whole tab.
+  pricing_policies(request) {
+    const { commission, cancellation } = request.payload;
+    const stamp = { updatedAt: Date.now(), updatedBy: request.maker };
+    Object.assign(GLOBAL_POLICIES.commission, commission, stamp);
+    Object.assign(GLOBAL_POLICIES.cancellation, cancellation, stamp);
     recordPolicies(structuredClone(GLOBAL_POLICIES));
     pricingAudit(request);
   },
-  cancellation_policy(request) {
-    Object.assign(GLOBAL_POLICIES.cancellation, request.payload.cancellation, {
-      updatedAt: Date.now(),
-      updatedBy: request.maker,
-    });
+  // The balance limit applies at once; payout settings apply to the next batch generated.
+  finance_policies(request) {
+    const { driverBalance, payout } = request.payload;
+    const stamp = { updatedAt: Date.now(), updatedBy: request.maker };
+    Object.assign(GLOBAL_POLICIES.driverBalance, driverBalance, stamp);
+    Object.assign(GLOBAL_POLICIES.payout, payout, stamp);
     recordPolicies(structuredClone(GLOBAL_POLICIES));
-    pricingAudit(request);
+    makeAuditEntry('finance policies changed', 'policy', 'finance', request.before, { ...request.after, request: request.id, requestedBy: request.maker });
   },
-  balance_limit(request) {
-    Object.assign(GLOBAL_POLICIES.driverBalance, request.payload.driverBalance, {
+  // Applies to the next ride request (#1785).
+  operations_policies(request) {
+    Object.assign(GLOBAL_POLICIES.operatingHours, request.payload.operatingHours, {
       updatedAt: Date.now(),
       updatedBy: request.maker,
     });
     recordPolicies(structuredClone(GLOBAL_POLICIES));
-    pricingAudit(request);
-  },
-  // 2026-10-29 — applies to the next batch generated; batches already made keep theirs.
-  payout_settings(request) {
-    Object.assign(GLOBAL_POLICIES.payout, request.payload.payout, {
-      updatedAt: Date.now(),
-      updatedBy: request.maker,
-    });
-    recordPolicies(structuredClone(GLOBAL_POLICIES));
-    makeAuditEntry('payout settings changed', 'policy', 'payout-settings', request.before, { ...request.after, request: request.id, requestedBy: request.maker });
+    makeAuditEntry('operating hours changed', 'policy', 'operations', request.before, { ...request.after, request: request.id, requestedBy: request.maker });
   },
 };
 
@@ -823,9 +813,19 @@ const ON_REJECT = {
   },
 };
 
-/** True when an active Financial lead other than `email` exists to decide her request (#6212). */
-function otherLeadExists(email) {
-  return ADMINS.some((a) => a.status === 'active' && a.role === 'fin_lead' && a.email !== email);
+/** The lead role that decides a request of this type (2026-11-15). */
+const deciderRole = (type) => (OPERATIONS_APPROVAL_TYPES.includes(type) ? 'ops_lead' : 'fin_lead');
+const deciderName = (type) => (deciderRole(type) === 'ops_lead' ? 'Operations' : 'Financial');
+
+/** True when an active lead of the deciding role, other than `email`, exists to decide her request (#6212). */
+function otherLeadExists(email, type) {
+  const role = deciderRole(type);
+  return ADMINS.some((a) => a.status === 'active' && a.role === role && a.email !== email);
+}
+
+/** The request types this role sees in Approvals: an Operations lead sees only operations requests. */
+function visibleTypes(role) {
+  return role === 'ops_lead' ? OPERATIONS_APPROVAL_TYPES : APPROVAL_TYPES.filter((type) => !OPERATIONS_APPROVAL_TYPES.includes(type));
 }
 
 function decorateRequest(r) {
@@ -834,10 +834,10 @@ function decorateRequest(r) {
   return {
     ...r,
     madeByYou: r.maker === me.email,
-    // #6212 — only a Financial lead decides, and never her own request.
-    canDecide: pending && r.maker !== me.email && can('finance.approve', me.role),
-    // No other active Financial lead can decide it: it stays pending.
-    waitingForLead: pending && !otherLeadExists(r.maker),
+    // #6212 — only a lead of the deciding role decides, and never her own request.
+    canDecide: pending && r.maker !== me.email && can(approveCapability(r.type), me.role),
+    // No other active lead of that role can decide it: it stays pending.
+    waitingForLead: pending && !otherLeadExists(r.maker, r.type),
   };
 }
 
@@ -1844,98 +1844,65 @@ export const mockApi = {
   getPolicies() {
     const payload = {
       ...structuredClone(GLOBAL_POLICIES),
-      // A commission change waits for approval (§1); the screen shows it as pending.
-      pendingCommission: pendingSummary(pendingFor('policy', 'commission', 'commission')),
-      pendingCancellation: pendingSummary(pendingFor('policy', 'cancellation', 'cancellation_policy')),
-      pendingBalanceLimit: pendingSummary(pendingFor('policy', 'balance-limit', 'balance_limit')),
-      pendingPayoutSettings: pendingSummary(pendingFor('policy', 'payout-settings', 'payout_settings')),
+      // 2026-11-15 — one pending request per tab locks that whole tab.
+      pending: {
+        pricing: pendingSummary(pendingFor('policy', 'pricing', 'pricing_policies')),
+        finance: pendingSummary(pendingFor('policy', 'finance', 'finance_policies')),
+        operations: pendingSummary(pendingFor('policy', 'operations', 'operations_policies')),
+      },
     };
     return respond(payload, { emptyValue: payload });
   },
 
   /**
-   * #5623 / #6212: commission, the cancellation policy and the driver balance
-   * limit each become a request a Financial lead makes and another approves —
-   * nothing changes until then. Operating hours (#6268) save immediately and
-   * are the Operations lead's. Every part is checked against the role first, so
-   * a mixed save never half-applies.
+   * 2026-11-15 — a save sends the open Global policies tab as ONE request,
+   * however many of its fields changed: Pricing (cancellation policy +
+   * commission) and Finance (balance limit + payout settings) are a Financial
+   * lead's and another Financial lead decides; Operations (operating hours) is
+   * the Operations lead's and another Operations lead decides. Nothing changes
+   * until the request is approved.
+   *
+   * { tab: 'pricing'|'finance'|'operations', values: { every field on the tab } }
    */
-  savePolicies(next) {
-    const role = actingAdmin().role;
-    const wantsPricing = Boolean(next.commission || next.cancellation || next.driverBalance || next.payout);
-    if ((wantsPricing && !can('pricing.request', role)) || (next.operatingHours && !can('hours.edit', role))) {
-      return Promise.reject(new MockApiError("Your role can't do this. Nothing was changed.", 403));
-    }
+  savePolicies({ tab, values } = {}) {
+    const SPEC = {
+      pricing: { capability: 'pricing.request', type: 'pricing_policies', current: pricingTab, split: splitPricing },
+      finance: { capability: 'pricing.request', type: 'finance_policies', current: financeTab, split: splitFinance },
+      operations: { capability: 'hours.edit', type: 'operations_policies', current: operationsTab, split: (v) => ({ operatingHours: v }) },
+    }[tab];
+    if (!SPEC) return Promise.reject(new MockApiError('Unknown policies tab.', 422));
+    const refused = refusedFor(SPEC.capability);
+    if (refused) return refused;
 
-    const strip = ({ updatedAt, updatedBy, ...rest }) => rest;
-    const changes = [];
-    if (next.commission && Number(next.commission.percentage) !== Number(GLOBAL_POLICIES.commission.percentage)) {
-      const percentage = Number(next.commission.percentage);
-      changes.push(['commission', 'commission', 'Platform commission',
-        { percentage: GLOBAL_POLICIES.commission.percentage }, { percentage }, { percentage }]);
-    }
-    if (next.cancellation) {
-      const before = strip(GLOBAL_POLICIES.cancellation);
-      const after = { ...before, ...next.cancellation };
-      if (Object.keys(after).some((k) => Number(after[k]) !== Number(before[k]))) {
-        changes.push(['cancellation_policy', 'cancellation', 'Cancellation policy', before, after, { cancellation: after }]);
-      }
-    }
-    if (next.driverBalance && Number(next.driverBalance.outstandingLimit) !== Number(GLOBAL_POLICIES.driverBalance.outstandingLimit)) {
-      const before = { outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit };
-      const after = { outstandingLimit: Number(next.driverBalance.outstandingLimit) };
-      changes.push(['balance_limit', 'balance-limit', 'Driver balance limit', before, after, { driverBalance: after }]);
-    }
-    if (next.payout) {
-      // 2026-10-29 — minimum payout, transfer fee and who pays it, one request.
-      const before = strip(GLOBAL_POLICIES.payout);
-      const after = {
-        minimumAmount: Number(next.payout.minimumAmount),
-        feePercent: Number(next.payout.feePercent),
-        feeMin: Number(next.payout.feeMin),
-        feeMax: Number(next.payout.feeMax),
-        feePaidBy: next.payout.feePaidBy,
-      };
-      const { minimumAmount, feePercent, feeMin, feeMax, feePaidBy } = after;
-      if (!(minimumAmount >= 0) || !(feePercent >= 0 && feePercent <= 100) || !(feeMin >= 0) || !(feeMax >= feeMin)
-        || !['driver', 'shedrive'].includes(feePaidBy)) {
-        return Promise.reject(new MockApiError('Check the payout settings.', 422));
+    const before = SPEC.current();
+    const after = { ...before };
+    Object.keys(before).forEach((key) => {
+      if (values?.[key] === undefined) return;
+      after[key] = typeof before[key] === 'number' ? Number(values[key]) : values[key];
+    });
+
+    if (tab === 'finance') {
+      const { minimumAmount, feePercent, feeMin, feeMax, feePaidBy, outstandingLimit } = after;
+      if (!(outstandingLimit >= 0) || !(minimumAmount >= 0) || !(feePercent >= 0 && feePercent <= 100) || !(feeMin >= 0)
+        || !(feeMax >= feeMin) || !['driver', 'shedrive'].includes(feePaidBy)) {
+        return Promise.reject(new MockApiError('Check the Finance settings.', 422));
       }
       if (feePaidBy === 'driver' && minimumAmount <= transferFeeFor(minimumAmount, after)) {
         return Promise.reject(new MockApiError('When the driver pays the fee, the minimum payout must be more than the fee on it.', 422));
       }
-      if (Object.keys(after).some((k) => String(after[k]) !== String(before[k]))) {
-        changes.push(['payout_settings', 'payout-settings', 'Payout settings', before, after, { payout: after }]);
-      }
     }
-    const busy = changes.find(([type, id]) => pendingFor('policy', id, type));
-    if (busy) {
-      return Promise.reject(new MockApiError('A change to this setting is already awaiting approval.', 409));
+    if (tab === 'operations' && !(after.closesAt > after.opensAt)) {
+      return Promise.reject(new MockApiError('Closing time must be after opening time.', 422));
     }
-    const requests = changes.map(([type, id, label, before, after, payload]) =>
-      createRequest(type, { kind: 'policy', id, label }, { before, after, payload }),
-    );
 
-    // Operating hours apply on save, with no approval (#6268), and are audited.
-    if (next.operatingHours) {
-      const before = { opensAt: GLOBAL_POLICIES.operatingHours.opensAt, closesAt: GLOBAL_POLICIES.operatingHours.closesAt };
-      const after = { opensAt: next.operatingHours.opensAt, closesAt: next.operatingHours.closesAt };
-      if (before.opensAt !== after.opensAt || before.closesAt !== after.closesAt) {
-        Object.assign(GLOBAL_POLICIES.operatingHours, after, {
-          updatedAt: Date.now(),
-          updatedBy: actingAdmin().email,
-        });
-        makeAuditEntry('operating hours changed', 'policy', 'operating-hours', before, after);
-      }
+    if (Object.keys(after).every((key) => String(after[key]) === String(before[key]))) {
+      return respond({ ok: true, pending: false, request: null });
     }
-    recordPolicies(structuredClone(GLOBAL_POLICIES));
-    const decorated = requests.map(decorateRequest);
-    return respond({
-      ok: true,
-      pending: decorated.length > 0,
-      requests: decorated,
-      request: decorated[0] ?? null,
-    });
+    if (pendingFor('policy', tab, SPEC.type)) {
+      return Promise.reject(new MockApiError('A change to this tab is already awaiting approval.', 409));
+    }
+    const request = createRequest(SPEC.type, POLICY_SUBJECT[tab], { before, after, payload: SPEC.split(after) });
+    return respond({ ok: true, pending: true, request: decorateRequest(request) });
   },
 
   // ── Driver balance ledger (#TBD-A / #1813) ──────────
@@ -2190,7 +2157,8 @@ export const mockApi = {
     const me = actingAdmin();
     // #6212 — a Financial officer's count is her own pending requests.
     const ownOnly = me.role === 'fin_officer';
-    return APPROVALS.filter((a) => a.status === 'pending' && (!ownOnly || a.maker === me.email)).length;
+    const types = visibleTypes(me.role);
+    return APPROVALS.filter((a) => a.status === 'pending' && types.includes(a.type) && (!ownOnly || a.maker === me.email)).length;
   },
 
   /**
@@ -2203,7 +2171,9 @@ export const mockApi = {
     // #6212 — a Financial officer sees only her own requests.
     if (actingAdmin().role === 'fin_officer') madeBy = 'mine';
     const areaTypes = APPROVAL_AREAS[area] ?? null;
-    const rows = APPROVALS.filter((a) => (status === 'pending' ? a.status === 'pending' : a.status !== 'pending'))
+    const types = visibleTypes(actingAdmin().role);
+    const rows = APPROVALS.filter((a) => types.includes(a.type))
+      .filter((a) => (status === 'pending' ? a.status === 'pending' : a.status !== 'pending'))
       .filter((a) => madeBy === 'all' || (madeBy === 'mine' ? a.maker === me : a.maker !== me))
       .filter((a) => !areaTypes || areaTypes.includes(a.type))
       .filter((a) => type === 'all' || a.type === type)
@@ -2214,11 +2184,12 @@ export const mockApi = {
   },
 
   approvalTypes() {
-    return APPROVAL_TYPES.slice();
+    return visibleTypes(actingAdmin().role).slice();
   },
 
   approvalAreas() {
-    return Object.keys(APPROVAL_AREAS);
+    const types = visibleTypes(actingAdmin().role);
+    return Object.keys(APPROVAL_AREAS).filter((area) => APPROVAL_AREAS[area].some((type) => types.includes(type)));
   },
 
   getApproval(id) {
@@ -2247,16 +2218,16 @@ export const mockApi = {
   },
 
   approveRequest(id) {
-    const refused = refusedFor('finance.approve');
-    if (refused) return refused;
     const request = APPROVALS_BY_ID.get(String(id));
     if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
+    const refused = refusedFor(approveCapability(request.type));
+    if (refused) return refused;
     if (request.status !== 'pending') {
       return Promise.reject(new MockApiError('This request has already been decided.', 409));
     }
     const actor = actingAdmin();
     if (request.maker === actor.email) {
-      return Promise.reject(new MockApiError('You made this request, so another Financial lead must approve it.', 403));
+      return Promise.reject(new MockApiError(`You made this request, so another ${deciderName(request.type)} lead must approve it.`, 403));
     }
     EXECUTE[request.type]?.(request);
     patchApproval(request, { status: 'approved', checker: actor.email, decidedAt: Date.now() });
@@ -2265,16 +2236,16 @@ export const mockApi = {
   },
 
   rejectRequest(id, reason) {
-    const refused = refusedFor('finance.approve');
-    if (refused) return refused;
     const request = APPROVALS_BY_ID.get(String(id));
     if (!request) return Promise.reject(new MockApiError('Request not found.', 404));
+    const refused = refusedFor(approveCapability(request.type));
+    if (refused) return refused;
     if (request.status !== 'pending') {
       return Promise.reject(new MockApiError('This request has already been decided.', 409));
     }
     const actor = actingAdmin();
     if (request.maker === actor.email) {
-      return Promise.reject(new MockApiError('You made this request, so another Financial lead must decide it.', 403));
+      return Promise.reject(new MockApiError(`You made this request, so another ${deciderName(request.type)} lead must decide it.`, 403));
     }
     const text = String(reason ?? '').trim();
     if (text.length < 10 || text.length > 500) {
@@ -2299,7 +2270,7 @@ export const mockApi = {
     return respond(payload, { emptyValue: payload, latency: 120 });
   },
 
-  /** The driver's payout method (number in full), last failure, and any pending admin edit. */
+  /** The driver's payout method (number in full) and last failure. */
   getDriverPayout(driverId) {
     const driver = DRIVERS_BY_ID.get(String(driverId));
     if (!driver) return Promise.reject(new MockApiError('Driver not found.', 404));
@@ -2307,13 +2278,12 @@ export const mockApi = {
     return respond({
       method: m ? { type: m.type, provider: m.provider, holderName: m.holderName, number: m.number, updatedAt: m.updatedAt, updatedBy: m.updatedBy } : null,
       lastFailure: driver.lastPayoutFailure ?? null,
-      pendingChange: pendingSummary(pendingFor('driver', driver.id, 'payout_method')),
       position: payoutPosition(driver),
-    }, { emptyValue: { method: null, lastFailure: null, pendingChange: null, position: { due: 0, onHold: 0, inBatch: 0, sent: 0 } } });
+    }, { emptyValue: { method: null, lastFailure: null, position: { due: 0, onHold: 0, inBatch: 0, sent: 0 } } });
   },
 
-  /** An admin editing it on her behalf is a request (§2); her own change in the app is not. */
-  requestPayoutMethodChange(driverId, method) {
+  /** 2026-11-15 (#5624) — a Financial officer or lead edits it on her behalf; it applies at once, no approval. */
+  updateDriverPayoutMethod(driverId, method) {
     const refused = refusedFor('finance.request');
     if (refused) return refused;
     const driver = DRIVERS_BY_ID.get(String(driverId));
@@ -2326,17 +2296,13 @@ export const mockApi = {
     };
     const error = validatePayoutMethod(clean);
     if (error) return Promise.reject(new MockApiError(error, 422));
-    if (pendingFor('driver', driver.id, 'payout_method')) {
-      return Promise.reject(new MockApiError('A payout method change for this driver is already awaiting approval.', 409));
-    }
-    const m = driver.payoutMethod;
-    const request = createRequest('payout_method', { kind: 'driver', id: String(driver.id), label: driver.name }, {
-      // The review diffs every field of the method, so both sides carry all four.
-      before: m ? { type: m.type, provider: m.provider ?? '—', number: m.number, holderName: m.holderName } : {},
-      after: { type: clean.type, provider: clean.provider ?? '—', number: clean.number, holderName: clean.holderName },
-      payload: { driverId: String(driver.id), method: clean },
-    });
-    return respond({ ok: true, pending: true, request: decorateRequest(request) });
+    const beforeType = driver.payoutMethod?.type ?? '—';
+    driver.payoutMethod = { ...clean, updatedAt: Date.now(), updatedBy: actingAdmin().email };
+    // A new method answers the failed-payout warning (§3).
+    driver.lastPayoutFailure = null;
+    patch('drivers', driver.id, { payoutMethod: driver.payoutMethod, lastPayoutFailure: null });
+    makeAuditEntry('payout method changed', 'driver', driver.id, { type: beforeType }, { type: driver.payoutMethod.type });
+    return respond({ ok: true, method: { ...driver.payoutMethod } });
   },
 
   // ── Payout batches (§3) ─────────────────────────────

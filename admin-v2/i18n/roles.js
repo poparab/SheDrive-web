@@ -66,6 +66,13 @@ export const en = {
       'You see the requests you made. A Financial lead approves or rejects them; you can follow their status here.',
     hint:
       'Every finance request waits here until a Financial lead approves or rejects it. Nothing changes and nothing is posted to a ledger until it is approved. A lead never decides her own request.',
+    // 2026-11-15 — an Operations tab change of Global policies is decided by another Operations lead.
+    hintOps:
+      'A change to the Operations tab of Global policies waits here until another Operations lead approves or rejects it. Nothing changes until it is approved. A lead never decides her own request.',
+    waitingForLeadOps: 'Waiting for another Operations lead',
+    waitingForLeadMetaOps: 'No other active Operations lead can decide it, so it stays pending until one is added.',
+    madeByYouLeadOps: 'You made this request — another Operations lead must decide it.',
+    officerReadOnlyOps: 'Only an Operations lead approves or rejects this request.',
   },
 };
 
@@ -128,5 +135,11 @@ export const ar = {
     officerQueueNote: 'تظهر لك الطلبات التي قدّمتها. يعتمدها رئيس فريق مالي أو يرفضها، ويمكنك متابعة حالتها هنا.',
     hint:
       'ينتظر كل طلب مالي هنا حتى يعتمده رئيس فريق مالي أو يرفضه. لا يتغير شيء ولا يُسجَّل أي قيد قبل الاعتماد. لا يقرر رئيس الفريق في طلبه هو.',
+    hintOps:
+      'ينتظر أي تغيير في تبويب العمليات بالسياسات العامة هنا حتى يعتمده رئيس فريق عمليات آخر أو يرفضه. لا يتغير شيء قبل الاعتماد. لا يقرر رئيس الفريق في طلبه هو.',
+    waitingForLeadOps: 'في انتظار رئيس فريق عمليات آخر',
+    waitingForLeadMetaOps: 'لا يوجد رئيس فريق عمليات نشط آخر ليقرر فيه، لذا يبقى معلّقًا حتى تتم إضافة واحد.',
+    madeByYouLeadOps: 'أنت من قدّم هذا الطلب — يجب أن يقرر فيه رئيس فريق عمليات آخر.',
+    officerReadOnlyOps: 'رئيس فريق العمليات وحده يعتمد هذا الطلب أو يرفضه.',
   },
 };

@@ -12,7 +12,7 @@
 
 import { adminAuth } from './admin-auth.js';
 import { mockApi } from './mock-api.js';
-import { approvalHref, wireInPlaceApprovals } from './approval-review.js';
+import { wireInPlaceApprovals } from './approval-review.js';
 import { createRequestGuard } from './request-guard.js';
 import { REASON_LISTS } from './seed.js';
 import {
@@ -730,27 +730,14 @@ async function loadPayout(driver) {
       ),
     );
   }
-  if (payout.pendingChange) {
-    const p = payout.pendingChange;
-    notices.appendChild(
-      kitAlert(
-        'warning',
-        'fa-hourglass-half',
-        t('driverPayout.pendingHeading'),
-        t('driverPayout.pendingMeta', { who: p.maker, when: formatDateTime(p.madeAt) }),
-        { href: approvalHref(p.id), label: t('driverPayout.viewRequest') },
-      ),
-    );
-  }
   notices.hidden = !notices.childNodes.length;
 
-  // An admin edit is a request (§1); one pending request per driver.
+  // 2026-11-15 (#5624) — a Financial officer's or lead's edit applies on save, no approval.
   const editable = ['approved', 'suspended', 'pending_suspension', 'pending'].includes(driver.status);
-  // #6210 — a Financial officer or lead requests the edit; nobody else sees the button.
+  // Only a Financial officer or lead edits it; nobody else sees the button.
   payoutEditBtn.hidden = !editable || !can('finance.request');
   payoutHint.hidden = !can('finance.request');
-  payoutEditBtn.disabled = Boolean(payout.pendingChange);
-  payoutHint.textContent = payout.pendingChange ? t('driverPayout.editLockedHint') : t('driverPayout.editHint');
+  payoutHint.textContent = t('driverPayout.editHint');
 
   const pos = payout.position;
   qs('#payout-position').items = [
@@ -875,7 +862,7 @@ function currentMethodNotice() {
 }
 
 payoutEditBtn.addEventListener('click', async () => {
-  if (!currentDriver || currentPayout?.pendingChange) return;
+  if (!currentDriver) return;
   const driver = currentDriver;
   const result = await kitForm({
     icon: 'wallet.svg',
@@ -884,7 +871,7 @@ payoutEditBtn.addEventListener('click', async () => {
     intro: t('driverPayout.chooseDescription'),
     notice: currentMethodNotice(),
     fields: payoutFields,
-    confirm: { variant: 'btn-success', icon: 'fa-paper-plane', label: t('driverPayout.sendForApproval') },
+    confirm: { variant: 'btn-success', icon: 'fa-check', label: t('driverPayout.save') },
     cancel: { icon: 'fa-xmark', label: t('common.cancel') },
     onConfirm: async (values) => {
       // Each type has its own field keys, so switching type never carries a
@@ -894,7 +881,7 @@ payoutEditBtn.addEventListener('click', async () => {
         BANK_ACCOUNT: { provider: values.bank, number: values.accountNumber },
         PREPAID_CARD: { provider: null, number: values.cardNumber },
       }[values.type];
-      const response = await mockApi.requestPayoutMethodChange(driver.id, {
+      const response = await mockApi.updateDriverPayoutMethod(driver.id, {
         type: values.type,
         provider: byType.provider || null,
         // A wallet carries no holder field; the data layer defaults it to her name.
@@ -906,13 +893,9 @@ payoutEditBtn.addEventListener('click', async () => {
     },
   });
   if (!result) return;
-  const requestId = result.request?.id;
   await kitResult({
-    title: t('kitPeople.payoutSentTitle'),
-    text: t('driverPayout.toastSent'),
-    link: requestId
-      ? { href: approvalHref(requestId), label: t('driverPayout.viewRequest') }
-      : null,
+    title: t('kitPeople.payoutSavedTitle'),
+    text: t('driverPayout.toastSaved'),
   });
 });
 
