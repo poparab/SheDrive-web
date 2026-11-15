@@ -225,18 +225,6 @@ function pagedList(spec) {
 // sections(r, ctx) the type's own section cards (and a start() for paged lists)
 // load(r)          extra context the page fetches for the type
 
-// 2026-11-15 — one request per Global policies tab.
-const POLICY_TAB = { pricing_policies: 'pricing', finance_policies: 'finance', operations_policies: 'operations' };
-
-function policySections(r) {
-  const tab = POLICY_TAB[r.type];
-  return [sectionCard(t('approvalPage.whereTitle'), 'policies.svg', kvList([
-    [t('approvalPage.kvSetting'), subjectLink(r.subject, r.type, r.status)],
-    [t('approvalPage.kvTab'), link(`pricing-policies.html?tab=${tab}`, t(`approvalPage.tab_${tab}`))],
-    [t('approvalPage.kvApplies'), t(`approvalPage.applies.${r.type}`), 'apr-long'],
-  ]))];
-}
-
 const RESULT_FILTER = (labelKey) => ({
   label: t(labelKey),
   options: [['all', t('approvals.linesAllResults')], ['FAILED', t('approvals.resultFailed')], ['SUCCESS', t('approvals.resultSuccess')]],
@@ -439,9 +427,9 @@ const STRUCTURE = {
     ],
   },
 
-  pricing_policies: { sections: policySections },
-  finance_policies: { sections: policySections },
-  operations_policies: { sections: policySections },
+  pricing_policies: {},
+  finance_policies: {},
+  operations_policies: {},
 };
 
 function egpSigned(value) {
