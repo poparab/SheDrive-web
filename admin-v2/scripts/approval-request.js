@@ -416,17 +416,9 @@ const STRUCTURE = {
     },
   },
 
-  rate_card: {
-    load: (r) => mockApi.getZone(r.subject.id).catch(() => null),
-    sections: (r, zone) => [
-      sectionCard(t('approvalPage.whereTitle'), 'location.svg', kvList([
-        [t('approvalPage.kvZone'), link('pricing-zones.html', r.subject.label)],
-        [t('approvalPage.kvZoneStatus'), zone?.status ? t(`approvalPage.zoneStatus.${zone.status}`) : undefined],
-        [t('approvalPage.kvApplies'), t('approvalPage.applies.rate_card'), 'apr-long'],
-      ])),
-    ],
-  },
-
+  // 2026-11-15 — no "Where it applies" card: Subject already links the zone,
+  // and Before → After shows every changed field.
+  rate_card: {},
   pricing_policies: {},
   finance_policies: {},
   operations_policies: {},
