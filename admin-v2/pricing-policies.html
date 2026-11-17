@@ -153,6 +153,25 @@
                 </div>
               </section>
             </div>
+            <!-- #7037 — pickup geofence: how close a driver must be before "I've Arrived" (#4093); same tab request -->
+            <div class="col-lg-12 col-xl-6">
+              <section class="standard-card-theme2 white-bg h-100" id="geofence-card" aria-labelledby="geofence-heading">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h5 id="geofence-heading" data-i18n="policies.geofenceHeading">Pickup geofence</h5>
+                    <span id="geofence-meta"></span>
+                  </div>
+                  <div class="icon"><img src="vendor/icons/location-checked.svg" alt="" /></div>
+                </div>
+                <div class="card-body">
+                  <div id="geofence-fields"></div>
+                  <p class="small mb-0" data-i18n="policies.geofenceNote">
+                    Straight-line distance from the pickup point. The driver app reads it each time a trip heads to
+                    pickup; without it the app uses 150 m.
+                  </p>
+                </div>
+              </section>
+            </div>
           </div>
         </section>
 

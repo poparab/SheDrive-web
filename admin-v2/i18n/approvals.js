@@ -136,7 +136,7 @@ export const en = {
       rate_card: "On approval the zone's rate card is saved.",
       pricing_policies: 'On approval the whole Pricing tab is saved: the cancellation policy and the platform commission.',
       finance_policies: 'On approval the whole Finance tab is saved: the driver balance limit and the payout settings.',
-      operations_policies: 'On approval the whole Operations tab is saved: the operating hours.',
+      operations_policies: 'On approval the whole Operations tab is saved: the operating hours and the pickup geofence.',
     },
 
     // Before → after field labels
@@ -175,6 +175,7 @@ export const en = {
       feePaidBy: 'Transfer fee paid by',
       opensAt: 'Opens at (Cairo time)',
       closesAt: 'Closes at (Cairo time)',
+      pickupGeofenceMeters: 'Pickup geofence — accepted distance (m)',
     },
     feePaidBy: { driver: 'The driver', shedrive: 'SheDrive' },
     removedValue: 'Removed',
@@ -401,7 +402,7 @@ export const ar = {
       rate_card: 'عند الموافقة تُحفظ بطاقة أسعار المنطقة.',
       pricing_policies: 'عند الموافقة يُحفظ تبويب التسعير كاملًا: سياسة الإلغاء وعمولة المنصة.',
       finance_policies: 'عند الموافقة يُحفظ تبويب المالية كاملًا: حد رصيد السائقة وإعدادات المدفوعات.',
-      operations_policies: 'عند الموافقة يُحفظ تبويب العمليات كاملًا: ساعات العمل.',
+      operations_policies: 'عند الموافقة يُحفظ تبويب العمليات كاملًا: ساعات العمل ونطاق الوصول إلى نقطة الالتقاء.',
     },
 
     field: {
@@ -439,6 +440,7 @@ export const ar = {
       feePaidBy: 'من يدفع رسوم التحويل',
       opensAt: 'يفتح الساعة (بتوقيت القاهرة)',
       closesAt: 'يغلق الساعة (بتوقيت القاهرة)',
+      pickupGeofenceMeters: 'نطاق الوصول — المسافة المقبولة (م)',
     },
     feePaidBy: { driver: 'السائقة', shedrive: 'شي درايف' },
     removedValue: 'محذوفة',

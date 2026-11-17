@@ -356,6 +356,13 @@ export const GLOBAL_POLICIES = {
     updatedAt: NOW - 3 * DAY,
     updatedBy: ADMINS[0].email,
   },
+  // #7037 — how close (meters, straight line) a driver must be to the pickup
+  // point before "I've Arrived" is enabled (#4093). 50–300, default 150.
+  pickupGeofence: {
+    pickupGeofenceMeters: 150,
+    updatedAt: NOW - 3 * DAY,
+    updatedBy: ADMINS[0].email,
+  },
   driverBalance: {
     // 0 disables the go-online block entirely (#TBD-F)
     outstandingLimit: 500,

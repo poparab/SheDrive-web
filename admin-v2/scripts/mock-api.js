@@ -81,6 +81,7 @@ import {
   operationsTab,
   splitPricing,
   splitFinance,
+  splitOperations,
 } from './finance-seed.js';
 import { can, approveCapability, AUDIT_SCOPE, OPERATIONS_APPROVAL_TYPES } from './roles.js';
 import { adminAuth } from './admin-auth.js';
@@ -776,10 +777,10 @@ const EXECUTE = {
   },
   // Applies to the next ride request (#1785).
   operations_policies(request) {
-    Object.assign(GLOBAL_POLICIES.operatingHours, request.payload.operatingHours, {
-      updatedAt: Date.now(),
-      updatedBy: request.maker,
-    });
+    const stamp = { updatedAt: Date.now(), updatedBy: request.maker };
+    Object.assign(GLOBAL_POLICIES.operatingHours, request.payload.operatingHours, stamp);
+    // #7037 — the driver app reads the approved distance from the next trip on.
+    if (request.payload.pickupGeofence) Object.assign(GLOBAL_POLICIES.pickupGeofence, request.payload.pickupGeofence, stamp);
     recordPolicies(structuredClone(GLOBAL_POLICIES));
     makeAuditEntry('operating hours changed', 'policy', 'operations', request.before, { ...request.after, request: request.id, requestedBy: request.maker });
   },
@@ -1868,7 +1869,7 @@ export const mockApi = {
     const SPEC = {
       pricing: { capability: 'pricing.request', type: 'pricing_policies', current: pricingTab, split: splitPricing },
       finance: { capability: 'pricing.request', type: 'finance_policies', current: financeTab, split: splitFinance },
-      operations: { capability: 'hours.edit', type: 'operations_policies', current: operationsTab, split: (v) => ({ operatingHours: v }) },
+      operations: { capability: 'hours.edit', type: 'operations_policies', current: operationsTab, split: splitOperations },
     }[tab];
     if (!SPEC) return Promise.reject(new MockApiError('Unknown policies tab.', 422));
     const refused = refusedFor(SPEC.capability);
@@ -1893,6 +1894,10 @@ export const mockApi = {
     }
     if (tab === 'operations' && !(after.closesAt > after.opensAt)) {
       return Promise.reject(new MockApiError('Closing time must be after opening time.', 422));
+    }
+    const meters = after.pickupGeofenceMeters;
+    if (tab === 'operations' && !(Number.isInteger(meters) && meters >= 50 && meters <= 300)) {
+      return Promise.reject(new MockApiError('Enter a value from 50 to 300 meters.', 422));
     }
 
     if (Object.keys(after).every((key) => String(after[key]) === String(before[key]))) {

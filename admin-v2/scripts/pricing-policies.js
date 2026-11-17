@@ -245,7 +245,23 @@ const HOURS_FIELDS = [
   },
 ];
 
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+/** #7037 — pickup geofence: accepted distance for "I've Arrived" (#4093). */
+const GEOFENCE_FIELDS = [
+  {
+    key: 'pickupGeofenceMeters',
+    label: t('policies.geofenceLabel'),
+    unit: t('policies.unitMeters'),
+    hint: t('policies.geofenceHint'),
+    integer: true,
+    min: 50,
+    max: 300,
+    emptyError: t('policies.geofenceEmpty'),
+    invalidError: t('policies.geofenceInvalid'),
+    rangeError: t('policies.geofenceRange'),
+  },
+];
+
+const TIME_PATTERN =/^([01]\d|2[0-3]):[0-5]\d$/;
 
 let policies;
 
@@ -376,6 +392,7 @@ let commissionControl = null;
 let balanceControls = [];
 let payoutControls = [];
 let hoursControls = [];
+let geofenceControls = [];
 
 function lastChanged(section) {
   return t('policies.lastChanged', { when: formatDateTime(section.updatedAt), who: section.updatedBy });
@@ -412,6 +429,11 @@ function render() {
   qs('#hours-meta').textContent = lastChanged(policies.operatingHours);
   renderHoursStatus();
 
+  const geofenceHost = qs('#geofence-fields');
+  geofenceHost.textContent = '';
+  geofenceControls = GEOFENCE_FIELDS.map((spec) => renderField(geofenceHost, spec, policies.pickupGeofence[spec.key]));
+  qs('#geofence-meta').textContent = lastChanged(policies.pickupGeofence);
+
   qs('#cancel-meta').textContent = lastChanged(policies.cancellation);
   qs('#commission-meta').textContent = lastChanged(policies.commission);
   qs('#balance-meta').textContent = lastChanged(policies.driverBalance);
@@ -428,7 +450,7 @@ function render() {
 function tabControls(tab) {
   if (tab === 'pricing') return [...cancellationControls, commissionControl];
   if (tab === 'finance') return [...balanceControls, ...payoutControls];
-  return hoursControls;
+  return [...hoursControls, ...geofenceControls];
 }
 
 /** A section this role cannot change is read-only (inputs read-only, never a button). */
@@ -568,7 +590,7 @@ const valueOf = (c) => (c.spec.type === 'select' || c.spec.type === 'time' ? c.i
 function savedValues(tab) {
   if (tab === 'pricing') return { ...policies.cancellation, percentage: policies.commission.percentage };
   if (tab === 'finance') return { ...policies.driverBalance, ...policies.payout };
-  return policies.operatingHours;
+  return { ...policies.operatingHours, ...policies.pickupGeofence };
 }
 
 const errorBox = qs('#policies-error');
@@ -584,7 +606,7 @@ qs('#policies-form').addEventListener('submit', async (event) => {
   const results = controls.map(validate);
   if (!results.includes(false)) {
     if (tab === 'finance' && !validatePayoutOrder()) results[balanceControls.length] = false;
-    if (tab === 'operations' && !validateHoursOrder()) results[results.length - 1] = false;
+    if (tab === 'operations' && !validateHoursOrder()) results[hoursControls.length - 1] = false;
   }
   if (results.includes(false)) {
     const firstInvalid = controls.find((c) => c.input.getAttribute('aria-invalid') === 'true') ?? controls[results.indexOf(false)];
@@ -666,6 +688,10 @@ function revertFinance() {
 function revertOperations() {
   hoursControls.forEach((c) => {
     c.input.value = policies.operatingHours[c.spec.key];
+    clearError(c);
+  });
+  geofenceControls.forEach((c) => {
+    c.input.value = policies.pickupGeofence[c.spec.key];
     clearError(c);
   });
 }

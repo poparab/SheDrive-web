@@ -646,7 +646,15 @@ export const POLICY_SUBJECT = {
 };
 export const pricingTab = () => ({ ...strip(GLOBAL_POLICIES.cancellation), percentage: GLOBAL_POLICIES.commission.percentage });
 export const financeTab = () => ({ outstandingLimit: GLOBAL_POLICIES.driverBalance.outstandingLimit, ...strip(GLOBAL_POLICIES.payout) });
-export const operationsTab = () => ({ opensAt: GLOBAL_POLICIES.operatingHours.opensAt, closesAt: GLOBAL_POLICIES.operatingHours.closesAt });
+export const operationsTab = () => ({
+  opensAt: GLOBAL_POLICIES.operatingHours.opensAt,
+  closesAt: GLOBAL_POLICIES.operatingHours.closesAt,
+  pickupGeofenceMeters: GLOBAL_POLICIES.pickupGeofence.pickupGeofenceMeters,
+});
+// #7037 — the Operations tab holds the operating hours and the pickup geofence.
+export function splitOperations({ pickupGeofenceMeters, ...operatingHours }) {
+  return { operatingHours, pickupGeofence: { pickupGeofenceMeters } };
+}
 export function splitPricing({ percentage, ...cancellation }) {
   return { commission: { percentage }, cancellation };
 }
@@ -778,9 +786,10 @@ export const APPROVALS = [];
   }
   {
     const before = operationsTab();
-    const after = { ...before, closesAt: '22:00' };
+    // #7037 Scenario 1 — the geofence goes in the same request as the hours.
+    const after = { ...before, closesAt: '22:00', pickupGeofenceMeters: 200 };
     APPROVALS.push(makeApproval('operations_policies', POLICY_SUBJECT.operations, {
-      before, after, payload: { operatingHours: after },
+      before, after, payload: splitOperations(after),
       maker: OPS_LEAD_2.email, madeAt: NOW - 20 * MINUTE,
     }));
   }
@@ -788,7 +797,7 @@ export const APPROVALS = [];
     const after = operationsTab();
     const before = { ...after, opensAt: '08:00' };
     APPROVALS.push(makeApproval('operations_policies', POLICY_SUBJECT.operations, {
-      before, after, payload: { operatingHours: after },
+      before, after, payload: splitOperations(after),
       maker: OPS_LEAD.email, madeAt: NOW - 8 * DAY, status: 'approved', checker: OPS_LEAD_2.email,
       decidedAt: NOW - 8 * DAY + 2 * HOUR,
     }));
